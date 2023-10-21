@@ -1,0 +1,82 @@
+.UserFriendCodesPage {
+	.Section {
+		.UserFriendCodesPage_rating {
+			.UserFriendCodesPage_ratingOptions {
+				@include responsive(1rem) {
+					@include grid($col-width: 20rem);
+				}
+			}
+		}
+
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+		}
+	}
+}
+
+.FriendCode {
+	.FriendCode_links {
+		@include links(95px);
+	}
+}
+
+.FriendCodesPage {
+	.Section {
+		.FriendCodesPage_addUser {
+			.FriendCodesPage_addUserOptions {
+				@include responsive(1rem) {
+					@include grid($col-width: 20rem);
+				}
+			}
+		}
+
+		.FriendCodesPage_by {
+			display: flex;
+			justify-content: space-evenly;
+
+			.FriendCodesPage_sort, .FriendCodesPage_group {
+				display: flex;
+				justify-content: center;
+				align-items: baseline;
+
+				.FriendCodesPage_sortLink, .FriendCodesPage_groupLink {
+					padding: px2rem(2px);
+				}
+
+				.FriendCodesPage_sortLink.selected, .FriendCodesPage_groupLink.selected {
+					color: red;
+				}
+			}
+		}
+
+		.FriendCodesPage_codes {
+			.FriendCodesPage_game {
+				.FriendCodesPage_button {
+					@extend .GenericSearchButton;
+
+					width: 1.625rem;
+				}
+			}
+
+			.Grid {
+				@include responsive(1rem) {
+					@include grid($col-width: 15rem);
+				}
+
+				margin-top: px2rem(5px);
+
+				> div {
+					@extend .GenericInnerSection;
+				}
+
+				.FriendCodesPage_gridGame {
+					.FriendCode_name {
+						display: none;
+					}
+				}
+			}
+		}
+	}
+}

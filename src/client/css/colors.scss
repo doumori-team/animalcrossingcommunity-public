@@ -1,0 +1,73 @@
+/* colors.scss
+ *
+ * A central place to put all colours used, so they can be referred to by name
+ * elsewhere (makes for easy changing in future).
+ *
+ * Try to minimise the number of hex codes specified. Either re-use a colour
+ * from somewhere else in the site, or adjust one with built-in functions like
+ * lighten(). This improves visual consistency across the site.
+ */
+
+/* These are colours we've picked more or less at random - they may
+ * need to be revisited later if necessary */
+$color-signature-background: #eee8e2;
+$color-signature-text: #5a5551;
+$color-footer-background: #7f6435;
+
+$color-admin: hsl(0, 70%, 50%);
+$color-mod: hsl(220, 65%, 55%);
+$color-scout: hsl(265, 65%, 55%);
+$color-researcher: hsl(100, 45%, 45%);
+$color-dev: hsl(30, 70%, 50%);
+
+$color-message-error: hsl(60, 100%, 75%);
+$color-message-success: hsl(120, 100%, 75%);
+$color-message-info: hsl(180, 100%, 75%);
+
+// Other pages colors
+$background-image: url("/images/layout/wood.png");
+$background-header-image: url("/images/layout/trees.png");
+$color-interface-background: #f7f4e5;
+$color-interface-foreground: #4c3e35;
+
+// Avatar colors (single)
+$color-avatar-black: hsl(0, 0%, 0%);
+$color-avatar-blue: hsl(228, 100%, 50%);
+$color-avatar-brown: hsl(40, 99%, 27%);
+$color-avatar-burgundy: hsl(344, 100%, 25%);
+$color-avatar-buttercup: hsl(48, 100%, 50%);
+$color-avatar-dark-green: hsl(120, 100%, 25%);
+$color-avatar-grape: hsl(255, 100%, 69%);
+$color-avatar-grapefruit: hsl(4, 92%, 59%);
+$color-avatar-graphite: hsl(0, 0%, 36%);
+$color-avatar-gray: hsl(200, 19%, 58%);
+$color-avatar-green: hsl(117, 100%, 50%);
+$color-avatar-hot-pink: hsl(335, 100%, 50%);
+$color-avatar-indigo: hsl(263, 90%, 27%);
+$color-avatar-light-blue: hsl(200, 87%, 75%);
+$color-avatar-magenta: hsl(303, 100%, 50%);
+$color-avatar-mint: hsl(147, 70%, 55%);
+$color-avatar-mocha: hsl(28, 59%, 40%);
+$color-avatar-orange: hsl(27, 100%, 50%);
+$color-avatar-pastel-pink: hsl(0, 100%, 81%);
+$color-avatar-pink: hsl(339, 100%, 63%);
+$color-avatar-purple: hsl(272, 67%, 50%);
+$color-avatar-red: hsl(0, 100%, 50%);
+$color-avatar-teal: hsl(189, 100%, 40%);
+$color-avatar-yellow: hsl(60, 100%, 50%);
+$color-avatar-white: hsl(360, 100%, 100%);
+
+// Avatar colors (gradient)
+$color-avatar-alien: linear-gradient(to bottom, hsl(128, 100%, 37%), hsl(213, 95%, 35%));
+$color-avatar-aqua: linear-gradient(to bottom, hsl(191, 100%, 50%), hsl(215, 65%, 53%));
+$color-avatar-deep-sea: radial-gradient(circle at 0% 0%,hsl(237, 99%, 50%), hsl(118, 100%, 6%));
+$color-avatar-flare: radial-gradient(circle at 50% 100%, hsl(40, 100%, 50%), hsl(0, 100%, 50%));
+$color-avatar-frost: radial-gradient(hsl(203, 94%, 54%), hsl(206, 100%, 92%));
+$color-avatar-fruity: linear-gradient(45deg, hsl(141, 81%, 48%), hsl(41, 88%, 50%), hsla(0, 88%, 61%));
+$color-avatar-gold: linear-gradient(to right, hsl(47, 45%, 63%) 0%, hsl(44, 100%, 72%) 55%, hsl(43, 40%, 42%) 95%, hsl(42, 68%, 22%) 100%);
+$color-avatar-halloween: radial-gradient(at 0% 0%, hsl(18, 91%, 55%) 0% 5%, hsl(244, 100%, 3%) 75%, hsl(276, 53%, 47%) 90% 100%);
+$color-avatar-lemon-lime: radial-gradient(circle at 0% 0%, hsl(59, 89%, 62%) 0% 40%, hsl(141, 55%, 40%));
+$color-avatar-lemon-drop: linear-gradient(hsl(54, 100%, 66%), hsl(34, 98%, 64%));
+$color-avatar-lilac: linear-gradient(45deg, hsl(238, 100%, 71%), hsl(295, 100%, 84%));
+$color-avatar-sunrise: linear-gradient(hsl(55,94%,62%), hsl(23, 99%, 60%));
+$color-avatar-twilight: linear-gradient(to bottom, hsl(238, 100%, 44%), hsl(290, 100%, 56%));

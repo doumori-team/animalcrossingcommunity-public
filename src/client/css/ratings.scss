@@ -1,0 +1,49 @@
+.UserGivenRatingsPage, .UserReceivedRatingsPage {
+	.Header {
+		.TotalRatings {
+			text-align: center;
+		}
+	}
+
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+		}
+	}
+}
+
+.Rating {
+	@extend .GenericInnerSection;
+
+	.Rating_links {
+		@include links(205px);
+	}
+
+	.Rating_rating, .Rating_comment, .Rating_user, .Rating_lastUpdated {
+		label {
+			font-weight: bold;
+		}
+	}
+
+	.Rating_rating {
+		display: flex;
+
+		img {
+			align-self: center;
+		}
+	}
+}
+
+.TotalRatings {
+	.capitalize {
+		text-transform: capitalize;
+	}
+}
+
+.Header {
+	.TotalRatings {
+		@extend .HeaderText;
+	}
+}

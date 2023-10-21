@@ -1,0 +1,230 @@
+.AvatarSettingsPage_form {
+	text-align: center;
+
+	.Avatar {
+		float: none;
+	}
+
+	.Tab_buttons {
+		justify-content: center;
+	}
+}
+
+.AvatarSettingsPage_mainPortal {
+	@include contentbox($background: var(--seasonal-color));
+	@include inset-text;
+	padding: px2rem(16px);
+	border-radius: px2rem(20px);
+	margin-bottom: px2rem(10px);
+	display: inline-block;
+}
+
+.AvatarSettingsPage_avatarPreviews {
+	text-align: center;
+}
+
+.AvatarSettingsPage_avatarContainer {
+	display: inline-block;
+	margin: px2rem(5px);
+	font-size: 1.17em;
+	font-weight: bold;
+	
+	.Avatar {
+		margin: auto;
+	}
+}
+
+.AvatarSettingsPage_toolbar {
+	label {
+		font-size: 1.17em;
+		font-weight: bold;
+		margin-right: px2rem(5px);
+	}
+
+	.Switch {
+		justify-content: center;
+	}
+}
+
+.AvatarSettingsPage_submitButton {
+	@include button;
+	text-align: center;
+	background: var(--seasonal-color-dark);
+}
+
+.AvatarSelector {
+	@include contentbox($background-image: $background-image);
+	text-align: center;
+
+	> .Select-multiple {
+		margin: 8px;
+	}
+}
+
+.AvatarSelector_colorationContainer {
+	@include contentbox($background: var(--seasonal-color));
+	padding: px2rem(3px) px2rem(6px) px2rem(3px) px2rem(6px);
+	margin: px2rem(5px);
+	display: flex;
+	max-width: 170px;
+
+	label {
+		@include inset-text;
+		margin-right: px2rem(6px);
+	}
+}
+
+.AvatarSelector_accentOptionContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	
+	label {
+		text-shadow: -1px -1px rgb(0 0 0 / 10%);
+		font-weight: bold;
+		margin-right: px2rem(6px);
+	}
+}
+
+.AvatarSelector_noAccent {
+	margin: px2rem(5px);
+	padding: px2rem(5px);
+	text-align: left;
+
+	> label {
+		@include contentbox($background: var(--seasonal-color-dark));
+		cursor: pointer;
+		display: inline-block;
+		padding: px2rem(5px);
+
+		&[data-selected='true'] {
+			background: var(--seasonal-color);
+		}
+
+		&:hover, &:focus {
+			background: var(--seasonal-color-light);
+		}
+
+		input {
+			cursor: pointer;
+		}
+
+		label {
+			@include inset-text;
+			display: inline-block;
+		}
+	}
+}
+
+.AvatarSelector_optionContainer {
+	height: px2rem(415px);
+	overflow: auto;
+	margin: px2rem(5px) px2rem(10px);
+	background: white;
+	border-radius: 0.3333em;
+}
+
+.AvatarSelectorOption {
+	@include contentbox($background: var(--seasonal-color-dark));
+	@include inset-text;
+	margin: px2rem(5px);
+	display: inline-flex;
+	width: px2rem(315px);
+	padding: px2rem(6px);
+	text-align: left;
+
+	label {
+		cursor: pointer;
+
+		.Avatar {
+			float: none;
+		}
+	}
+
+	&:hover, &:focus {
+		background: var(--seasonal-color-light);
+	}
+
+	input[type='radio'] {
+		display: none;
+	}
+}
+
+.AvatarSelectorOption-inactive {
+	display: none;
+}
+
+.AvatarSelectorOption-selected {
+	background-color: var(--seasonal-color);
+}
+
+.AvatarSelectorOption_elementContainer {
+	display: inline-block;
+	vertical-align: middle;
+
+	.Avatar {
+		float: none;
+	}
+}
+
+.AvatarSelectorOption_elementContainer[data-element-type='character'],
+ .AvatarSelectorOption_elementContainer[data-element-type='accent'] {
+	.Avatar {
+		background: #e0dada;
+	}
+}
+
+@include responsive(48rem) {
+	.AvatarSelector_optionContainer {
+		height: auto;
+		background: none;
+	}
+
+	.AvatarSelectorOption {
+		display: inline-flex;
+		justify-content: center;
+   	 	width: px2rem(150px);
+		height: px2rem(230px);
+		min-width: auto;
+		text-align: center;    
+	}
+
+	.AvatarSelectorOption-inactive {
+		display: none;
+	}
+
+	.AvatarSelectorOption-selected {
+		background-color: var(--seasonal-color);
+	}
+}
+
+.ForumSettingsPage .Markup {
+	background-color: $color-signature-background;
+
+	.spoiler {
+		color: $color-signature-background;
+	}
+}
+
+.AvatarSettingsPage_links {
+	@include links(125px);
+}
+
+.AvatarPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 10rem);
+			}
+
+			.AvatarPage_avatar {
+				padding: 1rem;
+				@include contentbox($background: white);
+
+				.AvatarPage_links {
+					@include links(125px);
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,57 @@
+.Poll {
+	.Markup {
+		font-size: 0.9em;
+	}
+
+	.PollQuestion {
+		font-size: 1.2em;
+		font-weight: bold;
+		word-break: break-word;
+	}
+
+	.PollOptionDescription {
+		width: 60%;
+		font-weight: bold;
+		word-break: break-word;
+	}
+
+	.PollOptionDescription.Voted {
+		display: inline-block;
+	}
+
+	.PollOptionVotes {
+		width: 40%;
+		display: inline-block;
+
+		font-size: 0.7em;
+		font-style: italic;
+		text-align: right;
+		white-space: pre;
+	}
+
+	.PollOptionResult_meter {
+		width: 100%;
+		margin: 0 0.5em 1em 0;
+
+		background: none;
+		background-color: var(--seasonal-color-light);
+		box-shadow: 0 5px 5px -5px #EEE inset;
+		border-radius: 5px;
+	}
+
+	.PollOptionResult_meter::-webkit-meter-bar {
+		background: none;
+		background-color: var(--seasonal-color-light);
+		box-shadow: 0 5px 5px -5px #EEE inset;
+		border-radius: 2px;
+	}
+
+	.PollOptionResult_meter::-webkit-meter-optimum-value {
+		background: var(--seasonal-color-dark);
+		border-radius: 2px;
+	}
+
+	.PollOptionResult_meter:-moz-meter-optimum::-moz-meter-bar {
+	  background: var(--seasonal-color-dark);
+	}
+}

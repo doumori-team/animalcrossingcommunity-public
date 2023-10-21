@@ -1,0 +1,429 @@
+.AdminRulesPage {
+	.AdminRulesPage_rule {
+		@extend .GenericInnerSection;
+
+		.AdminRulesPage_links {
+			@include links(130px);
+		}
+
+		.AdminRulesPage_ruleInfo {
+			@include responsive(40rem) {
+				@include grid($col-width: 30rem);
+			}
+
+			.AdminRulesPage_currentRule, .AdminRulesPage_pendingRule, .AdminRulesPage_pendingViolation {
+				&.AdminRulesPage_newRule, &.AdminRulesPage_newViolation {
+					color: #080;
+				}
+
+				&.AdminRulesPage_expiredRule, &.AdminRulesPage_expiredViolation > span {
+					color: #f00;
+					text-decoration: line-through;
+				}
+
+				.AdminRulesPage_modifiedRule, .AdminRulesPage_modifiedViolation {
+					color: #00f
+				}
+			}
+
+			.AdminRulesPage_pendingViolation {
+				color: #bbb;
+			}
+		}
+	}
+}
+
+.EditRule, .EditViolation {
+	@extend .GenericInnerSection;
+
+	textarea {
+		height: 10em;
+	}
+}
+
+.AdminProfanityPage {
+	.AdminProfanityPage_words  {
+		@include responsive(1rem) {
+			@include grid($col-width: 18rem);
+		}
+
+		.AdminProfanityPage_word {
+			@extend .GenericInnerSection;
+
+			.AdminProfanityPage_wordLinks {
+				@include links(100px);
+			}
+		}
+	}
+}
+
+.UserTicketDashboardPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+		}
+	}
+
+	.UserTicketDashboardPage_userTicket {
+		@include contentbox($background: white);
+		padding: 1rem;
+		font-size: px2rem(14px);
+
+		.UserTicketDashboardPage_userTicketId {
+			a {
+				color: #8ab4f8;
+				text-decoration: underline;
+			}
+		}
+	}
+}
+
+.UserTicketPage {
+	.Tabs {
+		padding-top: px2rem(20px);
+	}
+
+	.UserTicketPage_info, .UserTicketPage_chat, .UserTicketPage_complete {
+		@extend .GenericSection;
+	}
+
+	.UserTicketPage_referenceUrl {
+		img {
+			max-width: 45%;
+			image-rendering: -moz-crisp-edges;
+			min-width: 45%;
+		}
+	}
+
+	.UserTicketPage_chat {
+		.UserTicketPage_messages {
+			margin-bottom: px2rem(30px);
+
+			> .UserTicketPage_message {
+				@extend .GenericInnerSection;
+
+				margin-top: 5px;
+				margin-bottom: 5px;
+
+				&.staff {
+					background-color: #ddf;
+				}
+
+				.UserTicketPage_messageHeader {
+					display: flex;
+					justify-content: space-between;
+
+					.UserTicketPage_move button {
+						@extend .GenericSubmitButton;
+						padding: .3em .6em;
+					}
+				}
+
+				.UserTicketPage_message {
+					word-break: break-word;
+				}
+			}
+		}
+	}
+
+	.UserTicketPage_complete {
+		.UserTicketPage_modifyButtons {
+			button {
+				@extend .GenericSubmitButton;
+			}
+		}
+
+		.severity {
+			font-weight: normal;
+		}
+	}
+}
+
+.AdminPermissionPage {
+	.AdminPermissionsPage_chooseUserGroup {
+		.AdminPermissionsPage_userGroups {
+			.AdminPermissionsPage_userGroup {
+				list-style-type: disc;
+				list-style-position: inside;
+
+				.selected {
+					color: red;
+				}
+			}
+
+			.AdminPermissionsPage_userGroup.indent_1 {
+				padding-left: px2rem(5px);
+			}
+
+			.AdminPermissionsPage_userGroup.indent_2 {
+				padding-left: px2rem(10px);
+			}
+
+			.AdminPermissionsPage_userGroup.indent_3 {
+				padding-left: px2rem(15px);
+			}
+
+			.AdminPermissionsPage_userGroup.indent_4 {
+				padding-left: px2rem(20px);
+			}
+
+			.AdminPermissionsPage_userGroup.indent_5 {
+				padding-left: px2rem(25px);
+			}
+		}
+	}
+}
+
+.Permission_permissions {
+	.Permission_sitePermissions {
+		.Permission_sitePermission {
+			@extend .GenericBoolCheckbox;
+			padding-bottom: px2rem(3px);
+			--active: var(--seasonal-color-dark);
+		}
+	}
+
+	.Permission_forumPermissions {
+		display: table;
+
+		.Permission_forumPermissionTypes {
+			display: table-row;
+
+			.Permission_forumPermissionType {
+				display: table-cell;
+
+				padding-left: px2rem(10px);
+				padding-right: px2rem(10px);
+			}
+		}
+
+		.Permission_forumPermission {
+			display: table-row;
+
+			.Permission_forumPermissionName {
+				display: table-cell;
+			}
+
+			.Permission_forumPermissionGranted {
+				@extend .GenericBoolCheckbox;
+
+				display: table-cell;
+
+				padding-left: px2rem(10px);
+				padding-right: px2rem(10px);
+				padding-bottom: px2rem(3px);
+
+				--active: var(--seasonal-color-dark);
+			}
+		}
+
+		.Permission_forumPermission.indent_1 .Permission_forumPermissionName {
+			padding-left: px2rem(5px);
+		}
+
+		.Permission_forumPermission.indent_2 .Permission_forumPermissionName {
+			padding-left: px2rem(10px);
+		}
+
+		.Permission_forumPermission.indent_3 .Permission_forumPermissionName {
+			padding-left: px2rem(15px);
+		}
+
+		.Permission_forumPermission.indent_4 .Permission_forumPermissionName {
+			padding-left: px2rem(20px);
+		}
+
+		.Permission_forumPermission.indent_5 .Permission_forumPermissionName {
+			padding-left: px2rem(25px);
+		}
+	}
+}
+
+.UserMatchingPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 16rem);
+			}
+		}
+	}
+}
+
+.SupportTicketDashboardPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 16rem);
+			}
+		}
+	}
+
+	.SupportTicketDashboardPage_supportTicket {
+		@include contentbox($background: white);
+		padding: 1rem;
+		font-size: px2rem(14px);
+
+		&.staff {
+			background-color: #ddf;
+		}
+
+		.SupportTicketDashboardPage_supportTicketId {
+			a {
+				color: #8ab4f8;
+				text-decoration: underline;
+			}
+		}
+	}
+}
+
+.SupportTicketPage {
+	.SupportTicketPage_info, .SupportTicketPage_chat {
+		@extend .GenericSection;
+	}
+
+	.SupportTicketPage_chat {
+		.SupportTicketPage_messages {
+			margin-bottom: px2rem(30px);
+
+			> .SupportTicketPage_message {
+				@extend .GenericInnerSection;
+
+				margin-top: 5px;
+				margin-bottom: 5px;
+
+				&.staff {
+					background-color: #ddf;
+				}
+
+				img {
+					image-rendering: -moz-crisp-edges;
+				}
+			}
+		}
+	}
+}
+
+.AddWeeklyPollPage, .EditWeeklyPollPage {
+	.EditPoll {
+		@extend .GenericSection;
+
+		.EditPoll_links {
+			display: flex;
+			justify-content: flex-end;
+		}
+
+		.EditPoll_option {
+			display: flex;
+			align-items: end;
+
+			.FormGroup {
+				flex: 1 1 0;
+			}
+
+			.Form_button {
+				margin-left: px2rem(5px);
+			}
+		}
+	}
+}
+
+.AdminWeeklyPollsPage {
+	.PollAdmin_section {
+		margin-bottom: 1em;
+		padding: 1rem;
+		border-radius: .33333em;
+		border: 1px solid #808080;
+
+		.PollQuestion {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+
+			em {
+				font-size: 1.2em;
+				font-weight: bold;
+			}
+
+			.PollQuestion_links {
+				@include links(130px);
+			}
+		}
+	}
+
+	.PollAdmin_section-previous {
+		background: rgba(200,200,200,0.6);
+	}
+
+	.PollAdmin_section-current {
+		background: rgba(128,225,128,0.5);
+	}
+
+	.PollAdmin_section-upcoming {
+		background: rgba(247, 244, 229, 0.5);
+	}
+
+	.PollAdmin_section-disabled {
+		background: rgba(212, 77, 77, 0.8);
+	}
+}
+
+.AdminGameConsolesPage, .AdminGamesPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 18rem);
+			}
+
+			.AdminGameConsolesPage_gameConsole, .AdminGameConsolesPage_game {
+				@extend .GenericInnerSection;
+
+				.AdminGameConsolesPage_gameConsoleLinks, .AdminGameConsolesPage_gameLinks {
+					@include links(100px);
+				}
+			}
+		}
+	}
+}
+
+.AddAdminGameConsolePage, .EditAdminGameConsolePage, .AddAdminGamePage, .EditAdminGamePage {
+	.EditGameConsole, .EditGame {
+		@extend .GenericSection;
+	}
+}
+
+.AdminHomePage, .ModminHomePage {
+	.Section {
+		ul {
+			li {
+				list-style-type: disc;
+				list-style-position: inside;
+			}
+		}
+	}
+}
+
+.UserSessionsPage, .UserSessionPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 16rem);
+			}
+		}
+	}
+}
+
+.SupportEmailDashboardPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+
+			.SupportEmailDashboardPage_supportEmail {
+				@extend .GenericInnerSection;
+			}
+		}
+	}
+}

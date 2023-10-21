@@ -1,0 +1,34 @@
+.BuddyPage {
+	.Section {
+		.BuddyPage_addUser {
+			.BuddyPage_addUserOptions {
+				@include responsive(1rem) {
+					@include grid($col-width: 20rem);
+				}
+			}
+		}
+
+		> .FormGroup {
+			text-align: center;
+		}
+
+		.BuddyPage_buddies {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+
+			.BuddyPage_buddy {
+				@include contentbox();
+				text-align: center;
+				padding: px2rem(5px);
+
+				.BuddyPage_actions {
+					margin-top: 5px;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+				}
+			}
+		}
+	}
+}

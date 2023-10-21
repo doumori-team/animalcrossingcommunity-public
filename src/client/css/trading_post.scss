@@ -1,0 +1,190 @@
+.TradingPostPage {
+    .Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+		}
+    }
+}
+
+.AddListingPage {
+    .Section {
+        .AddListingPage_links {
+            @include responsive(1rem) {
+                @include grid($col-width: 15rem);
+            }
+
+            a {
+                @extend .GenericButtonWithCustomImage;
+            }
+
+            .AddListingPage_game {
+                background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/layout/tp_game.png);
+            }
+        }
+
+        .Grid {
+            @include responsive(1rem) {
+                @include grid($col-width: 15rem);
+            }
+        }
+    }
+}
+
+.AddListingPage_cards, .CatalogType_user {
+    background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/layout/tp_cards.png);
+}
+
+.Listing {
+    @extend .GenericInnerSection;
+
+    .Listing_links {
+        @include links(130px);
+    }
+
+    .Listing_name {
+        display: flex;
+    }
+
+    .Listing_offer {
+        margin-top: px2rem(10px);
+        margin-bottom: px2rem(10px);
+        background: var(--seasonal-color-lighter);
+        padding: 1rem;
+    }
+}
+
+.Listing_offer, .Offer_offer {
+    ul {
+        list-style-type: disc;
+        list-style-position: inside;
+    }
+}
+
+.Offer {
+    .Offer_links {
+        @include links(130px);
+    }
+
+    .Offer_name {
+        display: flex;
+    }
+
+    .Offer_offer {
+        margin-top: px2rem(10px);
+        margin-bottom: px2rem(10px);
+        background: var(--seasonal-color-lighter);
+        padding: 1rem;
+    }
+}
+
+.ListingPage {
+    .ListingPage_offers,
+    .ListingPage_code,
+    .ListingPage_address,
+    .ListingPage_inProgress,
+    .ListingPage_feedback,
+    .ListingPage_ratings,
+    .ListingPage_chat {
+        @extend .GenericSection;
+
+        .Rating_links {
+            display: none;
+        }
+    }
+
+    .ListingPage_offers {
+        .Grid {
+            @include responsive(1rem) {
+                @include grid($col-width: 20rem);
+            }
+        }
+
+        .Offer {
+            @extend .GenericInnerSection;
+        }
+    }
+
+    .ListingPage_code {
+        .ListingPage_secretCode {
+            margin-top: px2rem(10px);
+            margin-bottom: px2rem(10px);
+        }
+
+        .ListingPage_codes {
+            .ListingPage_or {
+                text-align: center;
+            }
+        }
+    }
+
+    .ListingPage_inProgress {
+        .ListingPage_status,
+        .ListingPage_secretCodes,
+        .ListingPage_address,
+        .ListingPage_codes {
+            @extend .GenericInnerSection;
+
+            .ListingPage_statusHeader {
+                display: flex;
+	            justify-content: space-between;
+
+                .ListingPage_statusName {
+                    font-weight: bold;
+                    font-size: px2rem(15px);
+                }
+
+                .ListingPage_links {
+                    @include links(130px);
+                }
+            }
+        }
+    }
+
+    .ListingPage_feedback {
+        .ListingPage_ratingOptions {
+            @include responsive(1rem) {
+                @include grid($col-width: 20rem);
+            }
+        }
+    }
+
+    .ListingPage_ratings {
+        display: flex;
+
+        .ListingPage_listing, .ListingPage_offer {
+            flex: 1 1 0;
+        }
+    }
+
+    .ListingPage_chat {
+        .ListingPage_comments {
+            margin-bottom: px2rem(30px);
+
+            > .ListingPage_comment {
+                @extend .GenericInnerSection;
+
+                margin-top: 5px;
+                margin-bottom: 5px;
+
+                .ListingPage_commentBy {
+                    display: flex;
+                    white-space: break-spaces;
+                }
+            }
+        }
+    }
+}
+
+.UserListingPage {
+    .Grid {
+        @include responsive(1rem) {
+            @include grid($col-width: 20rem);
+        }
+
+        > .UserListingPage_listingOffer {
+            @extend .GenericInnerSection;
+        }
+    }
+}

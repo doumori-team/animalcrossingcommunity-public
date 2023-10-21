@@ -1,0 +1,757 @@
+.Node {
+	padding: 1rem;
+	background: white;
+	border-bottom: 1px solid #ddd;
+
+	font-size: px2rem(14px);
+}
+
+.Node-admin, .Node-owner {
+	border-left: 0.3333rem solid $color-admin;
+}
+
+.Node-mod {
+	border-left: 0.3333rem solid $color-mod;
+}
+
+.Node-scout {
+	border-left: 0.3333rem solid $color-scout;
+}
+
+.Node-researcher, .Node-researcher-TL {
+	border-left: 0.3333rem solid $color-researcher;
+}
+
+.Node-dev, .Node-dev-TL {
+	border-left: 0.3333rem solid $color-dev;
+}
+
+.Node-admin-locked .Node_main {
+	border-left: 0;
+	border-right: 0;
+}
+
+.Node-sticky .Node_main {
+	border-left: 0;
+	border-right: 0;
+}
+
+.Node-admin-locked {
+	border-left: 0.5rem solid $color-admin;
+	border-right: 0.5rem solid $color-admin;
+}
+
+.Node-sticky {
+	border-left: 0.5rem solid $color-researcher;
+	border-right: 0.5rem solid $color-researcher;
+}
+
+.Node-unread {
+	background: var(--seasonal-color-lighter);
+}
+
+.Node_main {
+	word-break: break-word;
+}
+
+.Node_main > :first-child {
+	margin-top: 0;
+}
+
+.Node_main > :last-child {
+	margin-bottom: 0;
+}
+
+.Node_main {
+	.Node_link {
+		background: none !important;
+		border: none;
+		padding: 0 !important;
+		font-family: arial, sans-serif;
+		color: #8ab4f8;
+		text-decoration: underline;
+		cursor: pointer;
+		margin-bottom: px2rem(10px);
+		text-shadow: none;
+		box-shadow: none;
+	}
+}
+
+.Node_title {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 0;
+	word-break: break-word;
+	gap: px2rem(3px);
+
+	a:hover {
+		text-decoration: underline;
+	}
+
+	.locked {
+		text-decoration: line-through;
+	}
+}
+
+.Node_metadata {
+	display: flex;
+
+	img, form {
+		padding-left: 2px;
+		padding-right: 2px;
+	}
+}
+
+.Node_invitedUsers {
+	.removed {
+		text-decoration: line-through;
+	}
+
+	ul {
+		display: inline;
+		list-style: none;
+
+		li {
+			display: inline;
+		}
+
+		li:after {
+			content: ", ";
+		}
+
+		li:last-child:after {
+			content: "";
+		}
+	}
+}
+
+.Node_signature {
+	display: flex;
+	margin: 1rem 0;
+	padding: 0.6rem 1.0rem;
+	border-radius: px2rem(3px);
+	border: px2rem(1px) solid #9c846d;
+	background: $color-signature-background;
+
+	font-size: px2rem(12px);
+	line-height: 1.4;
+	color: $color-signature-text;
+
+	white-space: pre-wrap;
+
+	.Markup .spoiler {
+		color: $color-signature-background;
+	}
+}
+
+.PostAuthorInfo_userbadge,
+.PostAuthorInfo_username,
+.Avatar,
+.PostAuthorInfo_lastactive,
+.PostAuthorInfo_title {
+	display: block;
+	font-size: px2rem(12px);
+	line-height: 1.4;
+	color: #333;
+}
+
+.PostAuthorInfo_title {
+	display: flex;
+
+	.ReportProblem {
+		input {
+			max-height: px2rem(15px);
+		}
+	}
+}
+
+.PostAuthorInfo_username {
+	font-size: px2rem(20px);
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	white-space: break-spaces;
+}
+
+.PostAuthorInfo_userTitle {
+	display: none;
+}
+
+.PostAuthorInfo_lastactive {
+	font-size: 0.7rem !important;
+}
+
+.Avatar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	z-index: 0;
+
+	float: left;
+	width: 5rem;
+	height: 5rem;
+	padding: 0.25rem;
+	margin-right: 0.75rem;
+	border: 1px solid black;
+}
+
+.Avatar[data-bg-coloration='blue'] {
+	background-color: $color-avatar-blue;
+}
+
+.Avatar[data-bg-coloration='green'] {
+	background-color: $color-avatar-green;
+}
+
+.Avatar[data-bg-coloration='hot-pink'] {
+	background-color: $color-avatar-hot-pink;
+}
+
+.Avatar[data-bg-coloration='indigo'] {
+	background-color: $color-avatar-indigo;
+}
+
+.Avatar[data-bg-coloration='light-blue'] {
+	background-color: $color-avatar-light-blue;
+}
+
+.Avatar[data-bg-coloration='mint'] {
+	background-color: $color-avatar-mint;
+}
+
+.Avatar[data-bg-coloration='orange'] {
+	background-color: $color-avatar-orange;
+}
+
+.Avatar[data-bg-coloration='pink'] {
+	background-color: $color-avatar-pink;
+}
+
+.Avatar[data-bg-coloration='purple'] {
+	background-color: $color-avatar-purple;
+}
+
+.Avatar[data-bg-coloration='red'] {
+	background-color: $color-avatar-red;
+}
+
+.Avatar[data-bg-coloration='teal'] {
+	background-color: $color-avatar-teal;
+}
+
+.Avatar[data-bg-coloration='yellow'] {
+	background-color: $color-avatar-yellow;
+}
+
+.Avatar[data-bg-coloration='black'] {
+	background-color: $color-avatar-black;
+}
+
+.Avatar[data-bg-coloration='brown'] {
+	background-color: $color-avatar-brown;
+}
+
+.Avatar[data-bg-coloration='dark-green'] {
+	background-color: $color-avatar-dark-green;
+}
+
+.Avatar[data-bg-coloration='graphite'] {
+	background-color: $color-avatar-graphite;
+}
+
+.Avatar[data-bg-coloration='gray'] {
+	background-color: $color-avatar-gray;
+}
+
+.Avatar[data-bg-coloration='magenta'] {
+	background-color: $color-avatar-magenta;
+}
+
+.Avatar[data-bg-coloration='white'] {
+	background-color: $color-avatar-white;
+}
+
+.Avatar[data-bg-coloration='alien'] {
+	background-image: $color-avatar-alien;
+}
+
+.Avatar[data-bg-coloration='flare'] {
+	background-image: $color-avatar-flare;
+}
+
+.Avatar[data-bg-coloration='frost'] {
+	background-image: $color-avatar-frost;
+}
+
+.Avatar[data-bg-coloration='gold'] {
+	background-image: $color-avatar-gold;
+}
+
+.Avatar[data-bg-coloration='halloween'] {
+	background-image: $color-avatar-halloween;
+}
+
+.Avatar[data-bg-coloration='lemon-drop'] {
+	background-image: $color-avatar-lemon-drop;
+}
+
+.Avatar[data-bg-coloration='twilight'] {
+	background-image: $color-avatar-twilight;
+}
+
+.Avatar_character {
+	z-index: 200;
+}
+
+.Avatar_accent {
+	position: absolute;
+}
+
+.Avatar[data-accent-position] .Avatar_accent {
+	height: auto;
+	width: auto;
+	transform: scale(0.609375);
+}
+
+.Avatar[data-accent-position='1'] .Avatar_accent {
+	top: px2rem(3px);
+	left: px2rem(3px);
+	transform-origin: top left;
+}
+
+.Avatar[data-accent-position='2'] .Avatar_accent {
+	top: px2rem(3px);
+	right: px2rem(3px);
+	transform-origin: top right;
+}
+
+.Avatar[data-accent-position='3'] .Avatar_accent {
+	bottom: px2rem(3px);
+	left: px2rem(3px);
+	transform-origin: bottom left;
+}
+
+.Avatar[data-accent-position='4'] .Avatar_accent {
+	bottom: px2rem(3px);
+	right: px2rem(3px);
+	transform-origin: bottom right;
+}
+
+.Avatar_background {
+	z-index: 0;
+	position: absolute;
+}
+
+.Avatar[data-bg-coloration] .Avatar_background {
+	opacity: 0.5;
+}
+
+@include responsive(48rem) {
+	/* Basic layout */
+	.Node {
+		background: transparent;
+		margin: 0.5rem 0;
+		padding: 0;
+		border: 0;
+
+		clear: both;
+		overflow: auto;
+	}
+
+	.Node-admin-locked .Node_main {
+		border-left: 0.5rem solid $color-admin;
+		border-right: 0.5rem solid $color-admin;
+	}
+
+	.Node-sticky .Node_main {
+		border-left: 0.5rem solid $color-researcher;
+		border-right: 0.5rem solid $color-researcher;
+	}
+
+	.Node-unread .Node_main {
+		background: var(--seasonal-color-lighter);
+	}
+
+	.Node_main {
+		@include contentbox;
+		padding: 1rem;
+		line-height: 1.7em;
+
+		.PostAuthorInfo + & {
+			margin-left: 9.25rem;
+		}
+	}
+
+	.PostAuthorInfo {
+		width: px2rem(130px);
+		float: left;
+	}
+
+	/* Flexbox enhancements for layout */
+	@supports (display: flex) {
+		.Node {
+			clear: none;
+			display: flex;
+		}
+
+		.Node_main {
+			flex: 1; // Make post content box extend to full height of user info column
+
+			display: flex;
+			flex-direction: column;
+
+			.Markup {
+				flex: 1; // Push signature right down to the bottom of the post
+				& > :first-child {
+					margin-top: 0;
+				}
+				& > :last-child {
+					margin-bottom: 0;
+				}
+			}
+
+			.PostAuthorInfo + & {
+				margin-left: 1rem;
+			}
+		}
+
+		.PostAuthorInfo {
+			float: none;
+		}
+	}
+
+	/* Fancy username/badges and avatar */
+	.PostAuthorInfo_userbadge,
+	.PostAuthorInfo_username,
+	.PostAuthorInfo_lastactive,
+	.PostAuthorInfo_userTitle {
+		width: px2rem(130px);
+		padding: 0.3333em 0.25rem;
+		margin-top: 0.1875rem;
+
+		@include contentbox(#666, #fff);
+
+		text-shadow: -1px -1px rgba(0,0,0,0.15);
+		text-align: right;
+		font-size: px2rem(9px);
+		font-weight: normal;
+		white-space: pre;
+		text-overflow: ellipsis;
+	}
+
+	.PostAuthorInfo_username {
+		font-size: px2rem(14px);
+		text-align: center;
+		display: block;
+
+		.PostAuthorInfo_title {
+			display: none;
+		}
+	}
+
+	.PostAuthorInfo_userTitle {
+		display: flex;
+		justify-content: end;
+
+		.ReportProblem {
+			input {
+				max-height: px2rem(15px);
+			}
+		}
+	}
+
+	.Avatar {
+		float: none;
+		width: px2rem(130px);
+		height: px2rem(130px);
+		padding: px2rem(math.div(130px - 110px - 2px, 2)); // 110px is the largest dimension of the avatar character image
+		margin-right: 0;
+		overflow: hidden;
+
+		@include contentbox(#808080);
+	}
+
+	.Avatar[data-accent-position] .Avatar_accent {
+		transform: none;
+	}
+
+	.Avatar[data-accent-position='1'] .Avatar_accent {
+		top: px2rem(5px);
+		left: px2rem(5px);
+	}
+
+	.Avatar[data-accent-position='2'] .Avatar_accent {
+		top: px2rem(5px);
+		right: px2rem(5px);
+	}
+
+	.Avatar[data-accent-position='3'] .Avatar_accent {
+		bottom: px2rem(5px);
+		left: px2rem(5px);
+	}
+
+	.Avatar[data-accent-position='4'] .Avatar_accent {
+		bottom: px2rem(5px);
+		right: px2rem(5px);
+	}
+
+	.Node-admin .PostAuthorInfo_username, .Node-owner .PostAuthorInfo_username {
+		background-color: $color-admin;
+	}
+
+	.Node-mod .PostAuthorInfo_username {
+		background-color: $color-mod;
+	}
+
+	.Node-scout .PostAuthorInfo_username {
+		background-color: $color-scout;
+	}
+
+	.Node-researcher .PostAuthorInfo_username, .Node-researcher-TL .PostAuthorInfo_username {
+		background-color: $color-researcher;
+	}
+
+	.Node-dev .PostAuthorInfo_username, .Node-dev-TL .PostAuthorInfo_username {
+		background-color: $color-dev;
+	}
+}
+
+.Markup {
+	a {
+		color: var(--seasonal-color-dark);
+		text-decoration: underline;
+
+		&:active {
+			color: var(--seasonal-color);
+		}
+		.App-snow & {
+			color: #90a1c3;
+		}
+		.App-snow &:active {
+			color: #c1d1e2;
+		}
+	}
+
+	.spoiler {
+		color: #fff;
+	}
+
+	.spoiler:active, .spoiler::selection, .spoiler:focus, .spoiler:hover, .spoiler:visited {
+		color: black !important;
+
+		@include responsive(48rem) {
+			color: #555 !important;
+		}
+	}
+
+	&-markdown {
+		blockquote {
+			margin: 1em 0;
+			padding: 1em;
+
+			border-left: 0.5em solid var(--seasonal-color-dark);
+			border-top: 1px solid var(--seasonal-color-dark);
+			border-bottom: 1px solid var(--seasonal-color-dark);
+			border-right: 1px solid var(--seasonal-color-dark);
+
+			& > :first-child {
+				margin-top: 0;
+			}
+			& > :last-child {
+				margin-bottom: 0;
+			}
+		}
+
+		ul {
+			list-style-type: disc;
+			padding-left: 1em;
+		}
+
+		table {
+			border-collapse: collapse;
+
+			tbody tr {
+				background-color: var(--seasonal-color-lighter);
+			}
+		}
+
+		th, td {
+			padding: 0.5em 1em;
+			border: 1px solid var(--seasonal-color-dark);
+		}
+
+		th {
+			background-color: var(--seasonal-color-dark);
+			color: white;
+		}
+
+		.center-text {
+			display: block;
+			text-align: center;
+		}
+	}
+
+	&-bbcode {
+		blockquote {
+			font-style: italic;
+		}
+	}
+
+	table {
+		overflow-x: auto;
+		display: block;
+	}
+}
+
+.Node_button {
+	@extend .GenericSubmitButton;
+	max-height: px2rem(35px);
+}
+
+.Node_titleLine {
+	display: flex;
+	justify-content: space-between;
+
+	.Node_followed {
+		display: flex;
+		align-items: center;
+	}
+
+	.Node_postedBy, .Node_latestPost, .Node_followed, .Node_board {
+		a, span {
+			@media only screen and (max-width: px2rem(800px)) {
+				display: block;
+			}
+		}
+	}
+}
+
+.Node_secondLine, .Node_thirdLine {
+	display: flex;
+	justify-content: space-between;
+}
+
+.FollowedNodePage {
+	.Header {
+		.Header_name {
+			text-transform: capitalize;
+		}
+	}
+}
+
+.NodePage_filter {
+	.Search {
+		@extend .GenericSection;
+	}
+}
+
+.Avatar {
+	background-size: cover;
+	background-origin: border-box;
+	img {
+		display: block;
+		margin: auto;
+		height: 100%;
+	}
+}
+
+.NodeWritingInterface, .FeatureWritingInterface {
+	@include contentbox($background: var(--seasonal-color-dark), $color: #333);
+	margin-top: px2rem(5px);
+
+	div[role='group'] {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.NodeWritingInterface_title,
+	.FeatureWritingInterface_title,
+	.NodeWritingInterface_usernames input[type='text'] {
+		display: block;
+		width: 100%;
+
+		margin: 0.5rem 0;
+		border: none; outline: none;
+		border-radius: 0.25rem;
+
+		padding: px2rem(10px);
+		background: #fff;
+		color: #555;
+	}
+
+	.NodeWritingInterface_lock {
+		display: flex;
+		align-items: center;
+
+		label {
+			font-weight: bold;
+		}
+	}
+
+	.NodeWritingInterface_usernames {
+		label {
+			font-weight: bold;
+			margin: 0.5rem;
+			font-size: px2rem(17px);
+			line-height: 1.0;
+			@include inset-text;
+		}
+
+		.FontAwesomeIcon {
+			color: rgba(255,255,255,.85);
+		}
+	}
+}
+
+.NodeWritingInterface_heading,
+.FeatureWritingInterface_heading,
+.NodeWritingInterface_lock label,
+.NodeWritingInterface label[for=boardId],
+.RichTextArea_file label {
+	margin: 0.5rem;
+	font-size: px2rem(17px);
+	line-height: 1.6;
+	@include inset-text;
+}
+
+.NodeWritingInterface label {
+	font-weight: bold;
+}
+
+.NodeHistoryPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+
+			.NodeHistoryPage_node {
+				@include contentbox($background: white);
+				padding: 1rem;
+				font-size: px2rem(14px);
+			}
+		}
+	}
+}
+
+.Node_boards {
+	a {
+		color: #8ab4f8;
+		text-decoration: underline;
+	}
+}
+
+.Node_extra {
+	display: flex;
+}
+
+.Node_boardActions {
+	margin-top: px2rem(2px);
+	padding: px2rem(4px);
+
+	background-color: var(--seasonal-color-dark);
+	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
+	border: 1px solid rgba(0,0,0,0.7);
+}

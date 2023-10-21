@@ -1,0 +1,111 @@
+.MapMaker, .MapDesigner {
+	@extend .GenericSection;
+}
+
+.MapPalette {
+	@include contentbox($background: #ba8759);
+	padding: 1rem;
+	font-size: px2rem(14px);
+}
+
+.MapMaker {
+	.MapMaker_grid {
+		@include responsive(40rem) {
+			@include grid($col-width: 36rem);
+		}
+	}
+
+	.Map {
+		border-collapse: collapse;
+		line-height: 0;
+		width: 100%;
+
+		img {
+			width: 100%;
+		}
+
+		.row {
+			display: flex;
+		}
+	}
+
+	.Map img, .MapPalette img {
+		border: px2rem(2px) solid black;
+		cursor: pointer;
+	}
+
+	.Map img.selected, .MapPalette img.selected {
+		border: px2rem(2px) solid red;
+	}
+
+	.MapPalette {
+		.hidden {
+			display: none;
+		}
+
+		.PaletteGroups {
+			@include responsive(1rem) {
+				@include grid($col-width: 5rem);
+			}
+		}
+
+		img {
+			width: px2rem(64px);
+		}
+	}
+}
+
+.MapDesigner {
+	.MapDesigner_grid {
+		@include responsive(40rem) {
+			display: grid;
+			grid-gap: 0.5rem;
+			grid-template-areas: 'left right';
+		}
+	}
+
+	.MapPalette {
+		.MapPaletter_palettes {
+			@include responsive(1rem) {
+				@include grid($col-width: 2rem);
+			}
+
+			.paletteInterface {
+				width: px2rem(31px);
+				height: px2rem(31px);
+
+				@include contentbox();
+			}
+
+			.paletteInterface.selected {
+				border: px2rem(1px) solid #000 !important;
+			}
+		}
+	}
+
+	.MapDesigner_imageSection {
+		.Check {
+			@include responsive(1rem) {
+				@include grid($col-width: 2rem);
+			}
+		}
+
+		.Check_option {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		img {
+			height: 100%
+		}
+
+		button {
+			@extend .GenericSubmitButton;
+		}
+	}
+}
+
+.MapMakerPage_description {
+	margin-bottom: px2rem(10px);
+}

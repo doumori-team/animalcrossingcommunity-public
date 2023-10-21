@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"baseUrl": "./src",
+		"paths": {
+			"@/catalog": ["server/data/catalog/"],
+			"@/components": ["common/components/"],
+			"@/data": ["server/data/"],
+			"@/pages": ["common/components/pages/"],
+			"@accounts": ["server/accounts"],
+			"@behavior": ["common/components/behavior/index"],
+			"@contexts": ["common/contexts"],
+			"@db": ["server/db"],
+			"@errors": ["common/errors"],
+			"@form": ["common/components/form/index"],
+			"@layout": ["common/components/layout/index"],
+			"@propTypes": ["common/propTypes/index"],
+			"@utils": ["common/utils/index"],
+			"@apiTypes": ["server/api-types"],
+		}
+	},
+	"include": ["src/**/*"]
+}

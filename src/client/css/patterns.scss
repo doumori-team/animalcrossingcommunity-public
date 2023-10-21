@@ -1,0 +1,247 @@
+.PatternsPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+
+			.Pattern {
+				padding: 1rem;
+				@include contentbox($background: white);
+
+				.Pattern_row {
+					.Pattern_image {
+						max-height: px2rem(192px);
+					}
+				}
+			}
+		}
+	}
+}
+
+.Pattern {
+	.Pattern_links {
+		@include links(125px);
+	}
+
+	.Pattern_row {
+		display: flex;
+		flex-direction: row;
+
+		margin-top: px2rem(5px);
+
+		.Pattern_image {
+			image-rendering: -moz-crisp-edges;
+			min-width: 45%;
+		}
+
+		.Pattern_column {
+			display: flex;
+			flex-direction: column;
+
+			flex: 1;
+
+			margin-left: px2rem(5px);
+
+			.Pattern_name {
+				font-size: px2rem(24px);
+				text-align: center;
+				word-break: break-word;
+
+				.Pattern_submitted {
+					display: block;
+					font-weight: normal;
+					font-size: px2rem(14px);
+				}
+
+				> div {
+					display: flex;
+					justify-content: center;
+				}
+			}
+
+			.Pattern_compatibility, .Pattern_designId {
+				text-align: center;
+			}
+		}
+	}
+}
+
+.EditPattern {
+	.FormGroup .text-full {
+		text-align: initial;
+	}
+}
+
+.PatternPage {
+	.Section {
+		.PatternPage_copyManual {
+			.PatternPage_copyPattern {
+				display: flex;
+				flex-wrap: wrap;
+
+				.PatternPage_pattern {
+					flex-shrink: 0;
+
+					.PatternPage_gridRow {
+						.PatternPage_grid {
+							border-color: black;
+							border-style: solid;
+							border-width: px2rem(1px);
+							width: px2rem(15px);
+							height: px2rem(15px);
+							text-align: center;
+							display: inline-block;
+							font-weight: bold;
+							font-size: 6pt;
+							margin-right: px2rem(5px);
+
+							.hideNumber {
+								visibility: hidden;
+							}
+						}
+					}
+				}
+			}
+
+			.PatternPage_palette {
+				flex: 1 1;
+				min-width: px2rem(302px);
+
+				.palette {
+					border-color: black;
+					border-style: solid;
+					width: px2rem(75px);
+					margin-bottom: px2rem(2px);
+					text-align: center;
+					display: inline-block;
+				}
+
+				.PatternPage_paletteName {
+					margin-left: px2rem(5px);
+				}
+
+				.PatternPage_paletteColor {
+					display: flex;
+				}
+			}
+
+			.PatternPage_nlColorReference {
+				height: 100%;
+				max-width: 100%;
+			}
+		}
+
+		.PatternPage_copyQr {
+			img {
+				max-width: 100%;
+			}
+		}
+	}
+}
+
+.PatternMaker {
+	margin-top: px2rem(5px);
+
+	.PatternMaker_grid {
+		display: flex;
+		flex-wrap: wrap;
+
+		.PatternMaker_canvas {
+			margin-right: px2rem(5px);
+			margin-bottom: px2rem(5px);
+
+			flex-shrink: 0;
+			max-height: px2rem(321px);
+		}
+
+		.PatternMaker_palette {
+			@include contentbox($background: #ba8759);
+			padding: 1rem;
+			font-size: px2rem(14px);
+
+			flex: 1;
+
+			button {
+				@include button;
+				margin: px2rem(1px);
+				text-align: center;
+
+				margin-bottom: px2rem(5px);
+			}
+
+			.PatternMaker_paletteInterface {
+				display: flex;
+
+				.PatternMaker_paletteAll {
+					flex: 1;
+
+					.PatternMaker_palettes {
+						margin-top: px2rem(10px);
+						margin-bottom: px2rem(10px);
+
+						@include responsive(1rem) {
+							@include grid($col-width: 2rem);
+						}
+
+						.paletteInterface {
+							width: px2rem(31px);
+							height: px2rem(31px);
+
+							@include contentbox();
+						}
+
+						.paletteInterface.selected {
+							border: 1px solid #000 !important;
+						}
+
+						.paletteInterface.hidden {
+							display: none;
+						}
+					}
+				}
+			}
+
+			.PatternMaker_buttons {
+				margin-top: px2rem(10px);
+				margin-bottom: px2rem(10px);
+			}
+
+			.PatternMaker_extended {
+				.PatternMaker_nlInterface {
+					max-height: px2rem(256px);
+				}
+
+				.PatternMaker_nhInterface {
+					.PatternMaker_nhDefault {
+						display: flex;
+						align-items: baseline;
+						margin-left: px2rem(15px);
+
+						h3 {
+							margin-right: px2rem(10px);
+						}
+					}
+
+					.PatternMaker_nhHVB {
+						display: flex;
+						flex-wrap: wrap;
+
+						.FormGroup {
+							margin-left: px2rem(10px);
+							margin-right: px2rem(10px);
+
+							input[type='number'] {
+								max-width: px2rem(100px);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+.Pattern_transparent {
+	background-image: repeating-linear-gradient(-45deg, lightgray 0 3px, white 2px 10px) !important;
+}

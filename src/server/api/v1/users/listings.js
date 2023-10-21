@@ -1,0 +1,50 @@
+import * as db from '@db';
+import { UserError } from '@errors';
+import * as APITypes from '@apiTypes';
+
+async function listings({id, page})
+{
+	const permissionGranted = await this.query('v1/permission', {permission: 'use-trading-post'});
+
+	if (!permissionGranted)
+	{
+		throw new UserError('permission');
+	}
+
+	const pageSize = 25;
+	const offset = (page * pageSize) - pageSize;
+
+	const results = await db.query(`
+		SELECT
+			listing.id,
+			count(*) over() AS count
+		FROM listing
+		WHERE listing.creator_id = $3::int
+		ORDER BY listing.last_updated DESC
+		LIMIT $1::int OFFSET $2::int
+	`, pageSize, offset, id);
+
+	const listings = await Promise.all(results.map(async(listing) => {
+		return this.query('v1/trading_post/listing', {id: listing.id})
+	}));
+
+	return {
+		results: listings,
+		count: listings.length > 0 ? Number(results[0].count) : 0,
+		page: page,
+		pageSize: pageSize,
+	};
+}
+
+listings.apiTypes = {
+	id: {
+		type: APITypes.userId,
+	},
+	page: {
+		type: APITypes.number,
+		required: true,
+		min: 1,
+	},
+}
+
+export default listings;

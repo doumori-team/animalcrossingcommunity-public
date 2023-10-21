@@ -1,0 +1,43 @@
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+
+/* Helper component. Checks to make sure that the client-side script has loaded
+ * before rendering the content inside it. This is for things that can't
+ * realistically be made to run on the server rendering path, such as animations
+ * or complex graphical operations.
+ *
+ * Optionally, provide a value to the "fallback" prop, which will display
+ * instead of the blocked content. This should be used either to explain to the
+ * user what has gone wrong, or to provide a less full-featured version of the
+ * content.
+ *
+ * Example usage:
+ * 	<RequireClientJS fallback={<ErrorMessage identifier='javascript-required' />}>
+ * 		<p>(something complicated, probably involving animations)</p>
+ * 	</RequireClientJS>
+ */
+const RequireClientJS = ({children, fallback}) =>
+{
+	const [clientActive, setClientActive] = useState(false);
+
+	useEffect(() =>
+	{
+		setClientActive(true);
+	}, [])
+
+	if (clientActive)
+	{
+		return children || null;
+	}
+	else
+	{
+		return fallback || null;
+	}
+}
+
+RequireClientJS.propTypes = {
+	children: PropTypes.node,
+	fallback: PropTypes.node
+}
+
+export default RequireClientJS;

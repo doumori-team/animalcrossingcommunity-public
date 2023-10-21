@@ -1,0 +1,104 @@
+.ProfileBanner {
+	@include contentbox(white, black);
+
+	margin-bottom: px2rem(20px);
+	padding: 1rem;
+
+	h1 {
+		display: flex;
+	}
+}
+
+.ProfileBanner:last-child {
+	margin-bottom: 0;
+}
+
+.ProfilePage_subsection {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.ProfileGeneralInfo {
+	padding-left: px2rem(10px);
+	display: inline-block;
+	clear: left;
+}
+
+.ProfileGeneralInfo_fieldname {
+	font-weight: bold;
+}
+
+.ProfileGeneralInfo_icons {
+	display: flex;
+}
+
+.ProfileFriendCodesPage {
+	.Header {
+		.TotalRatings {
+			text-align: center;
+		}
+	}
+}
+
+.ProfileGeneralInfo_usernameHistory li {
+	list-style-type: circle;
+	margin-left: 50px;
+}
+
+.ProfileAdminPage {
+	.ProfileAdminPage_header {
+		@extend .GenericHeader;
+
+		.ProfileAdminPage_name {
+			font-family: $fontstack-accent;
+			font-size: px2rem(24px);
+			text-align: center;
+		}
+	}
+	
+	.ProfileAdminPage_chooseUserGroup {
+		@extend .GenericSection;
+
+		.ProfileAdminPage_userGroup {
+			.ProfileAdminPage_select {
+				@extend .GenericSelect;
+			}
+		}
+	}
+
+	.ProfileAdminPage_button {
+		@extend .GenericSubmitButton;
+	}
+
+	.Permission_permissions {
+		@extend .GenericSection;
+	}
+}
+
+.ProfileBioPage .ContentBox,
+.EditProfileBioPage .Markup,
+.NodeWritingInterface .Markup,
+.Node .Node_metadata + .Markup {
+	font-family: verdana;
+	font-size: px2rem(12px);
+	line-height: initial;
+
+	.spoiler {
+		color: #fff;
+	}
+}
+
+.Node .Node_metadata + .Markup {
+	margin-bottom: 1rem;
+}
+
+.ProfileBioPage_option {
+	display: flex;
+}
+
+.AccountSettingsPage {
+	.FormGroup {
+		margin-top: px2rem(10px);
+		margin-bottom: px2rem(10px);
+	}
+}

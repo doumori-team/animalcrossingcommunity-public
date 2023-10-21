@@ -1,0 +1,241 @@
+.CatalogPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+		}
+	}
+
+	.Catalog {
+		.Section {
+			.Catalog_header {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+
+				.Catalog_all, .Catalog_search {
+					margin: px2rem(10px);
+				}
+
+				.Catalog_all {
+					@include contentbox();
+					text-align: center;
+					padding: px2rem(15px);
+				}
+
+				.Catalog_all.selected {
+					color: #fff;
+					background-color: var(--seasonal-color-dark);
+
+					.App-snow & {
+						color: #555;
+					}
+				}
+
+				.Catalog_search {
+					font-weight: bold;
+
+					display: flex;
+					align-items: center;
+
+					input[type='text'] {
+						@extend .GenericTextbox;
+						margin: 0 px2rem(4px);
+						width: px2rem(120px);
+						@include responsive(30rem) {
+							width: px2rem(200px);
+						}
+					}
+
+					button {
+						@extend .GenericButton;
+						width: 3.625rem;
+
+						flex: 1 1 auto;
+					}
+				}
+			}
+
+			.Catalog_categories {
+				@include responsive(1rem) {
+					@include grid($col-width: 15rem);
+				}
+
+				padding-top: px2rem(10px);
+
+				.CategoryName {
+					@include contentbox();
+					text-align: center;
+					padding: px2rem(15px);
+				}
+
+				.CategoryName.selected {
+					color: #fff;
+					background-color: var(--seasonal-color-dark);
+
+					.App-snow & {
+						color: #555;
+					}
+				}
+			}
+		}
+
+		.Catalog_categoryItems {
+			@extend .GenericSection;
+
+			.Catalog_links {
+				@include links(110px);
+			}
+
+			.Catalog_sort {
+				display: flex;
+				justify-content: center;
+				align-items: baseline;
+
+				.Catalog_sortLink {
+					padding: px2rem(2px);
+				}
+
+				.Catalog_sortLink.selected {
+					color: red;
+				}
+			}
+
+			.Catalog_setAll {
+				display: flex;
+				justify-content: center;
+			}
+
+			.CatalogCategory {
+				.CatalogCategory_name {
+					display: flex;
+					align-items: center;
+					text-transform: capitalize;
+				}
+
+				.CatalogCategory_name.hidden {
+					display: none;
+				}
+
+				.CatalogCategory_groupItems {
+					@include responsive(1rem) {
+						@include grid($col-width: 10rem);
+					}
+
+					.CatalogCategory_item {
+						@include contentbox();
+						text-align: center;
+						padding: px2rem(5px);
+
+						.CatalogCategory_itemName {
+							text-transform: capitalize;
+						}
+					}
+
+					.InventoryItem {
+						background-color: #feec96;
+					}
+
+					.WishlistItem {
+						background-color: #4DBAAD;
+					}
+
+					.InventoryItem.WishlistItem {
+						background-color: #E2944C;
+					}
+				}
+
+				.CatalogCategory_itemOptions, .CatalogCategory_groupToggle {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+				}
+
+				.CatalogCategory_itemOption, .CatalogCategory_groupOption {
+					position: relative;
+					margin: px2rem(5px);
+
+					label {
+						background-color: #fff;
+						border: px2rem(1px) solid #ccc;
+						border-radius: 50%;
+						cursor: pointer;
+						height: px2rem(28px);
+						left: 0;
+						position: absolute;
+						top: 0;
+						width: px2rem(28px);
+						font-size: px2rem(16px);
+						padding: px2rem(3px) px2rem(0px) px2rem(2px) px2rem(0px);
+					}
+
+					input[type="checkbox"] {
+						visibility: hidden;
+					}
+
+					input[type="checkbox"]:checked + label {
+						background-color: #66bb6a;
+						border-color: #66bb6a;
+					}
+				}
+
+				.CatalogCategory_groupToggle {
+					label {
+						padding-left: px2rem(10px);
+						font-weight: normal;
+					}
+				}
+			}
+
+			button {
+				@extend .GenericSubmitButton;
+			}
+		}
+	}
+}
+
+.CatalogType_user {
+	@extend .GenericButtonWithCustomImage;
+}
+
+.CatalogPage {
+	.ACGameButtons_game_modify {
+		p {
+			transform: inherit !important;
+			@extend .HeaderText;
+			width: px2rem(165px) !important;
+		}
+	}
+}
+
+.Catalog_legend {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 90%;
+
+	.Catalog_legendBox {
+		box-shadow: 0px -1px 0px rgba(0,0,0,.3) inset,0px 1px 0px rgba(255,255,255,.3) inset;
+		border: 1px solid rgba(0,0,0,.7);
+		border-radius: .3333em;
+		text-align: center;
+		padding: 0.3125rem;
+
+		&.InventoryItem {
+			background-color: #feec96;
+			padding-left: px2rem(15px);
+			padding-right: px2rem(15px);
+		}
+
+		&.WishlistItem {
+			background-color: #4DBAAD;
+			padding-left: px2rem(20px);
+			padding-right: px2rem(20px);
+		}
+
+		&.InventoryItem.WishlistItem {
+			background-color: #E2944C;
+		}
+	}
+}

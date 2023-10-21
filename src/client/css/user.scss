@@ -1,0 +1,80 @@
+.TicketsPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+
+			.TicketsPage_ticket, .TicketsPage_supportTicket {
+				@include contentbox($background: white);
+				padding: 1rem;
+				font-size: px2rem(14px);
+			}
+		}
+	}
+}
+
+.TicketPage {
+	.TicketPage_info, .TicketPage_chat {
+		@extend .GenericSection;
+	}
+
+	.TicketPage_referenceUrl {
+		img {
+			max-width: 45%;
+			image-rendering: -moz-crisp-edges;
+			min-width: 45%;
+		}
+	}
+
+	.TicketPage_chat {
+        .TicketPage_messages {
+            margin-bottom: px2rem(30px);
+
+            > .TicketPage_message {
+                @extend .GenericInnerSection;
+
+                margin-top: 5px;
+                margin-bottom: 5px;
+
+				.TicketPage_message {
+					word-break: break-word;
+				}
+            }
+        }
+    }
+}
+
+.NotificationsPage {
+	.Section {
+		> .FormGroup {
+			align-items: center;
+		}
+
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 16rem);
+			}
+		}
+
+		.NotificationsPage_sort {
+			display: flex;
+			justify-content: center;
+			align-items: baseline;
+
+			.NotificationsPage_sortLink {
+				padding: px2rem(2px);
+			}
+
+			.NotificationsPage_sortLink.selected {
+				color: red;
+			}
+		}
+	}
+
+	.InnerSection {
+		> .FormGroup {
+			align-items: center;
+		}
+	}
+}

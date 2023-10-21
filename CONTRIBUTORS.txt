@@ -1,0 +1,17 @@
+Co-authors:
+  Jerad Rose (jader201)
+  David (ACWWFreakazoid)
+  Lauren Mathews (aldericon)
+  Katherina Walshe-Grey
+
+Contributors:
+  AnkokuFlare
+    * Static page markup
+  Chris (Dimentio95)
+    * Graphics
+  Juni01
+    * Forum signatures
+    * Friend code administration interface
+    * Weekly poll display
+  Maze (missamazing2008)
+    * Graphics

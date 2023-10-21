@@ -1,0 +1,89 @@
+// hide breadcrumb to forums
+.ScoutThreadBanner + .Node > .Node_main {
+	display: none;
+}
+
+.ScoutHubPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+
+			.ScoutHubPage_thread {
+				@extend .GenericInnerSection;
+
+				.ScoutHubPage_threadId {
+					a {
+						color: #8ab4f8;
+						text-decoration: underline;
+					}
+				}
+			}
+		}
+	}
+}
+
+.NewMembersPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+		}
+	}
+}
+
+.ScoutSettingsPage {
+	.Section {
+		.ScoutSettingsPage_key {
+			li {
+				list-style-type: disc;
+				list-style-position: inside;
+			}
+		}
+	}
+}
+
+.NewMemberPage {
+	.NewMemberPage_button {
+		@extend .GenericButtonLink;
+		font-size: 100%;
+	}
+}
+
+.ReassignPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+		}
+	}
+}
+
+.AdoptionThreadSettingsPage {
+	.Section {
+		.AdoptionThreadSettingsPage_addUserOptions {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+		}
+	}
+}
+
+.ScoutRatingsPage {
+	.Header {
+		.TotalRatings {
+			text-align: center;
+		}
+	}
+
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+		}
+	}
+}

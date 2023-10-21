@@ -1,0 +1,18 @@
+{
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-cli.git"
+    }
+  ],
+  "environments": {
+    "review": {
+      "addons": [
+        "heroku-postgresql:mini",
+        "papertrail:choklad"
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /forums
+Disallow: /trading-post
+Disallow: /town-tunes
+Disallow: /town-tune
+Disallow: /patterns
+Disallow: /pattern
+Disallow: /profile
+Disallow: /sign-up
+Disallow: /leaving
+Disallow: /donate
+Disallow: *.asp
+Disallow: /Topic
+Disallow: *.php
+Disallow: *.xml

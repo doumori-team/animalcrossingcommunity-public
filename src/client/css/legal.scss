@@ -1,0 +1,76 @@
+.SiteRulesPage, .UserTicketPage {
+	.severity_0, .severity_1 {
+		color: #080;
+	}
+
+	.severity_2 {
+		color: #00f;
+	}
+
+	.severity_3, .severity_4, .severity_5 {
+		color: #f00;
+	}
+
+	.SiteRulesPage_rule {
+		margin-top: px2rem(25px);
+		margin-bottom: px2rem(25px);
+	}
+}
+
+.SiteRulesPage_ruleNew, .TOS_new {
+	color: red;
+}
+
+.SiteRulesPage_ruleUpdated, .TOS_updated, .PoliciesPage_updated {
+	color: blue;
+}
+
+.SiteRulesPage_category {
+	display: block;
+	font-size: 1.17em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 0;
+	margin-right: 0;
+	font-weight: bold;
+}
+
+.SiteRulesPage_ruleDate {
+	font-style: italic;
+	font-size: 0.8em;
+}
+
+.SiteRulesPage .SiteRulesPage_rule {
+	text-indent: px2rem(50px);
+}
+
+.SiteRulesPage .SiteRulesPage_violation {
+	text-indent: px2rem(100px);
+}
+
+.SiteContent_buttons {
+	@include links(90px);
+	justify-content: revert;
+}
+
+.PoliciesPage {
+	.PoliciesPage_lastUpdated {
+		font-style: italic;
+	}
+
+	li span, .PoliciesPage_updated {
+		font-weight: bold;
+	}
+}
+
+.PrivacyPage, .PoliciesPage, .CookiePolicyPage, .CreditsPage, .FAQPage, .SignupPage, .ConsentPage, .LeavingSitePage, .GuidesPage_guide {
+	li {
+		list-style-type: disc;
+		list-style-position: inside;
+	}
+
+	a {
+		color: #8ab4f8;
+		text-decoration: underline;
+	}
+}

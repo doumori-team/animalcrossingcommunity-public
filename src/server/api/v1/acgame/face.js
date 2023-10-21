@@ -1,0 +1,31 @@
+import * as db from '@db';
+import * as APITypes from '@apiTypes';
+import { UserError } from '@errors';
+
+async function face({id})
+{
+	const permissionGranted = await this.query('v1/permission', {permission: 'modify-towns'});
+
+	if (!permissionGranted)
+	{
+		throw new UserError('permission');
+	}
+
+	return await db.query(`
+		SELECT
+			face.id,
+			face.filename
+		FROM ac_game_face
+		JOIN face ON (ac_game_face.face_id = face.id)
+		WHERE ac_game_face.game_id = $1::int
+		ORDER BY face.id ASC
+	`, id);
+}
+
+face.apiTypes = {
+	id: {
+		type: APITypes.acgameId,
+	},
+}
+
+export default face;

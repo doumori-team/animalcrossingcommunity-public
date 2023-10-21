@@ -1,0 +1,108 @@
+// Contains Sass mixins and functions to use as utilities for the rest of the project
+
+/* Applies the styles inside only when the screen size is above $width.
+ * Example:
+ *  	@include responsive(48rem) {
+ *  		color: #000000;
+ *  	}
+ */
+@mixin responsive($width) {
+	@media only screen and (min-width: $width) {
+		@content;
+	}
+}
+
+/* Applies generic background, text and border colours to create a box for text.
+ */
+@mixin contentbox($background: #fff, $color: #555, $background-image: '') {
+	background: $background;
+	color: $color;
+	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
+	border: 1px solid rgba(0,0,0,0.7);
+	border-radius: 0.3333em;
+	background-image: $background-image;
+}
+
+/* Converts a pixel value into rems.
+ * If we use px, the element's size remains constant regardless of the size of the screen.
+ *
+ * Example:
+ *  	height: px2rem(8px);
+ * parses to:
+ *  	height: 0.5rem;
+ */
+@function px2rem($value) {
+	$sizeValue: math.div($value, ($value * 0 + 1)); // remove 'px' unit
+	@return math.div($sizeValue, 16) + rem;
+}
+
+/* Makes the text white, with a faint inset.
+ *
+ * If the snowy theme is being used, makes the text dark grey instead.
+ */
+@mixin inset-text {
+	color: rgba(#fff, 0.85);
+	text-shadow: -1px -1px rgba(#000, 0.1);
+
+	.App-snow & {
+		color: rgba(#777, 0.85);
+		text-shadow: -1px -1px rgba(#fff, 0.1);
+	}
+}
+
+/* Lays out the contents of an element in a grid.
+ *
+ * $col-width is the MINIMUM width of one column. As many columns as possible will be
+ * included, and then they will each be widened slightly to take up any remaining space.
+ *
+ * $col-gap is the margin between each grid cell.
+ */
+@mixin grid($col-width: 18.75rem, $col-gap: 0.5rem) {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax($col-width, 1fr));
+	grid-gap: $col-gap;
+	& > * {
+		margin: 0;
+	}
+}
+
+@mixin button {
+	background-color: var(--seasonal-color);
+	padding: 0.5em 0.6em;
+
+	border-radius: 0.25em;
+	@include inset-text;
+
+	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
+	&:active {
+		box-shadow: 0px -1px 0px rgba(255,255,255,0.3) inset, 0px 1px 0px rgba(0,0,0,0.3) inset;
+	}
+}
+
+@mixin links($button-width: 90px) {
+	display: flex;
+	justify-content: flex-end;
+
+	> a, form > button, > button {
+		@include button;
+		margin: px2rem(1px);
+		text-align: center;
+	}
+
+	> a, > form, > button {
+		flex: 0 1 px2rem($button-width);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+	}
+
+	> form {
+		display: flex;
+	}
+
+	> form button {
+		flex: 1 1 auto;
+		height: 100%;
+	}
+}

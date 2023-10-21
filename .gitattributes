@@ -1,0 +1,12 @@
+# by default, non-binary files should have LF line endings in the repository,
+# but line endings when checked out should depend on developer's system
+*  text=auto
+
+# override: shell scripts should have LF line endings even when checked out
+# (otherwise the VM chokes on a shebang ending in CRLF)
+*.sh  text eol=lf
+
+# omits these files from being counted in "lines of code that have changed" 
+package-lock.json  linguist-vendored
+db/init/*  linguist-vendored
+src/server/data/*  linguist-vendored

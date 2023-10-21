@@ -1,0 +1,56 @@
+.CalendarPage {
+	.Section {
+		.CalendarPage_monthSection {
+			.CalendarPage_monthName {
+				text-align: center;
+				font-size: px2rem(25px);
+				font-weight: bold;
+			}
+
+			.CalendarPage_categorySections {
+				.CalendarPage_categorySection {
+					@extend .GenericInnerSection;
+
+					margin-left: px2rem(5px);
+					margin-right: px2rem(5px);
+					flex: 1;
+
+					.CalendarPage_categoryName {
+						font-size: px2rem(16px);
+						text-decoration: underline;
+						padding-bottom: px2rem(5px);
+					}
+
+					.CalendarPage_eventSections {
+						@include responsive(1rem) {
+							@include grid($col-width: 12rem);
+						}
+
+						.CalendarPage_eventSection {
+							padding-bottom: px2rem(5px);
+							padding-top: px2rem(5px);
+
+							display: flex;
+
+							img {
+								height: 32px;
+								width: 32px;
+							}
+
+							.CalendarPage_eventText {
+								.CalendarPage_eventName {
+									text-transform: capitalize;
+									font-weight: bold;
+								}
+
+								.CalendarPage_timing {
+									text-transform: capitalize;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,77 @@
+@use "sass:math";
+
+@import "fonts.scss";
+@import "normalize.scss";
+@import "colors.scss";
+@import "mixins.scss";
+
+$breakpoint-fullsize: 81.25rem;
+
+@import "forms.scss";
+@import "layout.scss";
+@import "nodes.scss";
+@import "profile.scss";
+@import "towns.scss";
+@import "characters.scss";
+@import "tunes.scss";
+@import "patterns.scss";
+@import "friend-codes.scss";
+@import "admin.scss";
+@import "trading_post.scss";
+@import "polls.scss";
+@import "catalog.scss";
+@import "map_maker.scss";
+@import "ratings.scss";
+@import "features.scss";
+@import "buddies.scss";
+@import "guides.scss";
+@import "calendar.scss";
+@import "settings.scss";
+@import "legal.scss";
+@import "home.scss";
+@import "user.scss";
+@import "automation.scss";
+@import "scout-hub.scss";
+@import "bell_shop.scss";
+
+/* Miscellaneous and/or temporary styles go below here */
+
+.App_banned, .RouteError {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.StaffPage {
+	.StaffPage_role {
+		font-weight: bold;
+	}
+}
+
+.StaffRolesPage {
+	.StaffRolesPage_section {
+		.StaffRolesPage_apply, .StaffRolesPage_responsibilities, .StaffRolesPage_recruitment {
+			li {
+				list-style-type: disc;
+				list-style-position: inside;
+
+				padding-top: px2rem(5px);
+				padding-bottom: px2rem(5px);
+			}
+		}
+
+		.StaffRolesPage_responsibilityTitle, .StaffRolesPage_recruitmentTitle {
+			font-weight: bold;
+		}
+	}
+}
+
+// hide informational on smaller screens
+@media only screen and (max-width: px2rem(1214px)) {
+	.informational-icon {
+		display: none;
+	}
+}

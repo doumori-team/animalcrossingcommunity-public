@@ -1,0 +1,195 @@
+.UserTownsPage {
+	.Grid {
+		@include responsive(40rem) {
+			@include grid($col-width: 36rem);
+		}
+	}
+}
+
+.EditTown {
+	.EditTown_name {
+		margin-bottom: px2rem(20px);
+	}
+
+	.EditTown_nativeFruit {
+		display: flex;
+	}
+
+	.FormGroup {
+		margin-top: px2rem(20px);
+		margin-bottom: px2rem(20px);
+	}
+}
+
+.Town, .EditTown {
+	li ul li {
+		padding-left: px2rem(25px);
+	}
+
+	.Town_name, .EditTown_name {
+		text-align: center;
+
+		.Town_gameName, .EditTown_gameName {
+			display: block;
+			font-weight: normal;
+			font-size: px2rem(14px);
+		}
+	}
+
+	.Town_name {
+		> div {
+			display: flex;
+			justify-content: center;
+		}
+
+		img {
+			align-self: center;
+		}
+	}
+
+	.Town_sectionHeading, .EditTown_sectionHeading {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: bold;
+	}
+
+	.Town_sectionHeadingIcon, .EditTown_sectionHeadingIcon {
+		width: 1.5em;
+		vertical-align: top;
+		margin-right: 0.5em;
+		background-color: #81d7bc;
+	}
+}
+
+.Town_map, .MapMaker {
+	img {
+		// Defines how images should behave when scaled up or down. The default ("auto") blurs the image.
+		// "pixelated" maintains the sharp boundaries between pixels.
+		image-rendering: pixelated;
+	}
+}
+
+.Town_map {
+	.ReportProblem {
+		position: absolute;
+		line-height: 1;
+		padding: 0.5em 0.6em;
+
+		input {
+			max-height: px2rem(15px);
+			z-index: 1;
+			position: relative;
+		}
+	}
+}
+
+.Town_map_acgc img {
+	border: 1px solid black;
+}
+
+.Town {
+	.Town_links {
+		@include links(90px);
+	}
+
+	.Town_button {
+		@extend .GenericSubmitButton;
+	}
+
+	.Town_characterHeader {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.Town_map {
+		display: inline-block;
+
+		overflow: hidden;
+
+		position: relative;
+
+		width: 100%;
+
+		&_acnh {
+			max-width: 100%;
+		}
+	}
+
+	.Town_map.Town_map_acgc,
+	.Town_map.Town_map_acww,
+	.Town_map.Town_map_accf,
+	.Town_map.Town_map_acnl,
+	.Town_map.Town_map_acnh img {
+		border: px2rem(1px) solid $color-interface-foreground;
+		border-radius: 0.3333rem;
+	}
+
+	.Town_mapEditLink {
+		position: absolute;
+		right: 0.3rem;
+
+		line-height: 1;
+		padding: 0.5em 0.6em;
+		border-radius: 0.25em;
+
+		background-color: rgba(#000, 0.4);
+		color: white;
+
+		&:hover, &:focus, &:active {
+			background-color: rgba(#000, 0.6);
+		}
+	}
+
+	.Town_map_acgc, .Town_map_acww, .Town_map_accf, .Town_map_acnl {
+		.Town_mapEditLink {
+			bottom: 0.3rem;
+		}
+
+		.ReportProblem {
+			display: none;
+		}
+	}
+
+	.Town_map_acnh {
+		.Town_mapEditLink, .ReportProblem {
+			bottom: 0.7rem;
+		}
+	}
+
+	.Map {
+		border-collapse: collapse;
+		line-height: 0;
+
+		img {
+			width: 100%;
+		}
+
+		.row {
+			display: flex;
+		}
+	}
+
+	.Grid {
+		@include responsive(40rem) {
+			@include grid($col-width: 15rem);
+		}
+	}
+
+	.Character {
+		@extend .GenericInnerSection;
+	}
+}
+
+.AddTownPage {
+	.Grid {
+		@include responsive(1rem) {
+			@include grid($col-width: 15rem);
+		}
+	}
+}
+
+.Town_note {
+	margin-top: px2rem(10px);
+	font-style: italic;
+}

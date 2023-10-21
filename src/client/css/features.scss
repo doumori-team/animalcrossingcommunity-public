@@ -1,0 +1,35 @@
+.FeaturesDashboardPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 20rem);
+			}
+
+			.FeaturesDashboardPage_feature {
+				@extend .GenericInnerSection;
+			}
+		}
+	}
+}
+
+.FeaturePage {
+	.Tabs {
+		padding-top: px2rem(20px);
+	}
+
+	.FeaturePage_chat {
+		@extend .GenericSection;
+	}
+
+	.FeaturePage_message {
+		@extend .GenericInnerSection;
+	}
+
+	.FeaturePage_userList {
+		margin-left: 1.5rem;
+
+		li {
+			list-style: disc;
+		}
+	}
+}

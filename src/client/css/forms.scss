@@ -1,0 +1,733 @@
+.MarkupButton, .EmojiButton {
+	padding: 0.25rem;
+	border-radius: 0.25rem;
+	&:hover, &:focus {
+		background: rgba(#000, 0.1);
+	}
+	&[disabled] {
+		opacity: 0.4;
+		cursor: default;
+		&:hover {
+			background: none;
+		}
+	}
+}
+
+.RichTextArea {
+	.RichTextArea_quickMarkup {
+		background: var(--seasonal-color-light);
+		border-radius: 0.25rem 0.25rem 0 0;
+		padding: px2rem(8px);
+		overflow: auto;
+		font-size: px2rem(12px);
+	}
+
+	.RichTextArea_quickMarkup {
+		display: flex;
+		justify-content: space-between;
+
+		.RichTextArea_markupStyle {
+			display: flex;
+			align-items: center;
+		}
+
+		.RichTextArea_quickMarkupGroup {
+			border-right: 1.5px solid #555;
+			padding: 0 0.5rem;
+			&:first-child {
+				padding-left: 0;
+			}
+			&:last-child {
+				border-right: 0;
+				padding-right: 0;
+			}
+
+			input[type="file"] {
+				display: none;
+			}
+		}
+	}
+
+	.RichTextArea_textbox {
+		@extend .NodeWritingInterface_title;
+
+		resize: vertical;
+
+		color: #555;
+		font-family: $fontstack-default;
+		font-size: px2rem(14px);
+		line-height: 1.8;
+		text-shadow: none;
+
+		// Dovetail with quick markup bar
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		margin-top: 0;
+
+		flex: 1;
+		min-width: 80%;
+	}
+
+	.RichTextArea_textarea {
+		display: flex;
+		flex-wrap: wrap;
+	
+		.RichTextArea_emoji {
+			border-radius: .25rem;
+			margin-bottom: .5rem;
+			margin-top: .5em;
+			margin-left: .5em;
+			background: #fff;
+			padding: px2rem(8px);
+			flex: 1;
+			min-width: 19%;
+		}
+	}
+
+	.RichTextArea_file {
+		position: relative;
+		display: inline-block;
+
+		.RichTextArea_fileRemove {
+			position: absolute;
+			right: .3rem;
+			line-height: 1;
+			border-radius: .25em;
+			background-color: rgba(0,0,0,.4);
+			color: #fff;
+			top: .3rem;
+			padding-top: .2em;
+			padding-bottom: .4em;
+			padding-right: .5em;
+			padding-left: .5em;
+		}
+
+		input {
+			margin-left: px2rem(2px);
+		}
+	}
+}
+
+// yet-another-react-lightbox
+.RichTextArea .react-photo-album--column {
+	min-width: px2rem(80px);
+}
+
+.yarl__toolbar {
+	.ReportProblem {
+		padding: px2rem(10px);
+
+		.Form_button {
+			background-color: #ec2525;
+		}
+	}
+}
+
+.react-photo-album {
+	img {
+		max-height: px2rem(450px);
+	}
+
+	@media only screen and (max-width: px2rem(424px)) {
+		max-width: px2rem(335px);
+	}
+}
+
+.RichTextArea_preview {
+	.Markup {
+		@include contentbox;
+		padding: 1rem;
+		line-height: 1.7em;
+		min-height: 30vh;
+	}
+}
+
+%GenericFormControl {
+	display: inline-block;
+	height: px2rem(26px);
+	border: px2rem(2px) solid var(--seasonal-color-dark);
+	padding: px2rem(2px);
+	border-radius: px2rem(13px);
+	font-size: px2rem(12px);
+}
+
+.GenericTextbox {
+	@extend %GenericFormControl;
+	background-color: #fff;
+	color: #555;
+	outline: none;
+	padding-left: px2rem(6px);
+	padding-right: px2rem(6px);
+}
+
+.GenericButton {
+	@extend %GenericFormControl;
+	background-color: var(--seasonal-color);
+	@include inset-text;
+	width: px2rem(26px);
+}
+
+.HeaderText {
+	@extend .GenericButton;
+
+	width: max-content;
+	text-align: center;
+	padding-left: px2rem(15px);
+	padding-right: px2rem(15px);
+	font-size: revert;
+	height: max-content;
+	margin: 0px auto;
+	display: block;
+	margin-bottom: px2rem(10px);
+	margin-top: px2rem(10px);
+	max-width: 100%;
+}
+
+.GenericSelect {
+	// react-select
+	.react-select {
+		min-width: 100%;
+
+		> div:first-of-type {
+			border-radius: 0.8125rem;
+			border: 0.125rem solid var(--seasonal-color-dark);
+		}
+
+		#react-select-2-listbox > div div {
+			border-radius: 0.8125rem;
+		}
+	}
+
+	// regular selects
+	display: grid;
+	grid-template-areas: "select";
+	align-items: center;
+
+	select {
+		@extend .GenericTextbox;
+		margin: 0 px2rem(4px);
+
+		@include responsive(30rem);
+	}
+
+	&.simple-select {
+		select {
+			min-width: px2rem(70px);
+		}
+
+		&::after {
+			content: "";
+			width: 0.8em;
+			height: 0.5em;
+			background-color: #777;
+			clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+			justify-self: end;
+			margin-right: px2rem(10px);
+			font-size: px2rem(12px);
+		}
+	}
+
+	select, &::after {
+		grid-area: select;
+	}
+}
+
+.GenericMultiSelect {
+	// react-select
+	.react-select {
+		> div:first-of-type {
+			border-radius: 0.8125rem;
+			border: 0.125rem solid var(--seasonal-color-dark);
+		}
+
+		#react-select-2-listbox > div div {
+			border-radius: 0.8125rem;
+		}
+	}
+
+	// regular multi selects
+	select {
+		@extend .GenericTextbox;
+		margin: 0 px2rem(4px);
+
+		@include responsive(30rem);
+		height: 100%;
+	}
+}
+
+.GenericBoolCheckbox {
+	input[type='checkbox'] {
+		width: px2rem(38px);
+		border-radius: px2rem(11px);
+
+		--active-inner: #fff;
+		--focus: px2rem(2px) rgba(39, 94, 254, .3);
+		--border: #BBC1E1;
+		--border-hover: var(--seasonal-color-dark);
+		--background: #fff;
+		--disabled: #F6F8FF;
+		--disabled-inner: #E1E6F9;
+
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		height: px2rem(21px);
+		outline: none;
+		display: inline-block;
+		vertical-align: top;
+		position: relative;
+		margin: 0;
+		cursor: pointer;
+		border: px2rem(1px) solid var(--bc, var(--border));
+		background: var(--b, var(--background));
+		transition: background .3s, border-color .3s, box-shadow .2s;
+
+		&:after {
+			content: '';
+			display: block;
+			position: absolute;
+			transition: transform var(--d-t, .3s) var(--d-t-e, ease), opacity var(--d-o, .2s);
+			left: px2rem(2px);
+			top: px2rem(2px);
+			border-radius: 50%;
+			width: px2rem(15px);
+			height: px2rem(15px);
+			background: var(--ab, var(--border));
+			transform: translateX(var(--x, 0));
+		}
+
+		&:checked {
+			--b: var(--active);
+			--bc: var(--active);
+			--d-o: .3s;
+			--d-t: .6s;
+			--d-t-e: cubic-bezier(.2, .85, .32, 1.2);
+			--ab: var(--active-inner);
+			--x: 17px;
+		}
+
+		&:disabled {
+			--b: var(--disabled);
+			cursor: not-allowed;
+			opacity: .9;
+
+			&:checked {
+				--b: var(--disabled-inner);
+				--bc: var(--border);
+			}
+
+			& + label {
+				cursor: not-allowed;
+			}
+
+			&:not(:checked) {
+				&:after {
+					opacity: .6;
+				}
+			}
+		}
+
+		&:hover {
+			&:not(:checked) {
+				&:not(:disabled) {
+					--bc: var(--border-hover);
+				}
+			}
+		}
+
+		&:focus {
+			box-shadow: 0 0 0 var(--focus);
+		}
+
+		& + label {
+			font-size: px2rem(14px);
+			line-height: px2rem(21px);
+			display: inline-block;
+			vertical-align: top;
+			cursor: pointer;
+			margin-left: px2rem(4px);
+		}
+	}
+}
+
+.GenericText {
+	display: block;
+	width: 100%;
+	margin: 0.5rem 0;
+	border: none;
+	outline: none;
+	border-radius: 0.25rem;
+	padding: 0.625rem;
+	background: #fff;
+	color: #555;
+}
+
+.GenericTextPlaceholder {
+	display: flex;
+	align-items: baseline;
+
+	input {
+		@extend .GenericText;
+		flex: 1 1 0;
+		border: 0.125rem solid var(--seasonal-color-dark);
+		border-radius: 0.8125rem;
+	}
+
+	span {
+		padding-top: px2rem(15px);
+		padding-left: px2rem(5px);
+	}
+}
+
+.GenericHeader {
+	@include contentbox($background: white, $background-image: $background-header-image);
+	padding: 1rem;
+	font-size: px2rem(14px);
+	box-shadow: inset 0 0 0 1000px var(--seasonal-color-header);
+}
+
+.GenericSection {
+	@include contentbox($color: $color-interface-foreground, $background-image: $background-image);
+	padding: 1rem;
+	font-size: px2rem(14px);
+}
+
+.GenericSearchButton {
+	@extend .GenericButton;
+
+	width: 3.625rem;
+	margin-top: px2rem(5px);
+}
+
+.GenericSubmitButton {
+	@include button;
+	margin: px2rem(1px);
+	text-align: center;
+}
+
+.GenericInnerSection {
+	margin-bottom: .9375rem;
+	padding: 1rem;
+	border-radius: 0.33333em;
+	background: $color-interface-background;
+	border: px2rem(1px) solid $color-interface-foreground;
+}
+
+.FormGroup {
+	display: flex;
+	flex-direction: column;
+
+	label {
+		margin-left: px2rem(5px);
+		font-weight: bold;
+		font-size: 1.17em;
+	}
+
+	input[type="text"]:not(.text-full):not(.placeholder),
+	input[type="number"],
+	input[type="email"],
+	input[type="date"] {
+		@extend .GenericTextbox;
+	}
+
+	.text-full {
+		@extend .GenericText;
+
+		text-align: center;
+	}
+
+	.placeholder {
+		@extend .GenericTextPlaceholder;
+	}
+
+	.Switch {
+		label {
+			margin-right: px2rem(5px);
+		}
+	}
+
+	textarea {
+		@extend .GenericText;
+	}
+}
+
+.Switch {
+	@extend .GenericBoolCheckbox;
+
+	display: flex;
+	align-items: center;
+
+	&.light {
+		--active: var(--seasonal-color-light);
+	}
+
+	&.dark {
+		--active: var(--seasonal-color-dark);
+	}
+}
+
+.Select {
+	@extend .GenericSelect;
+}
+
+.Select-multiple {
+	@extend .GenericMultiSelect;
+}
+
+.Form_button {
+	@extend .GenericSubmitButton;
+}
+
+.Alert {
+	margin: 0 .625rem .9375rem;
+	padding: .5em;
+	border-radius: 1.5em;
+
+	font-size: px2rem(14px);
+	line-height: 1.5;
+	font-weight: normal;
+
+	border-width: 0.3em 1em;
+	border-style: solid;
+	box-shadow: 0 0 1px 1px rgba(0, 0, 0, .5);
+}
+
+.Alert-error {
+	border-color: $color-message-error;
+	background-color: lighten($color-message-error, 15%);
+}
+
+.Alert-success {
+	border-color: $color-message-success;
+	background-color: lighten($color-message-success, 15%);
+}
+
+.Alert-info {
+	border-color: $color-message-info;
+	background-color: lighten($color-message-info, 15%);
+}
+
+.Check {
+	@include responsive(1rem) {
+		@include grid($col-width: 7rem);
+	}
+
+	flex: 1;
+
+	label {
+		height: fit-content;
+		font-size: unset;
+		margin-left: unset;
+		font-weight: unset;
+	}
+
+	.Check_option {
+		text-align: center;
+		padding: px2rem(5px);
+		border-radius: .3333em;
+		border: px2rem(1px) solid var(--seasonal-color-dark);
+		color: #555;
+		background-color: #fff;
+		cursor: pointer;
+		text-shadow: -1px -1px rgba(0,0,0,.1);
+		box-shadow: 0px -1px 0px rgba(0,0,0,.3) inset,0px 1px 0px rgba(255,255,255,.3) inset;
+
+		span {
+			display: block;
+		}
+	}
+
+	.Check_input:checked+label {
+		color: #fff;
+		background-color: var(--seasonal-color-dark);
+
+		.App-snow & {
+			color: #555;
+		}
+	}
+
+	.Check_input {
+		clip-path: polygon(0 0);
+		position: absolute;
+	}
+}
+
+.Spinner {
+	.lds-default {
+		display: inline-block;
+		position: relative;
+		width: px2rem(80px);
+		height: px2rem(80px);
+
+		div {
+			position: absolute;
+			width: px2rem(6px);
+			height: px2rem(6px);
+			background: #fff;
+			border-radius: 50%;
+			animation: lds-default 1.2s linear infinite;
+
+			background-color: var(--seasonal-color-dark);
+			border: 0.1px solid black;
+		}
+
+		div:nth-child(1) {
+			animation-delay: 0s;
+			top: px2rem(37px);
+			left: px2rem(66px);
+		}
+
+		div:nth-child(2) {
+			animation-delay: -0.1s;
+			top: px2rem(22px);
+			left: px2rem(62px);
+		}
+
+		div:nth-child(3) {
+			animation-delay: -0.2s;
+			top: px2rem(11px);
+			left: px2rem(52px);
+		}
+
+		div:nth-child(4) {
+			animation-delay: -0.3s;
+			top: px2rem(7px);
+			left: px2rem(37px);
+		}
+
+		div:nth-child(5) {
+			animation-delay: -0.4s;
+			top: px2rem(11px);
+			left: px2rem(22px);
+		}
+
+		div:nth-child(6) {
+			animation-delay: -0.5s;
+			top: px2rem(22px);
+			left: px2rem(11px);
+		}
+
+		div:nth-child(7) {
+			animation-delay: -0.6s;
+			top: px2rem(37px);
+			left: px2rem(7px);
+		}
+
+		div:nth-child(8) {
+			animation-delay: -0.7s;
+			top: px2rem(52px);
+			left: px2rem(11px);
+		}
+
+		div:nth-child(9) {
+			animation-delay: -0.8s;
+			top: px2rem(62px);
+			left: px2rem(22px);
+		}
+
+		div:nth-child(10) {
+			animation-delay: -0.9s;
+			top: px2rem(66px);
+			left: px2rem(37px);
+		}
+
+		div:nth-child(11) {
+			animation-delay: -1s;
+			top: px2rem(62px);
+			left: px2rem(52px);
+		}
+
+		div:nth-child(12) {
+			animation-delay: -1.1s;
+			top: px2rem(52px);
+			left: px2rem(62px);
+		}
+	}
+
+	@keyframes lds-default {
+		0%, 20%, 80%, 100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.5);
+		}
+	}
+
+	.lds-ring {
+		display: inline-block;
+		position: relative;
+		width: 20px;
+		height: 20px;
+
+		div {
+			box-sizing: border-box;
+			display: block;
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			margin: 0px;
+			border: 2px solid #fff;
+			border-radius: 50%;
+			animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+			border-color: #fff transparent transparent transparent;
+		}
+
+		div:nth-child(1) {
+			animation-delay: -0.45s;
+		}
+
+		div:nth-child(2) {
+			animation-delay: -0.3s;
+		}
+
+		div:nth-child(3) {
+			animation-delay: -0.15s;
+		}
+	}
+
+	@keyframes lds-ring {
+		0% {
+		  transform: rotate(0deg);
+		}
+		100% {
+		  transform: rotate(360deg);
+		}
+	}
+}
+
+.GenericButtonLink {
+	background: none !important;
+	border: none;
+	padding: 0 !important;
+	font-family: $fontstack-default;
+	color: #069;
+	cursor: pointer;
+}
+
+.GenericButtonWithCustomImage {
+	height: px2rem(210px);
+
+	@media only screen and (max-width: px2rem(1265px)) {
+		height: px2rem(285px);
+	}
+
+	@media only screen and (max-width: px2rem(521px)) and (min-width: px2rem(372px)){
+		height: px2rem(300px);
+	}
+
+	background-repeat: no-repeat;
+	background-size: 85%, cover;
+	background-position: center, center;
+
+	// hide link text behind image, show if image doesn't load
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transform-style: preserve-3d;
+	text-align: center;
+
+	p {
+		width: 125px;
+		transform: translateZ(-1px);
+		word-break: break-word;
+	}
+}

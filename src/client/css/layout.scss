@@ -1,0 +1,879 @@
+/* layout.scss
+ *
+ * Styles for the components that make up the site's basic page layout.
+ */
+
+/* Dimensions: Kept at the top for easy modification. */
+$navbar-height: 2.8125rem;
+$navbar-width: $breakpoint-fullsize;
+$navbar-breakpoint: px2rem(1215px);
+$navbar-padding-thickness: .625rem;
+
+.App {
+	min-height: 100vh; /* ensure background extends over whole page */
+	margin: 0;
+
+	background-image: var(--seasonal-grass);
+	background-position: top;
+
+	display: flex; flex-direction: column; /* allow SiteContent to expand */
+}
+
+.SiteContent {
+	width: 100%;
+	max-width: $breakpoint-fullsize;
+	margin: 1.5rem auto;
+	flex-grow: 1; /* expand to push SiteFooter to bottom */
+}
+
+.Navbar {
+	background-color: var(--seasonal-color-dark);
+	background-image: linear-gradient(
+		to top,
+		var(--seasonal-color-dark),                  // start with the dark (shadow) colour at the bottom of the navbar
+		var(--seasonal-color) $navbar-height * 0.9,  // gradually fade to the normal colour until 90% of the way up
+		var(--seasonal-color-light) $navbar-height,  // for the last 10%, fade through to the light (highlight) colour
+		var(--seasonal-color-light)                  // if the navbar is taller than the usual height, use the light colour for the rest of it
+	);
+	background-repeat: no-repeat;
+	border-bottom: 1px solid rgba(var(--seasonal-color-accent), 0.2);
+	box-shadow: 0px 0px 1.4rem rgba(0, 0, 0, 0.3);
+
+	@include inset-text;
+	font-family: $fontstack-accent;
+
+	width: 100%;
+	z-index: 50;
+}
+
+.Navbar_content {
+	height: $navbar-height;
+
+	/* Restrict the header from becoming too wide on big screens */
+	width: 100%;
+	max-width: $navbar-width;
+	margin: auto;
+
+	/* Lay out elements so that spacers grow to fill the maximum available space */
+	display: flex;
+	justify-content: space-between;
+}
+
+.NavbarItem, .SiteHeader_notifications {
+	display: inline-block;
+	vertical-align: top;
+	line-height: $navbar-height;
+
+	/* Ensure interactive elements extend right up to the edges */
+	height: 100%;
+	padding: 0;
+
+	& > *, & > form > * {
+		display: block;
+		height: $navbar-height;
+		padding: 0 $navbar-padding-thickness;
+	}
+	& > form {
+		padding: 0;
+	}
+}
+
+.NavbarItem, .NavbarMenuButton, .LogoutButton, .LoginButton {
+	/* highlight on hover or keyboard focus */
+	&:hover, &:focus {
+		background-color: rgba(0, 0, 0, 0.2);
+	}
+}
+
+/* A particular type of navbar item that contains an icon instead of text */
+.NavbarItem-icon {
+	width: $navbar-height; // should be square
+	/* centre the icon inside it: */
+	text-align: center; padding: 0;
+	svg, img, picture {
+		vertical-align: middle;
+	}
+	& > a, & > button, & > form button {
+		width: $navbar-height;
+		height: $navbar-height;
+		padding: 0;
+	}
+}
+
+/* Full set of links in the navbar only appears when there is space for them */
+.NavbarItem-extra {
+	display: none;
+	@include responsive($navbar-breakpoint) {
+		display: inline-block;
+	}
+	/* ...except the username, which reappears early */
+	&.NavbarItem-username {
+		@include responsive(px2rem(462px)) {
+			display: inline-block;
+		}
+	}
+}
+
+/* bit of a hack, but this is here to push the login/logout button all the way
+ * to the right */
+.NavbarSpacer {
+	flex-grow: 1;
+	padding: 0;
+}
+
+/* Add bevels */
+.NavbarItem, .NavbarSpacer {
+	border-right: 1px solid rgba(0, 0, 0, 0.07);
+}
+.Navbar_content {
+	border-left: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+
+.MenuIcon {
+	height: 1em;
+	width: 1em;
+	fill: currentColor; /* makes the symbol the same colour as the surrounding text */
+	opacity: 0.85;
+}
+
+
+.SiteMenu {
+	text-align: left; padding: 0;
+	background-color: #fff;
+}
+
+.SiteMenu_content {
+	color: #333;
+	font-family: $fontstack-default;
+	font-weight: bold;
+	font-size: px2rem(14px);
+	text-shadow: none;
+
+	li {
+		border-top: 1px solid #ddd;
+
+		/* Make sub-options smaller than the main ones */
+		li {
+			font-size: 85%;
+			margin-left: 1em;
+		}
+	}
+}
+
+.SiteMenu_link {
+	display: block;
+	width: 100%; text-align: left;
+	min-height: 2.75em;
+	line-height: 2.75em;
+	padding: 0 1em;
+}
+
+.SiteMenu-dynamic {
+	z-index: 30; /* behind navbar, in front of content */
+	position: fixed;
+	top: 0;
+	left: 0;
+
+	width: 80vw; max-width: 24rem;
+	height: 100vh;
+
+	/* scroll bar */
+	overflow: auto;
+
+	@media only screen and (min-width: px2rem(2500px)) {
+		left: 20%;
+	}
+}
+
+.NavbarMenuButton::before {
+	content: '';
+	display: block; width: 100%; height: 100%;
+	position: absolute; left: 0; top: 0;
+	z-index: 29; /* just behind SiteMenu */
+	background: rgba(0, 0, 0, 0.4); cursor: default;
+	opacity: 0;
+	will-change: opacity;
+	pointer-events: none;
+	transition: opacity 0.3s cubic-bezier(0, 0, 0.3, 1);
+}
+
+.NavbarMenuButton-active::before {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.SiteFooter {
+	background-color: $color-footer-background;
+	padding: 0 px2rem(21px) px2rem(24px) px2rem(21px);
+	border-top: px2rem(6px) solid rgba(#000, 0.05);
+
+	color: rgba(255, 255, 255, 0.55);
+	font-size: px2rem(14px);
+	line-height: 1.8em;
+	text-shadow: -1px -1px rgba(0, 0, 0, 0.1);
+}
+
+@include responsive(48rem) {
+	.SiteFooter_gridContainer {
+		max-width: $breakpoint-fullsize; margin: auto;
+		display: grid;
+		grid: auto-flow / 1fr 1fr 1fr;
+		grid-gap: px2rem(24px); gap: px2rem(24px);
+	}
+}
+
+.SiteFooter_section {
+	text-align: center;
+}
+
+.SiteFooter_heading {
+	color: rgba(255, 255, 255, 0.65);
+	border-bottom: 1px solid rgba(#fff, 0.1)
+}
+
+.SiteFooter_link {
+	color: rgba(255, 255, 255, 0.65);
+	&:hover {
+		color: rgba(255, 255, 255, 0.75);
+	}
+}
+
+.SiteFooter_socialIcon {
+	margin: px2rem(8px);
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.SiteFooter_copyright, .SiteFooter_donate {
+	text-align: center;
+}
+
+.SiteHeader {
+	position: sticky;
+	top: 0;
+	z-index: 9999;
+
+	.SiteHeader_notifications {
+		position: relative;
+
+		.SiteHeader_notificationsLink {
+			&:hover, &:focus {
+				background-color: rgba(0, 0, 0, 0.2);
+			}
+
+			.SiteHeader_notificationCount {
+				font-size: px2rem(12px);
+				font-weight: bold;
+				background: purple;
+				color: #fff;
+				padding: 0 px2rem(5px);
+				border-radius: 50%;
+
+				position: relative;
+				opacity: 0.9;
+				top: px2rem(-60px);
+				right: px2rem(-10px);
+			}
+		}
+
+		.SiteHeader_notification {
+			background-color: #fff;
+			border: px2rem(1px) solid gray;
+			border-radius: 0.5rem;
+
+			position: absolute;
+			top: 100%;
+			left: -113%;
+
+			width: 354%;
+			height: auto;
+			max-width: px2rem(159px);
+			line-height: px2rem(15px);
+
+			.SiteHeader_notificationArrow {
+				transform: translate(px2rem(66px));
+				display: block;
+				width: 1rem;
+				height: .5rem;
+				margin-top: px2rem(-9px);
+			}
+
+			.SiteHeader_notificationArrow::before,
+			.SiteHeader_notificationArrow::after {
+				border-left-width: 0.5rem !important;
+				border-bottom-width: 0.5rem !important;
+				border-right-width: 0.5rem !important;
+				position: absolute;
+				display: block;
+				content: "";
+				border: 0 solid transparent;
+			}
+
+			.SiteHeader_notificationArrow::after {
+				top: px2rem(1px);
+				border-bottom-color: white !important;
+			}
+
+			.SiteHeader_notificationBody {
+				color: black;
+				font-size: px2rem(12px);
+				padding: px2rem(5px);
+			}
+		}
+	}
+}
+
+.Loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	@include contentbox($background: white);
+	padding: 1rem;
+	font-size: px2rem(14px);
+
+	img {
+		width: 15%;
+	}
+}
+
+.SiteContent > .TreasureOffer {
+	text-align: center;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.TreasureOffer input[type='image'] {
+	max-width: 100%;
+	width: 475px;
+}
+
+.FontAwesomeIcon {
+	height: 1em;
+	width: 1em;
+}
+
+.FontAwesomeIcon, .EmojiButton img {
+	vertical-align: -.125em;
+	fill: currentColor;
+}
+
+img[src*="/reaction/"],
+img[src*="/female-tone1/"],
+img[src*="/female-tone2/"],
+img[src*="/female-tone3/"],
+img[src*="/male-tone1/"],
+img[src*="/male-tone2/"],
+img[src*="/male-tone3/"] {
+	height: 25px;
+}
+
+.Markup {
+	img[src*="/reaction/"],
+	img[src*="/female-tone1/"],
+	img[src*="/female-tone2/"],
+	img[src*="/female-tone3/"],
+	img[src*="/male-tone1/"],
+	img[src*="/male-tone2/"],
+	img[src*="/male-tone3/"] {
+		vertical-align: sub;
+	}
+}
+
+.ContentBox {
+	@include contentbox;
+
+	margin: 0 .625rem .9375rem;
+	padding: 1rem;
+
+	font-size: px2rem(14px);
+	line-height: 1.5;
+
+	@include responsive($navbar-breakpoint) {
+		margin: 0 0 1.875rem;
+		padding: 1.5rem;
+		font-size: 1rem;
+		line-height: 1.6;
+	}
+}
+
+.UsernameSearch {
+	.UsernameSearch_option {
+		display: flex;
+
+		input[type='text'] {
+			@extend .GenericTextbox;
+
+			margin: 0 px2rem(4px);
+
+			width: px2rem(135px);
+		}
+	}
+
+	button {
+		@extend .GenericButton;
+	}
+}
+
+.NavMenu {
+	margin: 0 .625rem .9375rem;
+	text-align: center;
+	font-family: $fontstack-accent;
+}
+
+.NavMenuButton {
+	display: inline-block;
+	margin: px2rem(2px);
+}
+
+.NavMenuButton_link {
+	@include contentbox(var(--seasonal-color-dark), white);
+	@include inset-text;
+
+	width: px2rem(146px);
+	padding: px2rem(3px);
+	display: block;
+}
+
+.NavMenuButton_link-selected {
+	background: var(--seasonal-color);
+}
+
+.NavMenuButton_link:hover, .NavMenuButton_link:focus, .NavMenuButton_link:active {
+	background: var(--seasonal-color-light);
+}
+
+.EditKeyboard {
+	text-align: left;
+
+	input {
+		@extend .GenericText;
+	}
+
+	.EditKeyboard_markup {
+		background: var(--seasonal-color-light);
+		border-radius: 0.25rem 0.25rem 0 0;
+		padding: px2rem(8px);
+		overflow: auto;
+
+		font-size: px2rem(12px);
+	}
+
+	button {
+		padding: 0.25rem;
+		border-radius: 0.25rem;
+
+		&:hover {
+			background: rgba(#000, 0.1);
+		}
+
+		&[disabled] {
+			opacity: 0.4;
+			cursor: default;
+
+			&:hover {
+				background: none;
+			}
+		}
+	}
+}
+
+.Pagination {
+	$pagination-border-width: px2rem(12px);
+
+	display: flex;
+	justify-content: center;
+
+	margin-top: px2rem(2px);
+	padding: px2rem(4px);
+
+	background-color: var(--seasonal-color-dark);
+	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
+	border: 1px solid rgba(0,0,0,0.7);
+
+	a, button {
+		@extend .GenericButton;
+
+		position: relative;
+
+		border-radius: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-left: px2rem(10px);
+		margin-right: px2rem(10px);
+		width: px2rem(60px);
+		height: px2rem(25px);
+
+		&:hover, &:focus {
+			background-color: var(--seasonal-color-accent);
+			color: var(--seasonal-color-dark);
+		}
+	}
+
+	a::after, button:after {
+		position: absolute;
+		content: "";
+		top: px2rem(-1px);
+		border-top: $pagination-border-width solid transparent;
+		border-bottom: $pagination-border-width solid transparent;
+	}
+
+	.Pagination_next::after, .Pagination_last::after {
+		right: px2rem(-24px);
+
+		border-left: $pagination-border-width solid var(--seasonal-color);
+		border-right: $pagination-border-width solid transparent;
+	}
+
+	.Pagination_first::after, .Pagination_previous::after {
+		right: px2rem(56px);
+
+		border-left: $pagination-border-width solid transparent;
+		border-right: $pagination-border-width solid var(--seasonal-color);
+	}
+
+	.Pagination_currentNumber {
+		background-color: var(--seasonal-color-light);
+		font-weight: 900;
+	}
+
+	.Pagination_next, .Pagination_last, .Pagination_first, .Pagination_previous {
+		@media only screen and (max-width: px2rem(945px)) {
+			display: none;
+		}
+	}
+}
+
+.Pagination_dropdown {
+	background-color: var(--seasonal-color-dark);
+	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
+	border: 1px solid rgba(0,0,0,0.7);
+
+	.Select {
+		margin: auto;
+		width: 6%;
+
+		@media only screen and (max-width: px2rem(1300px)) {
+			width: 25%;
+		}
+	}
+}
+
+.Tabs {
+	.Tab_buttons {
+		overflow: hidden;
+		display: flex;
+
+		button {
+			float: left;
+			border: none;
+			outline: none;
+			cursor: pointer;
+			padding: px2rem(14px) px2rem(16px);
+			transition: 0.3s;
+			font-size: px2rem(17px);
+			border-radius: .25rem .25rem 0 0;
+			margin: px2rem(1px);
+		}
+
+		button.btn-light {
+			background: var(--seasonal-color-light);
+
+			&:hover {
+				background-color: var(--seasonal-color);
+			}
+		}
+
+		button.btn-dark {
+			background-color: var(--seasonal-color-dark);
+			border: px2rem(1px) solid var(--seasonal-color-light);
+			color: rgba(255,255,255,.85);
+
+			&:hover {
+				background-color: var(--seasonal-color-light);
+			}
+		}
+
+		button.active.btn-light {
+			background-color: rgba(255,255,255,.85);
+		}
+
+		button.active.btn-dark {
+			background-color: var(--seasonal-color);
+		}
+	}
+}
+
+.Header {
+	@extend .GenericHeader;
+
+	.Header_links {
+		@include links(150px);
+	}
+
+	.Header_name {
+		@extend .HeaderText;
+
+		.capitalize {
+			text-transform: capitalize;
+		}
+	}
+
+	.Header_description {
+		@extend .HeaderText;
+
+		img {
+			width: 20px;
+		}
+	}
+}
+
+.Section {
+	@extend .GenericSection;
+}
+
+.InnerSection {
+	@extend .GenericInnerSection;
+}
+
+.Search {
+	@extend .GenericSection;
+
+	.Search_options {
+		@include responsive(1rem) {
+			@include grid($col-width: 20rem);
+		}
+	}
+
+	button {
+		@extend .GenericSearchButton;
+	}
+}
+
+.Breadcrumb {
+	font-size: 1rem;
+	color: #888;
+	margin: 0;
+
+	span {
+		@media only screen and (max-width: 800px) {
+			display: block;
+		}
+	}
+}
+
+.RequireLargeScreen {
+	.RequireLargeScreen_fallback_1300 {
+		@include responsive(px2rem(1300px)) {
+			display: none;
+		}
+	}
+
+	.RequireLargeScreen_content_1300 {
+		@media only screen and (max-width: px2rem(1299px)) {
+			display: none;
+		}
+	}
+
+	.RequireLargeScreen_fallback_1275 {
+		@include responsive(px2rem(1275px)) {
+			display: none;
+		}
+	}
+
+	.RequireLargeScreen_content_1275 {
+		@media only screen and (max-width: px2rem(1274px)) {
+			display: none;
+		}
+	}
+
+	.RequireLargeScreen_fallback_657 {
+		@include responsive(px2rem(657px)) {
+			display: none;
+		}
+	}
+
+	.RequireLargeScreen_content_657 {
+		@media only screen and (max-width: px2rem(656px)) {
+			display: none;
+		}
+	}
+}
+
+.ACGameButtons_game {
+	@extend .GenericButtonWithCustomImage;
+
+	&_acgc {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_GC.png);
+	}
+
+	&_acww {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_WW.png);
+	}
+
+	&_accf {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_CF.png);
+	}
+
+	&_acnl {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_NL.png);
+	}
+
+	&_achhd {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_HHD.png);
+	}
+
+	&_acaf {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_aF.png);
+	}
+
+	&_acpc {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_PC.png);
+	}
+
+	&_acnh {
+		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_NH.png);
+	}
+}
+
+.ACGameButtons_game_notSelected {
+	opacity: 0.5;
+
+	p {
+		display: none;
+	}
+}
+
+.ImageUpload {
+	@extend .GenericSection;
+}
+
+.HonoraryCitizensPage {
+	form {
+		display: inline;
+		vertical-align: top;
+
+		.DonateButton {
+			width: px2rem(75px);
+		}
+	}
+
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+
+			.InnerSection {
+				padding: 0.5rem;
+			}
+		}
+	}
+}
+
+.TopBellsPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+
+			.TopBellsPage_user {
+				@extend .GenericInnerSection;
+			}
+		}
+	}
+}
+
+.DonateButton {
+	width: px2rem(100px);
+}
+
+img[src*="/icons/"], input[src*="/icons/"] {
+	padding-left: px2rem(2px);
+	padding-right: px2rem(2px);
+}
+
+input[src*="/icons/wifi"] {
+	height: px2rem(24px);
+}
+
+.Modal_container {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: rgba(255,255,255,0.70);
+	z-index: 1;
+
+	&.Modal_containerHide {
+		background-color: inherit;
+		position: inherit;
+	}
+}
+
+.Modal {
+	background: white;
+	border: 1px solid #ccc;
+	transition: 0.2s ease-out;
+	box-shadow: -2rem 2rem 2rem rgba(black, 0.2);
+	filter: blur(0);
+	transform: scale(1);
+	opacity: 1;
+	visibility: visible;
+	position: fixed;
+	z-index: 1000;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) !important;
+	font-size: px2rem(14px);
+	font-weight: normal;
+
+	&.Modal_hide {
+		opacity: 0;
+		visibility: hidden;
+		filter: blur(8px);
+		transform: scale(0.33);
+		box-shadow: 1rem 0 0 rgba(black, 0.2);
+	}
+
+	@media (prefers-reduced-motion) {
+		offset-path: none;
+	}
+
+	.Modal_title {
+		border-bottom: 1px solid #ccc;
+		padding: 1rem;
+		margin: 0;
+	}
+
+	.Modal_body {
+		padding: 1rem;
+	}
+
+	.Modal_footer {
+		display: flex;
+		justify-content: flex-end;
+		border-top: 1px solid #ccc;
+		background: #eee;
+		padding: 0.5rem 1rem;
+
+		.Modal_button_close {
+			background-color: #6c757d;
+			@extend .GenericSubmitButton;
+		}
+	}
+}
+
+.Modal_button {
+	@extend .GenericSubmitButton;
+}
+
+.DonatedPage {
+	display: flex;
+	justify-content: center;
+	text-align: center;
+}

@@ -1,0 +1,57 @@
+.Character {
+	background: white;
+}
+
+.Character_face, .EditCharacter_name {
+	font-size: px2rem(24px);
+	text-align: center;
+}
+
+.Character_name {
+	display: flex;
+	justify-content: center;
+	word-break: break-word;
+
+	img {
+		align-self: center;
+	}
+}
+
+.EditCharacter_townName {
+	display: block;
+	font-weight: normal;
+	font-size: px2rem(14px);
+}
+
+.Character_links {
+	@include links(90px);
+}
+
+.AddCharacterPage {
+	.ACGameButtons_game {
+		p {
+			transform: inherit !important;
+			@extend .HeaderText;
+			width: px2rem(165px) !important;
+		}
+	}
+}
+
+.AddCharacterPage {
+	.Grid {
+		@include responsive(1rem) {
+			@include grid($col-width: 15rem);
+		}
+	}
+}
+
+.EditCharacter_houseSizes {
+	padding: px2rem(5px) px2rem(0px) px2rem(5px) px2rem(0px);
+}
+
+.EditCharacter {
+	.FormGroup {
+		margin-top: px2rem(20px);
+		margin-bottom: px2rem(20px);
+	}
+}

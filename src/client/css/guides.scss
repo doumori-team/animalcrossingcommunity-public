@@ -1,0 +1,104 @@
+.GuidesPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+		}
+
+		.GuidesPage_header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+
+			.GuidesPage_button {
+				@extend .GenericSubmitButton;
+			}
+		}
+
+		.GuidesPage_guide {
+			@extend .GenericInnerSection;
+			margin-top: px2rem(5px);
+			margin-bottom: px2rem(5px);
+
+			.GuidesPage_guideName {
+				font-weight: bold;
+			}
+		}
+	}
+}
+
+.GuidePage {
+	.Header {
+		.Header_name {
+			.GuidePage_gameName {
+				display: block;
+				font-weight: normal;
+				font-size: px2rem(14px);
+			}
+		}
+	}
+}
+
+.EditGuide {
+	.EditGuide_name {
+		text-align: center;
+
+		.EditTown_gameName {
+			display: block;
+			font-weight: normal;
+			font-size: px2rem(14px);
+		}
+	}
+
+	.FormGroup {
+		textarea[name=content] {
+			height: 40rem;
+		}
+	}
+}
+
+// specific tags used by guide-creators in guides
+.GuidePage .Markup,
+.EditGuidePage .RichTextArea_preview,
+.AddGuidePage .RichTextArea_preview img {
+	.display-flex {
+		display: flex;
+	}
+
+	.justify-content-center {
+		justify-content: center;
+	}
+
+	.float-right {
+		float: right;
+	}
+}
+
+.GuidePage .Markup img,
+.EditGuidePage .RichTextArea_preview img,
+.AddGuidePage .RichTextArea_preview img {
+	max-width: px2rem(380px);
+
+	@media only screen and (max-width: px2rem(656px)) {
+		max-width: 100%;
+	}
+}
+
+.GuidePage .Markup table,
+.EditGuidePage .RichTextArea_preview table,
+.AddGuidePage .RichTextArea_preview table {
+	img {
+		max-width: px2rem(200px) !important;
+
+		@media only screen and (max-width: px2rem(656px)) {
+			max-width: 100% !important;
+		}
+	}
+
+	// if table does get big, just scroll it if needed
+	table {
+		overflow-x: auto;
+		display: block;
+	}
+}
