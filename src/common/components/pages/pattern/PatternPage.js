@@ -269,7 +269,7 @@ const PatternPage = () =>
 								</div>
 
 								{pattern.gameId === constants.gameIds.ACNL && (
-									<img src={`${process.env.AWS_URL}/images/pattern/acnl_color_reference.jpg`}
+									<img src={`${constants.AWS_URL}/images/pattern/acnl_color_reference.jpg`}
 										alt='AC:NL Color Reference'
 										className='PatternPage_nlColorReference' />
 								)}

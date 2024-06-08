@@ -1,1 +1,13 @@
 /src/server/scripts/*
+README.md
+LICENSE.txt
+CONTRIBUTORS.txt
+CODEOWNERS
+.gitignore
+.gitattributes
+Vagrantfile
+Procfile.local
+jsconfig.json
+/ci/update-init-scripts.sh
+/ci/local.sh
+/db/init/*

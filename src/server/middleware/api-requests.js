@@ -7,6 +7,7 @@ import * as errors from 'common/errors.js';
 import * as iso from 'common/iso.js';
 import * as db from '@db';
 import * as accounts from '@accounts';
+import { utils } from '@utils';
 
 const handler = express();
 handler.set('views', new URL('../views', import.meta.url).pathname);
@@ -25,18 +26,31 @@ handler.set('views', new URL('../views', import.meta.url).pathname);
  */
 handler.post('/*', (request, response, next) =>
 {
+	response.set('Cache-Control', 'no-store');
+
+	let log = utils.startLog(request, 'apirequests');
+
+	console.log(`${log} status=unknown`);
+
 	const requiresJsonResponse = !(request.body._callback_uri);
 
 	recordIP(request.session.user, request.headers['x-forwarded-for']);
 
 	const query = request.params[0];
 	let params = request.body;
-	params.ipAddresses = request.headers['x-forwarded-for'];
+
+	if (query.includes('signup/signup'))
+	{
+		params.ipAddresses = request.headers['x-forwarded-for'];
+	}
 
 	iso.query(request.session.user, query, params).then(data =>
 	{
 		if (typeof data === 'object' && data !== null && data.hasOwnProperty('_logout'))
 		{
+			log += ` status=200`;
+			console.log(log);
+
 			// Copied from handle-login-logout
 			const userID = request.session.user;
 			delete request.session.user;
@@ -53,6 +67,9 @@ handler.post('/*', (request, response, next) =>
 		}
 		else if (requiresJsonResponse)
 		{
+			log += ` status=200`;
+			console.log(log);
+
 			// Unfortunately JSON.stringify and JSON.parse are not perfectly
 			// reflexive; JSON.parse(JSON.stringify(undefined)) throws a
 			// SyntaxError. This is standardised behaviour, believe it or not.
@@ -73,6 +90,9 @@ handler.post('/*', (request, response, next) =>
 		}
 		else
 		{
+			log += ` status=303`;
+			console.log(log);
+
 			if (typeof data === 'object')
 			{
 				const callback = generatePath(request.body._callback_uri || data._callback, data);
@@ -99,6 +119,9 @@ handler.post('/*', (request, response, next) =>
 		// see routes.js
 		if (error.name === 'NotFoundError')
 		{
+			log += ` status=404`;
+			console.log(log);
+
 			response.status(404);
 
 			if (requiresJsonResponse)
@@ -112,6 +135,9 @@ handler.post('/*', (request, response, next) =>
 		}
 		else if (error.name === 'UserError')
 		{
+			log += ` status=400`;
+			console.log(log);
+
 			// this is an error thrown by us - it's the user's fault
 			response.status(400);
 
@@ -130,6 +156,9 @@ handler.post('/*', (request, response, next) =>
 		}
 		else if (error.name === 'ProfanityError')
 		{
+			log += ` status=400`;
+			console.log(log);
+
 			response.status(400);
 
 			if (requiresJsonResponse)
@@ -147,6 +176,9 @@ handler.post('/*', (request, response, next) =>
 		}
 		else
 		{
+			log += ` status=500`;
+			console.log(log);
+
 			// this is an error thrown by the database - it's a bug
 			response.status(500);
 

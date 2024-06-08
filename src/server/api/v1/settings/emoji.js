@@ -44,8 +44,7 @@ export default async function emoji({userIds})
 
 	// Perform queries
 	const results = await db.query(`
-		SELECT
-			type, category, user_id
+		SELECT type, category, user_id
 		FROM emoji_setting
 		WHERE user_id = ANY($1)
 	`, userIds);

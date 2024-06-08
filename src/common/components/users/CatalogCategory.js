@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-import { utils } from '@utils';
+import { utils, constants } from '@utils';
 import { catalogShape, catalogItemsShape } from '@propTypes';
 import { Checkbox } from '@form';
 import { SelectAllCheckbox } from '@layout';
@@ -71,7 +71,7 @@ const CatalogCategory = ({catalogItems, acgameCatalog, sortBy, name, edit}) =>
 									<>
 										{count === group.total &&
 											<img
-												src={`${process.env.AWS_URL}/images/catalog/icon_star7.gif`}
+												src={`${constants.AWS_URL}/images/catalog/icon_star7.gif`}
 												alt={`Collected all items in ${group.groupName}`}
 											/>
 										}

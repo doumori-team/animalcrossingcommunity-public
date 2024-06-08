@@ -2,15 +2,16 @@ import React from 'react';
 import { useLoaderData } from 'react-router-dom';
 
 import { RequirePermission } from '@behavior';
-import { Form, Select } from '@form';
+import { Form, Text } from '@form';
 import { Pagination, Header, Search, Section, Grid, InnerSection } from '@layout';
+import { constants } from '@utils';
 
 const UserSessionPage = () =>
 {
-	const {urlId, urls, userSession, page, pageSize, totalCount} = useLoaderData();
+	const {url, userSession, page, pageSize, totalCount} = useLoaderData();
 
 	const link = `
-		&urlId=${encodeURIComponent(urlId)}
+		&url=${encodeURIComponent(url)}
 	`;
 
 	return (
@@ -20,12 +21,11 @@ const UserSessionPage = () =>
 
 				<Search callback={`/user-session/${userSession.id}`}>
 					<Form.Group>
-						<Select
+						<Text
 							label='URL'
-							name='urlId'
-							value={urlId}
-							options={[{id: '', url: 'All URLs'}].concat(urls)}
-							optionsMapping={{value: 'id', label: 'url'}}
+							name='url'
+							value={url}
+							maxLength={constants.max.url}
 						/>
 					</Form.Group>
 				</Search>
@@ -70,15 +70,14 @@ const UserSessionPage = () =>
 	);
 }
 
-export async function loadData({id}, {page, urlId})
+export async function loadData({id}, {page, url})
 {
-	const [returnValue, urls] = await Promise.all([
+	const [returnValue] = await Promise.all([
 		this.query('v1/session/session', {
 			id: id,
 			page: page ? page : 1,
-			urlId: urlId ? urlId : '',
+			url: url ? url : '',
 		}),
-		this.query('v1/session/urls'),
 	]);
 
 	return {
@@ -86,8 +85,7 @@ export async function loadData({id}, {page, urlId})
 		totalCount: returnValue.count,
 		page: returnValue.page,
 		pageSize: returnValue.pageSize,
-		urlId: returnValue.urlId,
-		urls: urls,
+		url: returnValue.url,
 	};
 }
 

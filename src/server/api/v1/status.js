@@ -3,12 +3,38 @@ import { dateUtils } from '@utils';
 
 /*
  * Provides information about the current status of the site, useful for display on almost every page.
+ * See iso-server, used for tracking last active time & page requests.
  */
 export default async function status()
 {
-	const [user, groupIds] = await Promise.all([
+	const [userData] = await Promise.all([
+		this.userId ? db.query(`
+			SELECT ban_length.description
+			FROM users
+			JOIN ban_length ON (ban_length.id = users.current_ban_length_id)
+			WHERE users.id = $1::int
+		`, this.userId) : null,
+	]);
+
+	if (userData && userData[0] && userData[0].description)
+	{
+		return {
+			user: {
+				banLength: userData[0].description,
+			},
+			permissions: [],
+			southernHemisphere: false,
+		};
+	}
+
+	const [user, groupIds, settings] = await Promise.all([
 		this.userId ? this.query('v1/user', {id: this.userId}) : null,
-		this.query('v1/users/user_groups'),
+		db.getUserGroups(this.userId),
+		this.userId ? db.query(`
+			SELECT southern_hemisphere
+			FROM users
+			WHERE users.id = $1::int
+		`, this.userId) : null,
 	]);
 
 	const permissions = await db.query(`
@@ -63,5 +89,6 @@ export default async function status()
 	return {
 		user: user,
 		permissions: identifiers,
+		southernHemisphere: settings ? settings[0].southern_hemisphere : false,
 	}
 }

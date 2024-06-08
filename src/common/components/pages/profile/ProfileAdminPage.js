@@ -33,6 +33,16 @@ const ProfileAdminPage = () =>
 					</Form>
 				</Section>
 
+				<Section>
+					<Form
+						action='v1/view_information'
+						showButton
+						buttonText='View Information'
+					>
+						<input type='hidden' name='id' value={user.id} />
+					</Form>
+				</Section>
+
 				<RequirePermission permission='permission-admin' silent>
 					<Form
 						className='ProfileAdminPage_chooseUserGroup'

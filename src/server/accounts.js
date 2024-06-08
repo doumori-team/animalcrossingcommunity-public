@@ -1,6 +1,6 @@
 // Interface for reacting with the accounts site.
 import url from 'url';
-import request from 'request';
+import axios from 'axios';
 import * as errors from 'common/errors.js';
 
 const AccountsError = errors.AccountsError;
@@ -12,6 +12,10 @@ import { dateUtils } from '@utils';
 const consumer_key = (process.env.ACCOUNTS_API_KEY || '');
 const host = 'https://accounts.animalcrossingcommunity.com/';
 
+axios.defaults.validateStatus = () => {
+    return true;
+};
+
 // Generates a request token that uniquely identifies a login transaction.
 // callback: Wherever the user should come back to after logging in. Probably
 //    looks something like this:
@@ -19,30 +23,30 @@ const host = 'https://accounts.animalcrossingcommunity.com/';
 // Returns a URL to the login form, with the request token prefilled.
 export async function initiate(callback)
 {
-	let response, body;
+	let response;
+
 	try
 	{
-		[response, body] = await httpPost({
-			url: new url.URL('/initiate', host),
-			form: {consumer_key, callback}
-		})
+		response = await axios.post(
+			new url.URL('/initiate', host),
+			new URLSearchParams({consumer_key, callback}),
+		);
 	}
 	catch (error)
 	{
-		throw new AccountsError('initiate', error)
+		throw new AccountsError('initiate', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			const token = JSON.parse(body).token;
 			const authorizeUrl = new url.URL('/authorize', host);
-			authorizeUrl.searchParams.set('token', token);
+			authorizeUrl.searchParams.set('token', response.data.token);
 			return authorizeUrl.href;
 		case 401: // Unauthorized
 			throw new AccountsError('initiate', 'invalid api key', 401);
 		default:
-			throw new AccountsError('initiate', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('initiate', 'unexpected http status code', response.status);
 	}
 }
 
@@ -58,23 +62,24 @@ export async function initiate(callback)
 //  - signup_date: date user created their account (Date)
 export async function getToken(token, verifier)
 {
-	let response, body;
+	let response;
+
 	try
 	{
-		[response, body] = await httpPost({
-			url: new url.URL('/token', host),
-			form: {consumer_key, token, verifier}
-		});
+		response = await axios.post(
+			new url.URL('/token', host),
+			new URLSearchParams({consumer_key, token, verifier})
+		);
 	}
 	catch (error)
 	{
 		throw new AccountsError('token', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			return JSON.parse(body);
+			return response.data;
 		case 401: // Unauthorized
 			/* NOTE TO FUTURE DEBUGGERS:
 				* There are four possible causes of this error:
@@ -99,32 +104,33 @@ export async function getToken(token, verifier)
 				*/
 			throw new AccountsError('token', 'request verifier rejected!! (important!)', 401);
 		default:
-			throw new AccountsError('token', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('token', 'unexpected http status code', response.status);
 	}
 }
 
 // Checks whether an access token is still valid. Returns true or false.
 export async function checkToken(token)
 {
-	let response, body;
+	let response;
+
 	try
 	{
-		[response, body] = await httpPost({
-			url: new url.URL('/token/check', host),
-			form: {consumer_key, token}
-		});
+		response = await axios.post(
+			new url.URL('/token/check', host),
+			new URLSearchParams({consumer_key, token})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('token/check', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			return JSON.parse(body).valid;
+			return response.data.valid;
 		default:
-			throw new AccountsError('token/check', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('token/check', 'unexpected http status code', response.status);
 	}
 }
 
@@ -195,25 +201,25 @@ export async function getBirthdays()
 	const dataUrl = new url.URL('/birthdays', host);
 	dataUrl.searchParams.set('consumer_key', consumer_key);
 
-	let response, body;
+	let response;
 
 	try
 	{
-		[response, body] = await httpGet({url: dataUrl});
+		response = await axios.get(dataUrl);
 	}
 	catch(error)
 	{
 		throw new AccountsError('GET birthdays', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			return (JSON.parse(body));
+			return response.data;
 		case 401: // Unauthorized
 			throw new AccountsError('GET birthdays', 'invalid api key', 401);
 		default:
-			throw new AccountsError('GET birthdays', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('GET birthdays', 'unexpected http status code', response.status);
 	}
 }
 
@@ -241,21 +247,21 @@ export async function getUserData(id, username, email)
 		dataUrl.searchParams.set('email', email);
 	}
 
-	let response, body;
+	let response;
 
 	try
 	{
-		[response, body] = await httpGet({url: dataUrl});
+		response = await axios.get(dataUrl);
 	}
 	catch(error)
 	{
 		throw new AccountsError('GET data', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			const userData = (JSON.parse(body));
+			const userData = response.data;
 			await db.updateAccountCache(userData); // We have data, so let's update the cache
 			return userData;
 		case 400: // Bad Request
@@ -268,7 +274,7 @@ export async function getUserData(id, username, email)
 
 			throw new UserError('no-such-user');
 		default:
-			throw new AccountsError('GET data', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('GET data', 'unexpected http status code', response.status);
 	}
 }
 
@@ -288,19 +294,20 @@ export async function getDataByUsername(username)
 export async function pushData(userData)
 {
 	let response;
+
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/data', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/data', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST data', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			if (userData.hasOwnProperty('username'))
@@ -322,30 +329,31 @@ export async function pushData(userData)
 		case 409: // Duplicate username or email
 			throw new AccountsError('POST data', 'username or email already in use', 409);
 		default:
-			throw new AccountsError('POST data', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST data', 'unexpected http status code', response.status);
 	}
 }
 
 // Creates new account
 export async function signup(userData)
 {
-	let response, body;
+	let response;
+
 	try
 	{
-		[response, body] = await httpPost({
-			url: new url.URL('/signup', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/signup', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST signup', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			const userData = (JSON.parse(body));
+			const userData = response.data;
 			await db.updateAccountCache(userData);
 			return userData;
 		case 400: // Bad Request
@@ -353,7 +361,7 @@ export async function signup(userData)
 			throw new AccountsError('POST data', 'invalid user email or date of birth', 400);
 		default:
 			console.error(userData);
-			throw new AccountsError('POST signup', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST signup', 'unexpected http status code', response.status);
 	}
 }
 
@@ -365,26 +373,27 @@ export async function deleteUser(id)
 	};
 
 	let response;
+
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/delete-user', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/delete-user', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST delete-user', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			await db.query('DELETE FROM user_account_cache WHERE id = $1::int', id);
 			await db.query('DELETE FROM users WHERE id = $1::int', id);
 			return;
 		default:
-			throw new AccountsError('POST delete-user', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST delete-user', 'unexpected http status code', response.status);
 	}
 }
 
@@ -395,26 +404,27 @@ export async function deleteUser(id)
 export async function updateAddress(userData)
 {
 	let response;
+
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/address', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/address', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST address', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			return;
 		case 401: // Unauthorized
 			throw new AccountsError('POST address', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST address', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST address', 'unexpected http status code', response.status);
 	}
 }
 
@@ -429,17 +439,17 @@ export async function resetUsernameHistory(id)
 
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/reset-username-history', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/reset-username-history', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST reset-username-history', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			return;
@@ -448,7 +458,7 @@ export async function resetUsernameHistory(id)
 		case 401: // Unauthorized
 			throw new AccountsError('POST reset-username-history', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST reset-username-history', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST reset-username-history', 'unexpected http status code', response.status);
 	}
 }
 
@@ -463,24 +473,24 @@ export async function deleteUsernameHistory(id)
 
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/delete-username-history', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/delete-username-history', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST delete-username-history', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			return;
 		case 401: // Unauthorized
 			throw new AccountsError('POST delete-username-history', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST delete-username-history', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST delete-username-history', 'unexpected http status code', response.status);
 	}
 }
 
@@ -492,19 +502,20 @@ export async function deleteUsernameHistory(id)
 export async function emailUser(emailData)
 {
 	let response;
+
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/email', host),
-			form: {consumer_key, ...emailData}
-		});
+		response = await axios.post(
+			new url.URL('/email', host),
+			new URLSearchParams({consumer_key, ...emailData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST email', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			return;
@@ -513,7 +524,7 @@ export async function emailUser(emailData)
 		case 401: // Unauthorized
 			throw new AccountsError('POST email', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST email', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST email', 'unexpected http status code', response.status);
 	}
 }
 
@@ -522,26 +533,27 @@ export async function emailUser(emailData)
 export async function logout(id)
 {
 	let response;
+
 	try
 	{
-		[response] = await httpPost({
-			url: new url.URL('/logout', host),
-			form: {consumer_key, id}
-		});
+		response = await axios.post(
+			new url.URL('/logout', host),
+			new URLSearchParams({consumer_key, id})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('logout', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
 			return;
 		case 401: // Unauthorized
 			throw new AccountsError('logout', 'invalid api key', 401);
 		default:
-			throw new AccountsError('logout', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('logout', 'unexpected http status code', response.status);
 	}
 }
 
@@ -549,7 +561,7 @@ export async function logout(id)
 //   id - who the password reset is for
 export async function resetPassword(id)
 {
-	let response, body;
+	let response;
 
 	const userData = {
 		id: id,
@@ -557,62 +569,25 @@ export async function resetPassword(id)
 
 	try
 	{
-		[response, body] = await httpPost({
-			url: new url.URL('/reset-password', host),
-			form: {consumer_key, ...userData}
-		});
+		response = await axios.post(
+			new url.URL('/reset-password', host),
+			new URLSearchParams({consumer_key, ...userData})
+		);
 	}
 	catch(error)
 	{
 		throw new AccountsError('POST reset-password', error);
 	}
 
-	switch(response.statusCode)
+	switch(response.status)
 	{
 		case 200: // OK
-			const data = (JSON.parse(body));
-			return `${host}reset-password?token=${data.token}`;
+			return `${host}reset-password?token=${response.data.token}`;
 		case 404: // Bad Request
 			throw new AccountsError('POST reset-password', 'mismatch between site and account, production vs. test', 400);
 		case 401: // Unauthorized
 			throw new AccountsError('POST reset-password', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST reset-password', 'unexpected http status code', response.statusCode);
+			throw new AccountsError('POST reset-password', 'unexpected http status code', response.status);
 	}
-}
-
-
-// Wrappers around the default Node request.get() and request.post() functions
-// so that they can be used as async functions.
-
-function httpGet(options)
-{
-	return new Promise((resolve, reject) =>
-	{
-		request.get(options, (error, response, body) =>
-		{
-			if (error)
-			{
-				return reject(error);
-			}
-
-			return resolve([response, body]);
-		});
-	});
-}
-
-function httpPost(options)
-{
-	return new Promise((resolve, reject) =>
-	{
-		request.post(options, (error, response, body) =>
-		{
-			if (error)
-			{
-				return reject(error);
-			}
-
-			return resolve([response, body]);
-		});
-	});
 }

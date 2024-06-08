@@ -75,9 +75,7 @@ async function claim({id})
 		else if (treasure.type === 'wisp')
 		{
 			const [reclaimTreasure] = await query(`
-				SELECT
-					id,
-					bells
+				SELECT id, bells
 				FROM treasure_offer
 				WHERE user_id = $1::int AND redeemed_user_id IS NULL AND type = 'amount'
 				ORDER BY id DESC
@@ -89,7 +87,7 @@ async function claim({id})
 			await query(`
 				UPDATE treasure_offer
 				SET redeemed_user_id = $1::int
-				WHERE id  = $2::int
+				WHERE id = $2::int
 			`, this.userId, reclaimTreasure.id);
 		}
 
@@ -107,11 +105,19 @@ async function claim({id})
 				WHERE id = $1::int
 			`, id, bells);
 		}
+
+		if (treasure.type === 'jackpot')
+		{
+			await query(`
+				REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_last_jackpot
+			`);
+		}
 	});
+
+	await db.regenerateTopBells({userId: this.userId});
 
 	const [user] = await Promise.all([
 		this.query('v1/user', {id: this.userId}),
-		this.query('v1/treasure/stats', {userId: this.userId}),
 	]);
 
 	return {

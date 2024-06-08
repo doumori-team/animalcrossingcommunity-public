@@ -7,9 +7,11 @@ export const string = 'string';
 export const number = 'number';
 export const boolean = 'boolean';
 export const array = 'array';
+export const multiArray = 'multiArray';
 export const regex = 'regex';
 export const date = 'date';
 export const wholeNumber = 'wholeNumber';
+export const uuid = 'uuid';
 
 // ACC Unique
 export const patternId = 'patternId';
@@ -45,7 +47,11 @@ export async function parse(apiTypes, params)
 
 				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
 				{
-					if (utils.realStringLength(newParam) === 0)
+					if (newParam === null)
+					{
+						break;
+					}
+					else if (newParam === undefined || utils.realStringLength(newParam) === 0)
 					{
 						newParam = null;
 
@@ -90,8 +96,33 @@ export async function parse(apiTypes, params)
 				}
 
 				break;
+			case uuid:
+				newParam = utils.trimString(String(newParam || ''));
+
+				if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(constants.regexes.uuid)))
+				{
+					const error = apiType.hasOwnProperty('error') ? apiType.error : 'bad-format';
+
+					throw new UserError(error);
+				}
+
+				break;
 			case regex:
 				newParam = utils.trimString(String(newParam || ''));
+
+				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+				{
+					if (newParam === null)
+					{
+						break;
+					}
+					else if (newParam === undefined || utils.realStringLength(newParam) === 0)
+					{
+						newParam = null;
+
+						break;
+					}
+				}
 
 				if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(apiType.regex)))
 				{
@@ -185,6 +216,36 @@ export async function parse(apiTypes, params)
 				}
 
 				break;
+			case multiArray:
+				if (!Array.isArray(newParam))
+				{
+					if (newParam)
+					{
+						newParam = newParam.split(',');
+					}
+					else
+					{
+						newParam = [];
+					}
+				}
+
+				newParam = newParam.map(np => {
+					if (!Array.isArray(np))
+					{
+						if (np)
+						{
+							return np.split(',');
+						}
+						else
+						{
+							return [];
+						}
+					}
+
+					return np;
+				});
+
+				break;
 			case date:
 				newParam = utils.trimString(apiType.hasOwnProperty('default') ?
 					String(newParam || apiType.default) :
@@ -240,7 +301,8 @@ export async function parse(apiTypes, params)
 			case acgameId:
 				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
 				{
-					if (newParam === null || newParam === undefined || newParam == 0)
+					// some searches, like TP and Shops, use -1 for 'all'
+					if (newParam === null || newParam === undefined || newParam == 0 || newParam == -1)
 					{
 						newParam = Number(newParam ||
 							(apiType.hasOwnProperty('default') ?
@@ -689,6 +751,13 @@ export async function parse(apiTypes, params)
 					}
 
 					break;
+				case uuid:
+					if (utils.realStringLength(newParam) === 0)
+					{
+						throw new UserError(error);
+					}
+
+					break;
 				case number:
 					if (apiType.hasOwnProperty('nullable') && apiType.nullable)
 					{
@@ -713,6 +782,7 @@ export async function parse(apiTypes, params)
 
 					break;
 				case array:
+				case multiArray:
 					if (newParam === undefined || newParam.length === 0)
 					{
 						throw new UserError(error);

@@ -8,7 +8,7 @@ const EditRule = ({rule, categories}) =>
 {
 	return (
 		<div className='EditRule'>
-			<Form action='v1/admin/rule/save' callback='/admin/rules' showButton>
+			<Form action='v1/admin/rule/save' callback='/rules' showButton>
 				<input type='hidden' name='id' value={rule ? rule.id : 0} />
 
 				<Form.Group>

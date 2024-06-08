@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import emojiDefs from 'common/markup/emoji.json' assert { type: "json"};
 import { emojiSettingsShape } from '@propTypes';
+import { constants } from '@utils';
 
 const EmojiButton = ({tag, clickHandler, name, keyHint, icon, type, emojiSettings}) =>
 {
@@ -31,7 +32,7 @@ const EmojiButton = ({tag, clickHandler, name, keyHint, icon, type, emojiSetting
 		<button className='EmojiButton'
 				title={tooltip}
 				{...interactivityAttributes}>
-			<img src={`${process.env.AWS_URL}/images/emoji/${src}${icon}.png`} alt={name} />
+			<img src={`${constants.AWS_URL}/images/emoji/${src}${icon}.png`} alt={name} />
 		</button>
 	);
 }

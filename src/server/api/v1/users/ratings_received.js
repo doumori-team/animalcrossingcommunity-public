@@ -37,19 +37,25 @@ async function ratings_received({id, page, type})
 	if (type === constants.rating.types.wifi)
 	{
 		query += `
-			WHERE rating.rating_user_id = $3::int AND listing_id IS NULL AND adoption_node_id IS NULL
+			WHERE rating.rating_user_id = $3::int AND listing_id IS NULL AND adoption_node_id IS NULL AND shop_node_id IS NULL
 		`;
 	}
 	else if (type === constants.rating.types.trade)
 	{
 		query += `
-			WHERE rating.rating_user_id = $3::int AND listing_id IS NOT NULL AND adoption_node_id IS NULL
+			WHERE rating.rating_user_id = $3::int AND listing_id IS NOT NULL
 		`;
 	}
 	else if (type === constants.rating.types.scout)
 	{
 		query += `
-			WHERE rating.rating_user_id = $3::int AND listing_id IS NULL AND adoption_node_id IS NOT NULL
+			WHERE rating.rating_user_id = $3::int AND adoption_node_id IS NOT NULL
+		`;
+	}
+	else if (type === constants.rating.types.shop)
+	{
+		query += `
+			WHERE rating.rating_user_id = $3::int AND shop_node_id IS NOT NULL
 		`;
 	}
 
@@ -83,7 +89,7 @@ ratings_received.apiTypes = {
 	type: {
 		type: APITypes.string,
 		default: '',
-		includes: [constants.rating.types.wifi, constants.rating.types.trade, constants.rating.types.scout],
+		includes: [constants.rating.types.wifi, constants.rating.types.trade, constants.rating.types.scout, constants.rating.types.shop],
 		required: true,
 	},
 }

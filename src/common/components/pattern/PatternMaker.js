@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 import { utils, constants } from '@utils';
@@ -6,187 +6,185 @@ import { Select, Button, Text } from '@form';
 import { acgameShape } from '@propTypes';
 import { Form } from '@form';
 
-class PatternMaker extends React.Component
+const PatternMaker = ({
+	gameColorInfo,
+	gameColors,
+	gamePalettes,
+	acgames,
+	data,
+	initialDataUrl,
+	initialGameId,
+	initialPaletteId
+}) =>
 {
-	constructor(props)
+	// initialize 2D array used for storing colors used on canvas in X, Y positions
+	let initialFormData = [];
+
+	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
-		super(props);
+		initialFormData[i] = [];
+	}
 
-		const {data, dataUrl, gamePalettes, gameColors, gameId, paletteId,
-			gameColorInfo} = this.props;
+	let initialColors = gameColors[initialGameId], initialPalette = [];
 
-		this.editIfDrawing = this.editIfDrawing.bind(this);
-		this.editPattern = this.editPattern.bind(this);
-		this.stopDrawing = this.stopDrawing.bind(this);
-		this.startDrawing = this.startDrawing.bind(this);
-		this.changePaletteColor = this.changePaletteColor.bind(this);
-		this.changeDrawingColor = this.changeDrawingColor.bind(this);
-		this.drawPalette = this.drawPalette.bind(this);
-		this.drawPaletteExtended = this.drawPaletteExtended.bind(this);
-		this.drawPattern = this.drawPattern.bind(this);
-		this.clearCanvas = this.clearCanvas.bind(this);
-		this.drawScaledSquare = this.drawScaledSquare.bind(this);
-		this.getCursorPosition = this.getCursorPosition.bind(this);
-		this.getCanvasOffset = this.getCanvasOffset.bind(this);
-		this.changePalette = this.changePalette.bind(this);
-		this.changeHue = this.changeHue.bind(this);
-		this.changeVividness = this.changeVividness.bind(this);
-		this.changeBrightness = this.changeBrightness.bind(this);
-		this.updatePaletteColor = this.updatePaletteColor.bind(this);
-		this.fillPatternColor = this.fillPatternColor.bind(this);
-		this.resetPalette = this.resetPalette.bind(this);
+	// we need to load the colors in the same order as the palette used
+	const gamePaletteColors = gamePalettes[initialGameId][initialPaletteId-1].colors;
 
-		// initialize 2D array used for storing colors used on canvas in X, Y positions
-		let formData = [];
+	for (var key in gamePaletteColors)
+	{
+		initialPalette[key] = initialColors.indexOf(gamePaletteColors[key]);
+	}
 
-		for (let i = 0; i < constants.pattern.paletteLength; i++)
+	// if editing an existing pattern...
+	if (data)
+	{
+		let includedColors = [];
+
+		// convert 1D array to 2D for X Y positions
+		// this actually goes column by column instead of row by row
+		for (let i = 0; i < constants.pattern.length; i++)
 		{
-			formData[i] = [];
-		}
+			let x = i % constants.pattern.paletteLength;
+			let y = Math.floor(i / constants.pattern.paletteLength);
 
-		let hue = 0, vividness = 0, brightness = 0;
+			let rgb = data[i];
+			initialFormData[y][x] = rgb;
 
-		// if creating a new pattern, start with AC:NH
-		const initialGameId = gameId ? gameId : constants.gameIds.ACNH;
-		const initialPaletteId = paletteId ? paletteId : 1;
-		let colors = gameColors[initialGameId], palette = [];
-
-		// we need to load the colors in the same order as the palette used
-		const gamePaletteColors = gamePalettes[initialGameId][initialPaletteId-1].colors;
-
-		for (var key in gamePaletteColors)
-		{
-			palette[key] = colors.indexOf(gamePaletteColors[key]);
-		}
-
-		// if editing an existing pattern...
-		if (data)
-		{
-			let includedColors = [];
-
-			// convert 1D array to 2D for X Y positions
-			// this actually goes column by column instead of row by row
-			for (let i = 0; i < constants.pattern.length; i++)
+			// while here build up list of unique colors
+			if (!includedColors.includes(rgb))
 			{
-				let x = i % constants.pattern.paletteLength;
-				let y = Math.floor(i / constants.pattern.paletteLength);
-
-				let rgb = data[i];
-				formData[y][x] = rgb;
-
-				// while here build up list of unique colors
-				if (!includedColors.includes(rgb))
-				{
-					includedColors.push(rgb);
-				}
+				includedColors.push(rgb);
 			}
+		}
 
-			// for AC:NL & AC:NH, you can change out colors
-			// change out any colors that aren't used for ones that are
+		// for AC:NL & AC:NH, you can change out colors
+		// change out any colors that aren't used for ones that are
 
-			// what colors are in the pattern that isn't in the palette
-			const incColors = includedColors.filter(x => !gamePaletteColors.includes(x) && Number(x) !== constants.pattern.transparentColorId);
+		// what colors are in the pattern that isn't in the palette
+		const incColors = includedColors.filter(x => !gamePaletteColors.includes(x) && Number(x) !== constants.pattern.transparentColorId);
 
-			if (incColors.length > 0)
+		if (incColors.length > 0)
+		{
+			// colors in the palette not used in the pattern
+			const palColors = gamePaletteColors.filter(x => !includedColors.includes(x));
+			let i = 0;
+
+			for (var key in initialPalette)
 			{
-				// colors in the palette not used in the pattern
-				const palColors = gamePaletteColors.filter(x => !includedColors.includes(x));
-				let i = 0;
-
-				for (var key in palette)
+				// if this color is one not used
+				if (palColors.includes(initialColors[initialPalette[key]]))
 				{
-					// if this color is one not used
-					if (palColors.includes(colors[palette[key]]))
-					{
-						// replace unused palette color with used pattern color
-						palette[key] = colors.indexOf(incColors[i]);
-						i++;
-					}
+					// replace unused palette color with used pattern color
+					initialPalette[key] = initialColors.indexOf(incColors[i]);
+					i++;
+				}
 
-					if (incColors.length === i)
-					{
-						break;
-					}
+				if (incColors.length === i)
+				{
+					break;
 				}
 			}
 		}
-		else
+	}
+	else
+	{
+		// for new pattern, fill out the canvas with background color
+		// for NH, that's always the 13th color in the beginning
+		for (let x = 0; x < constants.pattern.paletteLength; x++)
 		{
-			// for new pattern, fill out the canvas with background color
-			// for NH, that's always the 13th color in the beginning
-			for (let x = 0; x < constants.pattern.paletteLength; x++)
+			for (let y = 0; y < constants.pattern.paletteLength; y++)
 			{
-				for (let y = 0; y < constants.pattern.paletteLength; y++)
-				{
-					formData[x][y] = colors[palette[12]];
-				}
+				initialFormData[x][y] = initialColors[initialPalette[12]];
 			}
 		}
+	}
 
-		if (initialGameId === constants.gameIds.ACNH)
-		{
-			const firstColor = gameColorInfo[initialGameId]
-				.find(c => c.hex === colors[palette[0]]);
+	let initialHue = 0, initialVividness = 0, initialBrightness = 0;
 
-			hue = firstColor.hue;
-			vividness = firstColor.vividness;
-			brightness = firstColor.brightness;
-		}
+	if (initialGameId === constants.gameIds.ACNH)
+	{
+		const firstColor = gameColorInfo[initialGameId]
+			.find(c => c.hex === initialColors[initialPalette[0]]);
 
-		let paletteInterfaces = [];
+		initialHue = firstColor.hue;
+		initialVividness = firstColor.vividness;
+		initialBrightness = firstColor.brightness;
+	}
 
-		for (let i = 0; i <= constants.pattern.numberOfColors; i++)
-		{
-			paletteInterfaces[i] = {
-				border: '',
-				backgroundColor: '',
-			}
-		}
+	let initialPaletteInterfaces = [];
 
-		this.state = {
-			currentlyDrawing: false,
-			palette: palette,
-			activePaletteId: 0,
-			paletteInterfaces: paletteInterfaces,
-			dataUrl: dataUrl,
-			formData: formData,
-			colors: colors,
-			gamePaletteId: initialGameId + '-' + initialPaletteId,
-			hue: hue,
-			vividness: vividness,
-			brightness: brightness,
-			gameId: initialGameId,
-			paletteColorsKey: Math.random(),
+	for (let i = 0; i <= constants.pattern.numberOfColors; i++)
+	{
+		initialPaletteInterfaces[i] = {
+			border: '',
+			backgroundColor: '',
 		};
 	}
 
-	componentDidMount()
-	{
+	const [currentlyDrawing, setCurrentlyDrawing] = useState(false);
+	const [colors, setColors] = useState(initialColors);
+	const [palette, setPalette] = useState(initialPalette);
+	const [activePaletteId, setActivePaletteId] = useState(0);
+	const [formData, setFormData] = useState(initialFormData);
+	const [posX1, setPosX1] = useState(0);
+	const [posY1, setPosY1] = useState(0);
+	const [posX2, setPosX2] = useState(constants.pattern.paletteLength-1);
+	const [posY2, setPosY2] = useState(constants.pattern.paletteLength-1);
+	const [currentGameId, setCurrentGameId] = useState(initialGameId);
+	const [hue, setHue] = useState(initialHue);
+	const [vividness, setVividness] = useState(initialVividness);
+	const [brightness, setBrightness] = useState(initialBrightness);
+	const [paletteColorsKey, setPaletteColorsKey] = useState(Math.random());
+	const [dataUrl, setDataUrl] = useState(initialDataUrl);
+	const [gamePaletteId, setGamePaletteId] = useState(initialGameId + '-' + initialPaletteId);
+	const [paletteInterfaces, setPaletteInterfaces] = useState(initialPaletteInterfaces);
+
+	const patternInterface = useRef();
+	const paletteInterfaceExtended = useRef();
+	const didMount = useRef(false);
+
+	useEffect(() => {
+		if (!didMount.mounted)
+		{
+			didMount.mounted = true;
+
+			if (data && utils.realStringLength(dataUrl) === 0)
+			{
+				stopDrawing();
+			}
+		}
+
 		for (let i = 0; i <= constants.pattern.numberOfColors; i++)
 		{
-			this.drawPalette(i);
+			drawPalette(i);
 		}
 
-		this.drawPaletteExtended();
-		this.drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
-	}
+		drawPaletteExtended();
+		drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+	}, [currentGameId, palette]);
 
-	editIfDrawing(e)
+	const editIfDrawing = (e) =>
 	{
-		const {currentlyDrawing} = this.state;
-
 		if (currentlyDrawing)
 		{
-			this.editPattern(e);
+			editPattern(e);
 		}
 	}
 
-	// Changes the color of the 'pixel' indicated.
-	editPattern(e)
-	{
-		const {colors, palette, activePaletteId} = this.state;
+	useEffect(() => {
+		if (!didMount.formData)
+		{
+			didMount.formData = true;
+			return;
+		}
 
-		const pos = this.getCursorPosition(e, this.refs.patternInterface);
+		drawPattern(true, posX1, posY1, posX2, posY2);
+	}, [formData]);
+
+	// Changes the color of the 'pixel' indicated.
+	const editPattern = (e) =>
+	{
+		const pos = getCursorPosition(e, patternInterface.current);
 
 		if (!pos)
 		{
@@ -200,7 +198,7 @@ class PatternMaker extends React.Component
 			return false;
 		}
 
-		let dataArray = [...this.state.formData];
+		let dataArray = [...formData];
 
 		if (activePaletteId === constants.pattern.numberOfColors)
 		{
@@ -211,40 +209,29 @@ class PatternMaker extends React.Component
 			dataArray[posx][posy] = colors[palette[activePaletteId]];
 		}
 
-		this.setState({
-			formData: dataArray,
-		}, () => {
-			this.drawPattern(true, posx, posy, posx, posy);
-		});
+		setPosX1(posx);
+		setPosY1(posy);
+		setPosX2(posx);
+		setPosY2(posy);
+		setFormData(dataArray);
 	}
 
-	stopDrawing()
+	const stopDrawing = () =>
 	{
 		// clear the canvas of grid to save prettified pattern
-		this.clearCanvas(this.refs.patternInterface, 0, 0, constants.pattern.paletteLength, constants.pattern.paletteLength);
-		this.drawPattern(false, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+		clearCanvas(patternInterface.current, 0, 0, constants.pattern.paletteLength, constants.pattern.paletteLength);
+		drawPattern(false, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
 
-		this.setState({
-			currentlyDrawing: false,
-			dataUrl: this.refs.patternInterface.toDataURL(),
-		}, () => {
-			this.drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
-		});
-	}
+		setCurrentlyDrawing(false);
+		setDataUrl(patternInterface.current.toDataURL());
 
-	startDrawing()
-	{
-		this.setState({
-			currentlyDrawing: true,
-		});
+		drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
 	}
 
 	// Changes the active palette color's slot in the palette to the one clicked on.
-	changePaletteColor(e)
+	const changePaletteColor = (e) =>
 	{
-		const {activePaletteId, formData, palette, colors} = this.state;
-
-		const pos = this.getCursorPosition(e, this.refs.paletteInterfaceExtended);
+		const pos = getCursorPosition(e, paletteInterfaceExtended.current);
 
 		if (!pos)
 		{
@@ -296,22 +283,17 @@ class PatternMaker extends React.Component
 			}
 		}
 
-		this.setState({
-			palette: array,
-			formData: dataArray,
-		}, () => {
-			this.drawPalette(activePaletteId);
-			this.drawPaletteExtended();
-			this.drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
-		});
+		setPalette(array);
+		setPosX1(0);
+		setPosY1(0);
+		setPosX2(constants.pattern.paletteLength-1);
+		setPosY2(constants.pattern.paletteLength-1);
+		setFormData(dataArray);
 	}
 
 	// Changes the active palette color to the one clicked on.
-	changeDrawingColor(index)
+	const changeDrawingColor = (index) =>
 	{
-		const {gameColorInfo} = this.props;
-		const {activePaletteId, palette, gameId} = this.state;
-
 		const oldColorIndex = activePaletteId;
 
 		if (index === oldColorIndex)
@@ -319,36 +301,35 @@ class PatternMaker extends React.Component
 			return;
 		}
 
-		const color = gameColorInfo[gameId][palette[index]];
+		const color = gameColorInfo[currentGameId][palette[index]];
 
-		this.setState({
-			activePaletteId: index,
-			hue: color ? color.hue : 0,
-			vividness: color ? color.vividness : 0,
-			brightness: color ? color.brightness : 0
-		}, () => {
-			this.drawPalette(oldColorIndex);
-			this.drawPalette(index);
-			this.drawPaletteExtended();
-		});
+		setHue(color ? color.hue : 0);
+		setVividness(color ? color.vividness : 0);
+		setBrightness(color ? color.brightness : 0);
+		setActivePaletteId(index);
+
+		drawPalette(oldColorIndex);
+		drawPalette(index);
+		drawPaletteExtended();
 	}
 
 	// Draws one of the colors of the palette on the appropriate canvas.
-	drawPalette(index)
+	const drawPalette = (index) =>
 	{
-		const {colors, palette, paletteInterfaces} = this.state;
+		let newPaletteInterfaces = [...paletteInterfaces];
 
 		// we don't need to fill in palette color if it's the transparent palette
 		if (index === constants.pattern.numberOfColors)
 		{
-			paletteInterfaces[index].border = '1px solid #7E7B7B';
+			newPaletteInterfaces[index].border = '1px solid #7E7B7B';
+			setPaletteInterfaces(newPaletteInterfaces);
 
 			return;
 		}
 
 		let rgb = colors[palette[index]];
 
-		paletteInterfaces[index].backgroundColor = rgb;
+		newPaletteInterfaces[index].backgroundColor = rgb;
 
 		// if the fill color is white, we won't be able to see the palette color otherwise
 		if (utils.isColorLight(rgb))
@@ -356,27 +337,23 @@ class PatternMaker extends React.Component
 			rgb = '#7E7B7B';
 		}
 
-		paletteInterfaces[index].border = '1px solid ' + rgb;
+		newPaletteInterfaces[index].border = '1px solid ' + rgb;
 
-		this.setState({
-			paletteColorsKey: Math.random(),
-		});
+		setPaletteInterfaces(newPaletteInterfaces);
+
+		setPaletteColorsKey(Math.random());
 	}
 
 	// Draws the extended palette on a canvas.
-	drawPaletteExtended()
+	const drawPaletteExtended = () =>
 	{
-		const {colors, palette, activePaletteId, gameId} = this.state;
-
 		// this is only for NL
-		if (gameId !== constants.gameIds.ACNL)
+		if (currentGameId !== constants.gameIds.ACNL)
 		{
 			return;
 		}
 
-		const canvas = this.refs.paletteInterfaceExtended;
-
-		this.clearCanvas(canvas, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+		clearCanvas(paletteInterfaceExtended.current, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
 
 		// i = color ID
 		for (let i = 0; i < 159; i++)
@@ -403,22 +380,18 @@ class PatternMaker extends React.Component
 
 			if (palette[activePaletteId] === i)
 			{
-				this.drawScaledSquare(canvas, x, y, colors[i], "#000");
+				drawScaledSquare(paletteInterfaceExtended.current, x, y, colors[i], '#000');
 			}
 			else
 			{
-				this.drawScaledSquare(canvas, x, y, colors[i], false);
+				drawScaledSquare(paletteInterfaceExtended.current, x, y, colors[i], false);
 			}
 		}
 	}
 
 	// Draws the pattern on a canvas.
-	drawPattern(drawGrid, x1, y1, x2, y2)
+	const drawPattern = (drawGrid, x1, y1, x2, y2) =>
 	{
-		const {formData} = this.state;
-
-		const canvas = this.refs.patternInterface;
-
 		for (let x = x1; x <= x2; x++)
 		{
 			for (let y = y1; y <= y2; y++)
@@ -433,18 +406,18 @@ class PatternMaker extends React.Component
 
 				if (drawGrid)
 				{
-					this.drawScaledSquare(canvas, x, y, rgb, "#888");
+					drawScaledSquare(patternInterface.current, x, y, rgb, '#888');
 				}
 				else
 				{
-					this.drawScaledSquare(canvas, x, y, rgb, false);
+					drawScaledSquare(patternInterface.current, x, y, rgb, false);
 				}
 			}
 		}
 	}
 
 	// Clears the contents of a canvas.
-	clearCanvas(canvas, x1, y1, x2, y2)
+	const clearCanvas = (canvas, x1, y1, x2, y2) =>
 	{
 		const scale = canvas.dataset.scale;
 
@@ -460,11 +433,11 @@ class PatternMaker extends React.Component
 	}
 
 	// Draws a one-unit square on a canvas.
-	drawScaledSquare(canvas, x, y, fillColor, borderColor)
+	const drawScaledSquare = (canvas, x, y, fillColor, borderColor) =>
 	{
 		let scale = 1;
 
-		if (canvas.dataset.scale)
+		if (canvas.dataset && canvas.dataset.scale)
 		{
 			scale = parseInt(canvas.dataset.scale, 10);
 		}
@@ -472,7 +445,7 @@ class PatternMaker extends React.Component
 		x *= scale;
 		y *= scale;
 
-		if (borderColor && canvas === this.refs.paletteInterfaceExtended)
+		if (borderColor && canvas === paletteInterfaceExtended.current)
 		{
 			scale--;
 		}
@@ -497,10 +470,27 @@ class PatternMaker extends React.Component
 	}
 
 	// Works out the coordinate indicated on a canvas, relative to the canvas' scale.
-	getCursorPosition(e, canvas)
+	const getCursorPosition = (e, canvas) =>
 	{
 		let x, y, scale = 1;
-		const canvasOffset = this.getCanvasOffset(canvas);
+
+		// Works out the coordinates of a canvas relative to the page.
+		let left, top;
+		left = top = 0;
+
+		if (canvas.offsetParent)
+		{
+			let parent = canvas;
+
+			do
+			{
+				left += parent.offsetLeft;
+				top  += parent.offsetTop;
+			}
+			while (parent = parent.offsetParent);
+		}
+
+		const canvasOffset = [left, top];
 
 		if ((e.pageX != undefined) && (e.pageY != undefined))
 		{
@@ -538,100 +528,64 @@ class PatternMaker extends React.Component
 		return [x, y];
 	}
 
-	// Works out the coordinates of a canvas relative to the page.
-	getCanvasOffset(element)
-	{
-		let left, top;
-		left = top = 0;
-
-		if (element.offsetParent)
+	useEffect(() => {
+		if (!didMount.colors)
 		{
-			do
-			{
-				left += element.offsetLeft;
-				top  += element.offsetTop;
-			}
-			while (element = element.offsetParent);
+			didMount.colors = true;
+			return;
 		}
 
-		return [left, top];
-	}
+		updatePaletteColor();
+	}, [hue, vividness, brightness]);
 
-	changePalette(e)
-	{
-		this.resetPalette(String(e.target.value));
-	}
-
-	changeHue(e)
+	const changeHue = (e) =>
 	{
 		let {value, min, max} = e.target;
 		min = Number(min), max = Number(max);
 
 		if (isNaN(value) || value < min || value > max)
 		{
-			this.setState({
-				hue: value,
-			});
+			setHue(value);
 
 			return;
 		}
 
-		this.setState({
-			hue: Math.max(min, Math.min(max, Number(value))),
-		}, () => {
-			this.updatePaletteColor();
-		});
+		setHue(Math.max(min, Math.min(max, Number(value))));
 	}
 
-	changeVividness(e)
+	const changeVividness = (e) =>
 	{
 		let {value, min, max} = e.target;
 		min = Number(min), max = Number(max);
 
 		if (isNaN(value) || value < min || value > max)
 		{
-			this.setState({
-				vividness: value,
-			});
+			setVividness(value);
 
 			return;
 		}
 
-		this.setState({
-			vividness: Math.max(min, Math.min(max, Number(value))),
-		}, () => {
-			this.updatePaletteColor();
-		});
+		setVividness(Math.max(min, Math.min(max, Number(value))));
 	}
 
-	changeBrightness(e)
+	const changeBrightness = (e) =>
 	{
 		let {value, min, max} = e.target;
 		min = Number(min), max = Number(max);
 
 		if (isNaN(value) || value < min || value > max)
 		{
-			this.setState({
-				brightness: value,
-			});
+			setBrightness(value);
 
 			return;
 		}
 
-		this.setState({
-			brightness: Math.max(min, Math.min(max, Number(value))),
-		}, () => {
-			this.updatePaletteColor();
-		});
+		setBrightness(Math.max(min, Math.min(max, Number(value))));
 	}
 
 	// called after updating hue, vividness or brightness
-	updatePaletteColor()
+	const updatePaletteColor = () =>
 	{
-		const {gameColorInfo} = this.props;
-		const {gameId, hue, vividness, brightness, activePaletteId, formData,
-			palette, colors} = this.state;
-
 		// manually double-check hue, vividness, brightness
 		if (hue < 1 || hue > 30 || vividness < 1 || vividness > 15 || brightness < 1 || brightness > 15)
 		{
@@ -640,7 +594,7 @@ class PatternMaker extends React.Component
 
 		// update the palette to have new color
 		let newPalette = [...palette];
-		const newRgbIndex = gameColorInfo[gameId].findIndex(c => c.hue === hue &&
+		const newRgbIndex = gameColorInfo[currentGameId].findIndex(c => c.hue === hue &&
 			c.vividness === vividness &&
 			c.brightness === brightness);
 		newPalette[activePaletteId] = newRgbIndex;
@@ -656,28 +610,25 @@ class PatternMaker extends React.Component
 				if (colors[palette[activePaletteId]] === formData[x][y])
 				{
 					// update the pattern to have new color at that square
-					dataArray[x][y] = gameColorInfo[gameId][newRgbIndex].hex;
+					dataArray[x][y] = gameColorInfo[currentGameId][newRgbIndex].hex;
 				}
 			}
 		}
 
-		this.setState({
-			palette: newPalette,
-			formData: dataArray,
-			dataUrl: this.refs.patternInterface.toDataURL(),
-		}, () => {
-			this.drawPalette(activePaletteId);
-			this.drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
-		});
+		setPalette(newPalette);
+		setPosX1(0);
+		setPosY1(0);
+		setPosX2(constants.pattern.paletteLength-1);
+		setPosY2(constants.pattern.paletteLength-1);
+		setFormData(dataArray);
+		setDataUrl(patternInterface.current.toDataURL());
 	}
 
-	fillPatternColor(rgb)
+	const fillPatternColor = (rgb) =>
 	{
-		const {gameId} = this.state;
-
 		if (!rgb)
 		{
-			if (gameId === constants.gameIds.ACNH)
+			if (currentGameId === constants.gameIds.ACNH)
 			{
 				rgb = constants.pattern.transparentColorId;
 			}
@@ -687,7 +638,7 @@ class PatternMaker extends React.Component
 			}
 		}
 
-		let dataArray = [...this.state.formData];
+		let dataArray = [...formData];
 
 		for (let x = 0; x < constants.pattern.paletteLength; x++)
 		{
@@ -697,19 +648,16 @@ class PatternMaker extends React.Component
 			}
 		}
 
-		this.setState({
-			formData: dataArray,
-		}, () => {
-			this.drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
-		});
+		setPosX1(0);
+		setPosY1(0);
+		setPosX2(constants.pattern.paletteLength-1);
+		setPosY2(constants.pattern.paletteLength-1);
+		setFormData(dataArray);
 	}
 
-	resetPalette(usePaletteId)
+	const resetPalette = (usePaletteId) =>
 	{
-		const {gameColors, gamePalettes, gameColorInfo} = this.props;
-		const {colors, palette, formData, activePaletteId} = this.state;
-
-		const newGamePaletteId = usePaletteId ? usePaletteId : this.state.gamePaletteId;
+		const newGamePaletteId = usePaletteId ? usePaletteId : gamePaletteId;
 		const gameId = Number(newGamePaletteId.substr(0, newGamePaletteId.indexOf('-')));
 		const paletteId = Number(newGamePaletteId.substr(newGamePaletteId.indexOf('-')+1));
 
@@ -759,190 +707,172 @@ class PatternMaker extends React.Component
 		// update hue / vividness / brightness if NH
 		const color = gameColorInfo[gameId][palette[activePaletteId]];
 
-		this.setState({
-			gamePaletteId: newGamePaletteId,
-			colors: newColors,
-			palette: newPalette,
-			gameId: gameId,
-			formData: dataArray,
-			hue: color ? color.hue : 0,
-			vividness: color ? color.vividness : 0,
-			brightness: color ? color.brightness : 0,
-			activePaletteId: activePaletteId === constants.pattern.numberOfColors && gameId !== constants.gameIds.ACNH ? 0 : activePaletteId
-		}, () => {
-			for (let i = 0; i <= constants.pattern.numberOfColors; i++)
-			{
-				this.drawPalette(i);
-			}
+		setGamePaletteId(newGamePaletteId);
+		setColors(newColors);
+		setHue(color ? color.hue : 0);
+		setVividness(color ? color.vividness : 0);
+		setBrightness(color ? color.brightness : 0);
+		setActivePaletteId(activePaletteId === constants.pattern.numberOfColors && gameId !== constants.gameIds.ACNH ? 0 : activePaletteId);
+		setPalette(newPalette);
+		setFormData(dataArray);
+		setCurrentGameId(gameId);
+	}
 
-			this.drawPaletteExtended();
-			this.drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+	let palettes = [];
+
+	for (var key in gamePalettes)
+	{
+		let game = acgames.find(g => g.id === Number(key));
+
+		gamePalettes[key].map(palette => {
+			palettes.push({
+				'id': key + '-' + palette.paletteId,
+				'game': game.shortname,
+				'name': 'Palette #' + palette.paletteId
+			});
 		});
 	}
 
-	render()
-	{
-		const {gamePalettes, acgames, gameColorInfo} = this.props;
-		const {formData, dataUrl, gamePaletteId, hue, vividness, brightness,
-			gameId, activePaletteId, paletteInterfaces, palette, paletteColorsKey,
-			colors} = this.state;
+	const paletteId = Number(gamePaletteId.substring(gamePaletteId.indexOf('-')+1));
+	const curRgb = colors[palette[activePaletteId]];
+	const defaultRgb = gamePalettes[currentGameId][paletteId-1].colors[activePaletteId];
+	const defaultColor = gameColorInfo[currentGameId].find(c => c.hex === defaultRgb);
 
-		let palettes = [];
+	return (
+		<div className='PatternMaker'>
+			<input type='hidden' name='data' value={formData.flat(2)} />
+			<input type='hidden' name='dataUrl' value={dataUrl} />
+			<input type='hidden' name='palette' value={palette} />
 
-		for (var key in gamePalettes)
-		{
-			let game = acgames.find(g => g.id === Number(key));
+			<div className='PatternMaker_grid'>
+				<canvas height='321' width='321' ref={patternInterface}
+					data-scale='10' onMouseMove={(e) => editIfDrawing(e)}
+					onMouseDown={() => setCurrentlyDrawing(true)}
+					onMouseUp={() => stopDrawing()}
+					onMouseOut={() => stopDrawing()}
+					onClick={(e) => editPattern(e)}
+					className='Pattern_transparent PatternMaker_canvas'
+				/>
 
-			gamePalettes[key].map(palette => {
-				palettes.push({
-					'id': key + '-' + palette.paletteId,
-					'game': game.shortname,
-					'name': 'Palette #' + palette.paletteId
-				});
-			});
-		}
+				<div className='PatternMaker_palette'>
+					<h4 className='PatternMaker_paletteName'>
+						Palette
+					</h4>
 
-		const paletteId = Number(gamePaletteId.substr(gamePaletteId.indexOf('-')+1));
-		const curRgb = colors[palette[activePaletteId]];
-		const defaultRgb = gamePalettes[gameId][paletteId-1].colors[activePaletteId];
-		const defaultColor = gameColorInfo[gameId].find(c => c.hex === defaultRgb);
-
-		return (
-			<div className='PatternMaker'>
-				<input type='hidden' name='data' value={formData.flat(2)} />
-				<input type='hidden' name='dataUrl' value={dataUrl} />
-				<input type='hidden' name='palette' value={palette} />
-
-				<div className='PatternMaker_grid'>
-					<canvas height='321' width='321' ref='patternInterface'
-						data-scale='10' onMouseMove={this.editIfDrawing}
-						onMouseDown={() => this.startDrawing()}
-						onMouseUp={() => this.stopDrawing()}
-						onMouseOut={() => this.stopDrawing()}
-						onClick={this.editPattern}
-						className='Pattern_transparent PatternMaker_canvas'
-					/>
-
-					<div className='PatternMaker_palette'>
-						<h4 className='PatternMaker_paletteName'>
-							Palette
-						</h4>
-
-						<div className='PatternMaker_paletteInterface'>
-							<div className='PatternMaker_paletteAll'>
-								<Select
-									hideLabel
-									label='Palette'
-									name='gamePaletteId'
-									options={palettes}
-									optionsMapping={{value: 'id', label: 'name'}}
-									groupBy='game'
-									value={gamePaletteId}
-									changeHandler={this.changePalette}
-									required
-								/>
-
-								<div className='PatternMaker_palettes' key={paletteColorsKey}>
-									{[...Array(constants.pattern.numberOfColors).keys()].map(i =>
-										<div key={`paletteInterface${i}`}
-											onClick={() => this.changeDrawingColor(i)}
-											className={i === activePaletteId ?
-												`paletteInterface paletteInterface${i} selected` :
-												`paletteInterface paletteInterface${i}`}
-											style={{backgroundColor: paletteInterfaces[i].backgroundColor,
-												border: paletteInterfaces[i].border}}
-										/>
-									)}
-									<div
-										onClick={() => this.changeDrawingColor(15)}
-										className={15 === activePaletteId ?
-											`Pattern_transparent paletteInterface paletteInterface15 selected` :
-											`Pattern_transparent paletteInterface paletteInterface15 ${(gameId !== constants.gameIds.ACNH ? ' hidden' : '')}`}
-										style={{backgroundColor: paletteInterfaces[15].backgroundColor,
-											border: paletteInterfaces[15].border}}
-									/>
-								</div>
-							</div>
-						</div>
-
-						<div className='PatternMaker_buttons'>
-							<Button
-								clickHandler={() => this.fillPatternColor(curRgb)}
-								label='Fill With Selected Color'
+					<div className='PatternMaker_paletteInterface'>
+						<div className='PatternMaker_paletteAll'>
+							<Select
+								hideLabel
+								label='Palette'
+								name='gamePaletteId'
+								options={palettes}
+								optionsMapping={{value: 'id', label: 'name'}}
+								groupBy='game'
+								value={gamePaletteId}
+								changeHandler={(e) => resetPalette(String(e.target.value))}
+								required
 							/>
 
-							{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) && (
-								<Button
-									clickHandler={() => this.resetPalette()}
-									label='Reset Palette'
-								/>
-							)}
-						</div>
-
-						{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) && (
-							<div className='PatternMaker_extended'>
-								{gameId === constants.gameIds.ACNL && (
-									<canvas height='256' width='226' ref='paletteInterfaceExtended'
-										data-scale='15' onClick={this.changePaletteColor}
-										className='PatternMaker_nlInterface'
+							<div className='PatternMaker_palettes' key={paletteColorsKey}>
+								{[...Array(constants.pattern.numberOfColors).keys()].map(i =>
+									<div key={`paletteInterface${i}`}
+										onClick={() => changeDrawingColor(i)}
+										className={i === activePaletteId ?
+											`paletteInterface paletteInterface${i} selected` :
+											`paletteInterface paletteInterface${i}`}
+										style={{backgroundColor: paletteInterfaces[i].backgroundColor,
+											border: paletteInterfaces[i].border}}
 									/>
 								)}
-
-								{gameId === constants.gameIds.ACNH && defaultColor && (
-									<div className='PatternMaker_nhInterface'>
-										<div className='PatternMaker_nhDefault'>
-											<h3>Default:</h3>{defaultColor.hue} {defaultColor.vividness} {defaultColor.brightness}
-										</div>
-
-										<div className='PatternMaker_nhHVB'>
-											<Form.Group>
-												<Text
-													label='Hue'
-													name='hue'
-													type='number'
-													min={1}
-													max={30}
-													value={hue}
-													changeHandler={this.changeHue}
-												/>
-											</Form.Group>
-											<Form.Group>
-												<Text
-													label='Vividness'
-													name='vividness'
-													type='number'
-													min={1}
-													max={15}
-													value={vividness}
-													changeHandler={this.changeVividness}
-												/>
-											</Form.Group>
-											<Form.Group>
-												<Text
-													label='Brightness'
-													name='brightness'
-													type='number'
-													min={1}
-													max={15}
-													value={brightness}
-													changeHandler={this.changeBrightness}
-												/>
-											</Form.Group>
-										</div>
-									</div>
-								)}
+								<div
+									onClick={() => changeDrawingColor(15)}
+									className={15 === activePaletteId ?
+										`Pattern_transparent paletteInterface paletteInterface15 selected` :
+										`Pattern_transparent paletteInterface paletteInterface15 ${(currentGameId !== constants.gameIds.ACNH ? ' hidden' : '')}`}
+									style={{backgroundColor: paletteInterfaces[15].backgroundColor,
+										border: paletteInterfaces[15].border}}
+								/>
 							</div>
+						</div>
+					</div>
+
+					<div className='PatternMaker_buttons'>
+						<Button
+							clickHandler={() => fillPatternColor(curRgb)}
+							label='Fill With Selected Color'
+						/>
+
+						{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) && (
+							<Button
+								clickHandler={() => resetPalette()}
+								label='Reset Palette'
+							/>
 						)}
 					</div>
+
+					{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) && (
+						<div className='PatternMaker_extended'>
+							{currentGameId === constants.gameIds.ACNL && (
+								<canvas height='256' width='226' ref={paletteInterfaceExtended}
+									data-scale='15' onClick={(e) => changePaletteColor(e)}
+									className='PatternMaker_nlInterface'
+								/>
+							)}
+
+							{currentGameId === constants.gameIds.ACNH && defaultColor && (
+								<div className='PatternMaker_nhInterface'>
+									<div className='PatternMaker_nhDefault'>
+										<h3>Default:</h3>{defaultColor.hue} {defaultColor.vividness} {defaultColor.brightness}
+									</div>
+
+									<div className='PatternMaker_nhHVB'>
+										<Form.Group>
+											<Text
+												label='Hue'
+												name='hue'
+												type='number'
+												min={1}
+												max={30}
+												value={hue}
+												changeHandler={(e) => changeHue(e)}
+											/>
+										</Form.Group>
+										<Form.Group>
+											<Text
+												label='Vividness'
+												name='vividness'
+												type='number'
+												min={1}
+												max={15}
+												value={vividness}
+												changeHandler={(e) => changeVividness(e)}
+											/>
+										</Form.Group>
+										<Form.Group>
+											<Text
+												label='Brightness'
+												name='brightness'
+												type='number'
+												min={1}
+												max={15}
+												value={brightness}
+												changeHandler={(e) => changeBrightness(e)}
+											/>
+										</Form.Group>
+									</div>
+								</div>
+							)}
+						</div>
+					)}
 				</div>
 			</div>
-		);
-	}
+		</div>
+	);
 }
 
 PatternMaker.propTypes = {
 	data: PropTypes.arrayOf(PropTypes.string),
-	dataUrl: PropTypes.string,
+	initialDataUrl: PropTypes.string,
 	gameColors: PropTypes.shape({
 		'1': PropTypes.arrayOf(PropTypes.string),
 		'2': PropTypes.arrayOf(PropTypes.string),
@@ -985,8 +915,8 @@ PatternMaker.propTypes = {
 		})),
 	}),
 	acgames: PropTypes.arrayOf(acgameShape),
-	gameId: PropTypes.number,
-	paletteId: PropTypes.number,
+	initialGameId: PropTypes.number,
+	initialPaletteId: PropTypes.number,
 };
 
 export default PatternMaker;

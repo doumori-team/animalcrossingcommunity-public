@@ -2,10 +2,8 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import { faker } from '@faker-js/faker/locale/en';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
-import { sortedCategories as sortedItemCategories } from '@/catalog/data.js';
-import { residents as sortedResidents } from '@/catalog/residents.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Advanced Trading Post; able to do trade from start to end without doing it yourself
@@ -80,7 +78,7 @@ async function trading_post({gameId, listingId, step})
 				RETURNING id
 			`, this.userId, listingStatuses.open, gameId > 0 ? gameId : null, type);
 
-			const defaults = getDefaultsForListing(gameId);
+			const defaults = await getDefaultsForListing(gameId);
 
 			const [listingOffer] = await query(`
 				INSERT INTO listing_offer (user_id, listing_id, bells, status, comment)
@@ -139,7 +137,7 @@ async function trading_post({gameId, listingId, step})
 				const offerUserId = faker.helpers.arrayElement(staffUserIds).id;
 				staffUserIds = staffUserIds.filter(sui => sui.id !== offerUserId);
 
-				const defaults = getDefaultsForListing(listing.game?.id);
+				const defaults = await getDefaultsForListing(listing.game?.id);
 
 				const [listingOffer] = await query(`
 					INSERT INTO listing_offer (user_id, listing_id, bells, status, comment)
@@ -550,19 +548,19 @@ async function trading_post({gameId, listingId, step})
 /*
  * Grabs trading elements for listing / offer.
  */
-function getDefaultsForListing(gameId)
+async function getDefaultsForListing(gameId)
 {
 	let bells = null, comment = '', items = [], residents = [];
 
 	if (gameId === 'real-world' || gameId === undefined)
 	{
-		const catalogItems = sortedItemCategories['all']['items'];
+		const catalogItems = await ACCCache.get(constants.cacheKeys.sortedCategories)['all']['items'];
 
 		items = faker.helpers.arrayElements(catalogItems, 10);
 	}
 	else if (gameId === constants.gameIds.ACGC)
 	{
-		const catalogItems = sortedCategories[gameId]['all']['items'].filter(item => item.tradeable);
+		const catalogItems = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter(item => item.tradeable);
 
 		items = faker.helpers.arrayElements(catalogItems, 10);
 	}
@@ -572,13 +570,14 @@ function getDefaultsForListing(gameId)
 
 		if (categories.includes('items'))
 		{
-			const catalogItems = sortedCategories[gameId]['all']['items'].filter(item => item.tradeable);
+			const catalogItems = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter(item => item.tradeable);
 
 			items = faker.helpers.arrayElements(catalogItems, 10);
 		}
 
 		if (categories.includes('residents'))
 		{
+			const sortedResidents = await ACCCache.get(constants.cacheKeys.residents);
 			residents = faker.helpers.arrayElements(sortedResidents[gameId], 5);
 		}
 

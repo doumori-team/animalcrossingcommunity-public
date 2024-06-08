@@ -1,5 +1,6 @@
 import * as db from '@db';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 export default async function hemisphere()
 {
@@ -13,7 +14,7 @@ export default async function hemisphere()
 		throw new UserError('permission');
 	}
 
-	return await db.query(`
+	return await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			hemisphere.id,
 			hemisphere.name

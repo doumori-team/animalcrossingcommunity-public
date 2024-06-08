@@ -25,8 +25,7 @@ export default async function actions()
 			identifier: action.identifier,
 			name: action.name,
 			types: (await db.query(`
-				SELECT
-					user_ticket_type.identifier
+				SELECT user_ticket_type.identifier
 				FROM user_ticket_type
 				JOIN user_ticket_action_type ON (user_ticket_action_type.type_id = user_ticket_type.id)
 				WHERE user_ticket_action_type.action_id = $1::int

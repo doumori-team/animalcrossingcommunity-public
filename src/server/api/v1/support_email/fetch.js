@@ -110,6 +110,12 @@ export default async function fetch()
 				}
 			});
 		});
+
+		f.once('end', function() {
+			console.log('Done fetching all messages!');
+
+			imap.end();
+		});
 	}
 
 	/**
@@ -194,19 +200,31 @@ export default async function fetch()
 
 			// get all not read in last day
 			imap.search(['UNSEEN'], (err, results) => {
-				if (!results || results.length === 0)
-				{
-					console.log('No unseen emails available.');
-					//imap.end();
-
-					return;
-				}
-
 				if (err)
 				{
 					console.error(err);
 					return;
 				}
+
+				if (!results || results.length === 0)
+				{
+					console.log('No unseen emails available.');
+
+					imap.end();
+
+					return;
+				}
+				else
+				{
+					console.log(`Importing ${results.length} emails`);
+				}
+
+				imap.setFlags(results, ['\\Seen'], (err) => {
+					if (err)
+					{
+						console.error(err);
+					}
+				});
 
 				// get messages; for every message then....
 				getMessages(results, async (err, msg) => {
@@ -234,6 +252,7 @@ export default async function fetch()
 						}
 					}
 
+					// see support_email.js
 					try
 					{
 						const user = await accounts.getUserData(null, null, from);
@@ -261,22 +280,17 @@ export default async function fetch()
 							recorded = EXCLUDED.recorded,
 							body = EXCLUDED.body
 					`, from, fromUserId, to, subject, recorded, body, msg.uid);
-
-					imap.setFlags([msg.uid], ['\\Seen'], (err) => {
-						if (err)
-						{
-							console.error(err);
-						}
-					});
 				});
-
-				//imap.end();
 			});
 		});
 	});
 
 	imap.once('error', (err) => {
 		console.error('IMAP Error: ' + err);
+	});
+
+	imap.once('end', function() {
+		console.log('Connection ended');
 	});
 
 	imap.connect();

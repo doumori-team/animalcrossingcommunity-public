@@ -13,7 +13,7 @@ async function ratings_given({id, page, type})
 	}
 
 	// Check parameters
-	if (type === constants.rating.types.scout && this.userId !== id)
+	if ([constants.rating.types.scout].includes(type) && this.userId !== id)
 	{
 		throw new UserError('permission');
 	}
@@ -32,19 +32,25 @@ async function ratings_given({id, page, type})
 	if (type === constants.rating.types.wifi)
 	{
 		query += `
-			WHERE rating.user_id = $3::int AND listing_id IS NULL AND adoption_node_id IS NULL
+			WHERE rating.user_id = $3::int AND listing_id IS NULL AND adoption_node_id IS NULL AND shop_node_id IS NULL
 		`;
 	}
 	else if (type === constants.rating.types.trade)
 	{
 		query += `
-			WHERE rating.user_id = $3::int AND listing_id IS NOT NULL AND adoption_node_id IS NULL
+			WHERE rating.user_id = $3::int AND listing_id IS NOT NULL
 		`;
 	}
 	else if (type === constants.rating.types.scout)
 	{
 		query += `
-			WHERE rating.user_id = $3::int AND listing_id IS NULL AND adoption_node_id IS NOT NULL
+			WHERE rating.user_id = $3::int AND adoption_node_id IS NOT NULL
+		`;
+	}
+	else if (type === constants.rating.types.shop)
+	{
+		query += `
+			WHERE rating.user_id = $3::int AND shop_node_id IS NOT NULL
 		`;
 	}
 
@@ -79,7 +85,7 @@ ratings_given.apiTypes = {
 	type: {
 		type: APITypes.string,
 		default: '',
-		includes: [constants.rating.types.wifi, constants.rating.types.trade, constants.rating.types.scout],
+		includes: [constants.rating.types.wifi, constants.rating.types.trade, constants.rating.types.scout, constants.rating.types.shop],
 		required: true,
 	},
 }

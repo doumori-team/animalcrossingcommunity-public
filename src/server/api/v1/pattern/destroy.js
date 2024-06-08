@@ -1,17 +1,21 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
+import { constants } from '@utils';
 
 async function destroy({id})
 {
-	const [modifyPatterns, processUserTickets] = await Promise.all([
-		this.query('v1/permission', {permission: 'modify-patterns'}),
-		this.query('v1/permission', {permission: 'process-user-tickets'}),
-	]);
+	const permissionGranted = await this.query('v1/permission', {permission: 'modify-patterns'});
 
-	if (!(modifyPatterns || processUserTickets))
+	if (!permissionGranted)
 	{
 		throw new UserError('permission');
+	}
+
+	if (!this.userId)
+	{
+		throw new UserError('login-needed');
 	}
 
 	const [pattern] = await db.query(`
@@ -39,6 +43,8 @@ async function destroy({id})
 			`, id),
 		]);
 	});
+
+	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 }
 
 destroy.apiTypes = {

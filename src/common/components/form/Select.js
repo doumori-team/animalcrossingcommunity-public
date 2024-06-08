@@ -70,9 +70,8 @@ const Select = ({hideLabel, label, multiple, name, useReactSelect, value, change
 		}
 		else
 		{
-			callback(showOptions.filter(option =>
-				option.label.toLowerCase().includes(inputValue.toLowerCase())
-			));
+			// have direct match show first in the list
+			callback(showOptions.filter(option => option.label.toLowerCase() === inputValue.toLowerCase()).concat(showOptions.filter(option => option.label.toLowerCase() !== inputValue.toLowerCase() && option.label.toLowerCase().includes(inputValue.toLowerCase()))));
 		}
 	}
 
@@ -138,7 +137,7 @@ const Select = ({hideLabel, label, multiple, name, useReactSelect, value, change
 						defaultValue={defaultValue}
 						placeholder={placeholder}
 						noOptionsMessage={({inputValue}) => !inputValue ?
-							`Start typing to lookup ${name}` :
+							`Start typing to lookup ${label}` :
 							'No results found'}
 						id={name}
 						components={{ Input }}

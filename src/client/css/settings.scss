@@ -129,12 +129,13 @@
 	@include inset-text;
 	margin: px2rem(5px);
 	display: inline-flex;
-	width: px2rem(315px);
+	width: 95%;
 	padding: px2rem(6px);
 	text-align: left;
 
 	label {
 		cursor: pointer;
+		width: 100%;
 
 		.Avatar {
 			float: none;

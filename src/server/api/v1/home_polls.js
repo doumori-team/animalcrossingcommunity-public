@@ -7,7 +7,10 @@ export default async function home_polls()
 
 	if (!permissionGranted)
 	{
-		throw new UserError('permission');
+		return {
+			currentPoll: null,
+			previousPoll: null,
+		};
 	}
 
 	const [[currentPollId], [previousPollId]] = await Promise.all([
@@ -15,14 +18,14 @@ export default async function home_polls()
 			SELECT id
 			FROM poll
 			WHERE is_enabled AND now() BETWEEN start_date AND start_date + duration
-			LIMIT 1;
+			LIMIT 1
 		`),
 		db.query(`
 			SELECT id
 			FROM poll
 			WHERE is_enabled AND start_date < now() - interval '7 days'
 			ORDER BY start_date DESC
-			LIMIT 1;
+			LIMIT 1
 		`),
 	]);
 

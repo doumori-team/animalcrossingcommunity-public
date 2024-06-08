@@ -16,7 +16,7 @@ import { ErrorMessage } from '@layout';
  *
  * Include the optional "silent" prop to suppress the error message.
  */
-const RequireUser = ({id, permission, silent, children}) =>
+const RequireUser = ({id, permission, silent, children, ids}) =>
 {
 	return (
 		<UserContext.Consumer>
@@ -25,7 +25,7 @@ const RequireUser = ({id, permission, silent, children}) =>
 				{
 					if (permission)
 					{
-						if (!id || user.id === id)
+						if ((ids.length > 0 && ids.some(i => user.id === i)) || (ids.length === 0 && (!id || user.id === id)))
 						{
 							return (
 								<RequirePermission permission={permission} silent={silent}>
@@ -34,7 +34,7 @@ const RequireUser = ({id, permission, silent, children}) =>
 							);
 						}
 					}
-					else if (!id || user.id === id)
+					else if ((ids.length > 0 && ids.some(i => user.id === i)) || (ids.length === 0 && (!id || user.id === id)))
 					{
 						return children;
 					}
@@ -52,7 +52,13 @@ RequireUser.propTypes = {
 	id: PropTypes.number,
 	permission: PropTypes.string,
 	silent: PropTypes.bool,
-	children: PropTypes.node
+	children: PropTypes.node,
+	ids: PropTypes.arrayOf(PropTypes.string),
+}
+
+RequireUser.defaultProps = {
+	silent: false,
+	ids: [],
 }
 
 export default RequireUser;

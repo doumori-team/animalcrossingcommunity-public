@@ -9,7 +9,7 @@ import { UserContext } from '@contexts';
 import { RequirePermission } from '@behavior';
 import { Form, Confirm } from '@form';
 
-const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whitelistedUsers}) =>
+const ProfileGeneralInfo = ({user, userDonations, birthday, age, usernameHistory, buddies, whitelistedUsers}) =>
 {
 	return (
 		<div className='ProfileGeneralInfo'>
@@ -43,7 +43,7 @@ const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whit
 			)}
 			<div className='ProfileGeneralInfo_field'>
 				<span className='ProfileGeneralInfo_fieldname'>Bell Count: </span>
-				{user.bells}
+				{user.allBells}
 			</div>
 			{birthday && (
 				<div className='ProfileGeneralInfo_field'>
@@ -61,7 +61,7 @@ const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whit
 			)}
 			<div className='ProfileGeneralInfo_field'>
 				<span className='ProfileGeneralInfo_fieldname'>Donations: </span>
-				${user.donations} (${user.perks})
+				${userDonations.donations} (${userDonations.perks})
 			</div>
 			<UserContext.Consumer>
 				{currentUser => currentUser.id != user.id && (
@@ -70,7 +70,7 @@ const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whit
 							<RequirePermission permission='use-friend-codes' silent>
 								<Confirm
 									action='v1/friend_code/whitelist/save'
-									defaultSubmitImage={`${process.env.AWS_URL}/images/icons/wifi.png`}
+									defaultSubmitImage={`${constants.AWS_URL}/images/icons/wifi.png`}
 									imageTitle='Whitelist User'
 									additionalBody={
 										<>
@@ -87,7 +87,7 @@ const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whit
 							<RequirePermission permission='use-buddy-system' silent>
 								<Form
 									action='v1/users/buddy/save'
-									defaultSubmitImage={`${process.env.AWS_URL}/images/icons/buddy.png`}
+									defaultSubmitImage={`${constants.AWS_URL}/images/icons/buddy.png`}
 									imageTitle={`Add ${user.username} to your buddy list`}
 								>
 									<input type='hidden' name='buddyUsers' value={user.username} />
@@ -95,9 +95,9 @@ const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whit
 								</Form>{' • '}
 							</RequirePermission>
 						)}
-						<Link to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user.username}`}>
+						<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user.username}#TextBox`}>
 							<img
-								src={`${process.env.AWS_URL}/images/icons/pt.png`}
+								src={`${constants.AWS_URL}/images/icons/pt.png`}
 								title={`Send a PT to ${user.username}`}
 								alt={`Send a PT to ${user.username}`}
 							/>
@@ -111,6 +111,12 @@ const ProfileGeneralInfo = ({user, birthday, age, usernameHistory, buddies, whit
 
 ProfileGeneralInfo.propTypes = {
 	user: userShape,
+	userDonations: PropTypes.shape({
+		id: PropTypes.number,
+		perks: PropTypes.number,
+		donations: PropTypes.number,
+		monthlyPerks: PropTypes.number,
+	}),
 	birthday: PropTypes.any,
 	age: PropTypes.number,
 	usernameHistory: PropTypes.arrayOf(PropTypes.shape({

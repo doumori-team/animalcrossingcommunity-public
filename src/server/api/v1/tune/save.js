@@ -2,6 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({townId, id, tuneName, noteId0, noteId1, noteId2, noteId3,
 	noteId4, noteId5, noteId6, noteId7, noteId8, noteId9, noteId10, noteId11,
@@ -98,6 +99,8 @@ async function save({townId, id, tuneName, noteId0, noteId1, noteId2, noteId3,
 			WHERE id = $2::int
 		`, id, townId, notes.join(''), this.userId, tuneName);
 	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.tunes);
 
 	return id;
 }

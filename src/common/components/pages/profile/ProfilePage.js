@@ -5,7 +5,8 @@ import ProfileBanner from '@/pages/headers/ProfileBanner.js';
 
 const ProfilePage = () =>
 {
-	const {user, birthday, age, usernameHistory, buddies, whitelistedUsers, error} = useLoaderData();
+	const {user, birthday, age, usernameHistory, buddies, whitelistedUsers,
+		error, userDonations} = useLoaderData();
 
 	/**
 	 * Sometimes react-router will start rendering the profile page before
@@ -25,6 +26,7 @@ const ProfilePage = () =>
 			usernameHistory={usernameHistory}
 			buddies={buddies}
 			whitelistedUsers={whitelistedUsers}
+			userDonations={userDonations}
 		/>
 		<div className='ProfilePage'>
 			<Outlet context={{user}} />
@@ -42,12 +44,13 @@ export async function loadData({id})
 		};
 	}
 
-	const [user, birthdayInfo, usernameHistory, buddies, whitelistedUsers] = await Promise.all([
+	const [user, birthdayInfo, usernameHistory, buddies, whitelistedUsers, userDonations] = await Promise.all([
 		this.query('v1/user', {id: id}),
 		this.query('v1/users/birthday', {id}),
 		this.query('v1/users/username_history', {id}),
 		this.query('v1/users/buddies'),
 		this.query('v1/friend_code/whitelist/users'),
+		this.query('v1/users/donations', {id: id}),
 	]);
 
 	return {
@@ -55,8 +58,9 @@ export async function loadData({id})
 		birthday: birthdayInfo.birthday,
 		age: birthdayInfo.age,
 		usernameHistory,
-		buddies,
-		whitelistedUsers
+		buddies: buddies.buddies,
+		whitelistedUsers,
+		userDonations,
 	};
 }
 

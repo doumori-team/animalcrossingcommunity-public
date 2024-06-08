@@ -3,6 +3,7 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { faker } from '@faker-js/faker/locale/en';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Add X Patterns
@@ -44,6 +45,8 @@ async function patterns({amount})
 			VALUES ($1, $2::int, $3::bool, $8, $4, $5, $6::int, $7::int, $9)
 		`, patternName, patternUserId, false, data, dataUrl, constants.gameIds.ACNH, paletteId, null, qrCodeUrl);
 	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 
 	return {
 		_success: `Your pattern(s) have been created!`

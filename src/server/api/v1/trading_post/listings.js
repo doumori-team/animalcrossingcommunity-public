@@ -14,6 +14,11 @@ async function listings({page, creator, type, gameId, bells, items, villagers,
 		throw new UserError('permission');
 	}
 
+	if (!this.userId && page > 1)
+	{
+		throw new UserError('login-needed');
+	}
+
 	// Check parameters
 	// confirm age
 	let age = 0;
@@ -116,7 +121,7 @@ async function listings({page, creator, type, gameId, bells, items, villagers,
 
 	if (gameId > 0)
 	{
-		params[paramIndex] = gameId > 0 ? gameId : null;
+		params[paramIndex] = gameId;
 
 		paramIndex++;
 
@@ -292,6 +297,7 @@ listings.apiTypes = {
 	creator: {
 		type: APITypes.string,
 		default: '',
+		profanity: true,
 	},
 	type: {
 		type: APITypes.string,
@@ -327,12 +333,14 @@ listings.apiTypes = {
 	bioLocation: {
 		type: APITypes.string,
 		default: '',
-		length: constants.max.location
+		length: constants.max.location,
+		profanity: true,
 	},
 	comment: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.additionalInfo,
+		profanity: true,
 	},
 }
 

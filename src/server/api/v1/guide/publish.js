@@ -1,6 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
+import { constants } from '@utils';
 
 async function publish({id})
 {
@@ -33,6 +35,9 @@ async function publish({id})
 		SET updated_name = null, updated_description = null, updated_content = null
 		WHERE id = $1::int
 	`, id);
+
+	ACCCache.deleteMatch(constants.cacheKeys.guides);
+	ACCCache.deleteMatch(constants.cacheKeys.acGameGuide);
 }
 
 publish.apiTypes = {

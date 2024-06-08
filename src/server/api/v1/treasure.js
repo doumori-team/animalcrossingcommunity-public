@@ -12,11 +12,20 @@ export default async function treasure()
 		return 0;
 	}
 
-	const user = await this.query('v1/user', {id: this.userId});
+	let user;
 
-	if (typeof(user) === 'undefined' || user.length === 0)
+	try
 	{
-		throw new UserError('no-such-user');
+		user = await this.query('v1/user', {id: this.userId});
+
+		if (typeof(user) === 'undefined' || user.length === 0)
+		{
+			throw new UserError('no-such-user');
+		}
+	}
+	catch
+	{
+		return 0;
 	}
 
 	if (user.reviewTOS)
@@ -32,8 +41,7 @@ export default async function treasure()
 	let wisp = 1 / 100.0;
 
 	const [treasureOffer] = await db.query(`
-		SELECT
-			id
+		SELECT id
 		FROM treasure_offer
 		WHERE user_id = $1::int AND offer > (now() - interval '1 minute' * $2)
 	`, this.userId, constants.bellThreshold);
@@ -51,8 +59,7 @@ export default async function treasure()
 	const [jackpotAmount, [missedBells]] = await Promise.all([
 		this.query('v1/treasure/jackpot'),
 		db.query(`
-			SELECT
-				count(*) AS count
+			SELECT count(*) AS count
 			FROM treasure_offer
 			WHERE user_id = $1::int AND redeemed_user_id IS NULL AND type = 'amount'
 		`, this.userId),
@@ -98,9 +105,7 @@ export default async function treasure()
 		RETURNING id
 	`, this.userId, bells, treasureType);
 
-	await Promise.all([
-		this.query('v1/treasure/stats', {userId: this.userId}),
-	]);
+	await db.regenerateTopBells({userId: this.userId});
 
 	return {
 		treasureTypeId,

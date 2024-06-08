@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useLoaderData } from 'react-router-dom';
 
 import { RequirePermission, RequireClientJS } from '@behavior';
-import { Form, Confirm, TextArea, Switch, Select, Checkbox, Button, RichTextArea } from '@form';
+import { Form, Confirm, TextArea, Switch, Select, Checkbox, Button, RichTextArea, Alert } from '@form';
 import { utils, constants } from '@utils';
 import { UserContext, PermissionsContext } from '@contexts';
 import { Header, ErrorMessage, Tabs, Section, Markup, HTMLPurify } from '@layout';
@@ -86,6 +86,10 @@ const UserTicketPage = () =>
 
 		return (
 			<Section key={Math.random()}>
+				<Alert type='info'>
+					User(s) who submitted the UT cannot answer messages. All non-staff messages on the UT are shown to the violator if the UT is completed. If you need more information from the submitting user(s), send them a ST and link the ST to the UT. If the UT is relatively minor, you can just deny it if it's not obvious what the problem is.
+				</Alert>
+
 				<Form
 					action='v1/user_ticket/message'
 					callback={`/user-ticket/${encodedId}`}
@@ -201,7 +205,7 @@ const UserTicketPage = () =>
 									to={`/user-tickets?violator=${encodeURIComponent(userTicket.violator.username)}&statusId=All+Statuses`}>
 										User Log
 									</Link>) {userTicket.info && (<img
-										src={`${process.env.AWS_URL}/images/icons/icon_pending.png`}
+										src={`${constants.AWS_URL}/images/icons/icon_pending.png`}
 										title={userTicket.info}
 										alt={userTicket.info}
 									/>)}

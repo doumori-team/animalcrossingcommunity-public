@@ -12,9 +12,7 @@ import * as iso from 'common/iso.js';
 import { notificationShape } from '@propTypes';
 import { constants } from '@utils';
 
-// The bit of the page that comes above the content
-
-const SiteHeader = ({latestNotification, notificationCount}) =>
+const SiteHeader = ({latestNotification, notificationCount, buddies}) =>
 {
 	const [notiCount, setNotiCount] = useState(notificationCount);
 	const [latNoti, setLatNoti] = useState(latestNotification);
@@ -63,7 +61,7 @@ const SiteHeader = ({latestNotification, notificationCount}) =>
 				<Navbar.Item>
 					<Link to='/' reloadDocument>
 						<img
-							src='/images/layout/acc-logo-narrow.png'
+							src={`${constants.AWS_URL}/images/layout/acc-logo-narrow.png`}
 							alt='ACC'
 							height='100%'
 						/>
@@ -87,7 +85,7 @@ const SiteHeader = ({latestNotification, notificationCount}) =>
 								className='SiteHeader_notificationsLink'
 							>
 								<img
-									src='/images/layout/bulletin-bird-lit.png'
+									src={`${constants.AWS_URL}/images/layout/bulletin-bird-lit.png`}
 									alt='Notifications'
 								/>
 								{notiCount > 0 && (
@@ -111,6 +109,20 @@ const SiteHeader = ({latestNotification, notificationCount}) =>
 								</Link>
 							)}
 						</div>
+						<div className='NavbarItem NavbarItem-icon SiteHeader_buddies'>
+							<NavbarMenuButton fallbackLink='/buddies' buddies={buddies}>
+								<img
+									src={`${constants.AWS_URL}/images/layout/buddies.png`}
+									alt='Buddies'
+									className={(buddies && buddies.staff.concat(buddies.buddies).length > 0) ? 'buddiesCountImg' : ''}
+								/>
+								{(buddies && buddies.staff.concat(buddies.buddies).length > 0) && (
+									<span className='SiteHeader_buddiesCount'>
+										{buddies.staff.concat(buddies.buddies).length > 99 ? `99+` : buddies.staff.concat(buddies.buddies).length}
+									</span>
+								)}
+							</NavbarMenuButton>
+						</div>
 						<Navbar.Item extra username>
 							<Link to={`/profile/${user.id}`}>{user.username}</Link>
 						</Navbar.Item>
@@ -132,6 +144,18 @@ const SiteHeader = ({latestNotification, notificationCount}) =>
 SiteHeader.propTypes = {
 	latestNotification: notificationShape,
 	notificationCount: PropTypes.number,
+	buddies: PropTypes.shape({
+		buddies: PropTypes.arrayOf(PropTypes.shape({
+			id: PropTypes.number,
+			username: PropTypes.string,
+			lastActiveTime: PropTypes.string,
+		})),
+		staff: PropTypes.arrayOf(PropTypes.shape({
+			id: PropTypes.number,
+			username: PropTypes.string,
+			lastActiveTime: PropTypes.string,
+		})),
+	}),
 };
 
 export default SiteHeader;

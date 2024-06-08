@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import multer from 'multer';
+import judoscale from 'judoscale-express';
 
 import apiRequests from './middleware/api-requests.js';
 import handleLoginLogout from './middleware/handle-login-logout.js';
@@ -24,17 +25,19 @@ app.set('port', (process.env.PORT || 5000));
 app.set('views', layoutsPath);
 app.set('view engine', 'ejs');
 
-// Handle PayPal requests to ACC 2
+// Handle PayPal requests to ACC
 app.use('/paypal_ipn', paypalIpn);
 
 // Add library middleware
 app.use(express.static(staticFilesPath));       // Serve static files
-app.use(cookieParser());                        // Self-explanatory
+app.use(cookieParser());                        // Self-explanatory; used for test website cookie
 app.use(multer().any());                        // Parse form submissions
 app.use(bodyParser.urlencoded({                 // Parse queries from _getLoaderFunction
 	type: 'application/x-www-form-urlencoded',
 	extended: true
 }));
+app.use(judoscale.default());
+
 // Add custom middleware (from the middleware/ source folder)
 app.use(testSitePassword);
 app.use(sessionManagement);

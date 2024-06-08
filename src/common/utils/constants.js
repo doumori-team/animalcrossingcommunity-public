@@ -3,14 +3,23 @@
 
 export const LIVE_SITE = process.env.HEROKU_APP_NAME === 'animalcrossingcommunity';
 
-export const SITE_URL = process.env.HEROKU_APP_NAME === 'animalcrossingcommunity' ? 'https://www.animalcrossingcommunity.com' : `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`;
+export const SITE_URL = LIVE_SITE ? 'https://www.animalcrossingcommunity.com' : (process.env.HEROKU_APP_NAME == 'acc-test' ? 'http://localhost:5000' : `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`);
 
-export const USER_FILE_DIR = process.env.HEROKU_APP_NAME === 'animalcrossingcommunity' ? `${process.env.AWS_URL}/images/users/` : `${process.env.AWS_URL}/images/stage/users/`;
+export const AWS_URL = process.env.AWS_URL;
 
-export const USER_FILE_DIR2 = process.env.HEROKU_APP_NAME === 'animalcrossingcommunity' ? `images/users/` : `images/stage/users/`;
+export const USER_FILE_DIR = LIVE_SITE ? `${AWS_URL}/images/users/` : `${AWS_URL}/images/stage/users/`;
+
+export const USER_FILE_DIR2 = LIVE_SITE ? `images/users/` : `images/stage/users/`;
+
+export const SHOP_FILE_DIR = LIVE_SITE ? `${AWS_URL}/images/shops/` : `${AWS_URL}/images/stage/shops/`;
+
+export const SHOP_FILE_DIR2 = LIVE_SITE ? `images/shops/` : `images/stage/shops/`;
 
 // Update this with each release; it helps with css / js caching (see index.ejs)
-export const version = '2.1.3';
+export const version = '2.2.18';
+
+// Update this when package.json is changed
+export const vendorVersion = '2.2.17';
 
 export const gameIds = {
 	ACGC: 1,
@@ -47,7 +56,8 @@ export const regexes = {
 	parseEmail: /[^< ]+(?=>)/g,
 	base64: /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/,
 	newLineToHTML: /(?:\r\n|\r|\n)/g,
-	nonWhitespaceCharacters: /^\S*$/
+	nonWhitespaceCharacters: /^\S*$/,
+	uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 };
 
 // String Placeholders
@@ -91,62 +101,12 @@ export const boardIds = {
 	siteRelated: 300000009,
 	featuresDashboard: 300000005,
 	archivedSpecialProjects: 300000010,
+	shopThread: 410000000,
+	schrodingersChat: 200000336,
+	ggOffTopic: 200000139,
+	ggWiFiLobby: 200000138,
+	colorDuels: 200000002,
 };
-
-// All Public Non-Archived Boards
-// Any board an anonymous user can see
-export const allPublicBoards = [
-	200000055, // AC:GC Trading
-	200000364, // AC:NH Looking For
-	200000367, // AC:NH Offering
-	200000257, // AC:NL Item Trading
-	200000306, // AC:NL Villager Trading
-	200000320, // e-Reader & amiibo Card Trading
-	200000062, // Animal Crossing Discussion
-	200000152, // AC:CF General
-	200000001, // AC:GC General
-	200000318, // AC:HHD General
-	200000363, // AC:NH General
-	200000255, // AC:NL General
-	200000356, // AC:PC General
-	200000097, // AC:WW General
-	200000319, // e-Reader & amiibo
-	200000070, // Announcements
-	200000065, // Getting Started
-	200000002, // Off Topic
-	200000337, // Chit-Chat
-	200000069, // Contests and Competitions
-	200000090, // Creative Writing
-	200000093, // Entertainment
-	200000145, // Forum Games
-	200000033, // Video Gaming and Consoles
-	200000105, // Shops and Services
-	200000095, // Giveaways
-	200000267, // Promotional Contests
-	200000266, // Recruitment
-	200000149, // Ask the Staff
-	200000003, // Site Support
-	200000140, // Wi-Fi Lobby
-	200000365, // AC:NH WiFi Lobby
-	200000258, // AC:NL Wi-Fi Lobby
-	200000098 // Wi-Fi Tech Support
-];
-
-export const staffBoards = [
-	200000034, // Administrative
-	200000082, // Admin Board
-	200000147, // Current Rules
-	200000144, // Feature Requests
-	200000146, // Pending Rules, Policies & Guidelines
-	200000321, // Profanity Filter
-	300000007, // Special Projects
-	200000333, // Game Guides
-	200000342, // Media & Events
-	200000068, // Staff Board
-	200000250, // Developer Board
-	200000133, // Researcher Board
-	200000252, // Scout Board
-];
 
 // Max String Length or Number Lengths
 export const max = {
@@ -157,7 +117,9 @@ export const max = {
 	searchUsername: 20,
 	number: 1000000000,
 	postTitle: 100,
-	post: 8000,
+	post1: 8000,
+	post2: 16000,
+	post3: 32000,
 	staffPost: 100000,
 	// TP Additional Info
 	additionalInfo: 8000,
@@ -194,6 +156,8 @@ export const max = {
 	name: 100,
 	bio1: 8000,
 	bio2: 16000,
+	bio3: 24000,
+	bio4: 32000,
 	userTitle: 17,
 	username: 15,
 	email: 10000,
@@ -203,6 +167,18 @@ export const max = {
 	imagesPost: 4,
 	imagesProfile: 12,
 	imageCaption: 200,
+	shopName: 50,
+	shopShortDescription: 100,
+	shopDescription: 30000,
+	shopPerOrder: 100,
+	shopServiceName: 50,
+	shopServiceDescription: 100,
+	shopRoleName: 50,
+	shopRoleDescription: 100,
+	shopMaxPositions: 50,
+	shopOrderComment: 100,
+	url: 100,
+	towns: 30,
 };
 
 export const min = {
@@ -296,11 +272,11 @@ export const rating = {
 		neutral: { id: 'neutral', imageAlt: 'Neutral', image: 'feedback_neutral.gif', text: 'Neutral' },
 		negative: { id: 'negative', imageAlt: 'Negative', image: 'feedback_negative.gif', text: 'Negative' },
 	},
-	// Get types for rating (wifi / trade).
 	types: {
 		wifi: 'wifi',
 		trade: 'trade',
 		scout: 'scout',
+		shop: 'shop',
 	},
 };
 
@@ -381,6 +357,16 @@ export const userTicket = {
 		profileUserTitle: 'profile_user_title',
 		profileImage: 'profile_image',
 		postImage: 'post_image',
+		shopName: 'shop_name',
+		shopShortDescription: 'shop_short_description',
+		shopDescription: 'shop_description',
+		shopImage: 'shop_image',
+		shopServiceName: 'shop_service_name',
+		shopServiceDescription: 'shop_service_description',
+		shopRoleName: 'shop_role_name',
+		shopRoleDescription: 'shop_role_description',
+		shopOrder: 'shop_order',
+		shopApplication: 'shop_application',
 	},
 	actions: {
 		noAction: 'no_action',
@@ -458,6 +444,13 @@ export const notification = {
 		featurePost: 'feature_post',
 		followFeature: 'follow_feature',
 		supportEmail: 'support_email',
+		giftDonation: 'gift_donation',
+		giftBellShop: 'gift_bell_shop',
+		shopThread: 'shop_thread',
+		shopEmployee: 'shop_employee',
+		shopOrder: 'shop_order',
+		shopApplication: 'shop_application',
+		donationReminder: 'donation_reminder',
 	},
 }
 
@@ -484,8 +477,21 @@ export const bellShop = {
 		avatarBackgrounds: 'Avatar Backgrounds',
 		avatarAccents: 'Avatar Accents',
 		backgroundColorations: 'Background Colorations',
+		avatarCharactersId: 3,
+		avatarBackgroundsId: 2,
+		avatarAccentsId: 1,
 	},
+	giftBellLimit: 10000,
 };
+
+export const shops = {
+	itemsServiceId: 1,
+	categories: {
+		orders: 'orders',
+		applications: 'applications',
+		threads: 'threads',
+	},
+}
 
 // OTHER //
 
@@ -582,6 +588,8 @@ export const flatBoolOptions = ['yes', 'no', 'both'];
 
 export const formatOptions = ['markdown', 'bbcode', 'plaintext'];
 
+export const boardTypeOptions = ['public', 'staff', 'archived'];
+
 export const addRemoveOptions = [
 	{ id: 'add', name: 'Add' },
 	{ id: 'remove', name: 'Remove' },
@@ -645,6 +653,8 @@ export const nodePermissions = {
 	sticky: 5,
 	adminLock: 6,
 	move: 7,
+	addUsers: 8,
+	removeUsers: 9,
 };
 
 export const ggBoardAge = 16;
@@ -652,3 +662,79 @@ export const ggBoardAge = 16;
 export const threadPageSize = 25;
 
 export const accUserId = 63167;
+
+// starts with
+export const approvedURLs = [
+	'/',
+	SITE_URL,
+	'http://newsletter.animalcrossingcommunity.com',
+	'http://financial.animalcrossingcommunity.com',
+	'http://www.animalcrossingcommunity.com',
+	'https://animalcrossingcommunity.s3.amazonaws.com',
+	'https://ACCommunity.redbubble.com',
+	'https://accommunity.redbubble.com',
+	'http://accommunity-pr-',
+	'https://accommunity-pr-',
+	'https://accounts.animalcrossingcommunity.com',
+	'https://animalcrossingcommunity.com',
+	'https://www.animalcrossingcommunity.com',
+	'https://accommunity-staging.herokuapp.com',
+	'https://dts8l1aj0iycv.cloudfront.net'
+];
+
+export const launchDate = '2023-09-25';
+
+export const cacheKeys = {
+	sortedCategories: 'sortedCategories',
+	sortedAcGameCategories: 'sortedAcGameCategories',
+	residents: 'residents',
+	creatures: 'creatures',
+	events: 'events',
+	years: 'years',
+	alphabeticalAvatarBackgrounds: 'alphabeticalAvatarBackgrounds',
+	alphabeticalAvatarCharacters: 'alphabeticalAvatarCharacters',
+	alphabeticalAvatarColorations: 'alphabeticalAvatarColorations',
+	alphabeticalAvatarAccents: 'alphabeticalAvatarAccents',
+	avatarTags: 'avatarTags',
+	sortedBellShopItems: 'sortedBellShopItems',
+	bellShopCategories: 'bellShopCategories',
+	pwps: 'pwps',
+	indexedAvatarAccents: 'indexedAvatarAccents',
+	indexedAvatarBackgrounds: 'indexedAvatarBackgrounds',
+	indexedAvatarCharacters: 'indexedAvatarCharacters',
+	indexedAvatarColorations: 'indexedAvatarColorations',
+	// using routes as cache keys means some of the non-user API calls saved
+	// (iso-server) are cleared when db cached queries are cleared
+	donations: 'v1/donations', // see iso-server
+	userGroupUsers: 'v1/user_group/users', // see iso-server
+	rulesCurrent: 'v1/rule/current', // see iso-server
+	userLite: 'v1/user_lite', // see iso-server
+	tunes: 'v1/tune', // cleared when saving / destroying tune
+	patterns: 'v1/pattern', // cleared when saving / destroying pattern
+	announcements: 'v1/node/announcements', // cleared when making announcement
+	guides: 'v1/guide', // cleared when saving / destroying / publishing guide
+	acGameGuide: 'v1/acgame/guide', // cleared when saving / destroying / publishing guide
+	games: 'v1/games', // cleared when saving / destroying games (Game Admin page)
+	acGame: 'v1/acgame', // never force cleared
+};
+
+export const cacheKeysACData = {
+	sortedCategories: 'sortedCategories',
+	sortedAcGameCategories: 'sortedAcGameCategories',
+	residents: 'residents',
+	creatures: 'creatures',
+	events: 'events',
+	years: 'years',
+	alphabeticalAvatarBackgrounds: 'alphabeticalAvatarBackgrounds',
+	alphabeticalAvatarCharacters: 'alphabeticalAvatarCharacters',
+	alphabeticalAvatarColorations: 'alphabeticalAvatarColorations',
+	alphabeticalAvatarAccents: 'alphabeticalAvatarAccents',
+	avatarTags: 'avatarTags',
+	sortedBellShopItems: 'sortedBellShopItems',
+	bellShopCategories: 'bellShopCategories',
+	pwps: 'pwps',
+	indexedAvatarAccents: 'indexedAvatarAccents',
+	indexedAvatarBackgrounds: 'indexedAvatarBackgrounds',
+	indexedAvatarCharacters: 'indexedAvatarCharacters',
+	indexedAvatarColorations: 'indexedAvatarColorations',
+};

@@ -56,7 +56,7 @@ async function support_emails({page, fromUser, fromEmail, toUser, toEmail, start
 	}
 
 	// Do actual search
-	const pageSize = 25;
+	const pageSize = 24;
 	const offset = (page * pageSize) - pageSize;
 	let params = [pageSize, offset];
 	let paramIndex = params.length;
@@ -94,7 +94,7 @@ async function support_emails({page, fromUser, fromEmail, toUser, toEmail, start
 		paramIndex++;
 
 		query += `
-			JOIN user_account_cache AS for_user_account ON ((for_user_account.id = support_email.from_user_id AND support_email.to_user_email = $${paramIndex}) OR for_user_account.id = support_email.to_user_id)
+			JOIN user_account_cache AS for_user_account ON ((for_user_account.id = support_email.from_user_id AND support_email.to_email = $${paramIndex}) OR for_user_account.id = support_email.to_user_id)
 		`;
 	}
 

@@ -8,7 +8,7 @@ import { RequireUser } from '@behavior';
 import { Confirm } from '@form';
 
 const Character = ({id, name, game, bells, debt, hraScore, houseSizes, userId, face,
-	bedLocation, nookMiles, catalogTotal, happyHomeNetworkId, creatorId}) =>
+	bedLocation, nookMiles, catalogTotal, happyHomeNetworkId, creatorId, museumTotal}) =>
 {
 	const encodedId = encodeURIComponent(id);
 	const encodedUserId = encodeURIComponent(userId);
@@ -34,7 +34,7 @@ const Character = ({id, name, game, bells, debt, hraScore, houseSizes, userId, f
 				{face.filename && (
 					<div>
 						<img
-							src={`${process.env.AWS_URL}/images/character/` + face.filename}
+							src={`${constants.AWS_URL}/images/character/` + face.filename}
 							alt={face.filename}
 						/>
 					</div>
@@ -68,7 +68,7 @@ const Character = ({id, name, game, bells, debt, hraScore, houseSizes, userId, f
 				{bedLocation.filename && (
 					<li>{game.id === constants.gameIds.ACGC ? 'House Location:' : 'Bed Location:'}
 						{' '}<img
-							src={`${process.env.AWS_URL}/images/character/` + bedLocation.filename}
+							src={`${constants.AWS_URL}/images/character/` + bedLocation.filename}
 							alt={bedLocation.filename}
 						/>
 					</li>
@@ -76,7 +76,9 @@ const Character = ({id, name, game, bells, debt, hraScore, houseSizes, userId, f
 				<li>
 					Trade:{' '}<Link to={`/catalog/${encodedUserId}/${constants.town.catalogTypes.character}/${encodedId}`}>
 						Catalog
-					</Link>{' '}({catalogTotal})
+					</Link>{' '}({catalogTotal}){' '}<Link to={`/catalog/${encodedUserId}/${constants.town.catalogTypes.character}/${encodedId}?category=museum`}>
+						({museumTotal})
+					</Link>
 				</li>
 			</ul>
 		</section>

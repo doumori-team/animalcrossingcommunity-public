@@ -4,6 +4,8 @@
 // It needs to be added to the scheduler from within the Heroku dashboard.
 
 const pg = require('pg');
+const importSync = require('import-sync');
+const constants = importSync('../src/common/utils/constants.js');
 
 const pool = new pg.Pool(
 {
@@ -16,21 +18,38 @@ async function daily()
 	console.log('Starting daily');
 
 	// expire any 'Open' listings
+	console.log('Expiring any open listings');
+
+	await pool.query(`
+		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
+		SELECT
+			listing_offer.user_id,
+			listing.id,
+			(SELECT id FROM notification_type WHERE identifier = 'listing_expired'),
+			'The listing has expired'
+		FROM listing
+		JOIN listing_offer ON (listing_offer.listing_id = listing.id)
+		JOIN users ON (listing.creator_id = users.id)
+		WHERE listing_offer.status IN ('${constants.tradingPost.offerStatuses.pending}', '${constants.tradingPost.offerStatuses.onHold}', '${constants.tradingPost.offerStatuses.accepted}') AND listing.status IN ('${constants.tradingPost.listingStatuses.open}', '${constants.tradingPost.listingStatuses.offerAccepted}') AND users.last_active_time < (current_date - interval '1 day' * ${constants.tradingPost.tradeExpiry})
+	`);
+
 	await pool.query(`
 		UPDATE listing
-		SET status = 'Expired', last_updated = NOW()
+		SET status = '${constants.tradingPost.listingStatuses.expired}', last_updated = NOW()
 		FROM users
-		WHERE users.id = listing.creator_id AND listing.status IN ('Open', 'Offer Accepted') AND users.last_active_time < (current_date - interval '1 day' * 7)
+		WHERE users.id = listing.creator_id AND listing.status IN ('${constants.tradingPost.listingStatuses.open}', '${constants.tradingPost.listingStatuses.offerAccepted}') AND users.last_active_time < (current_date - interval '1 day' * ${constants.tradingPost.tradeExpiry})
 	`);
 
 	await pool.query(`
 		UPDATE listing_offer
-		SET status = 'Rejected'
+		SET status = '${constants.tradingPost.offerStatuses.rejected}'
 		FROM listing
-		WHERE listing.id = listing_offer.listing_id AND listing.status = 'Expired'
+		WHERE listing.id = listing_offer.listing_id AND listing.status = '${constants.tradingPost.listingStatuses.expired}' AND listing_offer.status != '${constants.tradingPost.offerStatuses.rejected}'
 	`);
 
 	// adoptee thread closing reminders
+	console.log('Creating adoptee thread closing reminders');
+
 	await pool.query(`
 		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
 		SELECT
@@ -40,59 +59,46 @@ async function daily()
 			'Remember to close your Adoptee Thread!'
 		FROM adoption
 		JOIN node ON (node.id = adoption.node_id)
-		WHERE adopted < (current_date - interval '1 day' * 14) AND node.locked is null
+		WHERE adopted < (current_date - interval '1 day' * ${constants.scoutHub.newMemberEligibility}) AND node.locked is null
 		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET notified = null
 	`);
 
 	// Clear out avatars that are no longer available
+	console.log('Clearing out avatars that are no longer available');
+
+	// see v1/avatars.js
 	await pool.query(`
 		UPDATE users
 		SET avatar_coloration_id = NULL, avatar_character_id = NULL, avatar_background_id = NULL, avatar_accent_id = NULL
-		WHERE id IN (
-			-- Get all events that aren't running right now and get all the users that have avatar elements for those events
-			SELECT
-				users.id
-			FROM (
-				-- For each event date, get all the accents, characters, backgrounds and colorations
-				SELECT
-					array_agg(avatar_accent_eventmap.accent_id) AS accent_ids,
-					array_agg(avatar_character_eventmap.character_id) AS character_ids,
-					array_agg(avatar_background_eventmap.background_id) AS background_ids,
-					array_agg(avatar_coloration_eventmap.coloration_id) AS coloration_ids,
-					TO_DATE(coalesce(avatar_event_dates.start_year, date_part('year', now())) || TO_CHAR(avatar_event_dates.start_month, 'FM00') || (case when avatar_event_dates.start_month = 2 AND avatar_event_dates.start_day = 29 then (case when extract(year from now())::integer % 4 = 0 then avatar_event_dates.start_day else 28 end) else avatar_event_dates.start_day end), 'YYYYMMDD') AS start_date,
-					TO_DATE(coalesce(avatar_event_dates.end_year, date_part('year', now())) || TO_CHAR(avatar_event_dates.end_month, 'FM00') || (case when avatar_event_dates.end_month = 2 AND avatar_event_dates.end_day = 29 then (case when extract(year from now())::integer % 4 = 0 then avatar_event_dates.end_day else 28 end) else avatar_event_dates.end_day end), 'YYYYMMDD') AS end_date
-				FROM avatar_event_dates
-				JOIN avatar_event ON (avatar_event.id = avatar_event_dates.event_id)
-				LEFT JOIN avatar_accent_eventmap ON (avatar_accent_eventmap.event_id = avatar_event.id)
-				LEFT JOIN avatar_character_eventmap ON (avatar_character_eventmap.event_id = avatar_event.id)
-				LEFT JOIN avatar_background_eventmap ON (avatar_background_eventmap.event_id = avatar_event.id)
-				LEFT JOIN avatar_coloration_eventmap ON (avatar_coloration_eventmap.event_id = avatar_event.id)
-				WHERE avatar_accent_eventmap.event_id IS NOT NULL OR avatar_character_eventmap.event_id IS NOT NULL OR avatar_background_eventmap.event_id IS NOT NULL OR avatar_coloration_eventmap.event_id IS NOT NULL
-				GROUP BY avatar_event_dates.id
-			) AS avatar_events, users
-			WHERE current_date NOT BETWEEN start_date AND end_date AND (users.avatar_coloration_id = ANY(coloration_ids) OR users.avatar_character_id = ANY(character_ids) OR users.avatar_accent_id = ANY(accent_ids) OR users.avatar_background_id = ANY(background_ids))
-		)
+		FROM avatars_events
+		WHERE current_date NOT BETWEEN start_date AND end_date AND (users.avatar_coloration_id = ANY(coloration_ids) OR users.avatar_character_id = ANY(character_ids) OR users.avatar_accent_id = ANY(accent_ids) OR users.avatar_background_id = ANY(background_ids))
 	`);
 
 	// delete users who haven't given consent
+	console.log('Deleting users who have not given content');
+
 	await pool.query(`
 		DELETE FROM users USING user_account_cache WHERE user_account_cache.id = users.id AND users.consent_given = false AND user_account_cache.signup_date < now() - interval '30' day
 	`);
 
 	// any users who don't meet donation minimum for signature color
+	console.log('Reseting signature format based on donation');
+
 	await pool.query(`
 		UPDATE users
 		SET signature_format = 'plaintext'
-		WHERE id NOT IN (
+		WHERE signature_format != 'plaintext' AND id NOT IN (
 			SELECT user_id
 			FROM user_donation
 			WHERE donated >= now() - interval '1' year
 			GROUP BY user_id
-			HAVING coalesce(sum(donation), 0) >= 5
+			HAVING COALESCE(sum(donation), 0) >= 5
 		)
 	`);
 
 	// clean up tables to keep database small
+	console.log('Clearing out older tables: poll_answer');
+
 	await pool.query(`
 		DELETE FROM poll_answer
 		WHERE poll_id IN (
@@ -105,9 +111,168 @@ async function daily()
 	`);
 
 	// could also do: avatar_event_dates, node_user, notification, scout_settings
+
+	// deactivate any giveaways with no owner(s) online in 30 days
+	await pool.query(`
+		UPDATE shop
+		SET active = false
+		WHERE id IN (
+			SELECT shop.id
+			FROM shop
+			WHERE active = true AND NOT EXISTS (
+				SELECT shop_user.shop_id
+				FROM shop_user
+				JOIN shop_user_role ON (shop_user_role.shop_user_id = shop_user.id)
+				JOIN shop_role ON (shop_role.id = shop_user_role.shop_role_id)
+				JOIN users ON (shop_user.user_id = users.id)
+				WHERE shop_role.parent_id IS NULL AND shop_role.shop_id = shop.id AND users.last_active_time > now() - interval '30 days'
+			)
+		)
+	`);
+
+	var todaysDate = new Date();
+	todaysDate.setHours(0,0,0,0);
+
+	var updateStatsDate = new Date(`1/1/${todaysDate.getFullYear()}`);
+	updateStatsDate.setHours(0,0,0,0);
+
+	if (updateStatsDate == todaysDate)
+	{
+		console.log('Updating last year stats');
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_posts
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_threads
+		`);
+	
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_treasure_offers
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_patterns
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_listings
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_new_users
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_user_sessions
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_features
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_adoptions
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_user_tickets
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_support_tickets
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_support_emails
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_town_tunes
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_donations
+		`);
+
+		console.log('Update top_bell_latest');
+
+		await pool.query(`
+			UPDATE site_setting
+			SET updated = (SELECT updated - interval '1 day' FROM site_setting WHERE id = 4)
+			WHERE id = 5
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_latest
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_last_jackpot
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_search
+		`);
+	}
+
+	console.log('Notify Admins: Support Emails');
+
+	await pool.query(`
+		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
+		SELECT users.id AS user_id, support_email.id AS support_email_id, 32, 'Pending Support Email'
+		FROM support_email, users
+		WHERE users.user_group_id = 3 AND support_email.recorded < current_date - interval '7' day AND read = false
+	`);
+
+	console.log('Notify Admins: User Tickets');
+
+	await pool.query(`
+		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
+		SELECT users.id AS user_id, user_ticket.id AS user_ticket_id, 21, 'Pending User Ticket'
+		FROM user_ticket, users
+		WHERE users.user_group_id = 3 AND user_ticket.created < current_date - interval '7' day AND closed IS NULL
+	`);
+
+	var schrodingersChatOnDate = new Date(`4/1/${todaysDate.getFullYear()}`);
+	schrodingersChatOnDate.setHours(0,0,0,0);
+	var schrodingersChatOffDate = new Date(`4/2/${todaysDate.getFullYear()}`);
+	schrodingersChatOffDate.setHours(0,0,0,0);
+
+	if (schrodingersChatOnDate == todaysDate)
+	{
+		console.log('Turn on Schrödingers Chat');
+
+		await pool.query(`
+			UPDATE user_group_node_permission
+			SET granted = true
+			WHERE node_id = ${constants.boardIds.schrodingersChat} AND ((user_group_id = 0 AND node_permission_id = 1) OR (user_group_id = 1 AND node_permission_id = 2))
+		`);
+	}
+	else if (schrodingersChatOffDate == todaysDate)
+	{
+		console.log('Turn off Schrödingers Chat');
+
+		await pool.query(`
+			UPDATE user_group_node_permission
+			SET granted = false
+			WHERE node_id = ${constants.boardIds.schrodingersChat} AND ((user_group_id = 0 AND node_permission_id = 1) OR (user_group_id = 1 AND node_permission_id = 2))
+		`);
+	}
+
+	console.log('Donation Reminders');
+
+	await pool.query(`
+		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
+		SELECT user_donation.user_id, user_donation.user_id, 39, 'You last donated a year ago. Donate again soon!'
+		FROM user_donation
+		GROUP BY user_donation.user_id
+		HAVING current_date - interval '1 year' - interval '1 day' = max(date(user_donation.donated))
+	`);
 }
 
 daily().then(function()
 {
-	console.log("Daily scripts complete");
+	console.log('Daily scripts complete');
 });

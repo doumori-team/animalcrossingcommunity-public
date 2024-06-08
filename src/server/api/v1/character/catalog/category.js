@@ -1,7 +1,8 @@
 import * as db from '@db';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 /*
  * Gets how many items a character has collected per category.
@@ -23,12 +24,11 @@ async function category({characterId})
 	`, characterId);
 
 	// all categories in game
-	let acgameCategories = sortedCategories[character.game_id]['all']['theme'];
+	let acgameCategories = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${character.game_id}_all_theme`);
 
 	// list of catalog item ids the character has
 	const characterCatalogItemIds = (await db.query(`
-		SELECT
-			catalog_item.catalog_item_id
+		SELECT catalog_item.catalog_item_id
 		FROM catalog_item
 		WHERE catalog_item.character_id = $1::int AND catalog_item.is_inventory = $2
 	`, characterId, true)).map(cci => cci.catalog_item_id);

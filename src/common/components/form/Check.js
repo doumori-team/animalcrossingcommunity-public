@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { utils } from '@utils';
+import { utils, constants } from '@utils';
 
 const Check = ({hideLabel, options, defaultValue, multiple, name, required,
 	imageLocation, hideName, useImageFilename, onChangeHandler, label,
@@ -42,7 +42,7 @@ const Check = ({hideLabel, options, defaultValue, multiple, name, required,
 						<label htmlFor={key} className='Check_option'>
 							{utils.realStringLength(imageLocation) > 0 &&
 								<img
-									src={`${process.env.AWS_URL}/images/${imageLocation}/${useImageFilename ?
+									src={`${constants.AWS_URL}/images/${imageLocation}/${useImageFilename ?
 										option.filename :
 										utils.convertForUrl(option.name)+'.png'}`}
 									width={option.width ? option.width : ''}

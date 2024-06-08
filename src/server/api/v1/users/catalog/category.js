@@ -1,7 +1,8 @@
 import * as db from '@db';
-import { sortedCategories } from '@/catalog/data.js';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 /*
  * Fetches information about a user's catalog's categories.
@@ -16,12 +17,11 @@ async function category({id})
 	}
 
 	// all categories in game
-	let categories = sortedCategories['all']['theme'];
+	let categories = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['theme'];
 
 	// list of catalog item ids the character has
 	const catalogItemIds = (await db.query(`
-		SELECT
-			user_ac_item.item_id
+		SELECT user_ac_item.item_id
 		FROM user_ac_item
 		WHERE user_ac_item.user_id = $1::int AND user_ac_item.is_inventory = $2
 	`, id, true)).map(cci => cci.item_id);

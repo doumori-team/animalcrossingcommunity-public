@@ -12,6 +12,11 @@ async function patterns({page, name, creator, published, favorite, games})
 		throw new UserError('permission');
 	}
 
+	if (!this.userId && page > 1)
+	{
+		throw new UserError('login-needed');
+	}
+
 	// Check parameters
 	games = await Promise.all(games.map(async(id) =>
 	{
@@ -41,17 +46,10 @@ async function patterns({page, name, creator, published, favorite, games})
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
-	// We use `SELECT count(*) FROM pattern` below because at launch we were consistently
-	// getting slow returns after a few hours of not doing this query from `count(*) over()`
-	// even after adding descending index and vacuuming, analyzing and reindexing
 	let query = `
 		SELECT
-			pattern.id
-		FROM pattern
-	`;
-
-	let countQuery = `
-		SELECT count(*) AS count, $1 AS limit, $2 AS offset
+			pattern.id,
+			count(*) over() AS count
 		FROM pattern
 	`;
 
@@ -59,10 +57,6 @@ async function patterns({page, name, creator, published, favorite, games})
 	if (utils.realStringLength(creator) > 0)
 	{
 		query += `
-			JOIN user_account_cache ON (user_account_cache.id = pattern.creator_id)
-		`;
-
-		countQuery += `
 			JOIN user_account_cache ON (user_account_cache.id = pattern.creator_id)
 		`;
 	}
@@ -77,10 +71,6 @@ async function patterns({page, name, creator, published, favorite, games})
 		}
 
 		query += `
-			${leftjoin}JOIN pattern_favorite ON (pattern_favorite.pattern_id = pattern.id)
-		`;
-
-		countQuery += `
 			${leftjoin}JOIN pattern_favorite ON (pattern_favorite.pattern_id = pattern.id)
 		`;
 	}
@@ -145,21 +135,14 @@ async function patterns({page, name, creator, published, favorite, games})
 		query += `
 			WHERE `;
 
-		countQuery += `
-			WHERE `;
-
 		for (const key in wheres)
 		{
 			if (key > 0)
 			{
 				query += ` AND `;
-
-				countQuery += ` AND `;
 			}
 
 			query += wheres[key];
-
-			countQuery += wheres[key];
 		}
 	}
 
@@ -170,10 +153,7 @@ async function patterns({page, name, creator, published, favorite, games})
 	`;
 
 	// Run query
-	const [patterns, [patternCount]] = await Promise.all([
-		db.query(query, ...params),
-		db.query(countQuery, ...params),
-	]);
+	const patterns = await db.cacheQuery('v1/patterns', query, ...params);
 
 	if (patterns.length > 0)
 	{
@@ -181,7 +161,7 @@ async function patterns({page, name, creator, published, favorite, games})
 			return this.query('v1/pattern', {id: pattern.id})
 		}));
 
-		count = Number(patternCount.count);
+		count = Number(patterns[0].count);
 	}
 
 	return {
@@ -207,15 +187,17 @@ patterns.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.patternName,
+		profanity: true,
 	},
 	creator: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
+		profanity: true,
 	},
 	published: {
 		type: APITypes.string,
-		default: 'both',
+		default: 'yes',
 		includes: constants.flatBoolOptions,
 		required: true,
 	},

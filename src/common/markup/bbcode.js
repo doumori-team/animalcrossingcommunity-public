@@ -1,6 +1,7 @@
 import { escapeHtml, stringAt } from './utils.js';
 import emojiDefs from 'common/markup/emoji.json' assert { type: "json"};
 import { convertForUrl } from 'common/utils/utils.js';
+import * as constants from 'common/utils/constants.js';
 import { regexes } from 'common/utils/constants.js';
 
 const TOKENS = {
@@ -199,8 +200,13 @@ const PARSERS = {
 	[TOKENS.COLOUR_END]: () => '</font>',
 	[TOKENS.SPOILER_START]: () => '<span class="spoiler">',
 	[TOKENS.SPOILER_END]: () => '</span>',
-	[TOKENS.USER_TAG]: (_, username) => {
-		return `<a href="/profile/${convertForUrl(username)}">@${username}</a>`;
+	[TOKENS.USER_TAG]: function (_, username) {
+		if (this.currentUser)
+		{
+			return `<a href="/profile/${convertForUrl(username)}">@${username}</a>`;
+		}
+
+		return `@${username}`;
 	},
 	[TOKENS.CODE_START]: () => '',
 	[TOKENS.CODE_END]: () => '',
@@ -451,7 +457,7 @@ function getEmojiSrc(emojiSettings, markup)
 		src = `reaction/`;
 	}
 
-	return `<img src='${process.env.AWS_URL}/images/emoji/${src}${defs[markup]}.png' />`;
+	return `<img src='${constants.AWS_URL}/images/emoji/${src}${defs[markup]}.png' />`;
 }
 
 export default function parser(input, options, html = false)

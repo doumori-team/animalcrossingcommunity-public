@@ -118,17 +118,19 @@ export default async function notification({id})
 
 	if (notified === null)
 	{
-		await db.query(`
+		const [updatedNotification] = await db.query(`
 			UPDATE notification
-			SET notified = now()
-			WHERE notification.id = $1::int AND notified IS NULL
+			SET notified = COALESCE(notified, now())
+			WHERE notification.id = $1::int
+			RETURNING notified
 		`, id);
 
-		const [updatedNotification] = await db.query(`
-			SELECT notified
-			FROM notification
-			WHERE id = $1::int
-		`, id);
+		// race condition; if a user has another tab, they view (delete) the
+		// notification just as another tab grabs this, it would be gone.
+		if (!updatedNotification)
+		{
+			return null;
+		}
 
 		notified = updatedNotification.notified;
 	}
@@ -149,7 +151,8 @@ export default async function notification({id})
 		[
 			constants.notification.types.PT,
 			constants.notification.types.FT,
-			constants.notification.types.usernameTag
+			constants.notification.types.usernameTag,
+			constants.notification.types.shopThread
 		].includes(notification.identifier)
 	)
 	{

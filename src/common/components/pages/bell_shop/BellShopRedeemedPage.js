@@ -2,7 +2,7 @@ import React from 'react';
 import { useLoaderData } from 'react-router-dom';
 
 import { RequireUser } from '@behavior';
-import { utils } from '@utils';
+import { utils, constants } from '@utils';
 import { Header, Section, Grid, Markup } from '@layout';
 import Avatar from '@/components/nodes/Avatar.js';
 
@@ -24,7 +24,7 @@ const BellShopRedeemedPage = () =>
 								)}
 
 								{utils.realStringLength(item.image) > 0 && (
-									<img src={`${process.env.AWS_URL}/images/${item.image}`}
+									<img src={`${constants.AWS_URL}/images/${item.image}`}
 										className='BellShopRedeemedPage_image' alt={item.name} />
 								)}
 
@@ -50,6 +50,12 @@ const BellShopRedeemedPage = () =>
 								<div className='BellShopRedeemedPage_price'>
 									Redeemed For: {item.price}
 								</div>
+
+								{item.redeemedBy && (
+									<div className='BellShopRedeemedPage_redeemedBy'>
+										Redeemed By: {item.redeemedBy}
+									</div>
+								)}
 							</div>
 						)}
 					</Grid>

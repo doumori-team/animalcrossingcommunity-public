@@ -75,7 +75,7 @@ import AvatarPage, { loadData as loadAvatarPageData } from '@/pages/avatar/Avata
 
 import ProfilePage, { loadData as loadProfilePageData } from '@/pages/profile/ProfilePage.js';
 import ProfileBioPage, { loadData as loadProfileBioPageData } from '@/pages/profile/ProfileBioPage.js';
-import ProfileFriendCodesPage from '@/pages/profile/ProfileFriendCodesPage.js';
+import ProfileFriendCodesPage, { loadData as loadProfileFriendCodesPageData } from '@/pages/profile/ProfileFriendCodesPage.js';
 import ProfileTownsPage from '@/pages/profile/ProfileTownsPage.js';
 import ProfileAdminPage, { loadData as loadProfileAdminPageData } from '@/pages/profile/ProfileAdminPage.js';
 
@@ -148,6 +148,7 @@ import AdoptionThreadSettingsPage, { loadData as loadAdoptionThreadSettingsPageD
 import ScoutRatingsPage, { loadData as loadScoutRatingsPageData } from '@/pages/scout-hub/ScoutRatingsPage.js';
 
 import BellShopPage, { loadData as loadBellShopPageData } from '@/pages/bell_shop/BellShopPage.js';
+import BellShopGiftPage, { loadData as loadBellShopGiftPageData } from '@/pages/bell_shop/BellShopGiftPage.js';
 import BellShopRedeemedPage, { loadData as loadBellShopRedeemedPageData } from '@/pages/bell_shop/BellShopRedeemedPage.js';
 
 import SignupPage from '@/pages/signup/SignupPage.js';
@@ -155,6 +156,18 @@ import CongratsPage from '@/pages/signup/CongratsPage.js';
 import ConsentNeededPage from '@/pages/signup/ConsentNeededPage.js';
 import ConsentPage, { loadData as loadConsentPageData } from '@/pages/signup/ConsentPage.js';
 import EmailNeededPage from '@/pages/signup/EmailNeededPage.js';
+
+import ShopsPage, { loadData as loadShopsPageData } from '@/pages/shop/ShopsPage.js';
+import ShopPage, { loadData as loadShopPageData } from '@/pages/shop/ShopPage.js';
+import EditShopPage, { loadData as loadEditShopPageData } from '@/pages/shop/EditShopPage.js';
+import AddShopPage, { loadData as loadAddShopPageData } from '@/pages/shop/AddShopPage.js';
+import EmployeesPage, { loadData as loadEmployeesPageData } from '@/pages/shop/EmployeesPage.js';
+import ServicesPage, { loadData as loadServicesPageData } from '@/pages/shop/ServicesPage.js';
+import ShopThreadsPage, { loadData as loadShopThreadsPageData } from '@/pages/shop/ShopThreadsPage.js';
+import ApplicationPage, { loadData as loadApplicationPageData } from '@/pages/shop/ApplicationPage.js';
+import OrderPage, { loadData as loadOrderPageData } from '@/pages/shop/OrderPage.js';
+import EmployeeRatingsPage, { loadData as loadEmployeeRatingsPageData } from '@/pages/shop/EmployeeRatingsPage.js';
+import ShopThreadBanner, { loadData as loadShopThreadBannerData } from '@/pages/headers/ShopThreadBanner.js';
 
 function paramsToObject(entries)
 {
@@ -199,6 +212,15 @@ function _getLoaderFunction(loader, params, request)
 		// have access to it, redirect to the main page
 		if (error.name === 'UserError' && (error.identifiers.includes('permission') || error.identifiers.includes('login-needed')))
 		{
+			// prevent forever redirect
+			if (request.url.endsWith('/'))
+			{
+				throw json(
+					error,
+					{ status: 400 }
+				);
+			}
+
 			return redirect('/');
 		}
 
@@ -509,9 +531,20 @@ const routes = [
 							})
 							.catch(error =>
 							{
+								console.error('Throwing profile route error:');
+								console.error(error);
+
+								// see api-requests.js
+								let status = 500;
+
+								if (error.name === 'UserError' || error.name === 'ProfanityError')
+								{
+									status = 400;
+								}
+
 								throw json(
 									error,
-									{ status: 500 }
+									{ status: status }
 								);
 							})
 					}
@@ -534,6 +567,7 @@ const routes = [
 					{
 						path: 'friend-codes',
 						element: <ProfileFriendCodesPage />,
+						loader: async ({ params, request }) => _getLoaderFunction(loadProfileFriendCodesPageData, params, request),
 						children: [
 							{
 								path: '',
@@ -545,6 +579,7 @@ const routes = [
 					{
 						path: 'friend-code/add',
 						element: <ProfileFriendCodesPage />,
+						loader: async ({ params, request }) => _getLoaderFunction(loadProfileFriendCodesPageData, params, request),
 						children: [
 							{
 								path: '',
@@ -556,6 +591,7 @@ const routes = [
 					{
 						path: 'friend-code/:friendCodeId/edit',
 						element: <ProfileFriendCodesPage />,
+						loader: async ({ params, request }) => _getLoaderFunction(loadProfileFriendCodesPageData, params, request),
 						children: [
 							{
 								path: '',
@@ -778,8 +814,8 @@ const routes = [
 			},
 			{
 				path: 'trading-post/:userId/all',
-				element: <UserListingPage />,
-				loader: async ({ params, request }) => _getLoaderFunction(loadUserListingPageData, params, request)
+				element: LoadingFunction(UserListingPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadUserListingPageData, params, request)
 			},
 			{
 				path: 'trading-post/add',
@@ -920,6 +956,11 @@ const routes = [
 						element: LoadingFunction(NodePage),
 						loader: async ({ params, request }) => deferLoaderFunction(loadNodePageData, params, request)
 					},
+					{
+						path: ':page/:editId',
+						element: LoadingFunction(NodePage),
+						loader: async ({ params, request }) => deferLoaderFunction(loadNodePageData, params, request)
+					},
 				]
 			},
 			{
@@ -980,6 +1021,11 @@ const routes = [
 				loader: async ({ params, request }) => _getLoaderFunction(loadBellShopPageData, params, request)
 			},
 			{
+				path: 'bell-shop/:id/gift',
+				element: <BellShopGiftPage />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadBellShopGiftPageData, params, request)
+			},
+			{
 				path: 'bell-shop/redeemed',
 				element: <BellShopRedeemedPage />,
 				loader: async ({ params, request }) => _getLoaderFunction(loadBellShopRedeemedPageData, params, request)
@@ -1037,17 +1083,17 @@ const routes = [
 			},
 			{
 				path: 'site-statistics',
-				element: <SiteStatisticsPage />,
-				loader: async ({ params, request }) => _getLoaderFunction(loadSiteStatisticsPageData, params, request)
+				element: LoadingFunction(SiteStatisticsPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadSiteStatisticsPageData, params, request)
 			},
 			{
 				path: 'leaving',
 				element: <LeavingSitePage />,
 				loader: async ({ params, request }) => {
-					const searchParams = new URL(request.url).searchParams;
-					const url = searchParams.get('url');
+					const searchParams = new URL(request.url).search;
+					const url = searchParams.substring(5);
 
-					if (url && (url.startsWith('/') || url.startsWith(constants.SITE_URL) || url.startsWith('http://newsletter.animalcrossingcommunity.com') || url.startsWith('http://financial.animalcrossingcommunity.com') || url.startsWith('http://www.animalcrossingcommunity.com') || url.startsWith('https://animalcrossingcommunity.s3.amazonaws.com')))
+					if (url && constants.approvedURLs.find(au => url.startsWith(au)))
 					{
 						return redirect(url);
 					}
@@ -1059,6 +1105,78 @@ const routes = [
 				path: 'avatars',
 				element: <AvatarPage />,
 				loader: async ({ params, request }) => _getLoaderFunction(loadAvatarPageData, params, request)
+			},
+			{
+				path: 'shops',
+				element: <ShopsPage />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadShopsPageData, params, request)
+			},
+			{
+				path: 'shop/:id',
+				element: LoadingFunction(ShopPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadShopPageData, params, request)
+			},
+			{
+				path: 'shop/:id/edit',
+				element: LoadingFunction(EditShopPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadEditShopPageData, params, request)
+			},
+			{
+				path: 'shops/add',
+				element: <AddShopPage />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadAddShopPageData, params, request)
+			},
+			{
+				path: 'shop/:id/employees',
+				element: <EmployeesPage />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadEmployeesPageData, params, request)
+			},
+			{
+				path: 'shop/:id/services',
+				element: <ServicesPage />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadServicesPageData, params, request)
+			},
+			{
+				path: 'shops/threads',
+				element: LoadingFunction(ShopThreadsPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadShopThreadsPageData, params, request)
+			},
+			{
+				path: 'shop/application/:id',
+				element: LoadingFunction(ApplicationPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadApplicationPageData, params, request)
+			},
+			{
+				path: 'shop/order/:id',
+				element: LoadingFunction(OrderPage),
+				loader: async ({ params, request }) => deferLoaderFunction(loadOrderPageData, params, request)
+			},
+			{
+				path: 'shops/ratings/:userId',
+				element: <EmployeeRatingsPage />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadEmployeeRatingsPageData, params, request)
+			},
+			{
+				path: 'shops/threads/:id',
+				element: <ShopThreadBanner />,
+				loader: async ({ params, request }) => _getLoaderFunction(loadShopThreadBannerData, params, request),
+				children: [
+					{
+						path: '',
+						element: LoadingFunction(NodePage),
+						loader: async ({ params, request }) => deferLoaderFunction(loadNodePageData, params, request)
+					},
+					{
+						path: ':page',
+						element: LoadingFunction(NodePage),
+						loader: async ({ params, request }) => deferLoaderFunction(loadNodePageData, params, request)
+					},
+					{
+						path: ':page/:editId',
+						element: LoadingFunction(NodePage),
+						loader: async ({ params, request }) => deferLoaderFunction(loadNodePageData, params, request)
+					},
+				]
 			},
 		],
 	},

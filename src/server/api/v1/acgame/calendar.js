@@ -1,11 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, dateUtils, constants } from '@utils';
-import { residents } from '@/catalog/residents.js';
-import { creatures } from '@/catalog/creatures.js';
-import { events } from '@/catalog/events.js';
-import { years as acGameYears } from '@/catalog/events.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Get monthly calendar information.
@@ -16,7 +13,10 @@ async function calendar({requester, gameId, month, year, debug})
 
 	if (!permissionGranted)
 	{
-		throw new UserError('permission');
+		return {
+			game: {},
+			months: [],
+		};
 	}
 
 	// Check parameters
@@ -123,13 +123,20 @@ async function calendar({requester, gameId, month, year, debug})
 		}
 	}
 
+	const acGameYears = await ACCCache.get(constants.cacheKeys.years);
+
+	if (!acGameYears[gameId])
+	{
+		throw new UserError('bad-format');
+	}
+
 	if (!acGameYears[gameId].includes(year))
 	{
 		throw new UserError('bad-format');
 	}
 
 	const [[acGame], calendarCategories] = await Promise.all([
-		db.query(`
+		db.cacheQuery(constants.cacheKeys.acGame, `
 			SELECT shortname AS game_name
 			FROM ac_game
 			WHERE id = $1::int
@@ -150,6 +157,10 @@ async function calendar({requester, gameId, month, year, debug})
 	const yesterdayDate = dateUtils.subtractFromCurrentDate(1, 'days');
 
 	const allMonths = month === 0 && requester === 'calendar';
+
+	const events = await ACCCache.get(constants.cacheKeys.events);
+	const residents = await ACCCache.get(constants.cacheKeys.residents);
+	const creatures = await ACCCache.get(constants.cacheKeys.creatures);
 
 	let months;
 
@@ -174,7 +185,10 @@ async function calendar({requester, gameId, month, year, debug})
 					creaturesName,
 					eventsName,
 					birthdaysName,
-					yesterdayDate
+					yesterdayDate,
+					events,
+					residents,
+					creatures
 				),
 			};
 		})
@@ -197,7 +211,10 @@ async function calendar({requester, gameId, month, year, debug})
 				creaturesName,
 				eventsName,
 				birthdaysName,
-				yesterdayDate
+				yesterdayDate,
+				events,
+				residents,
+				creatures
 			),
 		}];
 	}
@@ -211,7 +228,7 @@ async function calendar({requester, gameId, month, year, debug})
 	};
 }
 
-function getCategoriesForMonth(month, year, requester, gameId, currentDate, hemisphere, categoryIdentifiers, gameDir, creaturesName, eventsName, birthdaysName, yesterdayDate)
+function getCategoriesForMonth(month, year, requester, gameId, currentDate, hemisphere, categoryIdentifiers, gameDir, creaturesName, eventsName, birthdaysName, yesterdayDate, events, residents, creatures)
 {
 	let categories = [];
 	const currentMonth = dateUtils.parse(`${month}/${year}`, 'M/yyyy');
@@ -220,12 +237,12 @@ function getCategoriesForMonth(month, year, requester, gameId, currentDate, hemi
 	if (categoryIdentifiers.includes(constants.calendarCategories.events))
 	{
 		let eventsList = requester === 'homepage' ?
-			calculateEventsHomepage(gameId, hemisphere, currentDate) : [];
+			calculateEventsHomepage(gameId, hemisphere, currentDate, events) : [];
 
 		if (requester === 'calendar')
 		{
 			events[gameId].map(event => {
-				let name = `${event.displayName}`;
+				let name = event.displayName === 'Fireworks Show' ? `${event.name}` : `${event.displayName}`;
 
 				if (event.hasOwnProperty('type'))
 				{
@@ -325,7 +342,7 @@ function getCategoriesForMonth(month, year, requester, gameId, currentDate, hemi
 
 		creatures[gameId].map(creature => {
 			const name = `${creature.name} (${creature.type})`;
-			const img = `${process.env.AWS_URL}/images/icons/creatures/${gameDir}/${creature.imgName}.png`;
+			const img = `${constants.AWS_URL}/images/icons/creatures/${gameDir}/${creature.imgName}.png`;
 
 			if (creature.hasOwnProperty('hemispheres'))
 			{
@@ -409,7 +426,7 @@ function getCategoriesForMonth(month, year, requester, gameId, currentDate, hemi
 /*
  * Takes events and figures out which are between yesterday and +30 days.
  */
-function calculateEventsHomepage(gameId, hemisphere, currentDate)
+function calculateEventsHomepage(gameId, hemisphere, currentDate, events)
 {
 	let resultEvents = [];
 	const currentYear = dateUtils.formatYear(currentDate);;
@@ -426,34 +443,47 @@ function calculateEventsHomepage(gameId, hemisphere, currentDate)
 		let yesterdayDates = null;
 
 		// get dates for year '+30 days' and check if event was in next 30 days
-		if (currentYear !== thirtyDays)
-		{
-			thirtyDates = getStartEndDatesForYear(gameId, event, thirtyDays, hemisphere);
-		}
-		else
-		{
-			thirtyDates = currentDates = getStartEndDatesForYear(gameId, event, currentYear, hemisphere);
-		}
+		thirtyDates = currentDates = getStartEndDatesForYear(gameId, event, currentYear, hemisphere);
 
 		if (thirtyDates !== null)
 		{
-			const thirtyStartDate = thirtyDates.startDate;
-			const thirtyEndDate = thirtyDates.endDate;
-			const thirtyUseDate = thirtyEndDate === null ? thirtyStartDate : thirtyEndDate;
+			let thirtyStartDate = thirtyDates.startDate;
+			let thirtyEndDate = thirtyDates.endDate;
+			let thirtyUseDate = thirtyEndDate === null ? thirtyStartDate : thirtyEndDate;
 
-			const thirtyDiff = dateUtils.diff(currentDate, thirtyUseDate, 'day');
+			let thirtyDiff = dateUtils.diff(currentDate, thirtyUseDate, 'day');
 
-			if (thirtyDiff > -30 && thirtyDiff < 0)
+			if (thirtyDiff > -30 && thirtyDiff <= 0)
 			{
 				startDate = thirtyStartDate;
 				endDate = thirtyEndDate;
+			}
+			// check if event is the beginning of next year (December)
+			else if (currentYear !== thirtyDays)
+			{
+				thirtyDates = getStartEndDatesForYear(gameId, event, thirtyDays, hemisphere);
+
+				if (thirtyDates !== null)
+				{
+					thirtyStartDate = thirtyDates.startDate;
+					thirtyEndDate = thirtyDates.endDate;
+					thirtyUseDate = thirtyEndDate === null ? thirtyStartDate : thirtyEndDate;
+
+					thirtyDiff = dateUtils.diff(currentDate, thirtyUseDate, 'day');
+
+					if (thirtyDiff > -30 && thirtyDiff < 0)
+					{
+						startDate = thirtyStartDate;
+						endDate = thirtyEndDate;
+					}
+				}
 			}
 		}
 
 		// if event wasn't '+30 days'
 		if (startDate === null)
 		{
-			// get dates for year 'yesterday' and check if even is yesterday
+			// get dates for year 'yesterday' and check if event is yesterday
 			if (currentYear !== yesterday)
 			{
 				yesterdayDates = getStartEndDatesForYear(gameId, event, yesterday, hemisphere);

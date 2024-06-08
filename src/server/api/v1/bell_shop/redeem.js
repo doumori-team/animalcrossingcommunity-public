@@ -1,10 +1,10 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { constants } from '@utils';
-import { sortedBellShopItems } from '@/catalog/info.js';
+import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
-async function redeem({id, itemId})
+async function redeem({id, itemId, userId, debug})
 {
 	const permissionGranted = await this.query('v1/permission', {permission: 'purchase-bell-shop'});
 
@@ -18,19 +18,33 @@ async function redeem({id, itemId})
 		throw new UserError('login-needed');
 	}
 
-	const itemPrice = sortedBellShopItems['price'][id][itemId];
+	const itemPrice = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['price'][id][itemId];
 
-	if (!itemPrice)
+	if (!constants.LIVE_SITE && utils.realStringLength(debug) > 0)
 	{
-		throw new UserError('no-such-bell-shop-item');
+		if (!dateUtils.isValid(debug))
+		{
+			throw new UserError('bad-format');
+		}
+
+		if (!itemPrice || dateUtils.isAfterTimezone2(itemPrice.item.releaseDate, debug))
+		{
+			throw new UserError('no-such-bell-shop-item');
+		}
+	}
+	else
+	{
+		if (!itemPrice || dateUtils.isAfterCurrentDateTimezone(itemPrice.item.releaseDate))
+		{
+			throw new UserError('no-such-bell-shop-item');
+		}
 	}
 
 	const [itemRedeemed] = await db.query(`
-		SELECT
-			id
+		SELECT id
 		FROM user_bell_shop_redeemed
 		WHERE item_id = $1::int AND (expires IS NULL OR expires > now()) AND user_id = $2::int
-	`, itemPrice.item.id, this.userId);
+	`, itemPrice.item.id, userId);
 
 	if (itemRedeemed)
 	{
@@ -45,28 +59,53 @@ async function redeem({id, itemId})
 		throw new UserError('no-such-user');
 	}
 
+	let price = itemPrice.price.nonFormattedPrice;
+
+	if (user.monthlyPerks >= 5 && user.monthlyPerks < 10)
+	{
+		price = price - Math.ceil(price * 0.05);
+	}
+	else if (user.monthlyPerks >= 10)
+	{
+		price = price - Math.ceil(price * 0.10);
+	}
+
 	if (itemPrice.price.currency === constants.bellShop.currencies.bells)
 	{
-		if ((user.nonFormattedTotalBells - itemPrice.price.nonFormattedPrice) < 0)
+		if ((user.nonFormattedTotalBells - price) < 0)
 		{
 			throw new UserError('bell-shop-not-enough-bells');
 		}
 	}
 
+	if (this.userId !== userId && itemPrice.price.nonFormattedPrice > constants.bellShop.giftBellLimit)
+	{
+		throw new UserError('bell-shop-gift-limit');
+	}
+
 	// Process
+	let redeemed = null;
+
 	if (itemPrice.item.expireDurationMonths === null)
 	{
-		await db.query(`
-			INSERT INTO user_bell_shop_redeemed (user_id, item_id, price, currency)
-			VALUES ($1::int, $2::int, $3, $4)
-		`, this.userId, itemPrice.item.id, itemPrice.price.nonFormattedPrice, itemPrice.price.currency);
+		[redeemed] = await db.query(`
+			INSERT INTO user_bell_shop_redeemed (user_id, item_id, price, currency, redeemed_by)
+			VALUES ($1::int, $2::int, $3, $4, $5)
+			RETURNING id
+		`, userId, itemPrice.item.id, price, itemPrice.price.currency, this.userId);
 	}
 	else
 	{
-		await db.query(`
-			INSERT INTO user_bell_shop_redeemed (user_id, item_id, price, currency, expires)
-			VALUES ($1::int, $2::int, $3, $4, now() + interval '1 month' * $5::int)
-		`, this.userId, itemPrice.item.id, itemPrice.price.nonFormattedPrice, itemPrice.price.currency, itemPrice.item.expireDurationMonths);
+		[redeemed] = await db.query(`
+			INSERT INTO user_bell_shop_redeemed (user_id, item_id, price, currency, expires, redeemed_by)
+			VALUES ($1::int, $2::int, $3, $4, now() + interval '1 month' * $5::int, $6)
+			RETURNING id
+		`, userId, itemPrice.item.id, price, itemPrice.price.currency, itemPrice.item.expireDurationMonths, this.userId);
+	}
+
+	if (userId && this.userId !== userId)
+	{
+		await this.query('v1/notification/create', {id: redeemed.id, type: constants.notification.types.giftBellShop});
 	}
 
 	return await this.query('v1/users/bell_shop/items', {
@@ -82,6 +121,14 @@ redeem.apiTypes = {
 	itemId: {
 		type: APITypes.number,
 		required: true,
+	},
+	userId: {
+		type: APITypes.userId,
+		default: true,
+	},
+	debug: {
+		type: APITypes.string,
+		default: '',
 	},
 }
 

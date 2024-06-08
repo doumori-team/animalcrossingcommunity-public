@@ -328,6 +328,14 @@ const AutomationPage = () =>
 
 						<hr/>
 
+						<Form
+							action='v1/automation/other/shop'
+							showButton
+							buttonText='Create Shop'
+						/>
+
+						<hr/>
+
 						<div className='AutomationPage_sectionOption'>
 							<Form action='v1/automation/other/trading_post' showButton>
 								<div className='AutomationPaga_options'>

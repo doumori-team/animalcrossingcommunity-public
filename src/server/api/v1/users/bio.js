@@ -2,6 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
+import { constants } from '@utils';
 
 /*
  * Lists the information about a user that should appear in the "Bio" tab of their profile.
@@ -48,6 +49,14 @@ async function bio({id})
 		WHERE user_file.user_id = $1::int
 		ORDER BY file.sequence ASC
 	`, id);
+
+	if (id === this.userId)
+	{
+		this.query('v1/notification/destroy', {
+			id: id,
+			type: constants.notification.types.giftDonation
+		});
+	}
 
 	return {
 		location: result.location,

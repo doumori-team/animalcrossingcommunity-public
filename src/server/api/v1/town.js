@@ -1,10 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
-import { residents as sortedResidents } from '@/catalog/residents.js';
-import { getPWPs } from '@/catalog/info.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function town({id})
 {
@@ -57,8 +55,8 @@ async function town({id})
 		throw new UserError('no-such-town');
 	}
 
-	const residents = sortedResidents[town.game_id];
-	const gamePWPs = getPWPs(town.game_id);
+	const residents = (await ACCCache.get(constants.cacheKeys.residents))[town.game_id];
+	const gamePWPs = (await ACCCache.get(constants.cacheKeys.pwps))[town.game_id];
 
 	const [fruit, nativeFruit, stores, pwps, townResidents, island, characters,
 		mapTiles, tuneCreator, museum, mapDesignData, flagCreator] = await Promise.all([
@@ -283,7 +281,7 @@ async function getMuseum(id, gameId)
 	let museum = [];
 
 	// all museum groups in the game with genuine (for artwork) items
-	const museumGroups = sortedCategories[gameId]['all']['theme']
+	const museumGroups = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_theme`))
 		.map(category => category.groups).flat(2)
 		.filter(group => group.items.some(item => item.museum && item.genuine));
 

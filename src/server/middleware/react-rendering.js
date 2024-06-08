@@ -2,12 +2,14 @@ import React from 'react';
 import { URL } from 'url';
 import express from 'express';
 import ReactDOMServer from 'react-dom/server';
-import { createStaticHandler, StaticRouterProvider, createStaticRouter } from 'react-router-dom/server';
+import { createStaticHandler, StaticRouterProvider, createStaticRouter } from 'react-router-dom/server.js';
 
 import routes from 'common/routes.js';
 import * as iso from 'common/iso.js';
 import { getSeason } from 'common/calendar.js';
-import { constants } from '@utils';
+import { constants, utils } from '@utils';
+import * as errors from 'common/errors.js';
+import * as db from '@db';
 
 const app = express();
 app.set('views', new URL('../views', import.meta.url).pathname);
@@ -25,19 +27,46 @@ const handler = createStaticHandler(routes);
  */
 app.get('*', async (request, response) =>
 {
+	let log = utils.startLog(request, 'reactrendering');
+
+	console.log(`${log} status=unknown`);
+
 	let clientRequest = createFetchRequest(request);
 
 	// when rendering server-side, send authenticated user to routing's loader functions
 	clientRequest.session = {};
 	clientRequest.session.user = request.session.user;
 
-	const context = await handler.query(clientRequest);
+	let context;
+
+	try
+	{
+		context = await handler.query(clientRequest);
+	}
+	// Request timeouts
+	catch (queryError)
+	{
+		log += ` status=500`;
+		console.log(log);
+
+		console.error('Logging query error response:');
+		console.error(queryError);
+
+		response.set('Cache-Control', 'no-store');
+
+		return response.render('500');
+	}
 
 	if (
 		context instanceof Response &&
 		[301, 302, 303, 307, 308].includes(context.status)
 	)
 	{
+		log += ` status=${context.status}`;
+		console.log(log);
+
+		response.set('Cache-Control', 'no-store');
+
 		return response.redirect(
 			context.status,
 			context.headers.get('Location')
@@ -50,12 +79,42 @@ app.get('*', async (request, response) =>
 		const error = context.errors['0'];
 		const status = error.status ? error.status : 500;
 
+		log += ` status=${status}`;
+		console.log(log);
+
 		response.status(status);
 
-		if (status === 500)
+		if (status != 404)
 		{
 			console.error('Logging error response:');
 			console.error(error);
+
+			response.set('Cache-Control', 'no-store');
+		}
+		else
+		{
+			// 259200 = 3 days
+			response.set('Cache-Control', 'public, max-age=259200');
+		}
+
+		if (error.data && (error.data.name === 'ProfanityError' || error.data.name === 'UserError'))
+		{
+			let details;
+
+			if (error.data.name === 'UserError')
+			{
+				details = error.data.identifiers.map(
+					id => { return { id, message: errors.ERROR_MESSAGES[id].message } }
+				);
+			}
+			else if (error.data.name === 'ProfanityError')
+			{
+				details = error.data.identifier.map(
+					id => { return { id, message: `${errors.ERROR_MESSAGES[id].message} ${error.data.words}` } }
+				);
+			}
+
+			return response.render('error', { errors: details });
 		}
 
 		return response.render(status === 404 ? '404' : '500');
@@ -90,10 +149,32 @@ app.get('*', async (request, response) =>
 			params: params,
 			query: query
 		});
+
+		const sessionId = request.cookies['connect.sid'];
+
+		if (sessionId)
+		{
+			const [user] = await db.query(`
+				SELECT id
+				FROM users
+				WHERE id = $1 AND stay_forever = true
+			`, request.session.user);
+
+			if (user)
+			{
+				await db.query(`
+					UPDATE session
+					SET expire = now() + interval '1 year'
+					WHERE (sess->'user')::text = $1::text
+				`, request.session.user);
+
+				response.cookie('connect.sid', sessionId, { maxAge: 366 * 24 * 60 * 60 * 1000, httpOnly: true });
+			}
+		}
 	}
 
 	// figure out favicon
-	let icon = '/images/layout/favicon/';
+	let icon = `${constants.AWS_URL}/images/layout/favicon/`;
 
 	if (constants.LIVE_SITE || query.debug)
 	{
@@ -110,10 +191,16 @@ app.get('*', async (request, response) =>
 		pathname: context.location.pathname
 	});
 
+	log += ` status=200`;
+	console.log(log);
+
+	response.set('Cache-Control', 'no-store');
+
 	return response.render('index', {
 		markup,
 		icon,
 		version: constants.version,
+		vendor_version: constants.vendorVersion,
 		title
 	});
 });
@@ -167,7 +254,17 @@ function createFetchRequest(req)
 		init.body = req.body;
 	}
 
-	return new Request(url.href, init);
+	try
+	{
+		return new Request(url.href, init);
+	}
+	catch (e)
+	{
+		console.error('Request throwing error');
+		console.error(e);
+		req.url = '';
+		return createFetchRequest(req);
+	}
 };
 
 export default app;

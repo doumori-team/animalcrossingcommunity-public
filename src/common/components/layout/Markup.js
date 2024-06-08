@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import * as markup from 'common/markup.js';
 import { emojiSettingsShape } from '@propTypes';
 import HTMLPurify from './HTMLPurify.js';
+import { UserContext } from '@contexts';
 
 /* Converts forum markup into HTML.
  *
@@ -19,14 +20,19 @@ const Markup = ({text, format, emojiSettings}) =>
 	const formatClassName = format.split('+')[0];
 
 	return (
-		<HTMLPurify
-			className={`Markup Markup-${formatClassName}`}
-			html={markup.parse({
-				text: text,
-				format: format,
-				emojiSettings: emojiSettings,
-			})}
-		/>
+		<UserContext.Consumer>
+			{currentUser => (
+				<HTMLPurify
+					className={`Markup Markup-${formatClassName}`}
+					html={markup.parse({
+						text: text,
+						format: format,
+						emojiSettings: emojiSettings,
+						currentUser: currentUser,
+					})}
+				/>
+			)}
+		</UserContext.Consumer>
 	);
 }
 

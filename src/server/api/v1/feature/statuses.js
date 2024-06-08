@@ -8,7 +8,7 @@ export default async function statuses()
 		throw new UserError('login-needed');
 	}
 
-	return await db.query(`
+	return await db.cacheQuery('v1/feature/statuses', `
 		SELECT
 			feature_status.id,
 			feature_status.name,

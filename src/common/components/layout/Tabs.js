@@ -75,6 +75,7 @@ Tabs.propTypes = {
 
 Tabs.defaultProps = {
 	fallback: <ErrorMessage identifier='javascript-required' />,
+	variant: 'light',
 }
 
 export default Tabs;

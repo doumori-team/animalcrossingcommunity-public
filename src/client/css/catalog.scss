@@ -14,17 +14,17 @@
 				justify-content: center;
 				align-items: center;
 
-				.Catalog_all, .Catalog_search {
+				.Catalog_all, .Catalog_search, .Catalog_museum {
 					margin: px2rem(10px);
 				}
 
-				.Catalog_all {
+				.Catalog_all, .Catalog_museum {
 					@include contentbox();
 					text-align: center;
 					padding: px2rem(15px);
 				}
 
-				.Catalog_all.selected {
+				.Catalog_all.selected, .Catalog_museum.selected {
 					color: #fff;
 					background-color: var(--seasonal-color-dark);
 

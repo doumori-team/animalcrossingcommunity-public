@@ -140,24 +140,11 @@ async function save({id, sitePermissionIds, forumPermissions})
 						permission.description,
 						permission.identifier,
 						user_group_permission.user_group_id,
-						ordered_user_groups.level,
+						user_groups_ordered.level,
 						COALESCE(user_group_permission.granted, false) AS granted
 					FROM permission
 					LEFT JOIN user_group_permission ON (user_group_permission.permission_id = permission.id AND user_group_permission.user_group_id = ANY($1))
-					LEFT JOIN (
-						WITH RECURSIVE ENTRIES as (
-							SELECT id, parent_id, name, id AS root_id, 1 AS level
-							FROM user_group
-							WHERE parent_id IS NULL
-							UNION ALL
-							SELECT c.id, c.parent_id, c.name, p.root_id, p.level + 1
-							FROM user_group c
-							JOIN entries p ON (p.id = c.parent_id)
-						)
-						SELECT id, name, level
-						FROM entries
-						ORDER BY root_id, level, id
-					) AS ordered_user_groups ON (ordered_user_groups.id = user_group_permission.user_group_id)
+					LEFT JOIN user_groups_ordered ON (user_groups_ordered.id = user_group_permission.user_group_id)
 					ORDER BY identifier ASC, level DESC
 				) AS permissions
 				ORDER BY permissions.id ASC
@@ -191,29 +178,16 @@ async function save({id, sitePermissionIds, forumPermissions})
 							WHEN user_group_node_permission.node_id = parent2.parent_node_id THEN 4
 							WHEN user_group_node_permission.node_id = parent3.parent_node_id THEN 5
 						END AS sequence,
-						ordered_user_groups.level
+						user_groups_ordered.level
 					FROM node
 					JOIN node_permission ON (node_permission.id >= 1)
 					LEFT JOIN node AS parent ON (node.parent_node_id = parent.id)
 					LEFT JOIN node AS parent2 ON (parent.parent_node_id = parent2.id)
 					LEFT JOIN node AS parent3 ON (parent2.parent_node_id = parent3.id)
 					LEFT JOIN user_group_node_permission ON (user_group_node_permission.node_permission_id = node_permission.id and user_group_node_permission.user_group_id = ANY($1) AND user_group_node_permission.node_id IN (node.id, parent.id, parent.parent_node_id, parent2.parent_node_id, parent3.parent_node_id))
-					LEFT JOIN (
-						WITH RECURSIVE ENTRIES as (
-							SELECT id, parent_id, name, id AS root_id, 1 AS level
-							FROM user_group
-							WHERE parent_id IS NULL
-							UNION ALL
-							SELECT c.id, c.parent_id, c.name, p.root_id, p.level + 1
-							FROM user_group c
-							JOIN entries p ON (p.id = c.parent_id)
-						)
-						SELECT id, name, level
-						FROM entries
-						ORDER BY root_id, level, id
-					) AS ordered_user_groups ON (ordered_user_groups.id = user_group_node_permission.user_group_id)
+					LEFT JOIN user_groups_ordered ON (user_groups_ordered.id = user_group_node_permission.user_group_id)
 					WHERE node.type = 'board'
-					ORDER BY node_id ASC, node_permission_id DESC, sequence ASC, ordered_user_groups.level DESC
+					ORDER BY node_id ASC, node_permission_id DESC, sequence ASC, user_groups_ordered.level DESC
 				) as permissions
 				ORDER BY permissions.title
 			`, groupIds),

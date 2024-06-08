@@ -22,7 +22,7 @@ async function towns({id})
 		FROM town
 		WHERE user_id = $1::int
 		ORDER BY town.id ASC
-		LIMIT 100
+		LIMIT 30
 	`, id);
 
 	return await Promise.all(towns.map(async(town) => {

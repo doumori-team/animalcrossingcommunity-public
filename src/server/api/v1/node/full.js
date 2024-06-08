@@ -16,8 +16,8 @@ async function full({id, loadingNode = false})
 	}
 
 	const [[result], [revisions], editPerm, replyPerm, lockPerm, adminLockPerm,
-		stickyPerm, movePerm, users, [followedNode], [numFollowed], viewFollowersPerm,
-		userSettings] = await Promise.all([
+		stickyPerm, movePerm, addUsersPerm, removeUsersPerm, users, [followedNode],
+		[numFollowed], viewFollowersPerm, userSettings] = await Promise.all([
 		db.query(`
 			SELECT
 				node.id,
@@ -31,7 +31,8 @@ async function full({id, loadingNode = false})
 				last_revision.content_format,
 				node.locked,
 				node.thread_type,
-				node.latest_reply_time
+				node.latest_reply_time,
+				node.reply_count
 			FROM node
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
@@ -53,17 +54,23 @@ async function full({id, loadingNode = false})
 		this.query('v1/node/permission', {permission: 'admin-lock', nodeId: id}),
 		this.query('v1/node/permission', {permission: 'sticky', nodeId: id}),
 		this.query('v1/node/permission', {permission: 'move', nodeId: id}),
+		this.query('v1/node/permission', {permission: 'add-users', nodeId: id}),
+		this.query('v1/node/permission', {permission: 'remove-users', nodeId: id}),
 		db.query(`
 			SELECT
 				user_account_cache.id,
 				user_account_cache.username,
-				user_node_permission.granted
+				user_node_permission.granted,
+				(
+					SELECT last_checked
+					FROM node_user
+					WHERE node_user.node_id = user_node_permission.node_id AND node_user.user_id = user_account_cache.id
+				) AS viewed
 			FROM user_account_cache
 			JOIN user_node_permission ON (user_node_permission.user_id = user_account_cache.id)
-			JOIN node_permission ON (node_permission.id = user_node_permission.node_permission_id)
-			WHERE user_node_permission.node_id = $1::int AND node_permission.identifier = 'read'
+			WHERE user_node_permission.node_id = $1::int AND user_node_permission.node_permission_id = $2::int
 			ORDER BY username ASC
-		`, id),
+		`, id, constants.nodePermissions.read),
 		db.query(`
 			SELECT node_id
 			FROM followed_node
@@ -87,23 +94,28 @@ async function full({id, loadingNode = false})
 		throw new UserError('no-such-node');
 	}
 
-	// replyCount / latestPage / latestPost / lastChecked: See v1/node/children.js
-	const [parent, user, replyCount, latestPage, latestPost, lastChecked, nodeFiles, unreadTotal] = await Promise.all([
+	if (result.locked && !this.userId)
+	{
+		throw new UserError('login-needed');
+	}
+
+	const conciseMode = userSettings && userSettings[0] ? userSettings[0].concise_mode : 2;
+
+	// latestPage / latestPost / lastChecked: See v1/node/children.js, v1/shop/thread.js
+	const [parent, user, latestPage, latestPost, lastChecked, nodeFiles, unreadTotal] = await Promise.all([
 		result.type === 'thread' ? this.query('v1/node/lite', {id: result.parent_node_id}) : null,
 		result.user_id ? this.query('v1/user', {id: result.user_id}) : null,
-		result.type === 'thread' ? db.query(`
-			SELECT count(*)-1 AS count
-			FROM node
-			WHERE node.parent_node_id = $1
-		`, id) : null,
 		!loadingNode && result.type === 'thread' && this.userId ? db.query(`
 			SELECT
 				CEIL((
 					SELECT count(*)+(
 						SELECT count(*)
-						FROM node
-						WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
-						LIMIT 1
+						FROM (
+							SELECT node.id
+							FROM node
+							WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
+							LIMIT 1
+						) AS at_least_one_unread
 					) AS count
 					FROM node
 					WHERE node.parent_node_id = $1 AND node.creation_time < last_checked
@@ -141,7 +153,7 @@ async function full({id, loadingNode = false})
 			WHERE node_revision_file.node_revision_id = $1::int
 			ORDER BY file.sequence ASC
 		`, result.revision_id) : null,
-		!loadingNode && result.type === 'thread' && this.userId ? db.query(`
+		!loadingNode && result.type === 'thread' && this.userId && conciseMode > 2 ? db.query(`
 			SELECT
 				(
 					SELECT count(*) AS count
@@ -193,9 +205,19 @@ async function full({id, loadingNode = false})
 		permissions.push('move');
 	}
 
+	if (addUsersPerm)
+	{
+		permissions.push('add-users');
+	}
+
+	if (removeUsersPerm)
+	{
+		permissions.push('remove-users');
+	}
+
 	const returnLatestPost = latestPost && latestPost[0] ? latestPost[0].latest_post : null;
 
-	const replies = replyCount ? Number(replyCount[0].count) : 0;
+	const replies = result.reply_count ? Number(result.reply_count)-1 : 0;
 
 	const returnVal = {
 		id: result.id,
@@ -204,6 +226,7 @@ async function full({id, loadingNode = false})
 		revisionId: result.revision_id,
 		title: result.title,
 		created: result.creation_time,
+		formattedCreated: dateUtils.formatDateTime(result.creation_time),
 		locked: result.locked,
 		threadType: result.thread_type,
 		edits: revisions - 1,
@@ -227,7 +250,7 @@ async function full({id, loadingNode = false})
 				caption: file.caption,
 			}
 		}) : [],
-		conciseMode: userSettings && userSettings[0] ? userSettings[0].concise_mode : 2,
+		conciseMode: conciseMode,
 	};
 
 	if (result.user_id)
@@ -278,6 +301,10 @@ async function full({id, loadingNode = false})
 			else if (returnVal.parentId === constants.boardIds.announcements)
 			{
 				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.announcement});
+			}
+			else if (returnVal.parentId === constants.boardIds.shopThread)
+			{
+				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.shopThread});
 			}
 			else
 			{

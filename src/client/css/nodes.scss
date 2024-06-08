@@ -124,6 +124,16 @@
 			content: "";
 		}
 	}
+
+	.title-content, .description-content {
+		font-size: 0.875rem;
+	}
+
+	.Accordion .AccordionFallback {
+		background: #fff;
+		padding: px2rem(12px);
+		font-size: 0.875rem;
+	}
 }
 
 .Node_signature {
@@ -171,7 +181,8 @@
 	font-weight: bold;
 	display: flex;
 	align-items: center;
-	white-space: break-spaces;
+	white-space: break-spaces !important;
+	overflow-wrap: break-word;
 }
 
 .PostAuthorInfo_userTitle {
@@ -575,6 +586,10 @@
 			tbody tr {
 				background-color: var(--seasonal-color-lighter);
 			}
+
+			.spoiler {
+				color: var(--seasonal-color-lighter) !important;
+			}
 		}
 
 		th, td {
@@ -709,7 +724,8 @@
 .FeatureWritingInterface_heading,
 .NodeWritingInterface_lock label,
 .NodeWritingInterface label[for=boardId],
-.RichTextArea_file label {
+.RichTextArea_file label,
+.NodeWritingInterface label[for=shopId] {
 	margin: 0.5rem;
 	font-size: px2rem(17px);
 	line-height: 1.6;
@@ -745,6 +761,7 @@
 
 .Node_extra {
 	display: flex;
+	align-items: center;
 }
 
 .Node_boardActions {

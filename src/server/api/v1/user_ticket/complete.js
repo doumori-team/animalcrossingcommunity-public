@@ -124,8 +124,6 @@ async function complete({id, ruleId, violationId, actionId, updatedContent, boar
 			switch (userTicket.type_identifier)
 			{
 				case types.pattern:
-					await this.query('v1/pattern/destroy', {id: userTicket.reference_id});
-
 					// usually pattern/destroy wouldn't delete the town data using this pattern
 					// we do want to do that here
 					await db.query(`
@@ -133,6 +131,11 @@ async function complete({id, ruleId, violationId, actionId, updatedContent, boar
 						SET flag_id = NULL, flag_creator_id = NULL, flag_data_url = NULL, flag_name = NULL
 						WHERE flag_id = $1::int
 					`, userTicket.reference_id);
+
+					await db.query(`
+						DELETE FROM pattern
+						WHERE id = $1::int
+					`, userTicket.reference_id)
 
 					break;
 				case types.townFlag:
@@ -255,6 +258,12 @@ async function complete({id, ruleId, violationId, actionId, updatedContent, boar
 					`, userTicket.reference_id);
 
 					break;
+				case types.shopImage:
+					await db.query(`
+						UPDATE shop
+						SET header_file_id = NULL
+						WHERE id = $1
+					`, userTicket.reference_id);
 				case types.profileImage:
 				case types.postImage:
 					await db.query(`
@@ -371,6 +380,78 @@ async function complete({id, ruleId, violationId, actionId, updatedContent, boar
 				});
 
 				break;
+			case types.shopName:
+				await db.query(`
+					UPDATE shop
+					SET name = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopShortDescription:
+				await db.query(`
+					UPDATE shop
+					SET short_description = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopDescription:
+				await db.query(`
+					UPDATE shop
+					SET description = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopRoleName:
+				await db.query(`
+					UPDATE shop_role
+					SET name = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopRoleDescription:
+				await db.query(`
+					UPDATE shop_role
+					SET description = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopServiceName:
+				await db.query(`
+					UPDATE shop_service
+					SET name = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopServiceDescription:
+				await db.query(`
+					UPDATE shop_service
+					SET description = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopOrder:
+				await db.query(`
+					UPDATE shop_order
+					SET comment = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.shopApplication:
+				await db.query(`
+					UPDATE shop_application
+					SET application = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
 		}
 	}
 	else if (checkAction.identifier === utActions.lockThread)
@@ -380,6 +461,8 @@ async function complete({id, ruleId, violationId, actionId, updatedContent, boar
 			SET locked = now(), thread_type = 'normal'
 			WHERE id = $1::int
 		`, node.node_id);
+
+		await updatePTsLookup(node.node_id);
 	}
 	else if (checkAction.identifier === utActions.moveThread)
 	{
@@ -388,6 +471,8 @@ async function complete({id, ruleId, violationId, actionId, updatedContent, boar
 			SET parent_node_id = $2::int
 			WHERE id = $1::int
 		`, node.node_id, boardId);
+
+		await updatePTsLookup(node.node_id);
 	}
 
 	// Update Ban Length
@@ -452,8 +537,8 @@ async function getEmailText(userTicketId, banLengthId)
 				rule_violation.severity_id,
 				rule_violation.violation
 			FROM rule
-			JOIN rule_violation ON (rule_violation.rule_id = rule.id)
-			JOIN user_ticket ON (user_ticket.rule_violation_id = rule_violation.id)
+			LEFT JOIN rule_violation ON (rule_violation.rule_id = rule.id)
+			JOIN user_ticket ON (user_ticket.rule_violation_id = rule_violation.id OR (user_ticket.rule_violation_id IS NULL AND user_ticket.rule_id = rule.id))
 			WHERE user_ticket.id = $1::int
 		`, userTicketId),
 		db.query(`
@@ -484,9 +569,19 @@ async function getEmailText(userTicketId, banLengthId)
 		memberNotes += `This notice is a result of the following content:<blockquote><strong>${userTicket.type.description}</strong>${vbnewline}<table cellpadding="0" cellspacing="0"><tr><td style="font-size: 10px;">${content}</td></tr></table></blockquote>`;
 	}
 
-	memberNotes += `This content violated the following guideline:${vbnewline}${vbnewline}<strong>${userTicket.rule}</strong>${vbnewline}${rule.description}${vbnewline}${vbnewline}This violation was a <strong>Level ${rule.severity_id}</strong> violation:${vbnewline}<strong>${rule.violation}</strong>${vbnewline}${vbnewline}`;
+	memberNotes += `This content violated the following guideline:${vbnewline}${vbnewline}<strong>${userTicket.rule}</strong>${vbnewline}${rule.description}${vbnewline}${vbnewline}`;
 
-	memberNotes += `The following actions have been taken as a result of this violation:${vbnewline}${vbnewline}`;
+	if (rule.severity_id)
+	{
+		memberNotes += `This violation was a <strong>Level ${rule.severity_id}</strong>`;
+	}
+
+	if (rule.violation)
+	{
+		memberNotes += ` violation:${vbnewline}<strong>${rule.violation}</strong>`;
+	}
+
+	memberNotes += `${vbnewline}${vbnewline}The following actions have been taken as a result of this violation:${vbnewline}${vbnewline}`;
 
 	if (banLength.days === null)
 	{

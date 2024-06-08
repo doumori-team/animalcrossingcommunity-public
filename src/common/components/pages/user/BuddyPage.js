@@ -9,7 +9,7 @@ import { Header, Section, SelectAllCheckbox } from '@layout';
 
 const BuddyPage = () =>
 {
-	const {buddies} = useLoaderData();
+	const {buddies, staff} = useLoaderData();
 
 	return (
 		<div className='BuddyPage'>
@@ -88,9 +88,9 @@ const BuddyPage = () =>
 										</div>
 
 										<div className='BuddyPage_actions'>
-											<Link to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}`}>
+											<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}#TextBox`}>
 												<img
-													src={`${process.env.AWS_URL}/images/icons/pt.png`}
+													src={`${constants.AWS_URL}/images/icons/pt.png`}
 													className='BuddyPage_icon'
 													alt={`PT ${buddy.username}`}
 												/>
@@ -105,6 +105,39 @@ const BuddyPage = () =>
 						'You have no buddies in your buddy list.'
 					)}
 				</Section>
+
+				{staff.length > 0 && (
+					<Section>
+						<div className='BuddyPage_buddies'>
+							{staff.map(buddy =>
+								<div key={buddy.id} className='BuddyPage_buddy'>
+									<div className='BuddyPage_name'>
+										<Link to={`/profile/${encodeURIComponent(buddy.id)}`}>
+											{buddy.username}
+										</Link>
+									</div>
+
+									<div className='BuddyPage_lastActive'>
+										<StatusIndicator
+											lastActiveTime={buddy.lastActiveTime}
+											showDate={true}
+										/>
+									</div>
+
+									<div className='BuddyPage_actions'>
+										<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}#TextBox`}>
+											<img
+												src={`${constants.AWS_URL}/images/icons/pt.png`}
+												className='BuddyPage_icon'
+												alt={`PT ${buddy.username}`}
+											/>
+										</Link>
+									</div>
+								</div>
+							)}
+						</div>
+					</Section>
+				)}
 			</RequireUser>
 		</div>
 	);
@@ -112,11 +145,14 @@ const BuddyPage = () =>
 
 export async function loadData()
 {
-	const [buddies] = await Promise.all([
+	const [results] = await Promise.all([
 		this.query('v1/users/buddies'),
 	]);
 
-	return {buddies};
+	return {
+		buddies: results.buddies,
+		staff: results.staff,
+	};
 }
 
 export default BuddyPage;

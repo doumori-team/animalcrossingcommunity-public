@@ -1,6 +1,7 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 async function fruit({id})
 {
@@ -11,7 +12,7 @@ async function fruit({id})
 		throw new UserError('permission');
 	}
 
-	const fruit = await db.query(`
+	const fruit = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			fruit.id,
 			fruit.name,

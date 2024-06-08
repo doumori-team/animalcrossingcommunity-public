@@ -39,9 +39,14 @@ export default async function claim()
 		WHERE id = 4
 	`);
 
+	await query(`
+		REFRESH MATERIALIZED VIEW top_bell_last_jackpot
+	`);
+
+	await db.regenerateTopBells({userId: this.userId});
+
 	const [user] = await Promise.all([
 		this.query('v1/user', {id: this.userId}),
-		this.query('v1/treasure/stats', {userId: this.userId}),
 	]);
 
 	return {

@@ -40,8 +40,8 @@ async function set({amount})
 	// so just update stats for us (and the test account above)
 
 	await Promise.all([
-		this.query('v1/treasure/stats', {userId: constants.accUserId}),
-		this.query('v1/treasure/stats', {userId: this.userId}),
+		db.regenerateTopBells({userId: constants.accUserId}),
+		db.regenerateTopBells({userId: this.userId}),
 	]);
 
 	return {

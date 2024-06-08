@@ -1,7 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { years as acGameYears } from '@/catalog/events.js';
 import * as APITypes from '@apiTypes';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 async function years({id})
 {
@@ -11,6 +12,8 @@ async function years({id})
 	{
 		throw new UserError('permission');
 	}
+
+	const acGameYears = id === 0 ? await ACCCache.get(constants.cacheKeys.years) : (await ACCCache.get(constants.cacheKeys.years))[id];
 
 	if (id === 0)
 	{
@@ -28,7 +31,7 @@ async function years({id})
 		throw new UserError('no-such-ac-game');
 	}
 
-	return acGameYears[id];
+	return acGameYears;
 }
 
 years.apiTypes = {

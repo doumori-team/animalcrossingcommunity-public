@@ -1,13 +1,13 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import Alert from '@/components/form/Alert.js';
 import { constants } from '@utils';
 
 const LeavingSitePage = () =>
 {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const url = searchParams.get('url');
+	const location = useLocation();
+	const url = location.search.substring(5);
 
 	return (
 		<div className='LeavingSitePage'>

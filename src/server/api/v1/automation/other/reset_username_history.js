@@ -3,6 +3,7 @@ import * as accounts from '@accounts';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Reset a test account's username history
@@ -42,6 +43,8 @@ async function reset_username_history({username})
 	// Perform queries
 
 	await accounts.resetUsernameHistory(user.id);
+
+	ACCCache.deleteMatch(constants.cacheKeys.userLite);
 
 	return {
 		_success: `The user's username history has been cleared.`

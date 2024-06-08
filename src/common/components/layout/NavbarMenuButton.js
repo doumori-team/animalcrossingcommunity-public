@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import { RequireClientJS } from '@behavior';
 import SiteMenu from '@/components/layout/SiteMenu.js';
+import BuddiesMenu from '@/components/layout/BuddiesMenu.js';
 import { Button } from '@form';
 
 /*
@@ -15,7 +16,7 @@ import { Button } from '@form';
  * 		don't have JS available, just replace it with a link to a menu on a
  * 		separate page. Functions equally well, just a little less flashy.
  */
-const NavbarMenuButton = ({children, fallbackLink}) =>
+const NavbarMenuButton = ({children, fallbackLink, buddies}) =>
 {
 	const [menuOpen, setMenuOpen] = useState(false);
 
@@ -64,7 +65,13 @@ const NavbarMenuButton = ({children, fallbackLink}) =>
 			>
 				{children}
 			</Button>
-			{menuOpen && <SiteMenu dynamic closeFunc={toggleMenu} ref={ref} />}
+			{menuOpen && (
+				buddies ? (
+					<BuddiesMenu dynamic closeFunc={toggleMenu} ref={ref} buddies={buddies} />
+				) : (
+					<SiteMenu dynamic closeFunc={toggleMenu} ref={ref} />
+				)
+			)}
 		</RequireClientJS>
 	);
 }
@@ -72,6 +79,22 @@ const NavbarMenuButton = ({children, fallbackLink}) =>
 NavbarMenuButton.propTypes = {
 	children: PropTypes.node.isRequired,
 	fallbackLink: PropTypes.string.isRequired,
+	buddies: PropTypes.shape({
+		buddies: PropTypes.arrayOf(PropTypes.shape({
+			id: PropTypes.number,
+			username: PropTypes.string,
+			lastActiveTime: PropTypes.string,
+		})),
+		staff: PropTypes.arrayOf(PropTypes.shape({
+			id: PropTypes.number,
+			username: PropTypes.string,
+			lastActiveTime: PropTypes.string,
+		})),
+	}),
+}
+
+NavbarMenuButton.defaultProps = {
+	buddies: null,
 }
 
 export default NavbarMenuButton;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link, useAsyncValue } from 'react-router-dom';
 
 import { constants } from '@utils';
 import { RequireUser } from '@behavior';
@@ -11,7 +11,7 @@ import { Header, Section, Grid, Pagination } from '@layout';
 const UserListingPage = () =>
 {
 	const {listings, offers, selectedUserId, totalListingsCount, listingsPage,
-		listingsPageSize, totalOffersCount, offersPage, offersPageSize} = useLoaderData();
+		listingsPageSize, totalOffersCount, offersPage, offersPageSize} = getData(useAsyncValue());
 
 	const link = `trading-post/${encodeURIComponent(selectedUserId)}/all`;
 
@@ -63,6 +63,7 @@ const UserListingPage = () =>
 						pageSize={listingsPageSize}
 						totalCount={totalListingsCount}
 						startLink={link}
+						pageName='listingsPage'
 					/>
 				</Section>
 
@@ -96,6 +97,7 @@ const UserListingPage = () =>
 						pageSize={offersPageSize}
 						totalCount={totalOffersCount}
 						startLink={link}
+						pageName='offersPage'
 					/>
 				</Section>
 			</RequireUser>
@@ -107,10 +109,16 @@ export async function loadData({userId}, {listingsPage, offersPage})
 {
 	const selectedUserId = Number(userId);
 
-	const [listings, offers] = await Promise.all([
+	return Promise.all([
 		this.query('v1/users/listings', {id: selectedUserId, page: listingsPage ? listingsPage : 1,}),
 		this.query('v1/users/offers', {id: selectedUserId, page: offersPage ? offersPage : 1,}),
+		selectedUserId,
 	]);
+}
+
+function getData(data)
+{
+	const [listings, offers, selectedUserId] = data;
 
 	return {
 		selectedUserId,

@@ -30,7 +30,13 @@ async function save({id, location = null, name, bio, format, fileIds, fileNames,
 		throw new UserError('no-such-user');
 	}
 
-	if (user.perks < 20 && utils.realStringLength(bio) > constants.max.bio1)
+	const userDonations = await this.query('v1/users/donations', {id: this.userId});
+
+	if (
+		userDonations.monthlyPerks < 10 && utils.realStringLength(bio) > constants.max.bio3 ||
+		userDonations.monthlyPerks < 5 && utils.realStringLength(bio) > constants.max.bio2 ||
+		userDonations.perks < 20 && utils.realStringLength(bio) > constants.max.bio1
+	)
 	{
 		throw new UserError('bad-format');
 	}
@@ -121,7 +127,7 @@ save.apiTypes = {
 	bio: {
 		type: APITypes.string,
 		default: '',
-		length: constants.max.bio2,
+		length: constants.max.bio4,
 		profanity: true,
 	},
 	format: {

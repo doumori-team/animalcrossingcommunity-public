@@ -2,6 +2,7 @@ import * as db from '@db';
 import { constants } from '@utils';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({userId, groupId})
 {
@@ -56,6 +57,18 @@ async function save({userId, groupId})
 		SET user_group_id = $2::int
 		WHERE id = $1::int
 	`, user.id, groupId);
+
+	// reset modmin avatar
+	if ([constants.staffIdentifiers.owner, constants.staffIdentifiers.admin, constants.staffIdentifiers.mod].includes(user.group.identifier))
+	{
+		await db.query(`
+			UPDATE users
+			SET avatar_coloration_id = NULL, avatar_character_id = NULL, avatar_background_id = NULL, avatar_accent_id = NULL
+			WHERE id = $1::int
+		`, user.id);
+	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.userGroupUsers);
 }
 
 save.apiTypes = {

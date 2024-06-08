@@ -44,7 +44,7 @@ const Keyboard = ({name, gameId}) =>
 		decodedName.map((char, index) => {
 			if (char.includes('.png'))
 			{
-				return <img key={index} src={`${process.env.AWS_URL}/images/keyboard/` + char} alt='Icon' />;
+				return <img key={index} src={`${constants.AWS_URL}/images/keyboard/` + char} alt='Icon' />;
 			}
 			else
 			{

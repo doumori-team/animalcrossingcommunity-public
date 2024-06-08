@@ -1,5 +1,6 @@
-import { getBellShopCategories } from '@/catalog/info.js';
 import { UserError } from '@errors';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 export default async function categories()
 {
@@ -10,5 +11,5 @@ export default async function categories()
 		throw new UserError('permission');
 	}
 
-	return getBellShopCategories();
+	return await ACCCache.get(constants.cacheKeys.bellShopCategories);
 }

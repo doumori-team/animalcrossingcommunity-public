@@ -29,31 +29,36 @@ async function expire({id})
 	// Perform queries
 	await db.transaction(async query =>
 	{
-		await Promise.all([
-			query(`
-				UPDATE rule
-				SET pending_expiration = true
-				WHERE id = $1::int
-			`, id),
-			query(`
-				UPDATE rule_violation
-				SET pending_expiration = true
-				WHERE rule_id = $1::int
-			`, id),
-			query(`
-				DELETE FROM rule_violation
-				WHERE rule_violation.rule_id IN (SELECT id FROM rule WHERE original_rule_id = $1::int)
-			`, id),
-			query(`
-				DELETE FROM rule
-				WHERE original_rule_id = $1::int
-			`, id),
-			rule.node_id ? query(`
+		await query(`
+			UPDATE rule
+			SET pending_expiration = true
+			WHERE id = $1::int
+		`, id);
+
+		await query(`
+			UPDATE rule_violation
+			SET pending_expiration = true
+			WHERE rule_id = $1::int
+		`, id);
+
+		await query(`
+			DELETE FROM rule_violation
+			WHERE rule_violation.rule_id IN (SELECT id FROM rule WHERE original_rule_id = $1::int)
+		`, id);
+
+		await query(`
+			DELETE FROM rule
+			WHERE original_rule_id = $1::int
+		`, id);
+
+		if (rule.node_id)
+		{
+			await query(`
 				UPDATE node
 				SET locked = NOW(), thread_type = 'normal'
 				WHERE id = $1::int
-			`, rule.node_id) : null,
-		]);
+			`, rule.node_id);
+		}
 	});
 }
 

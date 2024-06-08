@@ -32,8 +32,7 @@ export default async function current()
 			ORDER BY rule_violation.severity_id ASC, rule_violation.number ASC
 		`),
 		db.query(`
-			SELECT
-				updated
+			SELECT updated
 			FROM site_setting
 			WHERE name = 'Rules'
 		`),

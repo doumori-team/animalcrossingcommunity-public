@@ -78,7 +78,9 @@
 .ProfileBioPage .ContentBox,
 .EditProfileBioPage .Markup,
 .NodeWritingInterface .Markup,
-.Node .Node_metadata + .Markup {
+.Node .Node_metadata + .Markup,
+.EditShop .Markup,
+.ShopPage .Markup {
 	font-family: verdana;
 	font-size: px2rem(12px);
 	line-height: initial;

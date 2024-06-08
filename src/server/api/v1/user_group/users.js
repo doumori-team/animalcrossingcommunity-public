@@ -14,8 +14,7 @@ async function users({group})
 	}
 
 	const userIds = await db.query(`
-		SELECT
-			users.id
+		SELECT users.id
 		FROM users
 		JOIN user_group ON (users.user_group_id = user_group.id)
 		WHERE user_group.identifier = $1

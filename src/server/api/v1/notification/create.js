@@ -29,7 +29,7 @@ async function create({id, type})
 		throw new UserError('bad-format');
 	}
 
-	const user = await this.query('v1/user_lite', {id: this.userId});
+	const user = await this.query('v1/user', {id: this.userId});
 
 	const types = constants.notification.types;
 	let userIds = [];
@@ -248,7 +248,6 @@ async function create({id, type})
 	else if (
 		[
 			types.listingCancelled,
-			types.listingExpired,
 			types.listingComment,
 			types.listingOffer,
 			types.listingOfferAccepted,
@@ -325,8 +324,7 @@ async function create({id, type})
 
 		if (
 			[
-				types.listingCancelled,
-				types.listingExpired
+				types.listingCancelled
 			].includes(type)
 		)
 		{
@@ -345,10 +343,6 @@ async function create({id, type})
 			if (type === types.listingCancelled)
 			{
 				description = `${user.username} has cancelled the listing`;
-			}
-			else if (type === types.listingExpired)
-			{
-				description = `${utils.getPossessiveNoun(user.username)} listing has expired`;
 			}
 		}
 		else if (
@@ -544,7 +538,7 @@ async function create({id, type})
 			);
 		}
 	}
-	else if (type === types.scoutClosed)
+	else if (type === types.scoutClosed || type === types.listingExpired)
 	{
 		// see scheduler/daily
 
@@ -552,11 +546,13 @@ async function create({id, type})
 	}
 	else if (
 		[
-			types.supportEmail
+			types.supportEmail,
+			types.donationReminder
 		].includes(type)
 	)
 	{
 		// see support_email table, trigger
+		// see daily.cjs for donation reminder
 
 		throw new UserError('bad-format');
 	}
@@ -757,12 +753,8 @@ async function create({id, type})
 		}
 
 		const [supportTicket] = await db.query(`
-			SELECT
-				support_ticket.user_id,
-				user_group.identifier
+			SELECT support_ticket.user_id
 			FROM support_ticket
-			JOIN users ON (users.id = support_ticket.user_id)
-			JOIN user_group ON (users.user_group_id = user_group.id)
 			WHERE support_ticket.id = $1::int
 		`, supportTicketId);
 
@@ -776,7 +768,7 @@ async function create({id, type})
 				constants.staffIdentifiers.admin,
 				constants.staffIdentifiers.mod,
 				constants.staffIdentifiers.owner
-			].includes((child ? child : supportTicket).identifier)
+			].includes(child ? child.identifier : user.group.identifier)
 		)
 		{
 			description = `${user.username} has posted on a ST`;
@@ -902,6 +894,239 @@ async function create({id, type})
 			}
 		}
 	}
+	else if (
+		[
+			types.giftBellShop
+		].includes(type)
+	)
+	{
+		const [userRedeemed] = await db.query(`
+			SELECT
+				user_bell_shop_redeemed.user_id,
+				user_bell_shop_redeemed.redeemed_by,
+				user_account_cache.username
+			FROM user_bell_shop_redeemed
+			LEFT JOIN user_account_cache ON (user_account_cache.id = user_bell_shop_redeemed.redeemed_by)
+			WHERE user_bell_shop_redeemed.id = $1::int
+		`, referenceId);
+
+		if (!userRedeemed)
+		{
+			throw new UserError('bad-format');
+		}
+
+		if (!userRedeemed.redeemed_by || userRedeemed.user_id === userRedeemed.redeemed_by)
+		{
+			return;
+		}
+
+		userIds.push(userRedeemed.user_id);
+
+		description = `${userRedeemed.username} has gifted you an item from the Bell Shop`;
+	}
+	else if (
+		[
+			types.giftDonation
+		].includes(type)
+	)
+	{
+		const [userDonation] = await db.query(`
+			SELECT
+				user_donation.user_id,
+				user_donation.donated_by_user_id,
+				user_account_cache.username
+			FROM user_donation
+			LEFT JOIN user_account_cache ON (user_account_cache.id = user_donation.donated_by_user_id)
+			WHERE user_donation.id = $1::int
+		`, referenceId);
+
+		if (!userDonation)
+		{
+			throw new UserError('bad-format');
+		}
+
+		if (!userDonation.donated_by_user_id || userDonation.user_id === userDonation.donated_by_user_id)
+		{
+			return;
+		}
+
+		userIds.push(userDonation.user_id);
+
+		description = `${userDonation.username} has donated on your behalf`;
+	}
+	else if (type === types.shopThread)
+	{
+		const [[node], [childNode]] = await Promise.all([
+			db.query(`
+				SELECT
+					node.id,
+					last_revision.title,
+					node.type
+				FROM node
+				JOIN shop_node ON (shop_node.node_id = node.id)
+				LEFT JOIN LATERAL (
+					SELECT title, content
+					FROM node_revision
+					WHERE node_revision.node_id = node.id
+					ORDER BY time DESC
+					LIMIT 1
+				) last_revision ON true
+				WHERE node.id = $1::int
+			`, referenceId),
+			db.query(`
+				SELECT
+					node.id,
+					node.parent_node_id,
+					last_revision.title,
+					node.type
+				FROM node
+				JOIN shop_node ON (shop_node.node_id = node.parent_node_id)
+				LEFT JOIN LATERAL (
+					SELECT title, content
+					FROM node_revision
+					WHERE node_revision.node_id = node.parent_node_id
+					ORDER BY time DESC
+					LIMIT 1
+				) last_revision ON true
+				WHERE node.id = $1::int
+			`, referenceId),
+		]);
+
+		if (!(node || childNode))
+		{
+			throw new UserError('no-such-node');
+		}
+
+		if (childNode)
+		{
+			useReferenceId = childNode.parent_node_id;
+
+			description = `${user.username} has posted on Shop Thread '${childNode.title}'`;
+		}
+		else
+		{
+			description = `${user.username} has sent you a new Shop Thread: '${node.title}'`;
+		}
+
+		userIds = (await db.query(`
+			SELECT user_id
+			FROM user_node_permission
+			WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
+		`, useReferenceId, constants.nodePermissions.read))
+			.filter(u => u.user_id !== this.userId)
+			.map(u => u.user_id);
+	}
+	else if (type === types.shopEmployee)
+	{
+		const [shopUser] = await db.query(`
+			SELECT shop_user.shop_id, shop_user.active, shop.name, shop_user.user_id
+			FROM shop_user
+			JOIN shop ON (shop.id = shop_user.shop_id)
+			WHERE shop_user.id = $1
+		`, referenceId);
+
+		if (!shopUser)
+		{
+			throw new UserError('no-such-shop');
+		}
+
+		useReferenceId = shopUser.shop_id;
+
+		if (shopUser.active)
+		{
+			description = `${user.username} has added you to their Shop '${shopUser.name}'`;
+		}
+		else
+		{
+			description = `${user.username} has removed you from their Shop '${shopUser.name}'`;
+		}
+
+		userIds = [shopUser.user_id];
+	}
+	else if (type === types.shopOrder)
+	{
+		const [shopOrder] = await db.query(`
+			SELECT shop.name
+			FROM shop_order
+			JOIN shop ON (shop.id = shop_order.shop_id)
+			WHERE shop_order.id = $1
+		`, referenceId);
+
+		if (!shopOrder)
+		{
+			throw new UserError('no-such-order');
+		}
+
+		description = `${user.username} has put in a new order for '${shopOrder.name}'`;
+
+		userIds = (await db.query(`
+			SELECT shop_user.user_id
+			FROM shop_order
+			LEFT JOIN shop_default_service ON (shop_default_service.id = shop_order.shop_default_service_id)
+			LEFT JOIN shop_service ON (shop_service.id = shop_order.shop_service_id)
+			LEFT JOIN shop_role_service ON (shop_role_service.shop_service_id = shop_service.id)
+			LEFT JOIN shop_role_default_service ON (shop_role_default_service.shop_default_service_id = shop_default_service.id)
+			JOIN shop_user_role ON (shop_user_role.shop_role_id = shop_role_service.shop_role_id OR shop_user_role.shop_role_id = shop_role_default_service.shop_role_id)
+			JOIN shop_user ON (shop_user.id = shop_user_role.shop_user_id)
+			WHERE shop_user.active = true AND shop_order.id = $1
+		`, referenceId)).map(u => u.user_id);
+	}
+	else if (type === types.shopApplication)
+	{
+		const [shopApplication] = await db.query(`
+			SELECT shop.name
+			FROM shop_application
+			JOIN shop ON (shop.id = shop_application.shop_id)
+			WHERE shop_application.id = $1
+		`, referenceId);
+
+		if (!shopApplication)
+		{
+			throw new UserError('no-such-application');
+		}
+
+		description = `${user.username} has applied to '${shopApplication.name}'`;
+
+		const [owners, contacts] = await Promise.all([
+			db.query(`
+				SELECT shop_user.user_id
+				FROM shop_application
+				JOIN shop_user ON (shop_user.shop_id = shop_application.shop_id)
+				JOIN shop_user_role ON (shop_user_role.shop_user_id = shop_user.id)
+				JOIN shop_role ON (shop_role.id = shop_user_role.shop_role_id)
+				WHERE shop_user.active = true AND shop_role.parent_id IS NULL AND shop_application.id = $1
+			`, referenceId),
+			db.query(`
+				SELECT shop_user.user_id
+				FROM shop_application
+				JOIN shop_user ON (shop_user.shop_id = shop_application.shop_id)
+				JOIN shop_user_role ON (shop_user_role.shop_user_id = shop_user.id)
+				JOIN shop_role ON (shop_role.id = shop_user_role.shop_role_id)
+				JOIN shop_role shop_application_role ON (shop_application_role.id = shop_application.shop_role_id)
+				JOIN (
+					WITH RECURSIVE Descendants AS
+					(
+						SELECT shop_role.parent_id, shop_role.id
+						FROM shop_role
+						WHERE shop_role.parent_id IS NULL
+						UNION ALL
+						SELECT shop_role.parent_id, shop_role.id
+						FROM shop_role
+						JOIN Descendants D ON (D.id = shop_role.parent_id)
+					)
+					SELECT * from Descendants
+				) AS parent_shop_roles ON (parent_shop_roles.parent_id = shop_role.id AND parent_shop_roles.id = shop_application_role.id)
+				WHERE shop_user.active = true AND shop_application.id = $1
+			`, referenceId),
+		]);
+
+		owners.concat(contacts).map(u => {
+			if (!userIds.includes(u.user_id))
+			{
+				userIds.push(u.user_id);
+			}
+		});
+	}
 	else
 	{
 		throw new UserError('bad-format');
@@ -998,7 +1223,7 @@ async function create({id, type})
 
 		if (userNotification.identifier === constants.notification.types.modminUTPost)
 		{
-			const groupIds = await this.query('v1/users/user_groups', {userId: userId});
+			const groupIds = await db.getUserGroups(userId);
 
 			const permissionGranted = await db.query(`
 				SELECT *

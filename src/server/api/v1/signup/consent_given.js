@@ -81,7 +81,7 @@ async function consent_given({id, email})
 
 consent_given.apiTypes = {
 	id: {
-		type: APITypes.string,
+		type: APITypes.uuid,
 		required: true,
 	},
 	email: {

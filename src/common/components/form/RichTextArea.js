@@ -13,13 +13,14 @@ import { constants } from '@utils';
 import EmojiButton from '@/components/form/EmojiButton.js';
 import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
 import { emojiSettingsShape, fileShape } from '@propTypes';
-import { ErrorMessage, Tabs } from '@layout';
+import { ErrorMessage, Tabs, PhotoSlideshow, PhotoGallery } from '@layout';
 import FontAwesomeIcon from '@/components/layout/FontAwesomeIcon.js';
 import * as iso from 'common/iso.js';
 import { UserContext } from '@contexts';
 import Text from '@/components/form/Text.js';
 import Form from '@/components/form/Form.js';
 import Spinner from '@/components/form/Spinner.js';
+import Button from '@/components/form/Button.js';
 
 // Combined form control for rich text. Includes keyboard shortcuts for bold/italic/underline, etc
 // Props:
@@ -31,13 +32,14 @@ import Spinner from '@/components/form/Spinner.js';
 // - emojiSettings (array): user emoji settings, for preview and gendered emojis
 const RichTextArea = ({emojiSettings, formatValue, textValue, formatName, htmlId,
 	maxLength, label, placeholder, characterCount, hideEmojis, textName, required,
-	upload, maxImages, files}) =>
+	upload, maxImages, files, previewSignature}) =>
 {
 	const [format, setFormat] = useState(formatValue);
 	const [curTextValue, setCurTextValue] = useState(textValue);
 	const [errors, setErrors] = useState([]);
 	const [nodeFiles, setNodeFiles] = useState(files);
 	const [loading, setLoading] = useState(false);
+	const [fileIndex, setFileIndex] = useState(-1);
 
 	const textareaRef = useRef(null);
 
@@ -302,7 +304,7 @@ const RichTextArea = ({emojiSettings, formatValue, textValue, formatName, htmlId
 					</span>
 					<span className='RichTextArea_quickMarkupGroup'>
 						<MarkupButton
-							tag={getTagDetails('colour')}
+							tag={getTagDetails('color')}
 							clickHandler={doQuickMarkup.bind(this)}
 							name='Color' icon='palette'
 						/>
@@ -324,15 +326,27 @@ const RichTextArea = ({emojiSettings, formatValue, textValue, formatName, htmlId
 					</span>
 					<span className='RichTextArea_quickMarkupGroup'>
 						<MarkupButton
-							tag={getTagDetails('heading')}
-							clickHandler={doQuickMarkup.bind(this)}
-							name='Heading' icon='heading'
-						/>
-						<MarkupButton
 							tag={getTagDetails('quote')}
 							clickHandler={doQuickMarkup.bind(this)}
 							name='Quote' icon='quote-right'
 						/>
+						<MarkupButton
+							tag={getTagDetails('line')}
+							clickHandler={doQuickMarkup.bind(this)}
+							name='Line' icon='lines'
+						/>
+						<MarkupButton
+							tag={getTagDetails('usertag')}
+							clickHandler={doQuickMarkup.bind(this)}
+							name='User Tag' icon='usertag'
+						/>
+						<MarkupButton
+							tag={getTagDetails('heading')}
+							clickHandler={doQuickMarkup.bind(this)}
+							name='Heading' icon='heading'
+						/>
+					</span>
+					<span className='RichTextArea_quickMarkupGroup'>
 						<MarkupButton
 							tag={getTagDetails('list')}
 							clickHandler={doQuickMarkup.bind(this)}
@@ -343,13 +357,13 @@ const RichTextArea = ({emojiSettings, formatValue, textValue, formatName, htmlId
 							clickHandler={doQuickMarkup.bind(this)}
 							name='Table' icon='table'
 						/>
-					</span>
-					<span className='RichTextArea_quickMarkupGroup'>
 						<MarkupButton
 							tag={getTagDetails('center')}
 							clickHandler={doQuickMarkup.bind(this)}
 							name='Center' icon='center'
 						/>
+					</span>
+					<span className='RichTextArea_quickMarkupGroup'>
 						{format === 'markdown+html' && (
 							<>
 							<MarkupButton
@@ -536,6 +550,79 @@ const RichTextArea = ({emojiSettings, formatValue, textValue, formatName, htmlId
 					(Character count: {curTextValue.length} / {maxLength} max)
 				</RequireClientJS>
 			)}
+			</>
+		)
+	}
+
+	return (
+		<div className='RichTextArea'>
+			{errors.map(
+				(identifier, index) =>
+					(<ErrorMessage identifier={identifier} key={index} />)
+			)}
+			<Tabs defaultActiveKey='write' variant='light' fallback={getWriteSection()}>
+				<Tabs.Tab eventKey='write' title='Write'>
+					{getWriteSection()}
+				</Tabs.Tab>
+				<Tabs.Tab eventKey='preview' title='Preview'>
+					<input type='hidden' name={textName} defaultValue={curTextValue} />
+					<input type='hidden' name={formatName} defaultValue={format} />
+
+					<div className='RichTextArea_preview'>
+						<Markup
+							text={curTextValue ? curTextValue : ''}
+							format={format}
+							emojiSettings={emojiSettings}
+						/>
+
+						{previewSignature && (
+							<UserContext.Consumer>
+								{currentUser => currentUser && (
+									<>
+									{nodeFiles.length > 0 && (
+										currentUser.showImages ? (
+											<PhotoGallery
+												userId={currentUser.id}
+												files={nodeFiles}
+												reportType={constants.userTicket.types.postImage}
+											/>
+										) : (
+											<>
+											<Button
+												type='button'
+												label='View Image(s)'
+												className='Node_link'
+												clickHandler={() => setFileIndex(0)}
+											/>
+
+											<PhotoSlideshow
+												userId={currentUser.id}
+												files={nodeFiles}
+												reportType={constants.userTicket.types.postImage}
+												fileIndex={fileIndex}
+												setFileIndex={setFileIndex}
+												key={fileIndex}
+											/>
+											</>
+										)
+									)}
+
+									{currentUser.signature && (
+										<div className='Node_signature'>
+											<Markup
+												text={currentUser.signature}
+												format={currentUser.signatureFormat}
+												emojiSettings={emojiSettings}
+											/>
+										</div>
+									)}
+									</>
+								)}
+							</UserContext.Consumer>
+						)}
+					</div>
+				</Tabs.Tab>
+			</Tabs>
 			{loading && (
 				<Spinner />
 			)}
@@ -565,33 +652,6 @@ const RichTextArea = ({emojiSettings, formatValue, textValue, formatName, htmlId
 					)}
 				</UserContext.Consumer>
 			)}
-			</>
-		)
-	}
-
-	return (
-		<div className='RichTextArea'>
-			{errors.map(
-				(identifier, index) =>
-					(<ErrorMessage identifier={identifier} key={index} />)
-			)}
-			<Tabs defaultActiveKey='write' variant='light' fallback={getWriteSection()}>
-				<Tabs.Tab eventKey='write' title='Write'>
-					{getWriteSection()}
-				</Tabs.Tab>
-				<Tabs.Tab eventKey='preview' title='Preview'>
-					<input type='hidden' name={textName} defaultValue={curTextValue} />
-					<input type='hidden' name={formatName} defaultValue={format} />
-
-					<div className='RichTextArea_preview'>
-						<Markup
-							text={curTextValue ? curTextValue : ''}
-							format={format}
-							emojiSettings={emojiSettings}
-						/>
-					</div>
-				</Tabs.Tab>
-			</Tabs>
 		</div>
 	)
 }
@@ -612,17 +672,19 @@ RichTextArea.propTypes = {
 	upload: PropTypes.bool,
 	maxImages: PropTypes.number,
 	files: fileShape,
+	previewSignature: PropTypes.bool,
 }
 
 RichTextArea.defaultProps = {
 	formatValue: 'markdown',
-	maxLength: constants.max.post,
+	maxLength: constants.max.post1,
 	characterCount: false,
 	hideEmojis: false,
 	required: false,
 	upload: false,
 	maxImages: constants.max.imagesPost,
 	files: [],
+	previewSignature: false,
 }
 
 export default RichTextArea;

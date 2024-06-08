@@ -76,6 +76,18 @@ async function save({id, gameId, code, characterId})
 		}
 	}
 
+	// check if FC already exists
+	const [existingFC] = await db.query(`
+		SELECT id
+		FROM friend_code
+		WHERE user_id = $1 AND game_id = $2 AND friend_code = $3
+	`, this.userId, gameId, code);
+
+	if (existingFC)
+	{
+		throw new UserError('existing-friend-code');
+	}
+
 	// Perform queries
 	const friendCodeUserId  = await db.transaction(async query =>
 	{

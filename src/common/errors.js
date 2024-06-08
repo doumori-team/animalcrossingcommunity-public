@@ -115,6 +115,10 @@ export const ERROR_MESSAGES = {
 		message: 'We couldn’t find the friend code you were looking for.',
 		code: 404
 	},
+	'existing-friend-code': {
+		message: 'You alread have a friend code with that code and for that game.',
+		code: 400
+	},
 	'no-such-game': {
 		message: 'We couldn’t find the game you were looking for.',
 		code: 404
@@ -218,6 +222,30 @@ export const ERROR_MESSAGES = {
 		message: 'We couldn’t find the file you were looking for.',
 		code: 404
 	},
+	'no-such-service': {
+		message: 'We couldn’t find the Shop Service you were looking for.',
+		code: 404
+	},
+	'no-such-shop': {
+		message: 'We couldn’t find the Shop you were looking for.',
+		code: 404
+	},
+	'no-such-role': {
+		message: 'We couldn’t find the Shop Role you were looking for.',
+		code: 404
+	},
+	'too-many-shop-items': {
+		message: 'Please review the shop guidelines. You have ordered too many items per order.',
+		code: 404
+	},
+	'no-such-order': {
+		message: 'We couldn’t find the Shop Order you were looking for.',
+		code: 404
+	},
+	'no-such-application': {
+		message: 'We couldn’t find the Shop Application you were looking for.',
+		code: 404
+	},
 
 	// User information error messages
 	'invalid-email': {
@@ -272,6 +300,18 @@ export const ERROR_MESSAGES = {
 	},
 	'too-many-residents': {
 		message: 'You have too many residents in your town.',
+		code: 400
+	},
+	'too-many-characters': {
+		message: 'You have too many characters in your town.',
+		code: 400
+	},
+	'too-many-town-characters': {
+		message: 'You have too many characters.',
+		code: 400
+	},
+	'too-many-towns': {
+		message: 'You have too many towns.',
 		code: 400
 	},
 	'missing-character-name': {
@@ -362,6 +402,10 @@ export const ERROR_MESSAGES = {
 		message: "You can't reset a non-test account's password on a test site.",
 		code: 400
 	},
+	'live-view-birthday': {
+		message: "You can't view a non-test account's birthday on a test site.",
+		code: 400
+	},
 	'new-member-restrictions': {
 		message: "As a new member you cannot post here. You can find all new member restrictions <a href='/faq#new-member-restrictions'>here</a>.",
 		code: 400
@@ -396,6 +440,10 @@ export const ERROR_MESSAGES = {
 	},
 	'bell-shop-not-enough-bells': {
 		message: 'You do not have enough Bells to purchase this item.',
+		code: 409
+	},
+	'bell-shop-gift-limit': {
+		message: `An item's default price must not exceed 10,000 to gift it to another user.`,
 		code: 409
 	},
 
@@ -474,6 +522,38 @@ export const ERROR_MESSAGES = {
 	},
 	'blocked': {
 		message: 'You are unable to contact this user at this time.',
+		code: 400,
+	},
+	'shop-dnc': {
+		message: 'This user is on the Shop Do Not Contact List. You are unable to contact this user at this time.',
+		code: 400,
+	},
+	'shop-pending-application': {
+		message: 'You currently have a pending application. Please wait 30 days before applying again.',
+		code: 400,
+	},
+	'shop-current-employee': {
+		message: 'You are currently an employee of this shop.',
+		code: 400,
+	},
+	'shop-max-services': {
+		message: 'You can only offer 50 services at a time.',
+		code: 400,
+	},
+	'shop-max-roles': {
+		message: 'You can only have 200 roles for a shop.',
+		code: 400,
+	},
+	'shop-max-employees': {
+		message: 'You can only have 500 employees for a shop.',
+		code: 400,
+	},
+	'shop-max-items': {
+		message: 'You can only have 1000 unorderable items for a shop.',
+		code: 400,
+	},
+	'shop-no-owners': {
+		message: 'You can not perform this action, as it would lead to no owners for the shop.',
 		code: 400,
 	},
 

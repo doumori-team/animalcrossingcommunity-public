@@ -22,7 +22,7 @@ async function follow({id})
 
 	const node = await this.query('v1/node/lite', {id: id})
 
-	if (!['board', 'thread'].includes(node.type) || [id, node.parentId].includes(constants.boardIds.privateThreads) || [id, node.parentId].includes(constants.boardIds.publicThreads) || [id].includes(constants.boardIds.accForums) || [id].includes(constants.boardIds.announcements))
+	if (!['board', 'thread'].includes(node.type) || [id, node.parentId].includes(constants.boardIds.privateThreads) || [id, node.parentId].includes(constants.boardIds.publicThreads) || [id].includes(constants.boardIds.accForums) || [id].includes(constants.boardIds.announcements) || [id, node.parentId].includes(constants.boardIds.shopThread) || [id, node.parentId].includes(constants.boardIds.adopteeThread))
 	{
 		// node/create will try to follow, just return null so it doesn't clog up logs
 		return null;

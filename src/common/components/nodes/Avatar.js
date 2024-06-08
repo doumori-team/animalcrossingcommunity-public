@@ -7,6 +7,7 @@ import {
 	avatarCharacterShape,
 	avatarAccentShape
 } from '@propTypes';
+import { constants } from '@utils';
 
 // Component for displaying a user avatar (or an element of it).
 
@@ -19,10 +20,10 @@ const Avatar = ({background, coloration, character, accent, accentPosition}) =>
 		>
 			{character &&
 				(
-					<img className='Avatar_character' src={`${process.env.AWS_URL}/images/avatars/foregrounds/${character.image}.png`}
+					<img className='Avatar_character' src={`${constants.AWS_URL}/images/avatars/foregrounds/${character.image}.png`}
 				 		srcSet={`
-				 			${process.env.AWS_URL}/images/avatars/foregrounds/${character.image}.png 1x,
-				 			${process.env.AWS_URL}/images/avatars/foregrounds/${character.image}@2x.png 2x
+							${constants.AWS_URL}/images/avatars/foregrounds/${character.image}.png 1x,
+							${constants.AWS_URL}/images/avatars/foregrounds/${character.image}@2x.png 2x
 				 		`}
 						alt='Avatar Character'
 					/>
@@ -30,10 +31,10 @@ const Avatar = ({background, coloration, character, accent, accentPosition}) =>
 			}
 			{accent &&
 				(
-					<img className='Avatar_accent' src={`${process.env.AWS_URL}/images/avatars/accents/${accent.image}.png`}
+					<img className='Avatar_accent' src={`${constants.AWS_URL}/images/avatars/accents/${accent.image}.png`}
 				 		srcSet={`
-				 			${process.env.AWS_URL}/images/avatars/accents/${accent.image}.png 1x,
-				 			${process.env.AWS_URL}/images/avatars/accents/${accent.image}@2x.png 2x
+							${constants.AWS_URL}/images/avatars/accents/${accent.image}.png 1x,
+							${constants.AWS_URL}/images/avatars/accents/${accent.image}@2x.png 2x
 				 		`}
 						style={{zIndex: accent.zIndex}}
 						alt='Avatar Accent'
@@ -42,10 +43,10 @@ const Avatar = ({background, coloration, character, accent, accentPosition}) =>
 			}
 			{background &&
 				(
-					<img className='Avatar_background' src={`${process.env.AWS_URL}/images/avatars/backgrounds/${background.image}.png`}
+					<img className='Avatar_background' src={`${constants.AWS_URL}/images/avatars/backgrounds/${background.image}.png`}
 						srcSet={`
-							${process.env.AWS_URL}/images/avatars/backgrounds/${background.image}.png 1x,
-							${process.env.AWS_URL}/images/avatars/backgrounds/${background.image}@2x.png 2x
+							${constants.AWS_URL}/images/avatars/backgrounds/${background.image}.png 1x,
+							${constants.AWS_URL}/images/avatars/backgrounds/${background.image}@2x.png 2x
 						`}
 						alt='Avatar Background'
 					/>

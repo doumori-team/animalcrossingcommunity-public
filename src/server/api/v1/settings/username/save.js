@@ -2,6 +2,7 @@ import * as accounts from '@accounts';
 import { constants } from '@utils';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({username})
 {
@@ -61,6 +62,8 @@ async function save({username})
 		user_id: userData.id,
 		username: username,
 	});
+
+	ACCCache.deleteMatch(constants.cacheKeys.userLite);
 
 	return { _success: 'Your username has been updated.' };
 }

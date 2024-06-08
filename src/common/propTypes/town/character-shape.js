@@ -33,6 +33,7 @@ const characterShape = PropTypes.shape({
 	catalogTotal: PropTypes.number,
 	happyHomeNetworkId: PropTypes.string,
 	creatorId: PropTypes.string,
+	museumTotal: PropTypes.number,
 });
 
 export default characterShape;

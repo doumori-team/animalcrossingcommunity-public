@@ -1,6 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
+import { constants } from '@utils';
 
 async function destroy({id})
 {
@@ -34,18 +36,19 @@ async function destroy({id})
 	// Perform query
 	await db.transaction(async query =>
 	{
-		await Promise.all([
-			query(`
-				UPDATE town
-				SET town_tune_id = NULL
-				WHERE town_tune_id = $1::int
-			`, id),
-			query(`
-				DELETE FROM town_tune
-				WHERE id = $1::int
-			`, id),
-		]);
+		await query(`
+			UPDATE town
+			SET town_tune_id = NULL
+			WHERE town_tune_id = $1::int
+		`, id);
+
+		await query(`
+			DELETE FROM town_tune
+			WHERE id = $1::int
+		`, id);
 	});
+
+	ACCCache.deleteMatch(constants.cacheKeys.tunes);
 }
 
 destroy.apiTypes = {

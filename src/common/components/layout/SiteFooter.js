@@ -52,21 +52,24 @@ const SiteFooter = () =>
 							{' • '}<Link to='/site-statistics' className='SiteFooter_link'>Site Statistics</Link>
 						</RequireUser>
 					</nav>
+					<nav>
+						<a href='https://ACCommunity.redbubble.com' className='SiteFooter_link'>Merchandise</a>
+					</nav>
 					<div>
 						<span>Follow ACC on: </span>
 						<a href='https://www.facebook.com/animalcrossingcommunity'>
 							<img className='SiteFooter_socialIcon' src='/images/layout/social_media_fb.png'
-								srcSet='/images/layout/social_media_fb.png 1x, /images/layout/social_media_fb@2x.png 2x'
+								srcSet={`${constants.AWS_URL}/images/layout/social_media_fb.png 1x, ${constants.AWS_URL}/images/layout/social_media_fb@2x.png 2x`}
 								alt='Follow ACC on Facebook' />
 						</a>
 						<a href='https://www.twitter.com/accommunity'>
 							<img className='SiteFooter_socialIcon' src='/images/layout/social_media_twt.png'
-								srcSet='/images/layout/social_media_twt.png 1x, /images/layout/social_media_twt@2x.png 2x'
+								srcSet={`${constants.AWS_URL}/images/layout/social_media_twt.png 1x, ${constants.AWS_URL}/images/layout/social_media_twt@2x.png 2x`}
 								alt='Follow ACC on Twitter' />
 						</a>
 						<a href='https://www.instagram.com/animal.crossing.community'>
 							<img className='SiteFooter_socialIcon' src='/images/layout/social_media_insta.png'
-								srcSet='/images/layout/social_media_insta.png 1x, /images/layout/social_media_insta@2x.png 2x'
+								srcSet={`${constants.AWS_URL}/images/layout/social_media_insta.png 1x, ${constants.AWS_URL}/images/layout/social_media_insta@2x.png 2x`}
 								alt='Follow ACC on Instagram' />
 						</a>
 					</div>

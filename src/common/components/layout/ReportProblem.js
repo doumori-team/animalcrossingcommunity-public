@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import Confirm from '@/components/form/Confirm.js';
 import RequirePermission from '@/components/behavior/RequirePermission.js';
+import { constants } from '@utils';
 
 const ReportProblem = ({id, type}) =>
 {
@@ -11,7 +12,7 @@ const ReportProblem = ({id, type}) =>
 			<div className='ReportProblem'>
 				<Confirm
 					action='v1/rule/report'
-					defaultSubmitImage={`${process.env.AWS_URL}/images/icons/report.png`}
+					defaultSubmitImage={`${constants.AWS_URL}/images/icons/report.png`}
 					imageTitle='Report a Problem'
 					additionalBody={
 						<>

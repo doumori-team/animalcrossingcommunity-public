@@ -89,7 +89,7 @@ const Tune = ({townId, tune, townUserId}) =>
 				{tune.notes.map((noteId, index) =>
 					<span key={index}>
 						<img
-							src={`${process.env.AWS_URL}/images/tunes/` + gameNotes[noteId].img_name}
+							src={`${constants.AWS_URL}/images/tunes/` + gameNotes[noteId].img_name}
 							alt='Tune Note'
 						/>
 						{++index % 8 ? '' : <br/>}

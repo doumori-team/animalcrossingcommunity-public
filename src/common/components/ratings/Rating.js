@@ -30,6 +30,11 @@ const Rating = ({rating}) =>
 						View Scout Thread
 					</Link>
 				)}
+				{rating.shopNodeId && (
+					<Link to={`/shops/threads/${encodeURIComponent(rating.shopNodeId)}`}>
+						View Shop Thread
+					</Link>
+				)}
 			</div>
 
 			<div className='Rating_rating'>
@@ -37,7 +42,7 @@ const Rating = ({rating}) =>
 				<label>Rating: </label>
 				<img
 					alt={configsByRating.imageAlt}
-					src={`${process.env.AWS_URL}/images/rating/${configsByRating.image}`}
+					src={`${constants.AWS_URL}/images/rating/${configsByRating.image}`}
 				/>
 			</div>
 

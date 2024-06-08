@@ -1,6 +1,7 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 async function bed_location({id})
 {
@@ -11,7 +12,7 @@ async function bed_location({id})
 		throw new UserError('permission');
 	}
 
-	return await db.query(`
+	return await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			bed_location.id,
 			bed_location.filename

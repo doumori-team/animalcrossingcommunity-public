@@ -1,7 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
+import * as APITypes from '@apiTypes';
 
-export default async function users()
+async function users({query})
 {
 	if (!this.userId)
 	{
@@ -24,21 +25,34 @@ export default async function users()
 	}
 
 	// Perform queries
-	const users = await db.query(`
-		SELECT friend_code_whitelist.whitelist_user_id
+	if (query === null)
+	{
+		return await db.query(`
+			SELECT friend_code_whitelist.whitelist_user_id AS id, user_account_cache.username
+			FROM friend_code_whitelist
+			JOIN user_account_cache ON (user_account_cache.id = friend_code_whitelist.whitelist_user_id)
+			WHERE friend_code_whitelist.user_id = $1::int
+			GROUP BY friend_code_whitelist.whitelist_user_id, user_account_cache.username
+			ORDER BY user_account_cache.username ASC
+		`, this.userId);
+	}
+
+	return await db.query(`
+		SELECT friend_code_whitelist.whitelist_user_id AS id, user_account_cache.username
 		FROM friend_code_whitelist
 		JOIN user_account_cache ON (user_account_cache.id = friend_code_whitelist.whitelist_user_id)
-		WHERE friend_code_whitelist.user_id = $1::int
+		WHERE friend_code_whitelist.user_id = $1::int AND user_account_cache.username ilike $2
 		GROUP BY friend_code_whitelist.whitelist_user_id, user_account_cache.username
 		ORDER BY user_account_cache.username ASC
-	`, this.userId);
-
-	return await Promise.all(users.map(async(user) => {
-		const userObj = await this.query('v1/user_lite', {id: user.whitelist_user_id});
-
-		return {
-			id: userObj.id,
-			username: userObj.username,
-		}
-	}));
+	`, this.userId, `%${query}%`);
 }
+
+users.apiTypes = {
+	query: {
+		type: APITypes.string,
+		nullable: true,
+		min: 3,
+	},
+}
+
+export default users;

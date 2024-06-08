@@ -14,9 +14,9 @@ async function title({pathname})
         case 'faq':
             return `FAQ${ending}`;
         case 'forums':
-            const permission = await this.query('v1/node/permission', {permission: 'read', nodeId: sections[2]});
+            const nodePermission = await this.query('v1/node/permission', {permission: 'read', nodeId: sections[2]});
 
-            if (permission)
+            if (nodePermission)
             {
                 if (sections[3] === 'history')
                 {
@@ -31,7 +31,7 @@ async function title({pathname})
                     LIMIT 1
                 `, sections[2]);
 
-                if (node)
+                if (node && node.title)
                 {
                     return `${utils.ellipsisLongText(node.title)}${ending}`;
                 }
@@ -104,6 +104,7 @@ async function title({pathname})
             }
 
             break;
+        case 'avatars':
         case 'settings':
             return `Settings${ending}`
         case 'guide':
@@ -195,6 +196,32 @@ async function title({pathname})
         case 'email-needed':
         case 'consent-needed':
             return `Consent${ending}`;
+        case 'shops':
+            return `Shops & Services${ending}`;
+        case 'shop':
+            const shopPermission = await this.query('v1/permission', {permission: 'view-shops'});
+
+            if (shopPermission)
+            {
+                if (sections[2] === 'order' || sections[2] === 'order')
+                {
+                    return `Shops & Services${ending}`;
+                }
+
+                const [shop] = await db.query(`
+                    SELECT
+                        shop.name
+                    FROM shop
+                    WHERE shop.id = $1::int
+                `, sections[2]);
+
+                if (shop)
+                {
+                    return `${utils.ellipsisLongText(shop.name)}${ending}`;
+                }
+            }
+
+            return `ACC Forums${ending}`;
     }
 
     return siteName;

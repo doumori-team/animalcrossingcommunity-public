@@ -129,6 +129,10 @@ async function user_tickets({page, statusId, assignee, ruleId, typeId, denyReaso
 
 		wheres.push(`user_ticket.rule_id = $` + paramIndex);
 	}
+	else if (ruleId === -1)
+	{
+		wheres.push(`user_ticket.rule_id IS NOT NULL`);
+	}
 
 	if (typeId > 0)
 	{
@@ -141,7 +145,7 @@ async function user_tickets({page, statusId, assignee, ruleId, typeId, denyReaso
 
 	if (utils.realStringLength(violator) > 0)
 	{
-		params[paramIndex] = '%' + violator + '%';
+		params[paramIndex] = violator;
 
 		paramIndex++;
 
@@ -155,6 +159,10 @@ async function user_tickets({page, statusId, assignee, ruleId, typeId, denyReaso
 		paramIndex++;
 
 		wheres.push(`user_ticket.deny_reason_id = $` + paramIndex);
+	}
+	else if (denyReasonId === -1)
+	{
+		wheres.push(`user_ticket.deny_reason_id IS NOT NULL`);
 	}
 
 	// Combine wheres

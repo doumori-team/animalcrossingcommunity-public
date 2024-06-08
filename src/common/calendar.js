@@ -46,7 +46,7 @@ const treeData = [
 	{point: 1.0000, colors: [{h: 25,s: 68,l: 31},{h: 24,s: 52,l: 34},{h: 24,s: 52,l: 64},{h: 26,s: 78,l: 24}]}
 ]
 
-export function getSeason(dateOverride)
+export function getSeason(dateOverride = null, southernHemisphere = false)
 {
 	let time = dateUtils.getCurrentDate();
 	let debug = false;
@@ -65,17 +65,20 @@ export function getSeason(dateOverride)
 	}
 
 	const year = dateUtils.getUTCFullYear(time);
-	// NB: Calculating the year upfront is a straightforward way of planning out a whole year of seasons
-	// because the colours don't change during winter, which is the season that crosses the new year.
-	// If we do a "southern hemisphere" style, some rethinking will be required.
+
+	// we add 6 months to figure out when grass is growing in the relevant NH spot for SH
+	const yearProgressTime = southernHemisphere ? dateUtils.dateParse(dateUtils.add(time, 6, 'months')) : time;
+	const yearProgressYear = dateUtils.getUTCFullYear(yearProgressTime);
 
 	// Grass colours are defined between these two dates
-	const grassStartTime = dateUtils.toUTC(year, 1, 25, 5); // February 25th 05:00 UTC
-	const grassEndTime = dateUtils.toUTC(year, 11, 11, 5); // December 11th 05:00 UTC
+	// Northern Hemisphere: February 25th 05:00 UTC - December 11th 05:00 UTC
+	// Southern Hemisphere: August 25th 05:00 UTC - June 11th 05:00 UTC
+	const grassStartTime = dateUtils.toUTC(yearProgressYear, 1, 25, 5);
+	const grassEndTime = dateUtils.toUTC(yearProgressYear, 11, 11, 5);
 
-	const yearProgress = (time - grassStartTime) / (grassEndTime - grassStartTime);
+	const yearProgress = (yearProgressTime - grassStartTime) / (grassEndTime - grassStartTime);
 
-	let grassColors, uiColors, theme;
+	let grassColors, uiColors, theme = 'default';
 
 	if (yearProgress < 0 || yearProgress >= 1)
 	{
@@ -88,66 +91,144 @@ export function getSeason(dateOverride)
 	{
 		grassColors = getColors(grassData, yearProgress);
 		uiColors = getColors(treeData, yearProgress);
-
-		if (time >= dateUtils.toUTC(year, 3, 1, 5) && time < dateUtils.toUTC(year, 3, 10, 5))
-		{
-			theme = 'cherry';
-			//uiColors = ['#fd8acc', '#ffacff', '#ffccfc', '#c54194'];
-		}
-		else
-		{
-			theme = 'default';
-		}
 	}
 
 	// June - August
 	let season = 'summer', event = null, headerColor = 'rgba(0,190,0,.2)';
 
-	// March-April 1, April 10 - May
-	if ((time >= dateUtils.toUTC(year, 2, 1, 5) && time < dateUtils.toUTC(year, 3, 1, 5)) ||
-		(time >= dateUtils.toUTC(year, 3, 10, 5) && time < dateUtils.toUTC(year, 5, 1, 5))
+	// March-April 1 (EDT), April 10 - May
+	if ((time >= dateUtils.toUTC(year, 2, 1, 5) && time < dateUtils.toUTC(year, 3, 1, 4)) ||
+		(time >= dateUtils.toUTC(year, 3, 10, 4) && time < dateUtils.toUTC(year, 5, 1, 4))
 	)
 	{
-		season = 'spring';
+		season = southernHemisphere ? 'autumn' : 'spring';
+
+		if (southernHemisphere)
+		{
+			headerColor = 'rgba(200,0,0,.2)';
+		}
 	}
 	// April 1 - 10
-	else if (time >= dateUtils.toUTC(year, 3, 1, 5) && time < dateUtils.toUTC(year, 3, 10, 5))
+	else if (time >= dateUtils.toUTC(year, 3, 1, 4) && time < dateUtils.toUTC(year, 3, 10, 4))
 	{
-		season = 'cherry';
-		//headerColor = 'rgba(255,255,255,0)';
+		season = southernHemisphere ? 'autumn' : 'cherry';
+
+		if (southernHemisphere)
+		{
+			headerColor = 'rgba(200,0,0,.2)';
+		}
+		else
+		{
+			theme = 'cherry';
+			//headerColor = 'rgba(255,255,255,0)';
+			//uiColors = ['#fd8acc', '#ffacff', '#ffccfc', '#c54194'];
+		}
+
+		// April Fool's Day
+		if (time >= dateUtils.toUTC(year, 3, 1, 4) && time < dateUtils.toUTC(year, 3, 2, 4))
+		{
+			event = 'aprilfools';
+		}
 	}
-	// September - November
-	else if (time >= dateUtils.toUTC(year, 8, 1, 5) && time < dateUtils.toUTC(year, 11, 1, 5))
+	// June - August (EDT)
+	else if (time >= dateUtils.toUTC(year, 5, 1, 4) && time < dateUtils.toUTC(year, 8, 1, 4))
 	{
-		season = 'autumn';
-		headerColor = 'rgba(200,0,0,.2)';
+		season = southernHemisphere ? 'winter' : 'summer';
+
+		if (southernHemisphere)
+		{
+			headerColor = 'rgba(230, 230, 255, .2)';
+		}
+	}
+	// September-October 1 (EDT), October 10 - November
+	else if ((time >= dateUtils.toUTC(year, 8, 1, 4) && time < dateUtils.toUTC(year, 9, 1, 4)) ||
+		(time >= dateUtils.toUTC(year, 9, 10, 4) && time < dateUtils.toUTC(year, 11, 1, 5))
+	)
+	{
+		season = southernHemisphere ? 'spring' : 'autumn';
+
+		if (!southernHemisphere)
+		{
+			headerColor = 'rgba(200,0,0,.2)';
+		}
 
 		// October 28th, ACC's Birthday
-		if (time == dateUtils.toUTC(year, 9, 28, 5))
+		if (time >= dateUtils.toUTC(year, 9, 28, 4) && time < dateUtils.toUTC(year, 9, 29, 4))
 		{
 			event = 'anniversary';
 		}
-		else if (time >= dateUtils.toUTC(year, 9, 29, 5) && time < dateUtils.toUTC(year, 10, 1, 5))
+		// October 29 - October 30
+		else if (time >= dateUtils.toUTC(year, 9, 29, 4) && time < dateUtils.toUTC(year, 10, 1, 4))
 		{
 			event = 'halloween';
+		}
+		// November 22 - November 29
+		else if (time >= dateUtils.toUTC(year, 10, 22, 5) && time < dateUtils.toUTC(year, 10, 29, 5))
+		{
+			event = 'thanksgiving';
+		}
+	}
+	// October 1 - 10
+	else if (time >= dateUtils.toUTC(year, 9, 1, 4) && time < dateUtils.toUTC(year, 9, 10, 4))
+	{
+		season = southernHemisphere ? 'cherry' : 'autumn';
+
+		if (!southernHemisphere)
+		{
+			headerColor = 'rgba(200,0,0,.2)';
+		}
+		else
+		{
+			theme = 'cherry';
+			//headerColor = 'rgba(255,255,255,0)';
+			//uiColors = ['#fd8acc', '#ffacff', '#ffccfc', '#c54194'];
 		}
 	}
 	// December, January-February
 	else if (time >= dateUtils.toUTC(year, 11, 1, 5) ||
-		(time >= dateUtils.toUTC(year, 0, 1, 5) && time < dateUtils.toUTC(year, 2, 1, 5))
+		(time >= dateUtils.toUTC(year, 0, 1, 0) && time < dateUtils.toUTC(year, 2, 1, 5))
 	)
 	{
-		season = 'winter';
-		headerColor = 'rgba(230, 230, 255, .2)';
+		season = southernHemisphere ? 'summer' : 'winter';
 
-		// December 24-25
-		if (time >= dateUtils.toUTC(year, 11, 24, 5) && time < dateUtils.toUTC(year, 11, 26, 5))
+		if (!southernHemisphere)
+		{
+			headerColor = 'rgba(230, 230, 255, .2)';
+		}
+
+		// December 17 - 24
+		if (time >= dateUtils.toUTC(year, 11, 17, 5) && time < dateUtils.toUTC(year, 11, 24, 5))
+		{
+			event = 'festive';
+		}
+		// December 24-26
+		else if (time >= dateUtils.toUTC(year, 11, 24, 5) && time < dateUtils.toUTC(year, 11, 27, 5))
 		{
 			event = 'jingle';
 		}
+		// December 30, Before midnight EST
+		else if (time >= dateUtils.toUTC(year, 11, 30, 5) || time < dateUtils.toUTC(year, 0, 1, 5))
+		{
+			event = 'newyear';
+		}
+		// January 1
+		else if (time <= dateUtils.toUTC(year, 0, 2, 5))
+		{
+			event = 'newyearday';
+		}
+		// February 2
+		else if (time >= dateUtils.toUTC(year, 1, 2, 5) && time < dateUtils.toUTC(year, 1, 3, 5))
+		{
+			event = 'groundhog';
+		}
+		// February 15 - 22
+		else if (time >= dateUtils.toUTC(year, 1, 15, 5) && time < dateUtils.toUTC(year, 1, 22, 5))
+		{
+			event = 'presidentsday';
+		}
 	}
 
-	const bannerName = utils.realStringLength(event) > 0 ? event : season;
+	const bannerName = utils.realStringLength(event) > 0 && event != 'aprilfools' ? event : season;
 
 	return {
 		bg_colors: grassColors,

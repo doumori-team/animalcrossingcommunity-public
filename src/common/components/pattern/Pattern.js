@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
-import { RequireUser, RequirePermission } from '@behavior';
+import { RequireUser } from '@behavior';
 import { patternShape } from '@propTypes';
 import { utils, constants } from '@utils';
 import { Form, Confirm } from '@form';
@@ -24,21 +24,19 @@ const Pattern = ({pattern, townId, townUserId}) =>
 	return (
 		<section className='Pattern'>
 			<div className='Pattern_links'>
-				<RequireUser id={pattern.creator.id} silent>
-					<RequirePermission permission='modify-patterns' silent>
-						{!pattern.published &&
-							<Link to={`/pattern/${encodedId}/edit`}>
-								Edit
-							</Link>
-						}
-						<Confirm
-							action='v1/pattern/destroy'
-							callback={callback}
-							id={pattern.id}
-							label='Delete'
-							message='Are you sure you want to delete this pattern?'
-						/>
-					</RequirePermission>
+				<RequireUser id={pattern.creator.id} permission='modify-patterns' silent>
+					{!pattern.published &&
+						<Link to={`/pattern/${encodedId}/edit`}>
+							Edit
+						</Link>
+					}
+					<Confirm
+						action='v1/pattern/destroy'
+						callback={callback}
+						id={pattern.id}
+						label='Delete'
+						message='Are you sure you want to delete this pattern?'
+					/>
 				</RequireUser>
 				<RequireUser silent>
 					<Form

@@ -1,12 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
-import {
-	indexedAvatarCharacters as avatarCharacters,
-	indexedAvatarBackgrounds as avatarBackgrounds,
-	indexedAvatarAccents as avatarAccents,
-	indexedAvatarColorations as avatarColorations
-} from '@/data/avatar/avatars.js';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 async function avatars({page})
 {
@@ -36,6 +32,11 @@ async function avatars({page})
 
 	if (avatars.length > 0)
 	{
+		const avatarBackgrounds = await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds);
+		const avatarCharacters = await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters);
+		const avatarColorations = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
+		const avatarAccents = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
+
 		results = avatars.map(avatar => {
 			return {
 				id: avatar.id,

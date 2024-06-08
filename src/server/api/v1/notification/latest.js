@@ -15,11 +15,23 @@ export default async function latest()
 		};
 	}
 
-	const user = await this.query('v1/user_lite', {id: this.userId});
+	let user;
 
-	if (typeof(user) === 'undefined' || user.length === 0)
+	try
 	{
-		throw new UserError('no-such-user');
+		user = await this.query('v1/user_lite', {id: this.userId});
+
+		if (typeof(user) === 'undefined' || user.length === 0)
+		{
+			throw new UserError('no-such-user');
+		}
+	}
+	catch
+	{
+		return {
+			notification: null,
+			totalCount: 0,
+		};
 	}
 
 	// Perform queries

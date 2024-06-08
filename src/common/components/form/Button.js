@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import Spinner from '@/components/form/Spinner.js';
 
-const Button = ({label, children, loading, clickHandler, type, className, title, image, form}) =>
+const Button = ({label, children, loading, clickHandler, type, className, title, image, form, disabled}) =>
 {
 	return (
 		image ? (
@@ -21,7 +21,8 @@ const Button = ({label, children, loading, clickHandler, type, className, title,
 				aria-label={label}
 				className={className}
 				title={title}
-				aria-disabled={loading}
+				aria-disabled={loading || disabled}
+				disabled={loading || disabled}
 				form={form}
 			>
 				{loading ? (
@@ -44,11 +45,13 @@ Button.propTypes = {
 	title: PropTypes.string,
 	image: PropTypes.string,
 	form: PropTypes.string,
+	disabled: PropTypes.bool,
 };
 
 Button.defaultProps = {
 	loading: false,
 	type: 'button',
+	disabled: false,
 };
 
 export default Button;

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { RequireClientJS } from '@behavior';
 import { utils } from '@utils';
-import { Select } from '@form';
+import { Select, Alert } from '@form';
+import { UserContext } from '@contexts';
 
 /*
  * purpose: Gives the links that allows users to navigate pages of data.
@@ -18,14 +19,23 @@ import { Select } from '@form';
  * 	onPageChange - function - change the current page without changing route
  */
 const Pagination = ({page, pageSize, totalCount, startLink, endLink, queryParam,
-	onPageChange}) =>
+	onPageChange, pageName}) =>
 {
-	const navigate = useNavigate();
-
 	if (totalCount === 0)
 	{
 		return null;
 	}
+
+	if (!useContext(UserContext))
+	{
+		return (
+			<Alert type='info'>
+				Interested in seeing more? <Link to='/sign-up' reloadDocument>Come join the community!</Link> ACC is suitable for all ages, does not track you, is ad-free with no required subscriptions and does not sell your information.
+			</Alert>
+		);
+	}
+
+	const navigate = useNavigate();
 
 	const lastPage = Math.ceil(totalCount / pageSize);
 
@@ -48,7 +58,7 @@ const Pagination = ({page, pageSize, totalCount, startLink, endLink, queryParam,
 		}
 	}
 
-	let startPageLink = `?page=`;
+	let startPageLink = `?${pageName}=`;
 	let endPageLink = '';
 
 	if (!queryParam)
@@ -191,11 +201,13 @@ Pagination.propTypes = {
 	endLink: PropTypes.string,
 	queryParam: PropTypes.bool,
 	onPageChange: PropTypes.func,
+	pageName: PropTypes.string,
 };
 
 Pagination.defaultProps = {
 	endLink: '',
 	queryParam: true,
+	pageName: 'page',
 }
 
 export default Pagination;

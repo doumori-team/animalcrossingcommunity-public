@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { dateUtils } from '@utils';
+import { dateUtils, constants } from '@utils';
 
 const StatusIndicator = ({lastActiveTime, showDate}) =>
 {
@@ -24,7 +24,7 @@ const StatusIndicator = ({lastActiveTime, showDate}) =>
 			{
 				active = true;
 			}
-			// within 15 minutes
+			// within 15 minutes; see v1/users/buddies.js
 			else if (dateUtils.isAfterTimezone(lastActiveTime, dateUtils.subtractFromCurrentDateTimezone(15, 'minutes')))
 			{
 				idle = true;
@@ -44,10 +44,10 @@ const StatusIndicator = ({lastActiveTime, showDate}) =>
 	return (
 		<>
 			{active && (
-				<img src={`${process.env.AWS_URL}/images/icons/buddy_online.png`} alt={lastActiveTime} />
+				<img src={`${constants.AWS_URL}/images/icons/buddy_online.png`} alt={lastActiveTime} />
 			)}
 			{idle && (
-				<img src={`${process.env.AWS_URL}/images/icons/buddy_idle.png`} alt={lastActiveTime} />
+				<img src={`${constants.AWS_URL}/images/icons/buddy_idle.png`} alt={lastActiveTime} />
 			)}
 			{showDate && (
 				<span> {date}</span>

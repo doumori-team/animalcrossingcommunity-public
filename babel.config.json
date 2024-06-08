@@ -1,26 +1,26 @@
+// used by babel when compiling javascript
 {
 	"presets": ["@babel/preset-react"],
 	"plugins": [
-		"@babel/plugin-syntax-import-assertions",
-		["module-resolver", {
+		"@babel/plugin-syntax-import-assertions", // allows for import json files
+		["module-resolver", { // allows for @ throughout code
 			"root": ["./src"],
 			"alias": {
 				"common": "./src/common",
 				"server": "./src/server",
-				"@/catalog": "./src/server/data/catalog/",
 				"@/components": "./src/common/components/",
-				"@/data": "./src/server/data",
 				"@/pages": "./src/common/components/pages/",
-				"@accounts": "./src/server/accounts",
-				"@behavior": "./src/common/components/behavior/index",
-				"@contexts": "./src/common/contexts",
-				"@db": "./src/server/db",
-				"@errors": "./src/common/errors",
-				"@form": "./src/common/components/form/index",
-				"@layout": "./src/common/components/layout/index",
-				"@propTypes": "./src/common/propTypes/index",
-				"@utils": "./src/common/utils/index",
-				"@apiTypes": "./src/server/api-types"
+				"@accounts": "./src/server/accounts.js",
+				"@behavior": "./src/common/components/behavior/index.js",
+				"@contexts": "./src/common/contexts.js",
+				"@db": "./src/server/db.js",
+				"@errors": "./src/common/errors.js",
+				"@form": "./src/common/components/form/index.js",
+				"@layout": "./src/common/components/layout/index.js",
+				"@propTypes": "./src/common/propTypes/index.js",
+				"@utils": "./src/common/utils/index.js",
+				"@apiTypes": "./src/server/api-types.js",
+				"@cache": "./src/server/cache.js"
 			}
 		}]
 	]

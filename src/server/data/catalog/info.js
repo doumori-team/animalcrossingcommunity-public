@@ -1,35 +1,24 @@
 import { constants, dateUtils } from '@utils';
+import { ACCCache } from '@cache';
 
-import acnlPwps from './acnl/pwps.json' assert { type: "json" };
-import { 
-	indexedAvatarCharacters as avatarCharacters,
-	indexedAvatarBackgrounds as avatarBackgrounds,
-	indexedAvatarAccents as avatarAccents,
-	indexedAvatarColorations as avatarColorations
-} from '@/data/avatar/avatars.js';
-import bellShop from './bell-shop.json' assert { type: "json"};
+import acnlPwps from './acnl/pwps.json' assert { type: 'json' };
+import bellShop from './bell-shop.json' assert { type: 'json'};
 
-/*
- * Get PWPs for game.
- */
-export function getPWPs(gameId)
-{
-	switch (gameId)
-	{
-		case constants.gameIds.ACNL:
-			return acnlPwps;
-		default:
-			return [];
-	}
-}
+const avatarBackgrounds = await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds);
+const avatarCharacters = await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters);
+const avatarColorations = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
+const avatarAccents = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
 
-/*
- * Get Bell Shop Categories
- */
-export function getBellShopCategories()
-{
-	return bellShop[0];
-}
+export const pwps = {
+	[constants.gameIds.ACGC]: [],
+	[constants.gameIds.ACWW]: [],
+	[constants.gameIds.ACCF]: [],
+	[constants.gameIds.ACNL]: acnlPwps,
+	[constants.gameIds.ACNH]: [],
+	[constants.gameIds.ACPC]: [],
+};
+
+export const bellShopCategories = bellShop[0];
 
 export const sortedBellShopItems = getSortedBellShopItems();
 
@@ -39,7 +28,6 @@ export const sortedBellShopItems = getSortedBellShopItems();
 export function getSortedBellShopItems()
 {
 	const bellShopItems = bellShop[1];
-	const categories = getBellShopCategories();
 
 	let sortedBellShopItems = {
 		'all': {},
@@ -47,13 +35,14 @@ export function getSortedBellShopItems()
 	};
 
 	bellShopItems.map(item => {
-		const categoryName = categories.find(c => c.id === item.categoryId).name;
+		const categoryName = bellShopCategories.find(c => c.id === item.categoryId).name;
 		const expireDurationMonths = item.hasOwnProperty('expireDurationMonths') ? item.expireDurationMonths : null;
 
 		const modifiedItem = {
 			id: item.id,
 			internalId: item.internalId,
 			name: item.name,
+			categoryId: item.categoryId,
 			description: item.hasOwnProperty('description') ? item.description : null,
 			avatar: [constants.bellShop.categories.avatarBackgrounds, constants.bellShop.categories.avatarCharacters, constants.bellShop.categories.avatarAccents, constants.bellShop.categories.backgroundColorations].includes(categoryName) ? {
 				background: categoryName === constants.bellShop.categories.avatarBackgrounds ? avatarBackgrounds[item.internalId] : null,
@@ -96,16 +85,6 @@ export function getSortedBellShopItems()
 				'price': price,
 			};
 		})
-	});
-
-	// show most recent items first
-	categories.map(c => {
-		sortedBellShopItems[c.id] = sortedBellShopItems[c.id].sort((a, b) => {
-			let dateA = dateUtils.toDate(a.releaseDate);
-			let dateB = dateUtils.toDate(b.releaseDate);
-
-			return dateB - dateA;
-		});
 	});
 
 	return sortedBellShopItems;

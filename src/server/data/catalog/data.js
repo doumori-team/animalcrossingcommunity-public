@@ -1,21 +1,21 @@
 import { utils, constants } from '@utils';
 
-import acgcItems from './acgc/items.json' assert { type: "json"};
-import acwwItems from './acww/items.json' assert { type: "json"};
-import accfItems from './accf/items.json' assert { type: "json"};
-import acnlItems from './acnl/items.json' assert { type: "json"};
-import acpcItems from './acpc/items.json' assert { type: "json"};
-import acnhItems from '../acnh-sheet/items.json' assert { type: "json"};
-import acgcCreatures from './acgc/creatures.json' assert { type: "json"};
-import acwwCreatures from './acww/creatures.json' assert { type: "json"};
-import accfCreatures from './accf/creatures.json' assert { type: "json"};
-import acnlCreatures from './acnl/creatures.json' assert { type: "json"};
-import acnhCreatures from '../acnh-sheet/creatures.json' assert { type: "json"};
-import acnhRecipes from '../acnh-sheet/recipes.json' assert { type: "json"};
-import acnhCeilingDecor from '../acnh-sheet/ceilingDecor.json' assert { type: "json"};
-import acnhIgnore from './acnh-ignore.json' assert { type: "json"};
-import other from './other.json' assert { type: "json"};
-import acpcCreatures from './acpc/creatures.json' assert { type: "json"};
+import acgcItems from './acgc/items.json' assert { type: 'json'};
+import acwwItems from './acww/items.json' assert { type: 'json'};
+import accfItems from './accf/items.json' assert { type: 'json'};
+import acnlItems from './acnl/items.json' assert { type: 'json'};
+import acpcItems from './acpc/items.json' assert { type: 'json'};
+import acnhItems from '../acnh-sheet/items.json' assert { type: 'json'};
+import acgcCreatures from './acgc/creatures.json' assert { type: 'json'};
+import acwwCreatures from './acww/creatures.json' assert { type: 'json'};
+import accfCreatures from './accf/creatures.json' assert { type: 'json'};
+import acnlCreatures from './acnl/creatures.json' assert { type: 'json'};
+import acnhCreatures from '../acnh-sheet/creatures.json' assert { type: 'json'};
+import acnhRecipes from '../acnh-sheet/recipes.json' assert { type: 'json'};
+import acnhCeilingDecor from '../acnh-sheet/ceilingDecor.json' assert { type: 'json'};
+import acnhIgnore from './acnh-ignore.json' assert { type: 'json'};
+import other from './other.json' assert { type: 'json'};
+import acpcCreatures from './acpc/creatures.json' assert { type: 'json'};
 
 const acgcCatalogItems = acgcItems.concat(acgcCreatures);
 const acwwCatalogItems = acwwItems.concat(acwwCreatures);
@@ -449,6 +449,11 @@ function getItemName(itemName, item, variant = null, totalVariants = 0)
 		{
 			itemName += ' - ' + variant.pattern;
 		}
+	}
+
+	if (item.sourceSheet === 'Recipes')
+	{
+		itemName += ' (Recipe)';
 	}
 
 	return itemName;

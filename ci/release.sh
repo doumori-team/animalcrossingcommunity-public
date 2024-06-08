@@ -19,6 +19,9 @@ else
 	heroku pg:reset DATABASE_URL --app $HEROKU_APP_NAME \
 		--confirm $HEROKU_APP_NAME
 
+    echo -e "Adding heroku_ext..."
+    psql -c 'CREATE SCHEMA IF NOT EXISTS heroku_ext' $DATABASE_URL
+
     # have only acc-copyback use production copy
     if [ "$HEROKU_APP_NAME" = "acc-copyback" ]
     then

@@ -10,7 +10,7 @@ const Clock = () =>
 		<TimeContext.Consumer>
 			{time =>
 				<span className="Clock">
-					{dateUtils.formatDateTime4(time) }
+					{dateUtils.formatDateTime4(time)}
 				</span>
 			}
 		</TimeContext.Consumer>

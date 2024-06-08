@@ -141,7 +141,7 @@ const Offer = ({offer, listing}) =>
 						{currentUser => (
 							currentUser ? (
 								<>
-								user: <Link to={`/profile/${encodeURIComponent(offer.user.id)}`}>
+								User: <Link to={`/profile/${encodeURIComponent(offer.user.id)}`}>
 									{offer.user.username}
 								</Link>
 								</>

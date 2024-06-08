@@ -76,24 +76,26 @@ const SupportEmailPage = () =>
 					</div>
 				</Section>
 
-				<Section>
-					<Form
-						action='v1/support_email/reply'
-						callback='/support-emails'
-						showButton
-					>
-						<input type='hidden' name='id' value={supportEmail.id} />
+				{supportEmail.fromUser.email && (
+					<Section>
+						<Form
+							action='v1/support_email/reply'
+							callback='/support-emails'
+							showButton
+						>
+							<input type='hidden' name='id' value={supportEmail.id} />
 
-						<Form.Group>
-							<TextArea
-								name='message'
-								label='Reply'
-								rows={10}
-								maxLength={constants.max.email}
-							/>
-						</Form.Group>
-					</Form>
-				</Section>
+							<Form.Group>
+								<TextArea
+									name='message'
+									label='Reply'
+									rows={10}
+									maxLength={constants.max.email}
+								/>
+							</Form.Group>
+						</Form>
+					</Section>
+				)}
 			</RequirePermission>
 		</div>
 	);

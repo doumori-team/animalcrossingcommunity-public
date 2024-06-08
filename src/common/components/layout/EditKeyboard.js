@@ -30,7 +30,7 @@ const EditKeyboard = ({name, defaultValue, required, label}) =>
 							clickHandler={e => doSpecialCharacter(e, k.character)}
 						>
 							<img
-								src={`${process.env.AWS_URL}/images/keyboard/${k.filename}.png`}
+								src={`${constants.AWS_URL}/images/keyboard/${k.filename}.png`}
 								alt={k.character}
 							/>
 						</Button>

@@ -4,7 +4,9 @@ import * as accounts from '@accounts';
 import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 
-async function save({email, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications})
+async function save({email, showBirthday, showAge, awayStartDate, awayEndDate,
+	showEmail, emailNotifications, showStaff, shopDNC, southernHemisphere,
+	stayForever})
 {
 	if (!this.userId)
 	{
@@ -40,17 +42,34 @@ async function save({email, showBirthday, showAge, awayStartDate, awayEndDate, s
 		}
 	}
 
-	await db.query(`
-		UPDATE users
-		SET
-			show_birthday = $2,
-			show_age = $3,
-			away_start_date = $4,
-			away_end_date = $5,
-			show_email = $6,
-			email_notifications = $7
-		WHERE id = $1::int
-	`, account.id, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications);
+	await Promise.all([
+		db.query(`
+			UPDATE users
+			SET
+				show_birthday = $2,
+				show_age = $3,
+				away_start_date = $4,
+				away_end_date = $5,
+				show_email = $6,
+				email_notifications = $7,
+				show_staff = $8,
+				southern_hemisphere = $9,
+				stay_forever = $10
+			WHERE id = $1::int
+		`, account.id, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications, showStaff, southernHemisphere, stayForever),
+		db.query(`
+			DELETE FROM shop_dnc
+			WHERE user_id = $1
+		`, account.id),
+	]);
+
+	if (shopDNC)
+	{
+		await db.query(`
+			INSERT INTO shop_dnc (user_id)
+			VALUES ($1)
+		`, account.id);
+	}
 
 	if (email !== account.email)
 	{
@@ -120,6 +139,22 @@ save.apiTypes = {
 		default: 'false',
 	},
 	emailNotifications: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
+	showStaff: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
+	shopDNC: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
+	southernHemisphere: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
+	stayForever: {
 		type: APITypes.boolean,
 		default: 'false',
 	},

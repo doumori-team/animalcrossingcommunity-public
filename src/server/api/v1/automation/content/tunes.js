@@ -3,6 +3,7 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { faker } from '@faker-js/faker/locale/en';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Add X Town Tunes
@@ -46,6 +47,8 @@ async function tunes({amount})
 			VALUES ($1, $2::int, $3)
 		`, tuneName, tuneUserId, notes.join(''));
 	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.userLite);
 
 	return {
 		_success: `Your tunes(s) have been created!`

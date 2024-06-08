@@ -7,7 +7,7 @@
 $navbar-height: 2.8125rem;
 $navbar-width: $breakpoint-fullsize;
 $navbar-breakpoint: px2rem(1215px);
-$navbar-padding-thickness: .625rem;
+$navbar-padding-thickness: .525rem;
 
 .App {
 	min-height: 100vh; /* ensure background extends over whole page */
@@ -78,6 +78,10 @@ $navbar-padding-thickness: .625rem;
 	}
 }
 
+.NavbarItem > * {
+	font-size: px2rem(15px);
+}
+
 .NavbarItem, .NavbarMenuButton, .LogoutButton, .LoginButton {
 	/* highlight on hover or keyboard focus */
 	&:hover, &:focus {
@@ -138,12 +142,16 @@ $navbar-padding-thickness: .625rem;
 }
 
 
-.SiteMenu {
+.SiteMenu, .BuddiesMenu {
 	text-align: left; padding: 0;
 	background-color: #fff;
+
+	img {
+		vertical-align: baseline;
+	}
 }
 
-.SiteMenu_content {
+.SiteMenu_content, .BuddiesMenu_content {
 	color: #333;
 	font-family: $fontstack-default;
 	font-weight: bold;
@@ -161,7 +169,7 @@ $navbar-padding-thickness: .625rem;
 	}
 }
 
-.SiteMenu_link {
+.SiteMenu_link, .BuddiesMenu_link {
 	display: block;
 	width: 100%; text-align: left;
 	min-height: 2.75em;
@@ -169,7 +177,17 @@ $navbar-padding-thickness: .625rem;
 	padding: 0 1em;
 }
 
-.SiteMenu-dynamic {
+.BuddiesMenu_link {
+	display: flex;
+	white-space: pre-wrap;
+}
+
+.BuddiesMenu-dynamic {
+	right: 0;
+	left: revert !important;
+}
+
+.SiteMenu-dynamic, .BuddiesMenu-dynamic {
 	z-index: 30; /* behind navbar, in front of content */
 	position: fixed;
 	top: 0;
@@ -249,6 +267,60 @@ $navbar-padding-thickness: .625rem;
 	text-align: center;
 }
 
+.SiteHeader_buddies {
+	border-right: 1px solid rgba(0,0,0,.07);
+	border-left: 1px solid rgba(0,0,0,.07);
+
+	.buddiesCountImg {
+		padding-top: 0.5rem;
+	}
+
+	a.NavbarMenuButton {
+		img {
+			padding-bottom: px2rem(5px);
+		}
+
+		.buddiesCountImg {
+			padding-bottom: px2rem(10px);
+		}
+
+		.SiteHeader_buddiesCount {
+			top: -3.95rem;
+		}
+	}
+}
+
+.BuddiesMen_lastActive {
+	display: flex;
+    align-items: baseline;
+}
+
+.SiteHeader_notificationCount, .SiteHeader_buddiesCount {
+	font-size: px2rem(12px);
+	font-weight: bold;
+	padding: 0 px2rem(5px);
+	border-radius: 50%;
+
+	position: relative;
+	opacity: 0.9;
+	top: px2rem(-60px);
+	right: px2rem(-10px);
+}
+
+.SiteHeader_notificationCount {
+	background: #fc7468;
+	color: #000;
+	border: px2rem(1px) solid #c9483c;
+}
+
+.SiteHeader_buddiesCount {
+	top: -2.45rem;
+	right: -0.5rem;
+	background: #6fe400;
+	color: #000;
+	border: px2rem(1px) solid #509b04;
+}
+
 .SiteHeader {
 	position: sticky;
 	top: 0;
@@ -260,20 +332,6 @@ $navbar-padding-thickness: .625rem;
 		.SiteHeader_notificationsLink {
 			&:hover, &:focus {
 				background-color: rgba(0, 0, 0, 0.2);
-			}
-
-			.SiteHeader_notificationCount {
-				font-size: px2rem(12px);
-				font-weight: bold;
-				background: purple;
-				color: #fff;
-				padding: 0 px2rem(5px);
-				border-radius: 50%;
-
-				position: relative;
-				opacity: 0.9;
-				top: px2rem(-60px);
-				right: px2rem(-10px);
 			}
 		}
 
@@ -512,6 +570,14 @@ img[src*="/male-tone3/"] {
 		}
 	}
 
+	.Pagination_next:hover:after, .Pagination_last:hover:after {
+		border-left: $pagination-border-width solid var(--seasonal-color-accent);
+	}
+
+	.Pagination_first:hover:after, .Pagination_previous:hover:after {
+		border-right: $pagination-border-width solid var(--seasonal-color-accent);
+	}
+
 	a::after, button:after {
 		position: absolute;
 		content: "";
@@ -706,35 +772,35 @@ img[src*="/male-tone3/"] {
 	@extend .GenericButtonWithCustomImage;
 
 	&_acgc {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_GC.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_GC.png);
 	}
 
 	&_acww {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_WW.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_WW.png);
 	}
 
 	&_accf {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_CF.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_CF.png);
 	}
 
 	&_acnl {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_NL.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_NL.png);
 	}
 
 	&_achhd {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_HHD.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_HHD.png);
 	}
 
 	&_acaf {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_aF.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_aF.png);
 	}
 
 	&_acpc {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_PC.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_PC.png);
 	}
 
 	&_acnh {
-		background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/boxart/GameButton_NH.png);
+		background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/boxart/GameButton_NH.png);
 	}
 }
 
@@ -876,4 +942,48 @@ input[src*="/icons/wifi"] {
 	display: flex;
 	justify-content: center;
 	text-align: center;
+}
+
+.Accordion {
+	width: 100%;
+
+	.AccordionItem {
+		overflow: hidden;
+
+		.title-container {
+			width: 100%;
+			text-align: left;
+			padding-left: px2rem(10px);
+			padding-right: px2rem(10px);
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			font-weight: 500;
+			font-size: px2rem(20px);
+			background: var(--seasonal-color-dark);
+			border: none;
+			cursor: pointer;
+			border-radius: .3333em;
+			box-shadow: 0px -1px 0px rgba(0,0,0,.3) inset,0px 1px 0px rgba(255,255,255,.3) inset;
+
+			.title-content {
+				color: white;
+			}
+
+			.FontAwesomeIcon {
+				fill: white;
+			}
+		}
+
+		.description-container {
+			padding: 0 1rem;
+			transition: height .7s ease-in-out;
+			background: #fff;
+			margin-bottom: px2rem(13px);
+
+			.description-content {
+				padding: 1rem 0;
+			}
+		}
+	}
 }

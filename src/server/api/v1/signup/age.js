@@ -29,7 +29,7 @@ async function age({id})
 
 age.apiTypes = {
 	id: {
-		type: APITypes.string,
+		type: APITypes.uuid,
 		required: true,
 	},
 }

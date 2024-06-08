@@ -1,7 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
 import * as APITypes from '@apiTypes';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 async function save({characterId, inventory, wishlist, museum, remove})
 {
@@ -25,7 +26,7 @@ async function save({characterId, inventory, wishlist, museum, remove})
 	}
 
 	// all items in game
-	const catalogItems = sortedCategories[character.game_id]['all']['items'];
+	const catalogItems = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${character.game_id}_all_items`);
 
 	// Check inventory
 	inventory = await Promise.all(inventory.map(async (id) =>

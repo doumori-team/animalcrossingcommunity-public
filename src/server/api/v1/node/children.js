@@ -6,25 +6,44 @@ import * as accounts from '@accounts';
 
 async function children({id, order, reverse, page, showLocked})
 {
-	const [permission, [node], groupIds, ggBoardPerm, viewPTs, userSettings] = await Promise.all([
+	if (showLocked && !this.userId)
+	{
+		throw new UserError('login-needed');
+	}
+
+	const [permission, [node], groupIds, ggBoardPerm, userSettings, publicBoards, archivedBoards] = await Promise.all([
 		this.query('v1/node/permission', {permission: 'read', nodeId: id}),
-		db.query('SELECT id, type, parent_node_id FROM node WHERE id = $1::int', id),
-		this.query('v1/users/user_groups'),
+		db.query('SELECT id, type, parent_node_id, locked FROM node WHERE id = $1::int', id),
+		db.getUserGroups(this.userId),
 		this.userId && id === constants.boardIds.accForums ? this.query('v1/node/permission', {
 			permission: 'read',
 			nodeId: constants.boardIds.ggBoard
 		}) : null,
-		this.query('v1/permission', {permission: 'view-other-private-threads'}),
 		this.userId ? db.query(`
 			SELECT show_images, concise_mode
 			FROM users
 			WHERE id = $1::int
 		`, this.userId) : null,
+		id === constants.boardIds.publicThreads ? db.query(`
+			SELECT id
+			FROM node
+			WHERE type = 'board' AND board_type = 'public'
+		`) : null,
+		db.query(`
+			SELECT id
+			FROM node
+			WHERE type = 'board' AND board_type = 'archived'
+		`),
 	]);
 
 	if (!permission)
 	{
 		throw new UserError('permission');
+	}
+
+	if (!this.userId && page > 1)
+	{
+		throw new UserError('login-needed');
 	}
 
 	if (node.type === 'thread')
@@ -66,111 +85,52 @@ async function children({id, order, reverse, page, showLocked})
 
 	let resultsQuery = null;
 
-	if (id === constants.boardIds.privateThreads)
+	// should be using scout_hub/threads or shop/threads
+	if ([constants.boardIds.shopThread, constants.boardIds.adopteeThread].includes(id))
+	{
+		throw new UserError('bad-format');
+	}
+	// if on the PTs BOARD
+	// then can look VIEW stuff you have user access to
+	else if (constants.boardIds.privateThreads === id)
 	{
 		resultsQuery = db.query(`
 			SELECT
-				node.id,
-				node.type,
-				node.user_id,
-				node.parent_node_id,
-				node.creation_time,
+				nodes.*,
 				last_revision.id AS revision_id,
 				last_revision.title,
 				last_revision.content,
-				last_revision.content_format,
-				node.locked,
-				node.thread_type,
-				node.latest_reply_time,
-				count(*) over() AS count
-			FROM node
+				last_revision.content_format
+			FROM (
+				SELECT
+					pts_user_read_granted.node_id AS id,
+					'thread' AS type,
+					pts_user_read_granted.node_user_id AS user_id,
+					$5 AS parent_node_id,
+					pts_user_read_granted.creation_time,
+					pts_user_read_granted.locked,
+					pts_user_read_granted.thread_type,
+					pts_user_read_granted.latest_reply_time,
+					pts_user_read_granted.reply_count,
+					count(*) over() AS count
+				FROM pts_user_read_granted
+				WHERE pts_user_read_granted.permission_user_id = $4 AND
+					($3 = true OR ($3 = false AND pts_user_read_granted.locked IS NULL))
+				ORDER BY thread_type DESC, ${order} ${reverse ? 'DESC' : ''}
+				LIMIT $1 OFFSET $2
+			) AS nodes
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
 				FROM node_revision
-				WHERE node_revision.node_id = node.id
+				WHERE node_revision.node_id = nodes.id
 				ORDER BY time DESC
 				FETCH FIRST 1 ROW ONLY
 			) last_revision ON true
-			JOIN user_node_permission ON (user_node_permission.node_id = node.id)
-			WHERE node.type = 'thread' AND node.parent_node_id = $1 AND user_node_permission.user_id = $6 AND user_node_permission.node_permission_id = $5 AND user_node_permission.granted = true AND
-				($4 = true OR ($4 = false AND node.locked IS NULL))
-			ORDER BY thread_type desc, ${order} ${reverse ? 'DESC' : ''}
-			LIMIT $2 OFFSET $3
-		`, id, pageSize, offset, showLocked, constants.nodePermissions.read, this.userId);
+		`, pageSize, offset, showLocked, this.userId, constants.boardIds.privateThreads);
 	}
-	// We don't look at permissions here to make it faster,
-	// not because it's impossible for a user / user group to be given board permissions
-	// if a user / group is denied access, it's silly because they can log out and view the board
-	// and this is all about VIEWING, not reply or edit or any of that
-	// so you can still prevent them from replying
-	// if a group is denied access, it should be removed from the constant
-	else if (constants.allPublicBoards.includes(id) || id === constants.boardIds.publicThreads)
-	{
-		// for launch, to make reading forums easier
-		// basically if it's a public board, just allow it
-		if (id === constants.boardIds.publicThreads)
-		{
-			resultsQuery = db.query(`
-				SELECT
-					node.id,
-					node.type,
-					node.user_id,
-					node.parent_node_id,
-					node.creation_time,
-					last_revision.id AS revision_id,
-					last_revision.title,
-					last_revision.content,
-					last_revision.content_format,
-					node.locked,
-					node.thread_type,
-					node.latest_reply_time,
-					count(*) over() AS count
-				FROM node
-				LEFT JOIN LATERAL (
-					SELECT id, title, content, content_format
-					FROM node_revision
-					WHERE node_revision.node_id = node.id
-					ORDER BY time DESC
-					FETCH FIRST 1 ROW ONLY
-				) last_revision ON true
-				WHERE node.parent_node_id = ANY($3) AND node.type = 'thread' AND latest_reply_time > now() - interval '30' day AND node.locked IS NULL
-				ORDER BY latest_reply_time DESC
-				LIMIT $1::int OFFSET $2::int
-			`, pageSize, offset, constants.allPublicBoards);
-		}
-		else
-		{
-			resultsQuery = db.query(`
-				SELECT
-					node.id,
-					node.type,
-					node.user_id,
-					node.parent_node_id,
-					node.creation_time,
-					last_revision.id AS revision_id,
-					last_revision.title,
-					last_revision.content,
-					last_revision.content_format,
-					node.locked,
-					node.thread_type,
-					node.latest_reply_time,
-					count(*) over() AS count
-				FROM node
-				LEFT JOIN LATERAL (
-					SELECT id, title, content, content_format
-					FROM node_revision
-					WHERE node_revision.node_id = node.id
-					ORDER BY time DESC
-					FETCH FIRST 1 ROW ONLY
-				) last_revision ON true
-				WHERE node.parent_node_id = $3 AND node.type = 'thread' AND
-					($4 = true OR ($4 = false AND node.locked IS NULL))
-				ORDER BY thread_type desc, ${order} ${reverse ? 'DESC' : ''}
-				LIMIT $1::int OFFSET $2::int
-			`, pageSize, offset, id, showLocked);
-		}
-	}
-	else
+	// if viewing the special All Public Threads board, then grab all threads from public boards
+	// + GG boards that you have access to active in the last 30 days
+	else if (id === constants.boardIds.publicThreads)
 	{
 		resultsQuery = db.query(`
 			SELECT
@@ -186,6 +146,7 @@ async function children({id, order, reverse, page, showLocked})
 				node.locked,
 				node.thread_type,
 				node.latest_reply_time,
+				node.reply_count,
 				count(*) over() AS count
 			FROM node
 			LEFT JOIN LATERAL (
@@ -208,8 +169,7 @@ async function children({id, order, reverse, page, showLocked})
 							user_node_permissions.granted,
 							user_node_permissions.sequence
 						FROM user_node_permissions
-						WHERE user_node_permissions.type != 'board' AND user_node_permissions.type_id = $7 AND user_node_permissions.node_permission_id = $5 AND user_node_permissions.parent_node_id = $1::int AND
-							($4 = true OR ($4 = false AND user_node_permissions.locked IS NULL))
+						WHERE user_node_permissions.type = 'thread' AND user_node_permissions.type_id = $6 AND user_node_permissions.node_permission_id = $4 AND user_node_permissions.parent_node_id = ANY($1) AND user_node_permissions.locked IS NULL AND user_node_permissions.latest_reply_time > now() - interval '30' day
 
 						UNION ALL
 
@@ -221,15 +181,83 @@ async function children({id, order, reverse, page, showLocked})
 							user_group_node_permissions.granted,
 							user_group_node_permissions.sequence
 						FROM user_group_node_permissions
-						WHERE user_group_node_permissions.type != 'board' AND user_group_node_permissions.user_group_id = ANY($6) AND user_group_node_permissions.node_permission_id = $5 AND user_group_node_permissions.parent_node_id = $1::int AND
-							($4 = true OR ($4 = false AND user_group_node_permissions.locked IS NULL))
+						WHERE user_group_node_permissions.type = 'thread' AND user_group_node_permissions.user_group_id = ANY($5) AND user_group_node_permissions.node_permission_id = $4 AND user_group_node_permissions.parent_node_id = ANY($1) AND user_group_node_permissions.locked IS NULL AND user_group_node_permissions.latest_reply_time > now() - interval '30' day
 					) AS permissions
 					ORDER BY inner_node_id ASC, sequence ASC, type DESC, type_id DESC
 				) AS permissions
-			) AS permissions ON (permissions.inner_node_id = node.id AND (permissions.granted = true OR $8 = true))
-			ORDER BY thread_type desc, ${order} ${reverse ? 'DESC' : ''}
+			) AS permissions ON (permissions.inner_node_id = node.id AND permissions.granted = true)
+			ORDER BY latest_reply_time DESC
 			LIMIT $2::int OFFSET $3::int
-		`, id, pageSize, offset, showLocked, constants.nodePermissions.read, groupIds, this.userId, node.parent_node_id === constants.boardIds.privateThreads && viewPTs);
+		`, publicBoards.map(x => x.id).concat([constants.boardIds.ggBoard, constants.boardIds.ggOffTopic, constants.boardIds.ggWiFiLobby, constants.boardIds.colorDuels, constants.boardIds.schrodingersChat]), pageSize, offset, constants.nodePermissions.read, groupIds, this.userId);
+	}
+	else if (archivedBoards.map(x => x.id).includes(id))
+	{
+		resultsQuery = db.query(`
+			SELECT
+				archived_threads.id,
+				archived_threads.type,
+				archived_threads.user_id,
+				archived_threads.parent_node_id,
+				archived_threads.creation_time,
+				archived_threads.revision_id,
+				archived_threads.title,
+				archived_threads.content,
+				archived_threads.content_format,
+				archived_threads.locked,
+				archived_threads.thread_type,
+				archived_threads.latest_reply_time,
+				archived_threads.reply_count,
+				count(*) over() AS count
+			FROM archived_threads
+			WHERE archived_threads.parent_node_id = $3 AND
+				($4 = true OR ($4 = false AND archived_threads.locked IS NULL))
+			ORDER BY thread_type DESC, ${order} ${reverse ? 'DESC' : ''}
+			LIMIT $1::int OFFSET $2::int
+		`, pageSize, offset, id, showLocked);
+	}
+	// looking at a PT, Shop Thread, or Scout Thread
+	// looking at a public board's children, or public thread's children
+	// or GG Board children, or GG Thread's children
+	// OR Staff Board children or Staff Thread children
+	// We already checked that the parent - board or thread - you have view access
+	// Since we don't (shouldn't) do node permissions by thread or post
+	// and we don't grab boards here, we do that in node/boards
+	// Then we don't have to do a super search with permissions
+	else
+	{
+		resultsQuery = db.query(`
+			SELECT
+				nodes.*,
+				last_revision.id AS revision_id,
+				last_revision.title,
+				last_revision.content,
+				last_revision.content_format
+			FROM (
+				SELECT
+					node.id,
+					node.type,
+					node.user_id,
+					node.parent_node_id,
+					node.creation_time,
+					node.locked,
+					node.thread_type,
+					node.latest_reply_time,
+					node.reply_count,
+					count(*) over() AS count
+				FROM node
+				WHERE node.parent_node_id = $3 AND node.type != 'board' AND
+					($4 = true OR ($4 = false AND node.locked IS NULL))
+				ORDER BY thread_type DESC, ${order} ${reverse ? 'DESC' : ''}
+				LIMIT $1::int OFFSET $2::int
+			) AS nodes
+			LEFT JOIN LATERAL (
+				SELECT id, title, content, content_format
+				FROM node_revision
+				WHERE node_revision.node_id = nodes.id
+				ORDER BY time DESC
+				FETCH FIRST 1 ROW ONLY
+			) last_revision ON true
+		`, pageSize, offset, id, showLocked);
 	}
 
 	// Actually run the queries (don't paginate boards)
@@ -238,9 +266,11 @@ async function children({id, order, reverse, page, showLocked})
 		this.query('v1/permission', {permission: 'view-followers'}),
 	]);
 
+	const conciseMode = userSettings && userSettings[0] ? userSettings[0].concise_mode : 2;
+
 	// A combination of what node/full does but faster
 	// combined with getting all the node info above in bulk
-	// replyCount / latestPage / latestPost / lastChecked: See v1/node/full.js
+	// latestPage / latestPost / lastChecked: See v1/node/full.js, v1/shop/thread.js
 	const nodes = await Promise.all(
 		results.map(async node => {
 			return Promise.all([
@@ -255,23 +285,22 @@ async function children({id, order, reverse, page, showLocked})
 				node.user_id ? (node.type === 'thread' ?
 					this.query('v1/user_lite', {id: node.user_id}) :
 					this.query('v1/user', {id: node.user_id})) : null,
-				node.parent_node_id === constants.boardIds.privateThreads ? db.query(`
+				[constants.boardIds.privateThreads, constants.boardIds.shopThread].includes(node.parent_node_id) ? db.query(`
 					SELECT
 						user_account_cache.id,
 						user_account_cache.username,
 						user_node_permission.granted
 					FROM user_account_cache
 					JOIN user_node_permission ON (user_node_permission.user_id = user_account_cache.id)
-					JOIN node_permission ON (node_permission.id = user_node_permission.node_permission_id)
-					WHERE user_node_permission.node_id = $1::int AND node_permission.identifier = 'read'
+					WHERE user_node_permission.node_id = $1::int AND user_node_permission.node_permission_id = $2
 					ORDER BY username ASC
-				`, node.id) : null,
+				`, node.id, constants.nodePermissions.read) : null,
 				['board', 'thread'].includes(node.type) ? db.query(`
 					SELECT node_id
 					FROM followed_node
 					WHERE node_id = $1::int AND user_id = $2::int
 				`, node.id, this.userId) : null,
-				viewFollowersPerm && node.type === 'thread' ? db.query(`
+				viewFollowersPerm && node.type === 'thread' && constants.boardIds.privateThreads != id ? db.query(`
 					SELECT count(*) AS count
 					FROM followed_node
 					WHERE node_id = $1::int
@@ -287,9 +316,12 @@ async function children({id, order, reverse, page, showLocked})
 						CEIL((
 							SELECT count(*)+(
 								SELECT count(*)
-								FROM node
-								WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
-								LIMIT 1
+								FROM (
+									SELECT node.id
+									FROM node
+									WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
+									LIMIT 1
+								) AS at_least_one_unread
 							) AS count
 							FROM node
 							WHERE node.parent_node_id = $1 AND node.creation_time < last_checked
@@ -316,17 +348,12 @@ async function children({id, order, reverse, page, showLocked})
 					) AS last_checked
 				`, node.id, this.userId) : null,
 				node.type === 'thread' ? db.query(`
-					SELECT count(*)-1 AS count
-					FROM node
-					WHERE node.parent_node_id = $1
-				`, node.id) : null,
-				node.type === 'thread' ? db.query(`
 					SELECT last_checked
 					FROM node_user
 					WHERE node_id = $1 AND user_id = $2
 				`, node.id, this.userId) : [],
 				node.type === 'thread' ? this.query('v1/node/permission', {permission: 'lock', nodeId: node.id}) : null,
-				node.type === 'thread' && this.userId ? db.query(`
+				node.type === 'thread' && this.userId && conciseMode > 2 ? db.query(`
 					SELECT
 						(
 							SELECT count(*) AS count
@@ -346,6 +373,7 @@ async function children({id, order, reverse, page, showLocked})
 					WHERE node_revision_file.node_revision_id = $1::int
 					ORDER BY file.sequence ASC
 				`, node.revision_id) : null,
+				node.type === 'thread' ? this.query('v1/users/donations', {id: node.user_id}) : {},
 			]);
 		})
 	);
@@ -364,7 +392,7 @@ async function children({id, order, reverse, page, showLocked})
 		{
 			[followedNode] = result[4];
 
-			if (viewFollowersPerm && node.type === 'thread')
+			if (viewFollowersPerm && node.type === 'thread' && constants.boardIds.privateThreads != id)
 			{
 				[numFollowed] = result[5];
 			}
@@ -374,9 +402,8 @@ async function children({id, order, reverse, page, showLocked})
 		const editPerm = result[7]; // just edit atm
 		const latestPage = result[8] && result[8][0] ? result[8][0].latest_page : null;
 		const latestPost = result[9] && result[9][0] ? result[9][0].latest_post : null;
-		const replyCount = result[10];
-		const lastChecked = result[11];
-		const lockPerm = result[12];
+		const lastChecked = result[10];
+		const lockPerm = result[11];
 
 		let permissions = [];
 
@@ -390,10 +417,11 @@ async function children({id, order, reverse, page, showLocked})
 			permissions.push('lock');
 		}
 
-		const unreadTotal = result[13];
-		const nodeFiles = result[14];
+		const unreadTotal = result[12];
+		const nodeFiles = result[13];
+		const userDonations = result[14];
 
-		const replies = replyCount ? Number(replyCount[0].count) : 0;
+		const replies = node.reply_count ? Number(node.reply_count)-1 : 0;
 
 		return {
 			id: node.id,
@@ -402,6 +430,7 @@ async function children({id, order, reverse, page, showLocked})
 			revisionId: node.revision_id,
 			title: node.title,
 			created: node.creation_time,
+			formattedCreated: dateUtils.formatDateTime(node.creation_time),
 			locked: node.locked,
 			threadType: node.thread_type,
 			edits: revisions ? revisions[0].count - 1 : 0,
@@ -432,7 +461,8 @@ async function children({id, order, reverse, page, showLocked})
 				}
 			}) : [],
 			showImages: userSettings && userSettings[0] ? userSettings[0].show_images : false,
-			conciseMode: userSettings && userSettings[0] ? userSettings[0].concise_mode : 2,
+			conciseMode: conciseMode,
+			userDonations: userDonations,
 		};
 	});
 

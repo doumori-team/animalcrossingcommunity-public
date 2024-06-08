@@ -5,12 +5,13 @@ import { RequireUser, RequireClientJS } from '@behavior';
 import { utils, constants } from '@utils';
 import { Form, Select, Text, Button, Check } from '@form';
 import FriendCode from '@/components/friend_codes/FriendCode.js';
-import { Pagination, Header, Section, Grid } from '@layout';
+import { Pagination, Header, Section } from '@layout';
 import { UserContext } from '@contexts';
+import * as iso from 'common/iso.js';
 
 const FriendCodesPage = () =>
 {
-	const {users, friendCodes, sortBy, groupBy, games, requestUser, gameId,
+	const {friendCodes, sortBy, groupBy, games, requestUser, gameId,
 		page, pageSize, totalCount} = useLoaderData();
 
 	let groupByLink = '', sortByLink = '', link = '';
@@ -34,12 +35,31 @@ const FriendCodesPage = () =>
 
 	const selectedGameId = Number(gameId || 0);
 
+	const handleUserLookup = async (query) =>
+	{
+		let params = new FormData();
+		params.append('query', query);
+
+		return iso.query(null, 'v1/friend_code/whitelist/users', params)
+			.then(async users =>
+			{
+				return users;
+			})
+			.catch(error =>
+			{
+				console.error('Error attempting to get users.');
+				console.error(error);
+
+				return [];
+			});
+	}
+
 	return (
 		<div className='FriendCodesPage'>
 			<RequireUser permission='use-friend-codes'>
 				<Header
 					name='Friend Codes'
-					description={<div>What does Whitelisting mean? If you and another user whitelist each other by clicking the <img src={`${process.env.AWS_URL}/images/icons/wifi.png`} alt='Whitelist User' /> next to their username on either a post or their profile, you will both be able to view the friend codes you've uploaded to ACC. If only one member whitelists someone the whitelisted user will only temporarily see your friend codes by clicking "Show Friend Codes" in the user's profile.</div>}
+					description={<div>What does Whitelisting mean? If you and another user whitelist each other by clicking the <img src={`${constants.AWS_URL}/images/icons/wifi.png`} alt='Whitelist User' /> next to their username on either a post or their profile, you will both be able to view the friend codes you've uploaded to ACC. If only one member whitelists someone the whitelisted user will only temporarily see your friend codes by clicking "Show Friend Codes" in the user's profile.</div>}
 					links={
 						<UserContext.Consumer>
 							{currentUser => currentUser && (
@@ -81,17 +101,15 @@ const FriendCodesPage = () =>
 					</Form>
 
 					<div className='FriendCodesPage_users'>
-						<Grid options={users} message='No users whitelisted.'>
-							<Form.Group>
-								<Select
-									label='List of Whitelisted Users'
-									placeholder='List of whitelisted users'
-									options={users}
-									optionsMapping={{value: 'id', label: 'username'}}
-									multiple
-								/>
-							</Form.Group>
-						</Grid>
+						<Form.Group>
+							<Select
+								label='List of Whitelisted Users'
+								placeholder='List of whitelisted users'
+								optionsMapping={{value: 'id', label: 'username'}}
+								async
+								loadOptionsHandler={handleUserLookup}
+							/>
+						</Form.Group>
 					</div>
 				</Section>
 
@@ -205,13 +223,11 @@ export async function loadData(_, {sort, group, requestUser, gameId, page})
 	requestUser = requestUser ? requestUser : '';
 	gameId = gameId ? gameId : '';
 
-	const [users, fcObj] = await Promise.all([
-		this.query('v1/friend_code/whitelist/users'),
-		this.query('v1/friend_code/whitelist/friend_codes', {sortBy: sortBy, page: page ? page : 1, gameId: gameId}),
+	const [fcObj] = await Promise.all([
+		this.query('v1/friend_code/whitelist/friend_codes', {sortBy: sortBy, page: page ? page : 1, gameId: gameId, groupBy: groupBy}),
 	]);
 
 	return {
-		users,
 		sortBy,
 		groupBy,
 		games: fcObj.games,

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import jsQR from 'jsqr';
+import { Link } from 'react-router-dom';
 
 import { RequireClientJS } from '@behavior';
 import { utils, constants } from '@utils';
 import { patternShape, acgameShape } from '@propTypes';
-import { Form, Text, Switch } from '@form';
+import { Form, Text, Switch, Alert } from '@form';
 import PatternMaker from '@/components/pattern/PatternMaker.js';
 import { UserError } from '@errors';
 import { ErrorMessage } from '@layout';
@@ -110,8 +111,6 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 
 	const decodedQRCode = (qrData) =>
 	{
-		const nlColors = utils.getPatternColors(constants.gameIds.ACNL);
-
 		// Decode name
 		const nameEncoded = [...qrData].splice(0, 42);
 		let name = '';
@@ -147,7 +146,11 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 			{
 				paletteHexdec = 144;
 			}
-			// 0-143
+			else if (hex == 0)
+			{
+				paletteHexdec = 0;
+			}
+			// 1-143
 			else
 			{
 				let second = hex.substr(1, 1), first = hex.substr(0, 1);
@@ -167,6 +170,7 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 		}
 
 		// need to figure out paletteId for pattern/:id page
+		const nlColors = utils.getPatternColors(constants.gameIds.ACNL);
 		const nlPalettes = utils.getPatternPalettes(constants.gameIds.ACNL);
 		let paletteId = 1, highestNumber = 0;
 		const paletteColors = palette.map(x => nlColors[x]);
@@ -192,6 +196,7 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 			formData[i] = [];
 		}
 
+		// row by row
 		for (let y = 0;  y < constants.pattern.paletteLength; y++)
 		{
 			for (let x = 0; x < constants.pattern.paletteLength; x += 2)
@@ -208,9 +213,29 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 					first = 0;
 				}
 
-				formData[x][y] = nlColors[palette[parseInt(second, 16)]];
+				// if uploading something from online created with NL colors but transparent
+				// use white instead for transparent (number 144 in all-colors list)
+				let paletteIndex = parseInt(second, 16);
 
-				formData[x+1][y] = nlColors[palette[parseInt(first, 16)]];
+				if (paletteIndex === 15)
+				{
+					formData[x][y] = '#ffffff';
+				}
+				else
+				{
+					formData[x][y] = nlColors[palette[paletteIndex]];
+				}
+
+				paletteIndex = parseInt(first, 16);
+
+				if (paletteIndex === 15)
+				{
+					formData[x+1][y] = '#ffffff';
+				}
+				else
+				{
+					formData[x+1][y] = nlColors[palette[paletteIndex]];
+				}
 
 				if (typeof formData[x][y] == 'undefined' || typeof formData[x+1][y] == 'undefined')
 				{
@@ -269,6 +294,9 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 					<RequireClientJS>
 						<div className='EditPattern_upload'>
 							<h3>Upload QR code:</h3>
+							<Alert type='info'>
+								Most QR codes from NL will work to upload to ACC. Note that not all QR codes found across the internet will work due to using online generators vs. generating them right from the game. The QR Code reader also can not read multiple QR codes in one image. You will need to break the image up to upload it. Make sure it's of high enough quality to be read. If you upload a QR code generated from an online generator, any transparent coloring will be replaced with white. If you find that your QR code is not working, please post on the <Link to={`/forums/${constants.boardIds.siteSupport}`}>Site Support board</Link> and a developer will review.
+							</Alert>
 							<input type='file' accept='image/*' onChange={scanFile} />
 						</div>
 					</RequireClientJS>
@@ -279,24 +307,25 @@ const EditPattern = ({pattern, acgames, townId, userId}) =>
 						<PatternMaker
 							key={Math.random()}
 							data={qrData}
-							dataUrl={''}
+							initialDataUrl=''
 							gamePalettes={utils.getPatternPalettes()}
 							gameColors={utils.getPatternColors()}
 							acgames={acgames}
-							gameId={constants.gameIds.ACNL}
-							paletteId={paletteId}
+							initialGameId={constants.gameIds.ACNL}
+							initialPaletteId={paletteId}
 							gameColorInfo={utils.getPatternColorInfo()}
 						/>
 					) : (
 						<PatternMaker
 							key={'main'}
 							data={pattern ? pattern.data : null}
-							dataUrl={pattern ? pattern.dataUrl : ''}
+							initialDataUrl={pattern ? pattern.dataUrl : ''}
 							gamePalettes={utils.getPatternPalettes()}
 							gameColors={utils.getPatternColors()}
 							acgames={acgames}
-							gameId={pattern ? pattern.gameId : 0}
-							paletteId={pattern ? pattern.paletteId : 0}
+							// if creating a new pattern, start with AC:NH
+							initialGameId={pattern ? pattern.gameId : constants.gameIds.ACNH}
+							initialPaletteId={pattern ? pattern.paletteId : 1}
 							gameColorInfo={utils.getPatternColorInfo()}
 						/>
 					)}

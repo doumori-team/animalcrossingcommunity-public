@@ -1,10 +1,10 @@
 import { constants, dateUtils } from '@utils';
 
-import acgcVillagers from './acgc/villagers.json' assert { type: "json"};
-import acwwVillagers from './acww/villagers.json' assert { type: "json"};
-import accfVillagers from './accf/villagers.json' assert { type: "json"};
-import acnlVillagers from './acnl/villagers.json' assert { type: "json"};
-import acnhVillagers from '../acnh-sheet/villagers.json' assert { type: "json"};
+import acgcVillagers from './acgc/villagers.json' assert { type: 'json'};
+import acwwVillagers from './acww/villagers.json' assert { type: 'json'};
+import accfVillagers from './accf/villagers.json' assert { type: 'json'};
+import acnlVillagers from './acnl/villagers.json' assert { type: 'json'};
+import acnhVillagers from '../acnh-sheet/villagers.json' assert { type: 'json'};
 
 // Grabs the data from the files and sorts it in a way that's easier for the front-end
 

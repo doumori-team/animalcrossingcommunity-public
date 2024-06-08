@@ -82,12 +82,7 @@ async function save({buddyUsers, action})
 
 	if (action === 'add')
 	{
-		const user = await this.query('v1/user', {id: this.userId});
-
-		if (typeof(user) === 'undefined' || user.length === 0)
-		{
-			throw new UserError('no-such-user');
-		}
+		const userDonations = await this.query('v1/users/donations', {id: this.userId});
 
 		// Check how many buddies user currently has
 		const [buddyCount] = await db.query(`
@@ -97,8 +92,8 @@ async function save({buddyUsers, action})
 		`, this.userId);
 
 		if (
-			(user.perks < 10 && buddyCount.count >= 100) ||
-			(user.perks < 20 && buddyCount.count >= 200)
+			(userDonations.perks < 10 && buddyCount.count >= 100) ||
+			(userDonations.perks < 20 && buddyCount.count >= 200)
 		)
 		{
 			throw new UserError('max-buddies');
@@ -124,7 +119,7 @@ async function save({buddyUsers, action})
 	}
 
 	return {
-		_successImage: `${process.env.AWS_URL}/images/icons/icon_check.png`,
+		_successImage: `${constants.AWS_URL}/images/icons/icon_check.png`,
 	};
 }
 

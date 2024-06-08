@@ -78,13 +78,18 @@ const SupportTicketPage = () =>
 								</div>
 
 								<div className='SupportTicketPage_message'>
-									<Markup
+									{message.user ? <Markup
 										text={message.message}
 										format={message.format ?
 											message.format :
 											'markdown'}
 										emojiSettings={userEmojiSettings.filter(s => s.userId === message.user.id)}
-									/>
+									/> : <Markup
+										text={message.message}
+										format={message.format ?
+											message.format :
+											'markdown'}
+									/>}
 								</div>
 							</div>
 						)
@@ -154,7 +159,7 @@ const SupportTicketPage = () =>
 							formatName='format'
 							label='Message'
 							emojiSettings={currentUserEmojiSettings}
-							maxLength={constants.max.post}
+							maxLength={constants.max.post1}
 							required
 							key={Math.random()}
 						/>

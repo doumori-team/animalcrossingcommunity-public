@@ -22,17 +22,16 @@ async function top_bells({page, username, order, reverse})
 
 	let query = `
 		SELECT
-			count(*) over() AS count,
-			user_account_cache.id,
-			user_account_cache.username,
-			RANK () OVER (ORDER BY top_bell.total_bells DESC) AS rank,
+			top_bell.count,
+			top_bell.id,
+			top_bell.username,
+			top_bell.rank,
 			top_bell.total_bells,
 			top_bell.missed_bells,
 			top_bell.total_jackpot_bells,
 			top_bell.jackpots_found,
 			top_bell.jackpots_missed
-		FROM top_bell
-		JOIN user_account_cache ON (user_account_cache.id = top_bell.user_id)
+		FROM top_bell_search AS top_bell
 	`;
 
 	// Add wheres
@@ -44,7 +43,7 @@ async function top_bells({page, username, order, reverse})
 
 		paramIndex++;
 
-		wheres.push(`LOWER(user_account_cache.username) = LOWER($` + paramIndex + `)`);
+		wheres.push(`LOWER(top_bell.username) = LOWER($` + paramIndex + `)`);
 	}
 
 	// Combine wheres
@@ -66,7 +65,7 @@ async function top_bells({page, username, order, reverse})
 
 	// Add group by, order by & limit
 	query += `
-		ORDER BY ${order} ${reverse ? 'DESC' : ''}
+		ORDER BY ${order === 'rank' ? 'top_bell.total_bells' : order} ${order === 'rank' ? (reverse ? '' : 'DESC') : (reverse ? 'DESC' : '')}
 		LIMIT $1::int OFFSET $2::int
 	`;
 
@@ -98,7 +97,7 @@ async function top_bells({page, username, order, reverse})
 			};
 		});
 
-		count = Number(users[0].count);
+		count = utils.realStringLength(username) > 0 ? 1 : Number(users[0].count);
 	}
 
 	return {

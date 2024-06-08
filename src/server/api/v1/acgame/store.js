@@ -1,6 +1,7 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 async function store({id})
 {
@@ -11,7 +12,7 @@ async function store({id})
 		throw new UserError('permission');
 	}
 
-	const stores = await db.query(`
+	const stores = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			store.id,
 			store.name,

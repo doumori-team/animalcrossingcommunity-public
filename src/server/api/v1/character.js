@@ -48,9 +48,10 @@ async function character({id})
 		throw new UserError('no-such-character');
 	}
 
-	const [houseSizes, catalogTotal] = await Promise.all([
+	const [houseSizes, catalogTotal, museumTotal] = await Promise.all([
 		getHouseSizes.bind(this)(character.id),
 		getCatalogTotal.bind(this)(character.id),
+		getMuseumTotal.bind(this)(character.id),
 	]);
 
 	return {
@@ -86,6 +87,7 @@ async function character({id})
 		catalogTotal: catalogTotal,
 		happyHomeNetworkId: character.happy_home_network_id,
 		creatorId: character.creator_id,
+		museumTotal: museumTotal,
 	};
 }
 
@@ -117,6 +119,17 @@ async function getCatalogTotal(id)
 			count(*) AS count
 		FROM catalog_item
 		WHERE catalog_item.character_id = $1::int AND catalog_item.is_inventory = true
+	`, id);
+
+	return Number(count.count);
+}
+
+async function getMuseumTotal(id)
+{
+	const [count] = await db.query(`
+		SELECT count(*) AS count
+		FROM catalog_item
+		WHERE catalog_item.character_id = $1::int AND catalog_item.in_museum = true
 	`, id);
 
 	return Number(count.count);

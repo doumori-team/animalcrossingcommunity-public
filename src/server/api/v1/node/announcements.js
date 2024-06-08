@@ -1,6 +1,5 @@
 import * as db from '@db';
 import { constants, dateUtils } from '@utils';
-import { UserError } from '@errors';
 
 export default async function announcements()
 {
@@ -8,10 +7,10 @@ export default async function announcements()
 
 	if (!permission)
 	{
-		throw new UserError('permission');
+		return [];
 	}
 
-	const threads = await db.query(`
+	const threads = await db.cacheQuery(constants.cacheKeys.announcements, `
 		SELECT
 			node.id,
 			(
@@ -31,7 +30,7 @@ export default async function announcements()
 
 	return await Promise.all(threads.map(async (thread) =>
 	{
-		const [post] = await db.query(`
+		const [post] = await db.cacheQuery(constants.cacheKeys.announcements, `
 			SELECT
 				last_revision.id,
 				last_revision.content,
@@ -49,7 +48,7 @@ export default async function announcements()
 			LIMIT 1
 		`, thread.id);
 
-		const nodeFiles = await db.query(`
+		const nodeFiles = await db.cacheQuery(constants.cacheKeys.announcements, `
 			SELECT file.id, file.file_id, file.name, file.width, file.height, file.caption
 			FROM node_revision_file
 			JOIN file ON (node_revision_file.file_id = file.id)

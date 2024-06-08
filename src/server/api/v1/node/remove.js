@@ -1,6 +1,7 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { constants } from '@utils';
 
 /*
  * Remove yourself from PTs.
@@ -15,7 +16,7 @@ async function remove({nodeIds})
 	nodeIds = await Promise.all(nodeIds.map(async (id) =>
 	{
 		const [node] = await db.query(`
-			SELECT id
+			SELECT id, parent_node_id
 			FROM node
 			WHERE id = $1
 		`, id);
@@ -32,6 +33,11 @@ async function remove({nodeIds})
 			throw new UserError('permission');
 		}
 
+		if (node.parent_node_id !== constants.boardIds.privateThreads)
+		{
+			throw new UserError('bad-format');
+		}
+
 		return Number(node.id);
 	}));
 
@@ -45,6 +51,8 @@ async function remove({nodeIds})
 		SET granted = false
 		WHERE node_id = ANY($1) AND user_id = $2::int
 	`, nodeIds, this.userId);
+
+	await db.updatePTsLookupMass(nodeIds);
 }
 
 remove.apiTypes = {

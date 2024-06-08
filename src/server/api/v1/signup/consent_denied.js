@@ -45,7 +45,7 @@ async function consent_denied({id})
 
 consent_denied.apiTypes = {
 	id: {
-		type: APITypes.string,
+		type: APITypes.uuid,
 		required: true,
 	},
 }

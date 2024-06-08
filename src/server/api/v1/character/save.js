@@ -46,9 +46,10 @@ async function save({id, townId, name, bells, debt, houseSizeIds, hraScore,
 		if (id > 0)
 		{
 			let [character] = await query(`
-				SELECT town.user_id, town.game_id
+				SELECT town.id AS town_id, town.user_id, town.game_id, ac_game.max_characters
 				FROM character
 				JOIN town ON (town.id = character.town_id)
+				JOIN ac_game ON (town.game_id = ac_game.id)
 				WHERE character.id = $1::int
 			`, id);
 
@@ -57,15 +58,26 @@ async function save({id, townId, name, bells, debt, houseSizeIds, hraScore,
 				throw new UserError('no-such-character');
 			}
 
-			await Promise.all([
-				validateHappyHomeNetworkId.bind(this)(character.game_id, happyHomeNetworkId),
-				validateCreatorId.bind(this)(character.game_id, creatorId),
-			]);
-
 			if (character.user_id != this.userId)
 			{
 				throw new UserError('permission');
 			}
+
+			const [characters] = await query(`
+				SELECT count(*) AS count
+				FROM character
+				WHERE town_id = $1::int
+			`, character.town_id);
+
+			if (Number(characters.count) > character.max_characters)
+			{
+				throw new UserError('too-many-characters');
+			}
+
+			await Promise.all([
+				validateHappyHomeNetworkId.bind(this)(character.game_id, happyHomeNetworkId),
+				validateCreatorId.bind(this)(character.game_id, creatorId),
+			]);
 
 			townUserId = character.user_id;
 
@@ -84,26 +96,51 @@ async function save({id, townId, name, bells, debt, houseSizeIds, hraScore,
 				throw new UserError('no-such-user');
 			}
 
-			let [foundTownId] = await query(`
-				SELECT game_id
+			let [foundTown] = await query(`
+				SELECT town.game_id, ac_game.max_characters
 				FROM town
-				WHERE id = $1::int
+				JOIN ac_game ON (town.game_id = ac_game.id)
+				WHERE town.id = $1::int
 			`, townId);
 
-			if (!foundTownId)
+			if (!foundTown)
 			{
 				throw new UserError('no-such-town');
 			}
 
+			const [characters] = await query(`
+				SELECT count(*) AS count
+				FROM character
+				WHERE town_id = $1::int
+			`, townId);
+
+			if (Number(characters.count)+1 > foundTown.max_characters)
+			{
+				throw new UserError('too-many-characters');
+			}
+
 			await Promise.all([
-				validateHappyHomeNetworkId.bind(this)(foundTownId.game_id, happyHomeNetworkId),
+				validateHappyHomeNetworkId.bind(this)(foundTown.game_id, happyHomeNetworkId),
+				validateCreatorId.bind(this)(foundTown.game_id, creatorId),
 			]);
 
+			const [townCharacters] = await db.query(`
+				SELECT count(*) AS count
+				FROM character
+				JOIN town ON (town.id = character.town_id)
+				WHERE town.user_id = $1
+			`, this.userId);
+
+			if (townCharacters.count >= (constants.max.towns*8))
+			{
+				throw new UserError('too-many-town-characters');
+			}
+
 			[id] = await query(`
-				INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id)
-				VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9)
+				INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id, creator_id)
+				VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9, $10)
 				RETURNING id
-			`, name, townId, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId);
+			`, name, townId, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, creatorId);
 
 			id = id.id;
 

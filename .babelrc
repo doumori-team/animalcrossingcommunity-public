@@ -1,6 +1,0 @@
-{
-	"ignore": [
-		"src/client/static/main.js",
-		"src/client/static/vendor.js"
-	]
-}

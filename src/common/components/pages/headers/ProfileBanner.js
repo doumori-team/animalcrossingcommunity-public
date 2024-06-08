@@ -11,7 +11,7 @@ import { UserContext } from '@contexts';
 import { ReportProblem } from '@layout';
 import { constants } from '@utils';
 
-const ProfileBanner = ({user, birthday, age, usernameHistory, buddies, whitelistedUsers}) =>
+const ProfileBanner = ({user, birthday, age, usernameHistory, buddies, whitelistedUsers, userDonations}) =>
 {
 	return (
 		<div className='ProfileBanner'>
@@ -42,6 +42,7 @@ const ProfileBanner = ({user, birthday, age, usernameHistory, buddies, whitelist
 					usernameHistory={usernameHistory}
 					buddies={buddies}
 					whitelistedUsers={whitelistedUsers}
+					userDonations={userDonations}
 				/>
 			</span>
 			<NavMenu>
@@ -78,6 +79,12 @@ ProfileBanner.propTypes = {
 		id: PropTypes.number,
 		username: PropTypes.string,
 	})),
+	userDonations: PropTypes.shape({
+		id: PropTypes.number,
+		perks: PropTypes.number,
+		donations: PropTypes.number,
+		monthlyPerks: PropTypes.number,
+	}),
 }
 
 export default ProfileBanner;

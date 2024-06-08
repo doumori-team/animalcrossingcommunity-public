@@ -8,7 +8,7 @@ export default async function categories()
 		throw new UserError('login-needed');
 	}
 
-	return await db.query(`
+	return await db.cacheQuery('v1/feature/categories', `
 		SELECT
 			feature_category.id,
 			feature_category.name

@@ -3,6 +3,7 @@ import { UserError } from '@errors';
 import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
+import { ACCCache } from '@cache';
 
 /*
  * Create thread or post.
@@ -28,29 +29,46 @@ import * as accounts from '@accounts';
  * Returns an object with the following keys:
  * 	id - number - ID of the newly created node.
  */
-async function create({parentId, title, text, format, lock, users, type, boardId,
-	fileIds, fileNames, fileWidths, fileHeights, fileCaptions})
+async function create({parentId, title, text, format, lock, addUsers, removeUsers,
+	type, boardId, fileIds, fileNames, fileWidths, fileHeights, fileCaptions})
 {
-	if (!Array.isArray(users))
+	if (!Array.isArray(addUsers))
 	{
-		if (users)
+		if (addUsers)
 		{
-			if (utils.realStringLength(users) > constants.max.addMultipleUsers)
+			if (utils.realStringLength(addUsers) > constants.max.addMultipleUsers)
 			{
 				throw new UserError('bad-format');
 			}
 
-			users = users.split(',').map(username => username.trim());
+			addUsers = addUsers.split(',').map(username => username.trim());
 		}
 		else
 		{
-			users = [];
+			addUsers = [];
 		}
 	}
 
-	let userIds = [];
+	if (!Array.isArray(removeUsers))
+	{
+		if (removeUsers)
+		{
+			if (utils.realStringLength(removeUsers) > constants.max.addMultipleUsers)
+			{
+				throw new UserError('bad-format');
+			}
 
-	await Promise.all(users.map(async (username) =>
+			removeUsers = removeUsers.split(',').map(username => username.trim());
+		}
+		else
+		{
+			removeUsers = [];
+		}
+	}
+
+	let addUserIds = [], removeUserIds = [];
+
+	await Promise.all(addUsers.map(async (username) =>
 	{
 		const [check] = await db.query(`
 			SELECT id
@@ -76,9 +94,41 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 
 		let userId = Number(check.id);
 
-		if (check.id !== this.userId && !userIds.includes(userId))
+		if (check.id !== this.userId && !addUserIds.includes(userId))
 		{
-			userIds.push(userId);
+			addUserIds.push(userId);
+		}
+	}));
+
+	await Promise.all(removeUsers.map(async (username) =>
+	{
+		const [check] = await db.query(`
+			SELECT id
+			FROM user_account_cache
+			WHERE LOWER(username) = LOWER($1)
+		`, username);
+
+		if (!check)
+		{
+			throw new UserError('no-such-user');
+		}
+
+		const [blocked] = await db.query(`
+			SELECT user_id
+			FROM block_user
+			WHERE block_user_id = $1::int AND user_id = $2::int
+		`, this.userId, check.id);
+
+		if (blocked)
+		{
+			throw new UserError('blocked');
+		}
+
+		let userId = Number(check.id);
+
+		if (!removeUserIds.includes(userId))
+		{
+			removeUserIds.push(userId);
 		}
 	}));
 
@@ -134,7 +184,13 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 		throw new UserError('no-such-parent-node');
 	}
 
-	if (parentDetails.id === constants.boardIds.userSubmissions || ![parentDetails.id, parentDetails.parent_node_id].some(pid => constants.staffBoards.includes(pid)))
+	const staffBoards = (await db.query(`
+		SELECT id
+		FROM node
+		WHERE type = 'board' AND board_type = 'staff'
+	`)).map(x => x.id);
+
+	if (parentDetails.id === constants.boardIds.userSubmissions || ![parentDetails.id, parentDetails.parent_node_id].some(pid => staffBoards.includes(pid)))
 	{
 		await this.query('v1/profanity/check', {text: title});
 		await this.query('v1/profanity/check', {text: text});
@@ -192,7 +248,14 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 	// Save up any errors we find to display to the user all at once
 	let errors = [];
 
-	if (![parentDetails.id, parentDetails.parent_node_id].some(pid => constants.staffBoards.includes(pid)) && utils.realStringLength(text) > constants.max.post)
+	if (
+		![parentDetails.id, parentDetails.parent_node_id].some(pid => staffBoards.includes(pid)) &&
+		(
+			utils.realStringLength(text) > constants.max.post3 ||
+			postUser.monthlyPerks < 10 && utils.realStringLength(text) > constants.max.post2 ||
+			postUser.monthlyPerks < 5 && utils.realStringLength(text) > constants.max.post1
+		)
+	)
 	{
 		errors.push('bad-format');
 	}
@@ -356,14 +419,17 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 		}
 	}
 
-	if (userIds.length > 0 && newNodeType === 'post' && this.userId != parentDetails.user_id)
+	const addUsersPermGranted = await this.query('v1/node/permission', {permission: 'add-users', nodeId: parentId});
+	const removeUsersPermGranted = await this.query('v1/node/permission', {permission: 'remove-users', nodeId: parentId});
+
+	if (addUsers.length > 0 && !addUsersPermGranted)
 	{
 		errors.push('permission');
 	}
 
-	if (userIds.length > 500)
+	if (removeUsers.length > 0 && !removeUsersPermGranted)
 	{
-		errors.push('bad-format');
+		errors.push('permission');
 	}
 
 	if (newNodeType === 'post')
@@ -486,7 +552,12 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 		return newId;
 	});
 
-	if (userIds.length > 0 || parentDetails.id === constants.boardIds.privateThreads)
+	if (parentDetails.id === constants.boardIds.privateThreads)
+	{
+		addUserIds.push(this.userId);
+	}
+
+	if (addUserIds.length > 0 || removeUserIds.length > 0)
 	{
 		let threadDetails;
 
@@ -495,44 +566,47 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 			threadDetails = await this.query('v1/node/lite', {id: parentDetails.parent_node_id});
 		}
 
-		if ([parentDetails.id, parentDetails.parent_node_id, threadDetails?.parentId].includes(constants.boardIds.privateThreads))
+		let userNodeId = parentDetails?.id;
+
+		if ([constants.boardIds.privateThreads, constants.boardIds.shopThread].includes(parentDetails.id))
 		{
-			let ptNodeId = parentDetails?.id;
-
-			if (parentDetails.id === constants.boardIds.privateThreads)
-			{
-				ptNodeId = newId;
-			}
-			else if (threadDetails?.parentId === constants.boardIds.privateThreads)
-			{
-				ptNodeId = threadDetails.id;
-			}
-
-			await Promise.all([
-				parentDetails.id === constants.boardIds.privateThreads ? db.query(`
-					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
-					VALUES ($1::int, $2::int, $3::int, true)
-					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
-				`, this.userId, ptNodeId, constants.nodePermissions.read) : null,
-				parentDetails.id === constants.boardIds.privateThreads ? db.query(`
-					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
-					VALUES ($1::int, $2::int, $3::int, true)
-					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
-				`, this.userId, ptNodeId, constants.nodePermissions.reply) : null,
-				userIds.length > 0 ? db.query(`
-					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
-					VALUES (unnest($1::int[]), $2::int, $3::int, true)
-					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
-				`, userIds, ptNodeId, constants.nodePermissions.read) : null,
-				userIds.length > 0 ? db.query(`
-					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
-					VALUES (unnest($1::int[]), $2::int, $3::int, true)
-					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
-				`, userIds, ptNodeId, constants.nodePermissions.reply) : null,
-			]);
-
-			this.query('v1/notification/create', {id: ptNodeId, type: types.PT});
+			userNodeId = newId;
 		}
+		else if ([constants.boardIds.privateThreads, constants.boardIds.shopThread].includes(threadDetails?.parentId))
+		{
+			userNodeId = threadDetails.id;
+		}
+
+		if (addUserIds.length > 0 && !addUserIds.includes(this.userId))
+		{
+			addUserIds.push(this.userId);
+		}
+
+		await Promise.all([
+			Promise.all([
+				addUserIds.map(async (userId) => {
+					await db.query(`
+						INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+						VALUES ($1::int, $2::int, $3::int, true)
+						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+					`, userId, userNodeId, constants.nodePermissions.read);
+
+					await db.query(`
+						INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+						VALUES ($1::int, $2::int, $3::int, true)
+						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+					`, userId, userNodeId, constants.nodePermissions.reply);
+				})
+			]),
+			Promise.all([
+				removeUserIds.map(async (userId) => {
+					await db.query(`
+						DELETE FROM user_node_permission
+						WHERE user_id = $1 AND node_id = $2
+					`, userId, userNodeId);
+				})
+			]),
+		]);
 	}
 
 	const [user] = await db.query(`
@@ -563,6 +637,8 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 		if (parentId === constants.boardIds.announcements)
 		{
 			this.query('v1/notification/create', {id: newId, type: types.announcement});
+
+			ACCCache.deleteMatch(constants.cacheKeys.announcements);
 		}
 		else
 		{
@@ -603,6 +679,8 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 				this.query('v1/notification/create', {id: newId, type: types.scoutBT}) : null,
 			parentId !== constants.boardIds.adopteeBT && parentDetails.parent_node_id === constants.boardIds.adopteeThread ?
 				this.query('v1/notification/create', {id: newId, type: types.scoutThread}) : null,
+			parentDetails.parent_node_id === constants.boardIds.shopThread ?
+				this.query('v1/notification/create', {id: newId, type: types.shopThread}) : null,
 		]);
 	}
 
@@ -612,7 +690,7 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 			UPDATE node
 			SET thread_type = $2
 			WHERE id = $1::int
-		`, (newNodeType === 'thread' ? newId : parentDetails.id), type);
+		`, (newNodeType === 'thread' ? newId : (newNodeType === 'post' && parentDetails.type === 'post' ? parentDetails.parent_node_id : parentDetails.id)), type);
 	}
 
 	if (lock)
@@ -621,6 +699,12 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 			UPDATE node
 			SET locked = NOW(), thread_type = 'normal'
 			WHERE id = $1::int
+		`, newNodeType === 'post' && parentDetails.type === 'post' ? parentDetails.parent_node_id : parentId);
+
+		await db.query(`
+			UPDATE shop_order
+			SET completed = NOW()
+			WHERE node_id = $1::int
 		`, newNodeType === 'post' && parentDetails.type === 'post' ? parentDetails.parent_node_id : parentId);
 	}
 
@@ -633,17 +717,7 @@ async function create({parentId, title, text, format, lock, users, type, boardId
 		`, parentId, boardId);
 	}
 
-	await db.query(`
-		UPDATE node
-		SET latest_reply_time = (
-			SELECT child.creation_time
-			FROM node AS child
-			WHERE child.parent_node_id = node.id
-			ORDER BY child.creation_time DESC
-			LIMIT 1
-		)
-		WHERE node.type = 'thread' AND node.id = $1
-	`, (newNodeType === 'thread' ? newId : parentId));
+	await db.updateThreadStats(newNodeType === 'thread' ? newId : parentId);
 
 	return {id: newId};
 }
@@ -674,7 +748,11 @@ create.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-	users: {
+	addUsers: {
+		type: APITypes.string,
+		default: '',
+	},
+	removeUsers: {
 		type: APITypes.string,
 		default: '',
 	},

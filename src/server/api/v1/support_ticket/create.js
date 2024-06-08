@@ -133,7 +133,7 @@ create.apiTypes = {
 	message: {
 		type: APITypes.string,
 		default: '',
-		length: constants.max.post,
+		length: constants.max.post1,
 		profanity: true,
 	},
 	username: {

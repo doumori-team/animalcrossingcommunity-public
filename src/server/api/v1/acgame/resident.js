@@ -1,7 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { residents as sortedResidents } from '@/catalog/residents.js';
 import * as APITypes from '@apiTypes';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 async function resident({id})
 {
@@ -14,6 +15,8 @@ async function resident({id})
 	{
 		throw new UserError('permission');
 	}
+
+	const sortedResidents = id === 0 ? await ACCCache.get(constants.cacheKeys.residents) : (await ACCCache.get(constants.cacheKeys.residents))[id];
 
 	if (id === 0)
 	{
@@ -31,7 +34,7 @@ async function resident({id})
 		throw new UserError('no-such-ac-game');
 	}
 
-	return sortedResidents[id];
+	return sortedResidents;
 }
 
 resident.apiTypes = {

@@ -50,6 +50,8 @@ async function lock({nodeIds})
 		SET locked = now(), thread_type = 'normal'
 		WHERE id = ANY($1)
 	`, nodeIds);
+
+	await db.updatePTsLookupMass(nodeIds);
 }
 
 lock.apiTypes = {

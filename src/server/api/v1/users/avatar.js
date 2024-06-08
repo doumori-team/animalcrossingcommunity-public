@@ -1,11 +1,8 @@
 import * as db from '@db';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { indexedAvatarAccents as avatarAccents } from '@/data/avatar/avatars.js';
-import { indexedAvatarBackgrounds as avatarBackgrounds } from '@/data/avatar/avatars.js';
-import { indexedAvatarCharacters as avatarCharacters } from '@/data/avatar/avatars.js';
-import { indexedAvatarColorations as avatarColorations } from '@/data/avatar/avatars.js';
 import { UserError } from '@errors';
+import { ACCCache } from '@cache';
 
 /*
  * Fetches information about a user's avatar.
@@ -74,10 +71,15 @@ async function avatar({id})
 		throw new UserError('incomplete-avatar');
 	}
 
-	if (!avatarBackgrounds[userAvatar.avatar_background_id] ||
-		!avatarCharacters[userAvatar.avatar_character_id] ||
-		(userAvatar.avatar_coloration_id && !avatarColorations[userAvatar.avatar_coloration_id]) ||
-		(userAvatar.avatar_accent_id && !avatarAccents[userAvatar.avatar_accent_id])
+	const avatarBackground = (await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds))[userAvatar.avatar_background_id];
+	const avatarCharacter = (await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters))[userAvatar.avatar_character_id];
+	const avatarColoration = userAvatar.avatar_coloration_id ? (await ACCCache.get(constants.cacheKeys.indexedAvatarColorations))[userAvatar.avatar_coloration_id] : null;
+	const avatarAccent = userAvatar.avatar_accent_id ? (await ACCCache.get(constants.cacheKeys.indexedAvatarAccents))[userAvatar.avatar_accent_id] : null;
+
+	if (!avatarBackground ||
+		!avatarCharacter ||
+		(userAvatar.avatar_coloration_id && !avatarColoration) ||
+		(userAvatar.avatar_accent_id && !avatarAccent)
 	)
 	{
 		throw new UserError('no-such-avatar');
@@ -85,30 +87,30 @@ async function avatar({id})
 
 	return {
 		background: {
-			id: avatarBackgrounds[userAvatar.avatar_background_id].id,
-			name: avatarBackgrounds[userAvatar.avatar_background_id].name,
-			image: avatarBackgrounds[userAvatar.avatar_background_id].image,
-			colorable: avatarBackgrounds[userAvatar.avatar_background_id].colorable,
-			tags: avatarBackgrounds[userAvatar.avatar_background_id].tags
+			id: avatarBackground.id,
+			name: avatarBackground.name,
+			image: avatarBackground.image,
+			colorable: avatarBackground.colorable,
+			tags: avatarBackground.tags
 		},
 		coloration: userAvatar.avatar_coloration_id ? {
-			id: avatarColorations[userAvatar.avatar_coloration_id].id,
-			name: avatarColorations[userAvatar.avatar_coloration_id].name,
-			css: avatarColorations[userAvatar.avatar_coloration_id].css
+			id: avatarColoration.id,
+			name: avatarColoration.name,
+			css: avatarColoration.css
 		} : null,
 		character: {
-			id: avatarCharacters[userAvatar.avatar_character_id].id,
-			name: avatarCharacters[userAvatar.avatar_character_id].name,
-			image: avatarCharacters[userAvatar.avatar_character_id].image,
-			tags: avatarCharacters[userAvatar.avatar_character_id].tags
+			id: avatarCharacter.id,
+			name: avatarCharacter.name,
+			image: avatarCharacter.image,
+			tags: avatarCharacter.tags
 		},
 		accent: userAvatar.avatar_accent_id ? {
-			id: avatarAccents[userAvatar.avatar_accent_id].id,
-			name: avatarAccents[userAvatar.avatar_accent_id].name,
-			image: avatarAccents[userAvatar.avatar_accent_id].image,
-			positionable: avatarAccents[userAvatar.avatar_accent_id].positionable,
-			zIndex: avatarAccents[userAvatar.avatar_accent_id].zIndex,
-			tags: avatarAccents[userAvatar.avatar_accent_id].tags
+			id: avatarAccent.id,
+			name: avatarAccent.name,
+			image: avatarAccent.image,
+			positionable: avatarAccent.positionable,
+			zIndex: avatarAccent.zIndex,
+			tags: avatarAccent.tags
 		} : null,
 		accentPosition: Number(userAvatar.avatar_accent_position)
 	};

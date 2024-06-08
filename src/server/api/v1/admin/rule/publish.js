@@ -1,5 +1,7 @@
 import * as db from '@db';
 import { UserError } from '@errors';
+import { ACCCache } from '@cache';
+import { constants } from '@utils';
 
 export default async function publish()
 {
@@ -103,4 +105,6 @@ export default async function publish()
 			WHERE name = 'Rules'
 		`);
 	});
+
+	ACCCache.deleteMatch(constants.cacheKeys.rulesCurrent);
 }

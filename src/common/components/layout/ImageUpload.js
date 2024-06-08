@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 
 import { RequirePermission, RequireClientJS } from '@behavior';
 import { ErrorMessage } from '@layout';
 import { Alert, Button } from '@form';
 import * as iso from 'common/iso.js';
-import axios from 'axios';
+import { constants } from '@utils';
 
 const ImageUpload = ({directory}) =>
 {
@@ -93,7 +94,7 @@ const ImageUpload = ({directory}) =>
 
 				{success && (
 					<Alert type='success'>
-						Your file has been uploaded: {`${process.env.AWS_URL}/${directory}/${uploadedFileName}`}
+						Your file has been uploaded: {`${constants.AWS_URL}/${directory}/${uploadedFileName}`}
 					</Alert>
 				)}
 

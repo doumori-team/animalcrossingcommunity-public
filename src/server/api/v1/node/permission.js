@@ -4,7 +4,7 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 
 /*
- * Determins whether or not a user has a specific permission for
+ * Determines whether or not a user has a specific permission for
  * 	interacting with a certain node.
  * Available only to the user themself, or to a user with the
  * 	'permission-admin' permission.
@@ -24,7 +24,7 @@ async function node({permission, userId, nodeId})
 
 	const staffIdentifiers = constants.staffIdentifiers;
 
-	const [[nodeResult], [userResult], viewPTs, groupIds, [nodePermission]] = await Promise.all([
+	const [[nodeResult], [userResult], viewPTs, groupIds, [nodePermission], userData] = await Promise.all([
 		db.query(`
 			SELECT
 				node.user_id,
@@ -49,17 +49,32 @@ async function node({permission, userId, nodeId})
 			WHERE users.id = $1::int
 		`, userId),
 		this.query('v1/permission', {permission: 'view-other-private-threads'}),
-		userId ? this.query('v1/users/user_groups', {userId: userId}) : [0],
+		userId ? db.getUserGroups(userId) : [0],
 		db.query(`
 			SELECT id
 			FROM node_permission
 			WHERE identifier = $1
 		`, permission),
+		this.userId ? db.query(`
+			SELECT ban_length.description
+			FROM users
+			JOIN ban_length ON (ban_length.id = users.current_ban_length_id)
+			WHERE users.id = $1::int
+		`, this.userId) : null,
 	]);
 
+	if (userData && userData[0] && userData[0].description)
+	{
+		return false;
+	}
+
+	if (nodeResult.locked && !this.userId)
+	{
+		return false;
+	}
+
 	// you can't do the following to a locked thread
-	if (['lock', 'reply', 'sticky', 'admin-lock'].includes(permission) && nodeResult &&
-		(nodeResult.locked !== null))
+	if (['lock', 'reply', 'sticky', 'admin-lock'].includes(permission) && nodeResult && nodeResult.locked !== null)
 	{
 		return false;
 	}
@@ -76,6 +91,16 @@ async function node({permission, userId, nodeId})
 		{
 			return true;
 		}
+		else if (permission === 'add-users')
+		{
+			// if node or parent is PTs or Shop Threads and it's yours you can add users to it
+			if ([nodeResult.id, nodeResult.parent_node_id].some(id => [constants.boardIds.privateThreads, constants.boardIds.shopThread].includes(id)))
+			{
+				return true;
+			}
+
+			// otherwise have to check database, which will grant individually for Shop Threads
+		}
 	}
 	else if (['edit'].includes(permission))
 	{
@@ -88,10 +113,18 @@ async function node({permission, userId, nodeId})
 	// restart the process. Whenever it finds one, it grabs the first one, then returns only if it grants access.
 	let permissionGranted = [];
 
-	// if we're directly viewing a PT, only look at PTs you have access to OR you're a modmin
-	if (permission === 'read' && [nodeResult.parent_node_id, nodeResult.parent_node_id2, nodeResult.parent_node_id3].includes(constants.boardIds.privateThreads))
+	// if we're directly viewing a PT / Shop Thread / Adoptee Thread,
+	// only look at PTs / Shop Threads / Adoptee Thread you have access to OR you're a modmin
+	if ([nodeResult.parent_node_id, nodeResult.parent_node_id2, nodeResult.parent_node_id3].some(nId => [constants.boardIds.privateThreads, constants.boardIds.shopThread, constants.boardIds.adopteeThread].includes(nId)))
 	{
-		if (viewPTs && ![staffIdentifiers.admin, staffIdentifiers.owner].includes(nodeResult?.identifier))
+		if (permission === 'read' && viewPTs && ![staffIdentifiers.admin, staffIdentifiers.owner].includes(nodeResult?.identifier))
+		{
+			return true;
+		}
+
+		// modmins are given access in previous if statement
+		// scouts are given access through group permissions but this is just easier
+		if (nodeId === constants.boardIds.adopteeBT && userResult?.identifier === constants.staffIdentifiers.scout)
 		{
 			return true;
 		}
@@ -155,7 +188,7 @@ async function node({permission, userId, nodeId})
 node.apiTypes = {
 	permission: {
 		type: APITypes.string,
-		includes: ['lock', 'read', 'reply', 'sticky', 'admin-lock', 'edit', 'move'],
+		includes: ['lock', 'read', 'reply', 'sticky', 'admin-lock', 'edit', 'move', 'add-users', 'remove-users'],
 		required: true,
 	},
 	userId: {

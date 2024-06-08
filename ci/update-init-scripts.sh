@@ -13,6 +13,7 @@ repo_base_path="$(pwd)/$(dirname $0)/.."
 
 dropdb --if-exists acc2-tmp
 createdb acc2-tmp
+sudo -u postgres psql -d acc2-tmp -c 'CREATE SCHEMA IF NOT EXISTS heroku_ext'
 heroku pg:backups:url --app acc-copyback \
 	| xargs -n1 curl \
 	| pg_restore -d acc2-tmp --no-owner

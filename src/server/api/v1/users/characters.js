@@ -17,8 +17,7 @@ async function characters({id})
 	}
 
 	const characters = await db.query(`
-		SELECT
-			character.id
+		SELECT character.id
 		FROM character
 		JOIN town ON (character.town_id = town.id)
 		WHERE town.user_id = $1::int

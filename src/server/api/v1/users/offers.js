@@ -17,7 +17,7 @@ async function offers({id, page})
 
 	const offerStatuses = constants.tradingPost.offerStatuses;
 
-	const pageSize = 25;
+	const pageSize = 24;
 	const offset = (page * pageSize) - pageSize;
 
 	const results = await db.query(`

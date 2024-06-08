@@ -14,8 +14,7 @@ async function features({page, statusId, isBug, categoryId, following, staffOnly
 	if (utils.realStringLength(statusId) > 0)
 	{
 		const [status] = await db.query(`
-			SELECT
-				feature_status.id
+			SELECT feature_status.id
 			FROM feature_status
 			WHERE feature_status.id = $1::citext
 		`, statusId);
@@ -29,8 +28,7 @@ async function features({page, statusId, isBug, categoryId, following, staffOnly
 	if (categoryId > 0)
 	{
 		const [category] = await db.query(`
-			SELECT
-				feature_category.id
+			SELECT feature_category.id
 			FROM feature_category
 			WHERE feature_category.id = $1::int
 		`, categoryId);

@@ -214,3 +214,18 @@
 		}
 	}
 }
+
+.HomePageBanner_countDown {
+	position: absolute;
+	color: white;
+
+	top: px2rem(130px);
+	transform: translate(-212%, 0%);
+	font-size: px2rem(25px);
+
+	@media only screen and (max-width: px2rem(1050px)) {
+		font-size: 3.7vw;
+		transform: translate(-29%, -540%);
+		top: unset;
+	}
+}

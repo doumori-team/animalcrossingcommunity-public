@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLoaderData } from 'react-router-dom';
+import { Link, useLoaderData } from 'react-router-dom';
 
 import { RequirePermission } from '@behavior';
 import { Form, Switch, Text, Checkbox, Check, Select } from '@form';
@@ -8,8 +8,11 @@ import { Section, Grid } from '@layout';
 
 const AccountSettingsPage = () =>
 {
-	const {email, showBirthday, showAge, acgames, settings, hemispheres,
-		showEmail, emailNotifications, blockedUsers} = useLoaderData();
+	const {
+		email, showBirthday, showAge, acgames, settings, hemispheres,
+		showEmail, emailNotifications, blockedUsers, showStaff, shopDNC,
+		southernHemisphere, stayForever
+	} = useLoaderData();
 
 	return (
 		<div className='AccountSettingsPage'>
@@ -74,6 +77,39 @@ const AccountSettingsPage = () =>
 							name='emailNotifications'
 							label='Email Notifications'
 							value={emailNotifications}
+						/>
+					</Form.Group>
+
+					<Form.Group>
+						<Switch
+							name='showStaff'
+							label='Show Staff with Buddies'
+							value={showStaff}
+						/>
+					</Form.Group>
+
+					<Form.Group>
+						<Switch
+							name='shopDNC'
+							label='Shop DNC'
+							value={shopDNC}
+						/>
+					</Form.Group>
+
+					<Form.Group>
+						<Switch
+							name='southernHemisphere'
+							label='Southern Hemisphere Layout'
+							value={southernHemisphere}
+						/>
+					</Form.Group>
+
+					<Form.Group>
+						<Switch
+							name='stayForever'
+							label='Stay Signed In Forever'
+							value={stayForever}
+							information="Only turn 'Stay Signed In Forever' on if you use a private device - a device that no one else uses - to access ACC. This will keep you logged in to ACC on that device for 1 year after you were last active on the site."
 						/>
 					</Form.Group>
 				</Form>
@@ -224,6 +260,10 @@ export async function loadData()
 		hemispheres,
 		emailNotifications: results.emailNotifications,
 		blockedUsers,
+		showStaff: results.showStaff,
+		shopDNC: results.shopDNC,
+		southernHemisphere: results.southernHemisphere,
+		stayForever: results.stayForever,
 	};
 }
 

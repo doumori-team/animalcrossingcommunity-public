@@ -238,7 +238,7 @@ save.apiTypes = {
 		default: '',
 		required: true,
 		error: 'missing-content',
-		length: constants.max.post,
+		length: constants.max.post1,
 		profanity: true,
 	},
 	format: {
@@ -276,7 +276,7 @@ save.apiTypes = {
 	staffDescription: {
 		type: APITypes.string,
 		default: '',
-		length: constants.max.post,
+		length: constants.max.post1,
 		profanity: true,
 	},
 	staffDescriptionFormat: {

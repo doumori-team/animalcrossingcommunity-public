@@ -33,7 +33,7 @@ export default async function boards({nodeIds})
 		return Number(check.id);
 	}));
 
-	const groupIds = await this.query('v1/users/user_groups');
+	const groupIds = await db.getUserGroups(this.userId);
 	let boards = [];
 
 	if (nodeIds.length > 0)
@@ -50,7 +50,8 @@ export default async function boards({nodeIds})
 					SELECT followed_node.node_id
 					FROM followed_node
 					WHERE followed_node.node_id = node.id AND user_id = $3
-				) THEN 1 ELSE 0 END AS followed
+				) THEN 1 ELSE 0 END AS followed,
+				node.board_type
 			FROM node
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
@@ -102,7 +103,8 @@ export default async function boards({nodeIds})
 				last_revision.title,
 				last_revision.content,
 				last_revision.content_format,
-				0 AS followed
+				0 AS followed,
+				node.board_type
 			FROM node
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
@@ -156,6 +158,7 @@ export default async function boards({nodeIds})
 				format: board.content_format,
 			},
 			followed: board.followed ? true : false,
+			boardType: board.board_type,
 		};
 	});
 }

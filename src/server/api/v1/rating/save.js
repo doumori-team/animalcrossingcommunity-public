@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 
-async function save({id, rating, comment, userId, listingId, adoptionNodeId})
+async function save({id, rating, comment, userId, listingId, adoptionNodeId, shopNodeId})
 {
 	const permissionGranted = await this.query('v1/permission', {permission: 'use-friend-codes'});
 
@@ -58,6 +58,24 @@ async function save({id, rating, comment, userId, listingId, adoptionNodeId})
 		{
 			throw new UserError('permission');
 		}
+	}
+
+	if (shopNodeId > 0)
+	{
+		const [shopNode] = await db.query(`
+			SELECT node.user_id
+			FROM shop_node
+			JOIN node ON (node.id = shop_node.node_id)
+			JOIN user_node_permission ON (user_node_permission.node_id = node.id)
+			WHERE shop_node.node_id = $1 AND node.locked IS NOT NULL AND user_node_permission.granted = true AND user_node_permission.node_permission_id = $2 AND user_node_permission.user_id = $3
+		`, shopNodeId, constants.nodePermissions.read, this.userId);
+
+		if (!shopNode)
+		{
+			throw new UserError('permission');
+		}
+
+		userId = shopNode.user_id;
 	}
 
 	// Perform queries
@@ -151,6 +169,15 @@ async function save({id, rating, comment, userId, listingId, adoptionNodeId})
 				type: types.scoutFeedback
 			});
 		}
+
+		if (shopNodeId > 0)
+		{
+			await db.query(`
+				UPDATE rating
+				SET shop_node_id = $2::int
+				WHERE id = $1::int
+			`, id, shopNodeId);
+		}
 	}
 
 	return id;
@@ -182,6 +209,10 @@ save.apiTypes = {
 		default: 0,
 	},
 	adoptionNodeId: {
+		type: APITypes.number,
+		default: 0,
+	},
+	shopNodeId: {
 		type: APITypes.number,
 		default: 0,
 	},

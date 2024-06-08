@@ -36,17 +36,7 @@ export default async function update({nodeId, content})
 		return message.id;
 	});
 
-	await db.query(`
-		UPDATE node
-		SET latest_reply_time = (
-			SELECT child.creation_time
-			FROM node AS child
-			WHERE child.parent_node_id = node.id
-			ORDER BY child.creation_time DESC
-			LIMIT 1
-		)
-		WHERE node.type = 'thread' AND node.id = $1
-	`, nodeId);
+	await db.updateThreadStats(nodeId);
 
 	await this.query('v1/notification/create', {id: messageId, type: constants.notification.types.FT});
 }

@@ -8,7 +8,7 @@ const EditViolation = ({ruleId, violation, severities}) =>
 {
 	return (
 		<div className='EditViolation'>
-			<Form action='v1/admin/rule/violation/save' callback='/admin/rules' showButton>
+			<Form action='v1/admin/rule/violation/save' callback='/rules' showButton>
 				<input type='hidden' name='id' value={violation ? violation.id : 0} />
 				<input type='hidden' name='ruleId' value={ruleId} />
 

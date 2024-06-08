@@ -18,7 +18,7 @@ const DonateButton = ({donate}) =>
 	{
 		return (
 			<button type='submit'>
-				<img src='/images/layout/donate.png' className='DonateButton' alt='Donate' />
+				<img src={`${constants.AWS_URL}/images/layout/donate.png`} className='DonateButton' alt='Donate' />
 			</button>
 		);
 	}
@@ -44,7 +44,7 @@ const DonateButton = ({donate}) =>
 				console.error(error);
 
 				return [];
-			})
+			});
 	}
 
 	return (

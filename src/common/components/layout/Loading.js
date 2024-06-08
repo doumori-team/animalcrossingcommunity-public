@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Await, useLoaderData } from 'react-router-dom';
 
 import ErrorMessage from '@/components/layout/ErrorMessage.js';
+import { constants } from '@utils';
 
 const Loading = ({children}) =>
 {
@@ -11,7 +12,7 @@ const Loading = ({children}) =>
 		<Suspense
 			fallback={
 				<div className='Loading George'>
-					<img src='/images/layout/loading.gif' alt='Loading...' />
+					<img src={`${constants.AWS_URL}/images/layout/loading.gif`} alt='Loading...' />
 				</div>
 			}
 		>

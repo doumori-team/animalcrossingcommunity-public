@@ -2,6 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Add / Remove donations to yourself.
@@ -34,22 +35,22 @@ async function donate({donateAction, amount})
 		`, this.userId, amount);
 	}
 
+	ACCCache.deleteMatch(constants.cacheKeys.donations);
+
 	if (donateAction === 'add')
 	{
-        const updatedUser = await this.query('v1/user', {id: this.userId});
+        const updatedUser = await this.query('v1/users/donations', {id: this.userId});
 
 		return {
 			_success: `You have donated ${amount.toLocaleString()}, bringing your total to ${updatedUser.donations}!`,
 			_callbackFirst: true,
 		};
 	}
-	else
-	{
-		return {
-			_success: `Your donations has been changed to have been donated more then 1 year ago.`,
-			_callbackFirst: true,
-		};
-	}
+
+	return {
+		_success: `Your donations has been changed to have been donated more then 1 year ago.`,
+		_callbackFirst: true,
+	};
 }
 
 donate.apiTypes = {

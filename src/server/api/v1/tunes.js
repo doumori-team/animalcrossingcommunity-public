@@ -12,6 +12,11 @@ async function tunes({page, name, creator})
 		throw new UserError('permission');
 	}
 
+	if (!this.userId && page > 1)
+	{
+		throw new UserError('login-needed');
+	}
+
 	const pageSize = 24;
 	const offset = (page * pageSize) - pageSize;
 	let params = [pageSize, offset];
@@ -72,12 +77,12 @@ async function tunes({page, name, creator})
 
 	// Add order by & limit
 	query += `
-		ORDER BY town_tune.id DESC
+		ORDER BY town_tune.created DESC
 		LIMIT $1::int OFFSET $2::int
 	`;
 
 	// Run query
-	const tunes = await db.query(query, ...params);
+	const tunes = await db.cacheQuery('v1/tunes', query, ...params);
 
 	if (tunes.length > 0)
 	{
@@ -108,11 +113,13 @@ tunes.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.tuneName,
+		profanity: true,
 	},
 	creator: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
+		profanity: true,
 	},
 }
 

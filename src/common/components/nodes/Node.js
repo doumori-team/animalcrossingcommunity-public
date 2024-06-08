@@ -21,9 +21,9 @@ import { PermissionsContext } from '@contexts';
 const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 	childLength, followNode, parentId, users, threadType, locked, board, lastReply,
 	created, revisionId, permissions, page, emojiSettings, numFollowed, followed,
-	buddies, whitelistedUsers, currentUser, latestPage, latestPost, subBoards,
-	replyCount, unread, unreadTotal, parentPermissions, files, showImages, conciseMode,
-	nodeParentId}) =>
+	currentUser, latestPage, latestPost, subBoards, replyCount, unread, unreadTotal,
+	parentPermissions, files, showImages, conciseMode, nodeParentId,
+	formattedCreated, pageLink, listBoards, userDonations}) =>
 {
 	const [curFollowed, setCurFollowed] = useState(followed);
 	const [curNumFollowed, setCurNumFollowed] = useState(numFollowed);
@@ -71,10 +71,9 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 	};
 
 	displaying.titleInfo = !displaying.breadcrumb && type === 'thread';
-	displaying.users = displaying.breadcrumb && parentId === constants.boardIds.privateThreads && users.length > 0;
 	displaying.nodesCheckbox = !displaying.breadcrumb && parentId === constants.boardIds.privateThreads && location.pathname.includes(`/forums/${constants.boardIds.privateThreads}`);
 	displaying.follow = (type === 'thread' || type === 'board') &&
-		![id, parentId].includes(constants.boardIds.privateThreads) && ![constants.boardIds.publicThreads, constants.boardIds.accForums, constants.boardIds.announcements].includes(id);
+		parentId != constants.boardIds.privateThreads && ![constants.boardIds.publicThreads, constants.boardIds.accForums, constants.boardIds.announcements, constants.boardIds.privateThreads].includes(id);
 	displaying.boards = subBoards && subBoards.length > 0;
 	displaying.removeMe2 = parentId === constants.boardIds.privateThreads && displaying.breadcrumb;
 
@@ -97,7 +96,7 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 	const encodedParentId = encodeURIComponent(parentId);
 	const encodedPage = encodeURIComponent(page);
 
-	let link = `/forums/${encodedId}`;
+	let link = `/${pageLink}/${encodedId}`;
 
 	if (latestPage)
 	{
@@ -117,7 +116,7 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 	return (
 		<article className={className} id={id} key={id}>
 			{displaying.user &&
-				<PostAuthorInfo {...user} />
+				<PostAuthorInfo {...user} perks={userDonations.perks} />
 			}
 			<div className='Node_main'>
 				{displaying.title &&
@@ -136,7 +135,7 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 									form='removeFromPTs'
 								/>
 							)}
-							{(!displaying.breadcrumb && !displaying.nodesCheckbox && type === 'thread' && parentPermissions.includes('lock') && permissions.includes('lock') && locked === null && ![constants.boardIds.publicThreads, constants.boardIds.accForums, constants.boardIds.trading, constants.boardIds.archivedBoards, constants.boardIds.archivedStaffBoards, constants.boardIds.archivedAdminBoards, constants.boardIds.siteRelated, constants.boardIds.featuresDashboard, constants.boardIds.archivedSpecialProjects].includes(nodeParentId)) && (
+							{(!displaying.breadcrumb && !displaying.nodesCheckbox && type === 'thread' && parentPermissions.includes('lock') && permissions.includes('lock') && locked === null && !listBoards.includes(nodeParentId)) && (
 								<Checkbox
 									name='nodeIds'
 									value={id}
@@ -155,18 +154,18 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 										<input
 											type='image'
 											src={curFollowed ?
-												`${process.env.AWS_URL}/images/icons/followed.png` :
-												`${process.env.AWS_URL}/images/icons/unfollowed.png`}
+												`${constants.AWS_URL}/images/icons/followed.png` :
+												`${constants.AWS_URL}/images/icons/unfollowed.png`}
 											title='Follow'
 										/>
 									</Form>
 								</RequireUser>
 							)}
 							{threadType === 'sticky' && (
-								<img src={`${process.env.AWS_URL}/images/icons/sticky.png`} alt='Sticky' />
+								<img src={`${constants.AWS_URL}/images/icons/sticky.png`} alt='Sticky' />
 							)}
 							{threadType === 'admin' && (
-								<img src={`${process.env.AWS_URL}/images/icons/admin.png`} alt='Lock' />
+								<img src={`${constants.AWS_URL}/images/icons/admin.png`} alt='Lock' />
 							)}
 							<Link
 								className={locked && `locked`}
@@ -200,7 +199,7 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 									<RequirePermission permission='view-followers' silent>
 										<div className='Node_followed'>
 											{curNumFollowed} <img
-												src={`${process.env.AWS_URL}/images/icons/followed.png`}
+												src={`${constants.AWS_URL}/images/icons/followed.png`}
 												alt='Favorite'
 											/>
 										</div>
@@ -255,12 +254,21 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 							)}
 						</div>
 					)}
+					{(displaying.titleInfo && conciseMode > 3) && (
+						<div className='Node_fourthLine'>
+							<div className='Node_created'>
+								Created: <span>
+									{formattedCreated}
+								</span>
+							</div>
+						</div>
+					)}
 					</>
 				}
 				{(displaying.permalink || displaying.dates || displaying.edits) &&
 					<div className='Node_metadata'>
 						{displaying.permalink &&
-							<><Link to={`/forums/${encodedParentId}/${encodedPage}#${encodedId}`}>
+							<><Link to={`/${pageLink}/${encodedParentId}/${encodedPage}#${encodedId}`}>
 								{'#'}{index}
 							</Link>{' • '}</>
 						}
@@ -288,19 +296,19 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 							<>{' • '}<ReportProblem type={constants.userTicket.types.post} id={revisionId} /></>
 						</RequirePermission>
 						{(permissions.includes('edit') && !locked) && (
-							<>{' • '}<Link to={`/forums/${encodedParentId}/${encodedPage}/${encodedId}`}>
+							<>{' • '}<Link reloadDocument to={`/${pageLink}/${encodedParentId}/${encodedPage}/${encodedId}#TextBox`}>
 								<img
-									src={`${process.env.AWS_URL}/images/icons/edit.png`}
+									src={`${constants.AWS_URL}/images/icons/edit.png`}
 									alt='Edit Post'
 								/>
 							</Link></>
 						)}
 						<RequireUser silent>
-							{(currentUser?.id !== user.id && !whitelistedUsers?.find(u => u.id === user.id)) && (
+							{currentUser?.id !== user.id && (
 								<RequirePermission permission='use-friend-codes' silent>
 									{' • '}<Confirm
 										action='v1/friend_code/whitelist/save'
-										defaultSubmitImage={`${process.env.AWS_URL}/images/icons/wifi.png`}
+										defaultSubmitImage={`${constants.AWS_URL}/images/icons/wifi.png`}
 										imageTitle='Whitelist User'
 										additionalBody={
 											<>
@@ -313,11 +321,11 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 									/>
 								</RequirePermission>
 							)}
-							{(currentUser?.id !== user.id && !buddies?.find(b => b.id === user.id)) && (
+							{currentUser?.id !== user.id && (
 								<RequirePermission permission='use-buddy-system' silent>
 									{' • '}<Form
 										action='v1/users/buddy/save'
-										defaultSubmitImage={`${process.env.AWS_URL}/images/icons/buddy.png`}
+										defaultSubmitImage={`${constants.AWS_URL}/images/icons/buddy.png`}
 										imageTitle={`Add ${user.username} to your buddy list`}
 									>
 										<input type='hidden' name='buddyUsers' value={user.username} />
@@ -327,9 +335,9 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 							)}
 							{currentUser?.id !== user.id && (
 								<>
-								{' • '}<Link to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user.username}`}>
+								{' • '}<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user.username}#TextBox`}>
 									<img
-										src={`${process.env.AWS_URL}/images/icons/pt.png`}
+										src={`${constants.AWS_URL}/images/icons/pt.png`}
 										title={`Send a PT to ${user.username}`}
 										alt={`Send a PT to ${user.username}`}
 									/>
@@ -350,21 +358,6 @@ const Node = ({breadcrumb, title, content, type, edits, index, user, id,
 							{i > 0 && ', '}
 							<Link to={`/forums/${encodeURIComponent(b.id)}`}>{b.title}</Link>
 						</React.Fragment>)}
-					</div>
-				)}
-
-				{displaying.users && (
-					<div className='Node_invitedUsers'>
-						<span>Invited Users: </span>
-						<ul>
-							{users.map(({username, granted, id}, index) =>
-								<li key={index} className={granted ? `` : `removed`}>
-									<Link to={`/profile/${encodeURIComponent(id)}`}>
-										{username}
-									</Link>
-								</li>
-							)}
-						</ul>
 					</div>
 				)}
 
@@ -440,11 +433,6 @@ Node.propTypes = {
 	followNode: PropTypes.bool,
 	page: PropTypes.number,
 	emojiSettings: emojiSettingsShape,
-	buddies: PropTypes.arrayOf(userShape),
-	whitelistedUsers: PropTypes.arrayOf(PropTypes.shape({
-		id: PropTypes.number,
-		username: PropTypes.string,
-	})),
 	currentUser: userShape,
 	subBoards: PropTypes.arrayOf(PropTypes.shape({
 		id: PropTypes.number,
@@ -459,11 +447,24 @@ Node.propTypes = {
 	})),
 	parentPermissions: PropTypes.arrayOf(PropTypes.string),
 	nodeParentId: PropTypes.number,
+	pageLink: PropTypes.string,
+	listBoards: PropTypes.arrayOf(PropTypes.number),
+	userDonations: PropTypes.shape({
+		id: PropTypes.number,
+		perks: PropTypes.number,
+		donations: PropTypes.number,
+		monthlyPerks: PropTypes.number,
+	}),
 }
 
 Node.defaultProps = {
 	parentPermissions: [],
 	conciseMode: 3,
+	pageLink: 'forums',
+	listBoards: [],
+	userDonations: {
+		perks: 0,
+	},
 }
 
 export default Node;

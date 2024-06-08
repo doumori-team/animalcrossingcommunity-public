@@ -34,7 +34,7 @@ async function users_new({page})
 		LEFT JOIN adoption ON (user_account_cache.id = adoption.adoptee_id)
 		LEFT JOIN user_account_cache AS scout_user_account_cache ON (scout_user_account_cache.id = adoption.scout_id)
 		WHERE user_account_cache.signup_date > (current_date - interval '1 day' * $3)
-		ORDER BY user_account_cache.signup_date DESC
+		ORDER BY user_account_cache.signup_date DESC, user_account_cache.id DESC
 		LIMIT $1::int OFFSET $2::int
 	`, pageSize, offset, constants.scoutHub.newMemberEligibility);
 

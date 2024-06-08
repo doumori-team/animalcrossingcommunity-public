@@ -1,10 +1,10 @@
 import { constants, dateUtils } from '@utils';
 
-import acgcEvents from './acgc/seasonAndEvents.json' assert { type: "json"};
-import acwwEvents from './acww/seasonAndEvents.json' assert { type: "json"};
-import accfEvents from './accf/seasonAndEvents.json' assert { type: "json"};
-import acnlEvents from './acnl/seasonAndEvents.json' assert { type: "json"};
-import acnhEvents from '../acnh-sheet/seasonAndEvents.json' assert { type: "json"};
+import acgcEvents from './acgc/seasonAndEvents.json' assert { type: 'json'};
+import acwwEvents from './acww/seasonAndEvents.json' assert { type: 'json'};
+import accfEvents from './accf/seasonAndEvents.json' assert { type: 'json'};
+import acnlEvents from './acnl/seasonAndEvents.json' assert { type: 'json'};
+import acnhEvents from '../acnh-sheet/seasonAndEvents.json' assert { type: 'json'};
 
 // remove any events that aren't needed:
 // - Player's birthday
@@ -15,6 +15,8 @@ import acnhEvents from '../acnh-sheet/seasonAndEvents.json' assert { type: "json
 // - Festival subsection
 // - Halloween subsection
 // - Turkey Day subsection
+// - Bunny Day subsection
+// - Setsubun subsection
 const acnhEventsFiltered = acnhEvents.filter(event => {
 	return (!['Birthday'].includes(event.name)) &&
 		(!['Calendar season'].includes(event.type)) &&
@@ -23,7 +25,9 @@ const acnhEventsFiltered = acnhEvents.filter(event => {
 		((event.displayName === "Toy Day" && event.name === event.displayName) || event.displayName !== "Toy Day") &&
 		((event.displayName === "Festivale" && event.name === event.displayName) || event.displayName !== "Festivale") &&
 		((event.displayName === "Halloween" && event.name === event.displayName) || event.displayName !== "Halloween") &&
-		((event.displayName === "Turkey Day" && event.name === event.displayName) || event.displayName !== "Turkey Day");
+		((event.displayName === "Turkey Day" && event.name === event.displayName) || event.displayName !== "Turkey Day") &&
+		((event.displayName === "Bunny Day" && event.name === event.displayName) || event.displayName !== "Bunny Day") &&
+		((event.displayName === "Setsubun" && event.name === event.displayName) || event.displayName !== "Setsubun");
 })
 
 // Grabs the data from the files and sorts it in a way that's easier for the front-end

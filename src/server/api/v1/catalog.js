@@ -1,7 +1,7 @@
 import { UserError } from '@errors';
-import { utils } from '@utils';
-import { sortedCategories } from '@/catalog/data.js';
+import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Fetches information about 'real-world' items.
@@ -21,17 +21,19 @@ async function catalog({categoryName, sortBy, name})
 	// Check parameters
 	categoryName = utils.convertForUrl(categoryName);
 
-	if (categoryName !== 'all' && !sortedCategories[categoryName])
+	const sortedCategory = (await ACCCache.get(constants.cacheKeys.sortedCategories))[categoryName];
+
+	if (categoryName !== 'all' && !sortedCategory)
 	{
 		throw new UserError('no-such-catalog-category');
 	}
 
 	// Run calculations
-	const categories = sortedCategories[categoryName][sortBy];
+	const categories = sortedCategory[sortBy];
 
 	if (utils.realStringLength(name) > 0)
 	{
-		const doesItemMatch = (item) => item.name.includes(name);
+		const doesItemMatch = (item) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
 		const doesGroupMatch = (group) => group.items.some(doesItemMatch);
 
 		return categories.filter((catalog) => catalog.groups.some(doesGroupMatch))

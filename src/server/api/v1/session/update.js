@@ -45,20 +45,19 @@ async function update({url, params, query})
 	// Perform queries
 
 	// create new row if needed for url
-	let [urlId] = await db.query(`
-		SELECT url.id
-		FROM url
-		WHERE url.url = $1
-	`, url);
-
-	if (!urlId)
-	{
-		[urlId] = await db.query(`
+	const [urlId] = await db.query(`
+		WITH e AS (
 			INSERT INTO url (url)
 			VALUES ($1)
+			ON CONFLICT(url) DO NOTHING
 			RETURNING id
-		`, url);
-	}
+		)
+		SELECT * FROM e
+		UNION
+		SELECT id
+		FROM url
+		WHERE url = $1
+	`, url);
 
 	// find last session and update it if necessary
 	let userSession;

@@ -1,10 +1,9 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
 import { utils, constants, dateUtils } from '@utils';
-import { sortedCategories as sortedItemCategories } from '@/catalog/data.js';
 import * as accounts from '@accounts';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({id, bells, items, quantities, residents, comment})
 {
@@ -45,8 +44,8 @@ async function save({id, bells, items, quantities, residents, comment})
 	}
 
 	const catalogItems = listing.game ?
-		sortedCategories[listing.game.id]['all']['items'].filter(item => item.tradeable) :
-		sortedItemCategories['all']['items'];
+		(await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${listing.game.id}_all_items`)).filter(item => item.tradeable) :
+		(await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
 	items = items.map((id) =>
 	{

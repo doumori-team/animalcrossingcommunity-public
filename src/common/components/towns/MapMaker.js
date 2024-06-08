@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Form } from '@form';
 import { townShape } from '@propTypes';
 import Map from '@/components/towns/Map.js';
+import { constants } from '@utils';
 
 const MapMaker = ({town, mapTiles}) =>
 {
@@ -17,7 +18,7 @@ const MapMaker = ({town, mapTiles}) =>
 	const [selectedPaletteChildId2, setSelectedPaletteChildId2] = useState(firstTile.child_id2);
 	const [selectedStyleId, setSelectedStyleId] = useState(firstTile.id);
 
-	const mapDir = `${process.env.AWS_URL}/images/maps/${town.game.identifier}/`;
+	const mapDir = `${constants.AWS_URL}/images/maps/${town.game.identifier}/`;
 
 	const handleAcreChange = (selectedAcreId, styleMapTile) =>
 	{

@@ -45,7 +45,7 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/vagrant", fsnotify: true
+  config.vm.synced_folder ".", "/vagrant", fsnotify: true, exclude: ["node_modules", "lib"]
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -66,10 +66,10 @@ Vagrant.configure("2") do |config|
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt-get update
     apt-get upgrade -y
-    apt-get install -y nodejs build-essential postgresql-14 imagemagick
+    apt-get install -y nodejs build-essential postgresql-16 imagemagick
 
     snap install --classic heroku
 

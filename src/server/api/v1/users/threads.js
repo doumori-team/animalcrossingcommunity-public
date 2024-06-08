@@ -18,11 +18,20 @@ async function threads({id, page})
 	// group for thread and parent
 
 	const [userGroups, viewUserGroups] = await Promise.all([
-		this.query('v1/users/user_groups'),
-		this.query('v1/users/user_groups', {userId: id}),
+		db.getUserGroups(this.userId),
+		db.getUserGroups(id),
 	]);
 
 	const results = await db.query(`
+		WITH RECURSIVE BOARDS as (
+			SELECT n1.id, n1.parent_node_id, 1 AS level, n1.id AS root_id
+			FROM node AS n1
+			WHERE n1.type = 'board' AND n1.id != ALL($8)
+			UNION ALL
+			SELECT n2.id, n2.parent_node_id, p.level + 1, p.root_id
+			FROM node n2
+			JOIN boards p ON (p.parent_node_id = n2.id)
+		)
 		SELECT
 			node.id,
 			count(*) over() AS count
@@ -34,32 +43,57 @@ async function threads({id, page})
 				FROM (
 					SELECT
 						'user' AS type,
-						user_node_permissions.id AS inner_node_id,
-						user_node_permissions.type_id,
-						user_node_permissions.node_id,
-						user_node_permissions.granted,
-						user_node_permissions.sequence
-					FROM user_node_permissions
-					WHERE user_node_permissions.type = 'thread' AND user_node_permissions.type_id = $6 AND user_node_permissions.node_permission_id = $4 AND user_node_permissions.user_id = $3 AND ($8 = true OR ($8 != true AND user_node_permissions.parent_node_id != $7))
+						pts_user_read_granted.node_id AS inner_node_id,
+						pts_user_read_granted.permission_user_id AS type_id,
+						true AS granted,
+						1 AS sequence
+					FROM pts_user_read_granted
+					WHERE $7 = true AND $10 = false AND pts_user_read_granted.permission_user_id = $6 AND pts_user_read_granted.node_user_id = $3
+
+					UNION ALL
+
+					SELECT
+						'user' AS type,
+						node.id AS inner_node_id,
+						$6 AS type_id,
+						true AS granted,
+						1 AS sequence
+					FROM node
+					WHERE $7 = true AND $10 = true AND node.user_id = $3 AND node.parent_node_id = $9
+
+					UNION ALL
+
+					SELECT
+						'user' AS type,
+						node.id AS inner_node_id,
+						user_node_permission.user_id AS type_id,
+						user_node_permission.granted,
+						boards.level AS sequence
+					FROM boards
+					JOIN user_node_permission ON (user_node_permission.node_id = boards.id)
+					JOIN node ON (boards.root_id = node.parent_node_id)
+					WHERE node.type = 'thread' AND node.user_id = $3 AND user_node_permission.node_permission_id = $4 AND user_node_permission.user_id = $6
 
 					UNION ALL
 
 					SELECT
 						'group' AS type,
-						user_group_node_permissions.id AS inner_node_id,
-						user_group_node_permissions.type_id,
-						user_group_node_permissions.node_id,
-						user_group_node_permissions.granted,
-						user_group_node_permissions.sequence
-					FROM user_group_node_permissions
-					WHERE user_group_node_permissions.type = 'thread' AND user_group_node_permissions.user_group_id = ANY($5) AND user_group_node_permissions.node_permission_id = $4 AND user_group_node_permissions.user_id = $3 AND ($8 = true OR ($8 != true AND user_group_node_permissions.parent_node_id != $7))
+						node.id AS inner_node_id,
+						user_groups_ordered.level AS type_id,
+						user_group_node_permission.granted,
+						boards.level AS sequence
+					FROM boards
+					JOIN user_group_node_permission ON (user_group_node_permission.node_id = boards.id)
+					JOIN user_groups_ordered ON (user_groups_ordered.id = user_group_node_permission.user_group_id)
+					JOIN node ON (boards.root_id = node.parent_node_id)
+					WHERE node.type = 'thread' AND node.user_id = $3 AND user_group_node_permission.user_group_id = ANY($5) AND user_group_node_permission.node_permission_id = $4
 				) AS permissions
 				ORDER BY inner_node_id ASC, sequence ASC, type DESC, type_id DESC
 			) AS permissions
 		) AS permissions ON (permissions.inner_node_id = node.id AND permissions.granted = true)
 		ORDER BY node.latest_reply_time DESC
 		LIMIT $1::int OFFSET $2::int
-	`, pageSize, offset, id, constants.nodePermissions.read, userGroups, this.userId, constants.boardIds.privateThreads, (userGroups.includes(constants.userGroupIds.admin) && !viewUserGroups.includes(constants.userGroupIds.admin)) || this.userId === id);
+	`, pageSize, offset, id, constants.nodePermissions.read, userGroups, this.userId, userGroups.includes(constants.userGroupIds.admin) || this.userId === id, [constants.boardIds.privateThreads, constants.boardIds.adopteeThread, constants.boardIds.shopThread], constants.boardIds.privateThreads, userGroups.includes(constants.userGroupIds.admin) && (!viewUserGroups.includes(constants.userGroupIds.admin) || this.userId === id));
 
 	const nodes = await Promise.all(results.map(async(result) => {
 		try

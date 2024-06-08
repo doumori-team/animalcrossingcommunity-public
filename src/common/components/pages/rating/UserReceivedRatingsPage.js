@@ -9,7 +9,7 @@ import TotalRatings from '@/components/ratings/TotalRatings.js';
 
 const UserReceivedRatingsPage = () =>
 {
-	const {user, ratings, page, pageSize, totalCount, type} = useLoaderData();
+	const {user, ratings, page, pageSize, totalCount, type, userRatings} = useLoaderData();
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -26,15 +26,15 @@ const UserReceivedRatingsPage = () =>
 					}
 				>
 					<TotalRatings
-						positiveRatingsTotal={type === constants.rating.types.wifi ? user.positiveWifiRatingsTotal : user.positiveTradeRatingsTotal}
-						neutralRatingsTotal={type === constants.rating.types.wifi ? user.neutralWifiRatingsTotal : user.neutralTradeRatingsTotal}
-						negativeRatingsTotal={type === constants.rating.types.wifi ? user.negativeWifiRatingsTotal : user.negativeTradeRatingsTotal}
+						positiveRatingsTotal={type === constants.rating.types.wifi ? userRatings.positiveWifiRatingsTotal : userRatings.positiveTradeRatingsTotal}
+						neutralRatingsTotal={type === constants.rating.types.wifi ? userRatings.neutralWifiRatingsTotal : userRatings.neutralTradeRatingsTotal}
+						negativeRatingsTotal={type === constants.rating.types.wifi ? userRatings.negativeWifiRatingsTotal : userRatings.negativeTradeRatingsTotal}
 						type={type}
 					/>
 				</Header>
 
 				<Section>
-					<Grid options={ratings} message='This user has no ratings'>
+					<Grid options={ratings} message='This user has no ratings.'>
 						{ratings.map(rating =>
 							<Rating
 								key={rating.id}
@@ -57,13 +57,14 @@ const UserReceivedRatingsPage = () =>
 
 export async function loadData({userId, type}, {page})
 {
-	const [ratings, user] = await Promise.all([
+	const [ratings, user, userRatings] = await Promise.all([
 		this.query('v1/users/ratings_received', {
 			id: userId,
 			page: page ? page : 1,
 			type: type
 		}),
-		this.query('v1/user', {id: userId}),
+		this.query('v1/user_lite', {id: userId}),
+		this.query('v1/users/ratings', {id: userId}),
 	]);
 
 	return {
@@ -73,6 +74,7 @@ export async function loadData({userId, type}, {page})
 		page: ratings.page,
 		pageSize: ratings.pageSize,
 		type: ratings.type,
+		userRatings,
 	};
 }
 

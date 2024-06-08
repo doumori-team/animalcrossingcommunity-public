@@ -19,15 +19,16 @@ import { constants, dateUtils } from '@utils';
 
 const App = () =>
 {
-	const {status, jackpot, treasure, notifications} = useLoaderData();
-	const location = useLocation();
-	const params = useParams();
-	const [searchParams, setSearchParams] = useSearchParams();
-
 	const getZonedTimeNow = () =>
 	{
 		return dateUtils.getCurrentDateTimezone();
 	}
+
+	const [time, setTime] = useState(getZonedTimeNow());
+	const {status, jackpot, treasure, notifications, buddies} = useLoaderData();
+	const location = useLocation();
+	const params = useParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 
 	const updateSession = () =>
 	{
@@ -51,7 +52,7 @@ const App = () =>
 
 	const updateFavicon = () =>
 	{
-		let icon = '/images/layout/favicon/';
+		let icon = `${constants.AWS_URL}/images/layout/favicon/`;
 
 		if (constants.LIVE_SITE || status.season.debug)
 		{
@@ -80,8 +81,6 @@ const App = () =>
 		});
 	}
 
-	const [time, setTime] = useState(getZonedTimeNow());
-
 	useEffect(() => {
 		const intervalId = setInterval(() =>
 		{
@@ -94,7 +93,7 @@ const App = () =>
 	useEffect(() => {
 		updateSession();
 		updateFavicon();
-		updateTitle()
+		updateTitle();
 	}, [location]);
 
 	return (
@@ -114,6 +113,7 @@ const App = () =>
 									<SiteHeader
 										latestNotification={notifications.notification}
 										notificationCount={notifications.totalCount}
+										buddies={buddies}
 									/>
 									{location.pathname === '/' && <HomePageBanner bannerName={status.season.bannerName} />}
 									<SiteContent>
@@ -131,10 +131,10 @@ const App = () =>
 	);
 }
 
-function getSeasonsStyle({bg_colors, ui_colors, theme, bannerName, season})
+function getSeasonsStyle({bg_colors, ui_colors, theme, bannerName, season, event})
 {
 	const style = {};
-	let className = 'App';
+	let className = `App App-${event}`;
 
 	style['--seasonal-color'] = ui_colors.default;
 	style['--seasonal-color-dark'] = ui_colors.dark;
@@ -143,8 +143,8 @@ function getSeasonsStyle({bg_colors, ui_colors, theme, bannerName, season})
 	style['--seasonal-color-accent'] = ui_colors.light;
 	style['--seasonal-color-header'] = ui_colors.header;
 	style['--seasonal-grass'] = `url('${getGrassBackgroundSvg(bg_colors)}')`;
-	style['--banner-background'] = `url('/images/banners/${bannerName}_background.png')`;
-	style['--banner-background-2x'] = `url('/images/banners/${bannerName}_background@2x.png')`;
+	style['--banner-background'] = `url('${constants.AWS_URL}/images/banners/${bannerName}_background.png')`;
+	style['--banner-background-2x'] = `url('${constants.AWS_URL}/images/banners/${bannerName}_background@2x.png')`;
 
 	if (theme !== 'default')
 	{
@@ -218,22 +218,23 @@ function getGrassBackgroundSvg(colors)
 
 export async function loadData(_, {debug})
 {
-	const [status, jackpot, treasure, notifications] = await Promise.all([
+	const [status, jackpot, treasure, notifications, buddies] = await Promise.all([
 		this.query('v1/status'),
 		this.query('v1/treasure/jackpot'),
 		this.query('v1/treasure'),
 		this.query('v1/notification/latest'),
-		this.query('v1/analytics/record/visitor'),
+		this.query('v1/users/buddies', {online: true}),
 	]);
 
 	return {
 		status: {
 			...status,
-			season: getSeason(constants.LIVE_SITE ? null: debug),
+			season: getSeason(constants.LIVE_SITE ? null : debug, status.southernHemisphere),
 		},
 		jackpot: Number(jackpot).toLocaleString(),
 		treasure,
 		notifications,
+		buddies,
 	};
 }
 

@@ -1,6 +1,7 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 async function ordinance({id})
 {
@@ -11,7 +12,7 @@ async function ordinance({id})
 		throw new UserError('permission');
 	}
 
-	return await db.query(`
+	return await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			ordinance.id,
 			ordinance.name

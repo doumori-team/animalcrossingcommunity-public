@@ -40,6 +40,13 @@ const Catalog = ({catalogItems, catalog, characterId, sortBy, userId,
 						All Items
 					</Link>
 
+					{characterId && (
+						<Link to={`${link}?category=museum&by=${encodedBy}`}
+							className={selectedCategory === 'museum' ? 'Catalog_museum selected' : 'Catalog_museum'}>
+							All Museum
+						</Link>
+					)}
+
 					<ReactRouterDom.Form action={link} method='get' className='Catalog_search'>
 						<input type='hidden' name='category' value='all' />
 						<input type='hidden' name='by' value={sortBy} />
@@ -75,7 +82,7 @@ const Catalog = ({catalogItems, catalog, characterId, sortBy, userId,
 								to={`${link}?category=${convertedName}&by=${encodedBy}`}>
 								{category.count === category.total &&
 									<img
-										src={`${process.env.AWS_URL}/images/catalog/icon_star7.gif`}
+										src={`${constants.AWS_URL}/images/catalog/icon_star7.gif`}
 										alt={`Collected all items in ${category.categoryName}`}
 									/>}
 								{category.categoryName} ({category.count}/{category.total})

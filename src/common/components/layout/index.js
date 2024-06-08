@@ -1,4 +1,5 @@
 import ACGameButtons from './ACGameButtons.js';
+import Accordion from './Accordion.js';
 import Breadcrumb from './Breadcrumb.js';
 import ContentBox from './ContentBox.js';
 import EditKeyboard from './EditKeyboard.js';
@@ -23,6 +24,7 @@ import Tabs from './Tabs.js';
 
 export {
 	ACGameButtons,
+	Accordion,
 	Breadcrumb,
 	ContentBox,
 	EditKeyboard,

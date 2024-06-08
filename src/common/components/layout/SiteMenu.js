@@ -53,7 +53,7 @@ const SiteMenu = forwardRef(({dynamic, closeFunc}, ref) =>
 								{user.username}
 							</Link> - <Link to='/settings'>Settings</Link><br/>
 							<Link to='/faq#treasure'>
-								Bells: {user.bells}
+								Bells: {user.bells} ({user.allBells})
 							</Link><br/>
 							<Link to='/faq#treasure'>
 								Missed Bells: {user.missedBells}
@@ -108,6 +108,11 @@ const SiteMenu = forwardRef(({dynamic, closeFunc}, ref) =>
 					</SiteMenuLink>
 				</RequirePermission>
 				<RequireUser silent>
+					<RequirePermission permission='view-shops' silent>
+						<SiteMenuLink to='/shops'>
+							Shops & Services
+						</SiteMenuLink>
+					</RequirePermission>
 					<RequirePermission permission='use-buddy-system' silent>
 						<SiteMenuLink to='/buddies'>
 							Buddies

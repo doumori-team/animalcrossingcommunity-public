@@ -51,8 +51,7 @@ async function adopt({adopteeId, scoutId})
 	{
 		// Confirm not already adopted
 		const [adoption] = await db.query(`
-			SELECT
-				id
+			SELECT id
 			FROM adoption
 			WHERE adoptee_id = $1::int
 		`, adoptee.id);
@@ -82,13 +81,12 @@ async function adopt({adopteeId, scoutId})
 				user_account_cache.username
 			FROM users
 			JOIN user_account_cache ON (user_account_cache.id = users.id)
-			JOIN user_group ON (users.user_group_id = user_group.id)
-			WHERE user_group.identifier = 'scout' AND
+			WHERE users.user_group_id = $1 AND
 				(away_start_date IS NULL OR current_date NOT BETWEEN away_start_date AND away_end_date)	AND
 				users.id > (SELECT scout_id from adoption order by adoption.adopted desc limit 1)
 			ORDER BY users.id ASC
 			LIMIT 1
-		`);
+		`, constants.userGroupIds.scout);
 
 		if (scout == null)
 		{
@@ -99,12 +97,11 @@ async function adopt({adopteeId, scoutId})
 					user_account_cache.username
 				FROM users
 				JOIN user_account_cache ON (user_account_cache.id = users.id)
-				JOIN user_group ON (users.user_group_id = user_group.id)
-				WHERE user_group.identifier = 'scout' AND
+				WHERE users.user_group_id = $1 AND
 					(away_start_date IS NULL OR current_date NOT BETWEEN away_start_date AND away_end_date)
 				ORDER BY users.id ASC
 				LIMIT 1
-			`);
+			`, constants.userGroupIds.scout);
 		}
 	}
 
@@ -116,8 +113,7 @@ async function adopt({adopteeId, scoutId})
 		{
 			// Lock old thread
 			const [adoption] = await query(`
-				SELECT
-					node_id
+				SELECT node_id
 				FROM adoption
 				WHERE adoptee_id = $1::int
 			`, adoptee.id);
@@ -186,13 +182,6 @@ async function adopt({adopteeId, scoutId})
 		userGroups = userGroups.reduce((r,{id,identifier}) => (r[identifier]=id,r), {});
 
 		await Promise.all([
-			// Deny read to users, allow read to mod, allow reply to mod
-			query(`
-				INSERT INTO user_group_node_permission (user_group_id, node_id, node_permission_id, granted)
-				VALUES
-				($1::int, $2::int, $3::int, false),
-				($4::int, $2::int, $3::int, true), ($4::int, $2::int, $5::int, true)
-			`, userGroups['user'], nodeId, constants.nodePermissions.read, userGroups['mod'], constants.nodePermissions.reply),
 			// Allow read / reply to scout & adoptee, lock to scout
 			query(`
 				INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
@@ -215,6 +204,8 @@ async function adopt({adopteeId, scoutId})
 
 		return nodeId;
 	});
+
+	await db.updateThreadStats(nodeId);
 
 	await this.query('v1/notification/create', {
 		id: nodeId,

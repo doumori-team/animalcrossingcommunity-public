@@ -23,7 +23,7 @@ const AdminRulesPage = () =>
 
 							<Confirm
 								action='v1/admin/rule/publish'
-								callback='/admin/rules'
+								callback='/rules'
 								label='Publish'
 								message='Are you sure you want to publish rules to live?'
 							/>
@@ -44,7 +44,7 @@ const AdminRulesPage = () =>
 								{rule.pendingExpiration ? (
 									<Confirm
 										action='v1/admin/rule/restore'
-										callback='/admin/rules'
+										callback='/rules'
 										id={rule.id}
 										label='Restore'
 										message='Are you sure you want to restore this rule?'
@@ -54,7 +54,7 @@ const AdminRulesPage = () =>
 									{rule.pendingRule && (
 										<Confirm
 											action='v1/admin/rule/destroy'
-											callback='/admin/rules'
+											callback='/rules'
 											id={rule.pendingRule.id}
 											label='Revert'
 											message='Are you sure you want to revert this rule?'
@@ -64,7 +64,7 @@ const AdminRulesPage = () =>
 									{!rule.startDate ? (
 										<Confirm
 											action='v1/admin/rule/destroy'
-											callback='/admin/rules'
+											callback='/rules'
 											id={rule.id}
 											label='Delete'
 											message='Are you sure you want to delete this rule?'
@@ -72,7 +72,7 @@ const AdminRulesPage = () =>
 									) : (
 										<Confirm
 											action='v1/admin/rule/expire'
-											callback='/admin/rules'
+											callback='/rules'
 											id={rule.id}
 											label='Expire'
 											message='Are you sure you want to expire this rule?'
@@ -161,7 +161,7 @@ const AdminRulesPage = () =>
 													{violation.pendingExpiration ? (
 														<Confirm
 															action='v1/admin/rule/violation/restore'
-															callback='/admin/rules'
+															callback='/rules'
 															id={violation.id}
 															label='Restore'
 															message='Are you sure you want to restore this violation?'
@@ -169,7 +169,7 @@ const AdminRulesPage = () =>
 													) : (
 														<Confirm
 															action='v1/admin/rule/violation/expire'
-															callback='/admin/rules'
+															callback='/rules'
 															id={violation.id}
 															label='Expire'
 															message='Are you sure you want to expire this violation?'
@@ -197,7 +197,7 @@ const AdminRulesPage = () =>
 													{violation.pendingExpiration ? (
 														<Confirm
 															action='v1/admin/rule/violation/restore'
-															callback='/admin/rules'
+															callback='/rules'
 															id={violation.id}
 															label='Restore'
 															message='Are you sure you want to restore this violation?'
@@ -207,7 +207,7 @@ const AdminRulesPage = () =>
 														{violation.pendingViolation && (
 															<Confirm
 																action='v1/admin/rule/violation/destroy'
-																callback='/admin/rules'
+																callback='/rules'
 																id={violation.pendingViolation.id}
 																label='Revert'
 																message='Are you sure you want to revert this violation?'
@@ -217,7 +217,7 @@ const AdminRulesPage = () =>
 														{!violation.startDate ? (
 															<Confirm
 																action='v1/admin/rule/violation/destroy'
-																callback='/admin/rules'
+																callback='/rules'
 																id={violation.id}
 																label='Delete'
 																message='Are you sure you want to delete this violation?'
@@ -225,7 +225,7 @@ const AdminRulesPage = () =>
 														) : (
 															<Confirm
 																action='v1/admin/rule/violation/expire'
-																callback='/admin/rules'
+																callback='/rules'
 																id={violation.id}
 																label='Expire'
 																message='Are you sure you want to expire this violation?'

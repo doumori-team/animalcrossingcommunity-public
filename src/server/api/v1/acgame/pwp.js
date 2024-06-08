@@ -1,6 +1,7 @@
-import { getPWPs } from '@/catalog/info.js';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 async function pwp({id})
 {
@@ -11,7 +12,7 @@ async function pwp({id})
 		throw new UserError('permission');
 	}
 
-	return getPWPs(id);
+	return (await ACCCache.get(constants.cacheKeys.pwps))[id];
 }
 
 pwp.apiTypes = {

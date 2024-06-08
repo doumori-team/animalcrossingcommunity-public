@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useOutletContext, Outlet } from 'react-router-dom';
+import { Link, useOutletContext, Outlet, useLoaderData } from 'react-router-dom';
 
 import { RequireUser } from '@behavior';
 import TotalRatings from '@/components/ratings/TotalRatings.js';
@@ -8,6 +8,7 @@ import { Header } from '@layout';
 
 const ProfileFriendCodesPage = () =>
 {
+	const {userRatings} = useLoaderData();
 	const {user} = useOutletContext();
 
 	const encodedId = encodeURIComponent(user.id);
@@ -38,9 +39,9 @@ const ProfileFriendCodesPage = () =>
 					}
 				>
 					<TotalRatings
-						positiveRatingsTotal={user.positiveWifiRatingsTotal}
-						neutralRatingsTotal={user.neutralWifiRatingsTotal}
-						negativeRatingsTotal={user.negativeWifiRatingsTotal}
+						positiveRatingsTotal={userRatings.positiveWifiRatingsTotal}
+						neutralRatingsTotal={userRatings.neutralWifiRatingsTotal}
+						negativeRatingsTotal={userRatings.negativeWifiRatingsTotal}
 						type={constants.rating.types.wifi}
 					/>
 				</Header>
@@ -49,6 +50,15 @@ const ProfileFriendCodesPage = () =>
 			</RequireUser>
 		</div>
 	);
+}
+
+export async function loadData({id})
+{
+	const [userRatings] = await Promise.all([
+		this.query('v1/users/ratings', {id}),
+	]);
+
+	return {userRatings};
 }
 
 export default ProfileFriendCodesPage;

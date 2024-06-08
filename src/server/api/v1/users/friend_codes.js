@@ -15,7 +15,7 @@ async function friend_codes({id, page})
 	}
 
 	// Perform queries
-	const pageSize = 25;
+	const pageSize = 24;
 	const offset = isNaN(page) ? 0 : (page * pageSize) - pageSize;
 
 	let query = `

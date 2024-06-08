@@ -1,11 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const Switch = ({label, name, value, clickHandler, variant}) =>
+import FontAwesomeIcon from '@/components/layout/FontAwesomeIcon.js';
+
+const Switch = ({label, name, value, clickHandler, variant, information}) =>
 {
 	return (
 		<div className={`Switch ${variant}`}>
-			<label htmlFor={name}>{label}:</label>
+			<>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
 			<input
 				type='checkbox'
 				name={name}
@@ -25,6 +27,7 @@ Switch.propTypes = {
 	value: PropTypes.bool,
 	clickHandler: PropTypes.func,
 	variant: PropTypes.oneOf(['dark', 'light']),
+	information: PropTypes.string,
 };
 
 Switch.defaultProps = {

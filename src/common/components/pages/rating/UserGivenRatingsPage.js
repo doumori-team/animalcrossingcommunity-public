@@ -26,7 +26,7 @@ const UserGivenRatingsPage = () =>
 				/>
 
 				<Section>
-					<Grid options={ratings} message='This user has no ratings.'>
+					<Grid options={ratings} message='This user has given no ratings.'>
 						{ratings.map(rating =>
 							<Rating
 								key={rating.id}

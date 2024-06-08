@@ -109,6 +109,15 @@ export function formatDateTime5(date)
  * @param {Date|Number|String}
  * @returns {String}
  */
+export function formatDateTime6(date)
+{
+	return dateFNSFormat(dateToTimezone(date), 'MMMM do, h:mm a', { timeZone: timezone });
+}
+
+/**
+ * @param {Date|Number|String}
+ * @returns {String}
+ */
 export function formatYearMonthDay(date)
 {
 	return dateFNSFormat(toDate(date), 'yyyy-MM-dd');
@@ -196,6 +205,14 @@ export function getCurrentYear()
 /**
  * @returns {String}
  */
+export function getCurrentMonthDay()
+{
+	return dateFNSFormat(getCurrentDateTimezone(), 'MMdd', { timeZone: timezone });
+}
+
+/**
+ * @returns {String}
+ */
 export function getCurrentMonth()
 {
 	return dateFNSFormat(getCurrentDateTimezone(), 'M', { timeZone: timezone });
@@ -232,6 +249,14 @@ export function dateToTimezone(date, useTimezone = timezone)
 export function getCurrentDateTimezone()
 {
 	return utcToZonedTime(new Date(), timezone);
+}
+
+/**
+ * @returns {Date}
+ */
+export function getCurrentDayTimezone()
+{
+	return new Date(utcToZonedTime(new Date(), timezone).setHours(0, 0, 0, 0));
 }
 
 /**
@@ -423,9 +448,29 @@ export function isSame(date1, date2, type = null)
  * @param {Number|Date|String}
  * @returns {Boolean}
  */
-export function isSameCurrentDateTimezone(date, type)
+export function currentDateIsSame(date, type = null)
+{
+	return isSame(date, getCurrentDayTimezone(), type);
+}
+
+/**
+ * @param {Number|Date|String}
+ * @param {Number|Date|String}
+ * @returns {Boolean}
+ */
+export function isSameCurrentDateTimezone(date, type = null)
 {
 	return isSame(dateToTimezone(date), getCurrentDateTimezone(), type);
+}
+
+/**
+ * @param {Number|Date|String}
+ * @param {Number|Date|String}
+ * @returns {Boolean}
+ */
+export function isSameTimezone2(date1, date2, type = null)
+{
+	return isSame(dateToTimezone(date1), dateToTimezone(date2), type);
 }
 
 /**
@@ -452,9 +497,27 @@ export function isBefore(date1, date2)
  * @param {Number|Date|String}
  * @returns {Boolean}
  */
+export function currentDateIsBefore(date)
+{
+	return isBefore(getCurrentDayTimezone(), date);
+}
+
+/**
+ * @param {Number|Date|String}
+ * @returns {Boolean}
+ */
 export function isBeforeCurrentDateTimezone(date)
 {
 	return isBefore(dateToTimezone(date), getCurrentDateTimezone());
+}
+
+/**
+ * @param {Number|Date|String}
+ * @returns {Boolean}
+ */
+export function isBeforeTimezone2(date1, date2)
+{
+	return isBefore(dateToTimezone(date1), dateToTimezone(date2));
 }
 
 /**
@@ -491,9 +554,27 @@ export function isAfterTimezone(date1, date2)
  * @param {Number|Date|String}
  * @returns {Boolean}
  */
+export function currentDateIsAfter(date)
+{
+	return isAfter(getCurrentDayTimezone(), date);
+}
+
+/**
+ * @param {Number|Date|String}
+ * @returns {Boolean}
+ */
 export function isAfterCurrentDateTimezone(date)
 {
 	return isAfter(dateToTimezone(date), getCurrentDateTimezone());
+}
+
+/**
+ * @param {Number|Date|String}
+ * @returns {Boolean}
+ */
+export function isAfterTimezone2(date1, date2)
+{
+	return isAfter(dateToTimezone(date1), dateToTimezone(date2));
 }
 
 /**

@@ -134,12 +134,10 @@
 }
 
 .RichTextArea_preview {
-	.Markup {
-		@include contentbox;
-		padding: 1rem;
-		line-height: 1.7em;
-		min-height: 30vh;
-	}
+	@include contentbox;
+	padding: 1rem;
+	line-height: 1.7em;
+	min-height: 30vh;
 }
 
 %GenericFormControl {
@@ -458,6 +456,10 @@
 
 	&.light {
 		--active: var(--seasonal-color-light);
+
+		.App-snow & {
+			--active: var(--seasonal-color-lighter);
+		}
 	}
 
 	&.dark {

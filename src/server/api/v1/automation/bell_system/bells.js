@@ -53,9 +53,10 @@ async function bells({action, amount})
 		`, this.userId, amount, 'amount');
 	}
 
+	await db.regenerateTopBells({userId: this.userId});
+
 	const [updatedUser] = await Promise.all([
 		this.query('v1/user', {id: this.userId}),
-		this.query('v1/treasure/stats', {userId: this.userId}),
 	]);
 
 	if (action === 'add')

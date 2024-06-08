@@ -24,13 +24,8 @@ const userShape = PropTypes.shape({
 	signatureFormat: PropTypes.string,
 	signupDate: PropTypes.any,
 	username: PropTypes.string,
-	positiveWifiRatingsTotal: PropTypes.string,
-	neutralWifiRatingsTotal: PropTypes.string,
-	negativeWifiRatingsTotal: PropTypes.string,
-	positiveTradedRatingsTotal: PropTypes.string,
-	neutralTradeRatingsTotal: PropTypes.string,
-	negativeTradeRatingsTotal: PropTypes.string,
 	bells: PropTypes.string,
+	allBells: PropTypes.string,
 	missedBells: PropTypes.string,
 	awayStartDate: PropTypes.any,
 	awayEndDate: PropTypes.any,
@@ -38,10 +33,8 @@ const userShape = PropTypes.shape({
 	adoptionThreadId: PropTypes.number,
 	adopteeBuddyThreadId: PropTypes.number,
 	email: PropTypes.string,
-	donations: PropTypes.number,
 	nonFormattedTotalBells: PropTypes.number,
 	userTitle: PropTypes.string,
-	perks: PropTypes.number,
 });
 
 export default userShape;

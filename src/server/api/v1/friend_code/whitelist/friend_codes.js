@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 
-async function friend_codes({sortBy, page, gameId})
+async function friend_codes({sortBy, page, gameId, groupBy})
 {
 	const permissionGranted = await this.query('v1/permission', {permission: 'use-friend-codes'});
 
@@ -60,7 +60,7 @@ async function friend_codes({sortBy, page, gameId})
 	`;
 
 	const [friendCodes, games] = await Promise.all([
-		db.query(query, pageSize, offset, this.userId, gameId),
+		((groupBy === 'game' && gameId > 0) || groupBy === 'all') ? db.query(query, pageSize, offset, this.userId, gameId) : [],
 		db.query(`
 			SELECT
 				game.id,
@@ -112,6 +112,11 @@ friend_codes.apiTypes = {
 	gameId: {
 		type: APITypes.gameId,
 		nullable: true,
+	},
+	groupBy: {
+		type: APITypes.string,
+		includes: ['all', 'game'],
+		required: true,
 	},
 }
 

@@ -1,11 +1,9 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
-import { sortedCategories as sortedItemCategories } from '@/catalog/data.js';
 import { constants, dateUtils } from '@utils';
 import * as accounts from '@accounts';
-import { residents as sortedResidents } from '@/catalog/residents.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function offer({id})
 {
@@ -61,18 +59,18 @@ async function offer({id})
 	// some older ACC 1 trades allowed GC-Real World
 	if (offer.game_id === constants.gameIds.ACGC || !offer.game_id)
 	{
-		realCatalogItems = sortedItemCategories['all']['items'];
+		realCatalogItems = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 	}
 
 	if (offer.game_id)
 	{
-		catalogItems = sortedCategories[offer.game_id]['all']['items'];
+		catalogItems = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${offer.game_id}_all_items`);
 	}
 
 	const offerStatuses = constants.tradingPost.offerStatuses;
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
-	const [items, bio, [offerAccepted], offerResidents, user, rating] = await Promise.all([
+	const [items, bio, [offerAccepted], offerResidents, user, userRatings, rating] = await Promise.all([
 		db.query(`
 			SELECT
 				listing_offer_catalog_item.catalog_item_id,
@@ -95,6 +93,7 @@ async function offer({id})
 			WHERE listing_offer_resident.listing_offer_id = $1::int
 		`, offer.id),
 		this.query('v1/user', {id: offer.user_id}),
+		this.query('v1/users/ratings', {id: offer.user_id}),
 		offer.rating_id ? this.query('v1/rating', {id: offer.rating_id}) : null,
 	]);
 
@@ -128,7 +127,7 @@ async function offer({id})
 	return {
 		id: offer.id,
 		sequence: Number(offer.sequence)-1,
-		user: user,
+		user: {...user, ...userRatings},
 		formattedDate: dateUtils.formatDateTime(offer.created),
 		status: offer.status,
 		bells: Number(offer.bells),
@@ -140,7 +139,7 @@ async function offer({id})
 				name: catalogItems.concat(realCatalogItems).find(ci => ci.id === item.catalog_item_id).name,
 			};
 		}),
-		residents: offerResidentIds.length === 0 ? [] : sortedResidents[offer.game_id].filter(r => offerResidentIds.includes(r.id)),
+		residents: offerResidentIds.length === 0 ? [] : (await ACCCache.get(constants.cacheKeys.residents))[offer.game_id].filter(r => offerResidentIds.includes(r.id)),
 		comment: offer.comment,
 		rating: rating,
 		character: character,

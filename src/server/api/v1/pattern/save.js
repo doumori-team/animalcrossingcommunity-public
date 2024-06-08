@@ -2,6 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 import QRCode from 'qrcode';
 import { Buffer } from 'safe-buffer';
@@ -171,6 +172,8 @@ async function save({id, patternName, published, designId, data, dataUrl,
 			WHERE id = $2::int
 		`, id, townId, dataUrl, this.userId, patternName);
 	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 
 	return {
 		id: id
@@ -497,6 +500,7 @@ save.apiTypes = {
 	designId: {
 		type: APITypes.regex,
 		regex: constants.regexes.designId,
+		nullable: true,
 	},
 	data: {
 		type: APITypes.array,

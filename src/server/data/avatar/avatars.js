@@ -1,10 +1,10 @@
 import { utils } from '@utils';
 
-import characters from './characters.json' assert { type: "json"};
-import accents from './accents.json' assert { type: "json"};
-import backgrounds from './backgrounds.json' assert { type: "json"};
-import colorations from './colorations.json' assert { type: "json"};
-import tags from './tags.json' assert { type: "json"};
+import characters from './characters.json' assert { type: 'json'};
+import accents from './accents.json' assert { type: 'json'};
+import backgrounds from './backgrounds.json' assert { type: 'json'};
+import colorations from './colorations.json' assert { type: 'json'};
+import tags from './tags.json' assert { type: 'json'};
 
 export const indexedAvatarCharacters = getIndexedCharacters();
 export const alphabeticalAvatarCharacters = characters.sort((a, b) => utils.sortingCollator.compare(a.name, b.name));

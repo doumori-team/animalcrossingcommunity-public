@@ -1,8 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { dateUtils } from '@utils';
-import { sortedBellShopItems } from '@/catalog/info.js';
+import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Items the user has redeemed from the bell shop.
@@ -21,13 +21,23 @@ async function items({id, ignoreExpired = true})
 			user_bell_shop_redeemed.redeemed,
 			user_bell_shop_redeemed.price,
 			user_bell_shop_redeemed.currency,
-			user_bell_shop_redeemed.expires
+			user_bell_shop_redeemed.expires,
+			user_bell_shop_redeemed.redeemed_by,
+			user_account_cache.username
 		FROM user_bell_shop_redeemed
+		LEFT JOIN user_account_cache ON (user_account_cache.id = user_bell_shop_redeemed.redeemed_by)
 		WHERE user_bell_shop_redeemed.user_id = $1::int AND ($2 = true OR ($2 = false AND (expires IS NULL OR expires > now())))
 	`, id, ignoreExpired);
 
+	this.query('v1/notification/destroy', {
+		id: id,
+		type: constants.notification.types.giftBellShop
+	});
+
+	const sortedBellShopItems = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['all'];
+
 	return userItems.map(userItem => {
-		const item = sortedBellShopItems['all'][userItem.item_id];
+		const item = sortedBellShopItems[userItem.item_id];
 
 		return {
 			id: userItem.id,
@@ -39,6 +49,7 @@ async function items({id, ignoreExpired = true})
 			redeemed: dateUtils.formatDateTimezone(userItem.redeemed),
 			price: `${Number(userItem.price).toLocaleString()} ${userItem.currency}`,
 			expires: userItem.expires === null ? null : dateUtils.formatDateTimezone(userItem.expires),
+			redeemedBy: userItem.redeemed_by && userItem.redeemed_by != id ? userItem.username : null,
 		};
 	});
 }

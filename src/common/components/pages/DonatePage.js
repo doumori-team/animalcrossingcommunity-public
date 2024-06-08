@@ -19,7 +19,7 @@ const DonatePage = () =>
 						For those who do donate $5 or more, we offer a few perks to express appreciation for your support. All doners receive a spot on our <Link to='/honorary-citizens'>ACC Honorary Citizens page</Link>.
 					</p>
 					<p>
-						Note: All perks listed below last for one year after the donation was submitted. You can find your total donations, and those counting toward perks, on your profile.
+						Note: All non-monthly-perks listed below last for one year after the donation was submitted. You can find your total donations, and those counting toward perks, on your profile. Monthly donations only count if you choose 'monthly' option at checkout on PayPal.
 					</p>
 					<p>
 						<strong>All members donating $5 or more receive:</strong>
@@ -54,6 +54,34 @@ const DonatePage = () =>
 							</li>
 							<li>
 								No Buddy cap (unlimited).
+							</li>
+						</ul>
+					</p>
+					<p>
+						<strong>Members donating $5 or more per month receive:</strong>
+						<ul>
+							<li>
+								Post cap raised to 16,000 characters.
+							</li>
+							<li>
+								Other Stuff About Me cap raised to 24,000 characters.
+							</li>
+							<li>
+								5% Bell Shop Discount.
+							</li>
+						</ul>
+					</p>
+					<p>
+						<strong>Members donating $10 or more per month receive:</strong>
+						<ul>
+							<li>
+								Post cap raised to 32,000 characters.
+							</li>
+							<li>
+								Other Stuff About Me cap raised to 32,000 characters.
+							</li>
+							<li>
+								10% Bell Shop Discount.
 							</li>
 						</ul>
 					</p>

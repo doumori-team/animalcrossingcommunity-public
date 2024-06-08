@@ -15,6 +15,8 @@ handler.set('views', new URL('../views', import.meta.url).pathname);
  */
 handler.get('/go', (request, response, next) =>
 {
+	response.set('Cache-Control', 'no-store');
+
 	const host = request.protocol + '://' + request.get('host');
 	const callbackUrl = new URL('/auth/ready', host);
 	accounts.initiate(callbackUrl.href)
@@ -30,6 +32,8 @@ handler.get('/go', (request, response, next) =>
  */
 handler.get('/ready', (request, response, next) =>
 {
+	response.set('Cache-Control', 'no-store');
+
 	accounts.getToken(request.query.token, request.query.verifier)
 	.then(db.updateAccountCache)
 	.then(async details =>
@@ -37,13 +41,18 @@ handler.get('/ready', (request, response, next) =>
 		request.session.user = details.id;
 
 		const [user] = await db.query(`
-			SELECT users.last_active_time, user_account_cache.signup_date
+			SELECT
+				users.last_active_time,
+				user_account_cache.signup_date,
+				user_account_cache.username
 			FROM users
 			JOIN user_account_cache ON (user_account_cache.id = users.id)
 			WHERE users.id = $1
 		`, details.id);
 
-		if (dateUtils.isNewMember(user.signup_date) && user.last_active_time === null)
+		request.session.username = user.username;
+
+		if (user.last_active_time === null && dateUtils.isNewMember(user.signup_date))
 		{
 			response.redirect('/new-member');
 		}
@@ -69,6 +78,8 @@ handler.get('/ready', (request, response, next) =>
  */
 handler.post('/logout', (request, response, next) =>
 {
+	response.set('Cache-Control', 'no-store');
+
 	let logoutProcess;
 
 	if (request.session.user)
@@ -78,6 +89,7 @@ handler.post('/logout', (request, response, next) =>
 		//   completed.
 		const userID = request.session.user;
 		delete request.session.user;
+		delete request.session.username;
 
 		logoutProcess = Promise.all(
 		[
@@ -105,6 +117,8 @@ handler.post('/logout', (request, response, next) =>
 // Error handler
 handler.use((error, request, response, next) =>
 {
+	response.set('Cache-Control', 'no-store');
+
 	console.log('Error handling login / logout:');
 	console.error(error);
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { RequirePermission } from '@behavior';
 import { Header, Section } from '@layout';
+import { Form } from '@form';
 
 const AdminHomePage = () =>
 {
@@ -36,6 +37,16 @@ const AdminHomePage = () =>
 							</Link></li>
 						</RequirePermission>
 					</ul>
+				</Section>
+
+				<Section>
+					<p>Redis Cache is used for storing our AC data, used for things like Trading Post, Monthly Calendar, Avatars, Towns and Bell Shop. It's also used for storing API calls for non-users and some calls for all users.</p>
+
+					<Form
+						action='v1/admin/regenerate_cache/all'
+						showButton
+						buttonText='Regenerate Cache'
+					/>
 				</Section>
 			</RequirePermission>
 		</div>

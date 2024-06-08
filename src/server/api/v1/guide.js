@@ -1,6 +1,6 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { dateUtils } from '@utils';
+import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 
 async function guide({id})
@@ -12,7 +12,7 @@ async function guide({id})
 		throw new UserError('permission');
 	}
 
-	const [guide] = await db.query(`
+	const [guide] = await db.cacheQuery(constants.cacheKeys.guides, `
 		SELECT
 			guide.id,
 			guide.name,

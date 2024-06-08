@@ -48,7 +48,7 @@ const UserTicketDashboardPage = () =>
 							label='Rule'
 							name='ruleId'
 							value={ruleId}
-							options={[{id: '', name: 'All Rules'}].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
+							options={[{id: '', name: 'All Rules'},{id: -1, name: 'Any Rule'}].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
 							optionsMapping={{
 								value: 'id',
 								label: (rule) => {
@@ -77,7 +77,7 @@ const UserTicketDashboardPage = () =>
 							label='Deny Reason'
 							name='denyReasonId'
 							value={denyReasonId}
-							options={[{id: '', name: 'All Deny Reasons'}].concat(denyReasons)}
+							options={[{id: '', name: 'All Deny Reasons'},{id: -1, name: 'Any Deny Reason'}].concat(denyReasons)}
 							optionsMapping={{value: 'id', label: 'name'}}
 						/>
 					</Form.Group>

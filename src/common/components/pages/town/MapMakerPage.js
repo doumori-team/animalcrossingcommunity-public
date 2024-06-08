@@ -22,9 +22,9 @@ const MapMakerPage = () =>
 							<MapDesigner
 								townId={town.id}
 								images={utils.getMapImages(town.game.id)}
-								colors={utils.getMapColors(town.game.id)}
+								initialColors={utils.getMapColors(town.game.id)}
 								data={town.mapDesignData.colorData}
-								dataUrl={town.mapDesignData.dataUrl}
+								initialDataUrl={town.mapDesignData.dataUrl}
 								gridLength={mapInfo.gridLength}
 								width={mapInfo.gridLength*mapInfo.width}
 								height={mapInfo.gridLength*mapInfo.height}

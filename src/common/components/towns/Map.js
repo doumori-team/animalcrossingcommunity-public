@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { utils } from '@utils';
+import { utils, constants } from '@utils';
 
 const Map = ({game, mapTiles, selectedAcreId, onClickHandler}) =>
 {
 	const gameMapTiles = utils.getMapTiles(game.id);
-	const mapDir = `${process.env.AWS_URL}/images/maps/${game.identifier}/`;
+	const mapDir = `${constants.AWS_URL}/images/maps/${game.identifier}/`;
 	const rows = [];
 
 	for (let y = 0; y < game.mapY; y++)

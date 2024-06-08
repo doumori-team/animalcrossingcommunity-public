@@ -85,22 +85,22 @@ const FeaturePage = () =>
 						/>
 					</Form.Group>
 					<RequirePermission permission='advanced-features' silent>
-						{!feature.staffOnly && (
-							<Form.Group>
-								<Switch
-									name='staffOnly'
-									label='Staff Only'
-									value={staffOnly}
-								/>
-							</Form.Group>
-						)}
+						<Form.Group>
+							<Switch
+								name='staffOnly'
+								label='Staff Only'
+								value={staffOnly}
+								key={staffOnly}
+							/>
+						</Form.Group>
 					</RequirePermission>
 				</Form>
 			</Section>
 		);
 	}
 
-	const changeTab = (eventKey) => {
+	const changeTab = (eventKey) =>
+	{
 		setStaffOnly(eventKey === 'staff');
 	}
 

@@ -26,7 +26,6 @@ async function listing({id})
 			FROM listing
 			WHERE listing.id = $1::int
 		`, id),
-		this.query('v1/trading_post/listing/expired', {id: id}),
 	]);
 
 	if (!listing)
@@ -36,7 +35,7 @@ async function listing({id})
 
 	const offerStatuses = constants.tradingPost.offerStatuses;
 
-	const [birthDate, offers, comments, [listingOfferId], [offerAcceptedId], creator, game] = await Promise.all([
+	const [birthDate, offers, comments, [listingOfferId], [offerAcceptedId], creator, creatorRatings, game] = await Promise.all([
 		listing.game_id === null ? accounts.getBirthDate(this.userId) : null,
 		db.query(`
 			SELECT
@@ -69,6 +68,7 @@ async function listing({id})
 			WHERE listing_offer.listing_id = $1::int AND listing_offer.user_id != $2::int AND listing_offer.status = $3
 		`, listing.id, listing.creator_id, offerStatuses.accepted),
 		this.query('v1/user', {id: listing.creator_id}),
+		this.query('v1/users/ratings', {id: listing.creator_id}),
 		listing.game_id ? this.query('v1/acgame', {id: listing.game_id}) : null,
 		this.query('v1/notification/destroy', {
 			id: id,
@@ -104,7 +104,7 @@ async function listing({id})
 
 	return {
 		id: listing.id,
-		creator: creator,
+		creator: {...creator, ...creatorRatings},
 		formattedDate: dateUtils.formatDateTime(listing.created),
 		game: game,
 		offers: {

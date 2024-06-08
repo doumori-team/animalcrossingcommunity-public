@@ -27,8 +27,12 @@ async function followed({type, page})
 	// so check user level for thread and parent and check group for all of this user's
 	// group for thread and parent
 
-	const groupIds = await this.query('v1/users/user_groups');
+	const groupIds = await db.getUserGroups(this.userId);
 
+	// you can't follow: posts, PTs, All Public Threads board, Forums, Announcements, Shop Threads, Adoptee Threads
+	// that means user node perms - used in PTs, Shops, Adoptions - isn't needed
+	// User node perms is also used on GG Boards, but no one following boards or threads under that doesn't have access
+	// would have to have access to follow something
 	const results = await db.query(`
 		SELECT
 			node.id,
@@ -48,19 +52,6 @@ async function followed({type, page})
 				SELECT *
 				FROM (
 					SELECT
-						'user' AS type,
-						user_node_permissions.id AS inner_node_id,
-						user_node_permissions.type_id,
-						user_node_permissions.node_id,
-						user_node_permissions.granted,
-						user_node_permissions.sequence
-					FROM user_node_permissions
-					JOIN followed_node ON (followed_node.node_id = user_node_permissions.id AND followed_node.user_id = $3)
-					WHERE user_node_permissions.type = $4 AND user_node_permissions.type_id = $7 AND user_node_permissions.node_permission_id = $5
-
-					UNION ALL
-
-					SELECT
 						'group' AS type,
 						user_group_node_permissions.id AS inner_node_id,
 						user_group_node_permissions.type_id,
@@ -76,7 +67,7 @@ async function followed({type, page})
 		) AS permissions ON (permissions.inner_node_id = node.id AND permissions.granted = true)
 		ORDER BY ${type === 'board' ? 'title' : 'latest_reply_time'} ${type === 'board' ? 'ASC' : 'DESC'}
 		LIMIT $1::int OFFSET $2::int
-	`, pageSize, offset, user.id, type, constants.nodePermissions.read, groupIds, this.userId);
+	`, pageSize, offset, user.id, type, constants.nodePermissions.read, groupIds);
 
 	const nodes = await Promise.all(results.map(async(result) => {
 		try

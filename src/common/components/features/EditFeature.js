@@ -29,7 +29,7 @@ const EditFeature = ({categories, statuses, feature, userEmojiSettings}) =>
 						label='Description'
 						textValue={feature ? feature.description : ''}
 						formatValue={feature ? feature.format : 'markdown'}
-						maxLength={constants.max.post}
+						maxLength={constants.max.post1}
 						emojiSettings={userEmojiSettings}
 						required
 					/>
@@ -72,7 +72,7 @@ const EditFeature = ({categories, statuses, feature, userEmojiSettings}) =>
 							label='Staff Description'
 							textValue={feature ? feature.staffDescription : ''}
 							formatValue={feature ? feature.staffDescriptionFormat : 'markdown'}
-							maxLength={constants.max.post}
+							maxLength={constants.max.post1}
 							emojiSettings={userEmojiSettings}
 						/>
 					</Form.Group>

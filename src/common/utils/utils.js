@@ -2,7 +2,7 @@
 // It is included in various places on both the server and client side, so be
 // careful what dependencies you add.
 
-import * as constants from './constants';
+import * as constants from './constants.js';
 
 import acgcMapTiles from '../maps/acgc.json' assert { type: "json" };
 import acwwMapTiles from '../maps/acww.json' assert { type: "json" };
@@ -229,6 +229,11 @@ export function capitalize(text)
  */
 export function ellipsisLongText(str)
 {
+	if (str === null)
+	{
+		return "";
+	}
+
 	if (str.length > 65)
 	{
 		return str.substr(0, 50) + '...' + str.substr(str.length-10, str.length);
@@ -277,6 +282,18 @@ export function getReferenceLink(ticket)
 	else if (type === types.listingComment || type === types.offer)
 	{
 		return `/trading-post/${encodeURIComponent(ticket.reference.parentId)}`;
+	}
+	else if ([types.shopName, types.shopDescription, types.shopShortDescription, types.shopImage, types.shopServiceName, types.shopServiceDescription, types.shopRoleName, types.shopRoleDescription].includes(type))
+	{
+		return `/shop/${encodeURIComponent(ticket.reference.parentId)}`;
+	}
+	else if ([types.shopOrder].includes(type))
+	{
+		return `/shop/order/${encodeURIComponent(ticket.reference.id)}`;
+	}
+	else if ([types.shopApplication].includes(type))
+	{
+		return `/shop/application/${encodeURIComponent(ticket.reference.id)}`;
 	}
 	else if (type.startsWith('profile_') || type === types.rating)
 	{
@@ -498,6 +515,49 @@ export function getNotificationReferenceLink(notification, userCheck, currentUse
 	{
 		return `/support-email/${encodeURIComponent(notification.reference_id)}`;
 	}
+	else if (
+		[
+			constants.notification.types.giftBellShop
+		].includes(type)
+	)
+	{
+		return `/bell-shop/redeemed`;
+	}
+	else if (
+		[
+			constants.notification.types.giftDonation
+		].includes(type)
+	)
+	{
+		return `/profile/${encodeURIComponent(currentUserId)}`;
+	}
+	else if (type === constants.notification.types.shopThread)
+	{
+		let url = `/shops/threads/${encodeURIComponent(extra.parentId)}/${encodeURIComponent(extra.page)}`;
+
+		if (extra.post)
+		{
+			url += `#${extra.post}`;
+		}
+
+		return url;
+	}
+	else if (type === constants.notification.types.shopEmployee)
+	{
+		return `/shop/${encodeURIComponent(notification.reference_id)}`;
+	}
+	else if (type === constants.notification.types.shopOrder)
+	{
+		return `/shop/order/${encodeURIComponent(notification.reference_id)}`;
+	}
+	else if (type === constants.notification.types.shopApplication)
+	{
+		return `/shop/application/${encodeURIComponent(notification.reference_id)}`;
+	}
+	else if (type === constants.notification.types.donationReminder)
+	{
+		return `/donate`;
+	}
 }
 
 /**
@@ -511,4 +571,26 @@ export function getGlobalNotificationReferenceLink(notification)
 	{
 		return `/forums/${encodeURIComponent(notification.reference_id)}`;
 	}
+}
+
+export function getRandomColor()
+{
+	return '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+}
+
+export function startLog(request, location)
+{
+	let log = `at=info method=${request.method} path="${request.url}" host=${request.headers['host']} request_id=${request.headers['x-request-id']} fwd="${request.headers['x-forwarded-for']}" protocol=${request.headers['x-forwarded-proto']} location=${location} http_version=${request.httpVersion} user_agent="${request.headers['user-agent']}" referer=${request.headers['referer']}`;
+
+	if (request.session.user)
+	{
+		log += ` user_id=${request.session.user}`;
+	}
+
+	if (request.session.username)
+	{
+		log += ` user_name=${request.session.username}`;
+	}
+
+	return log;
 }

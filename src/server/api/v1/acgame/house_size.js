@@ -1,6 +1,7 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 async function house_size({id})
 {
@@ -11,7 +12,7 @@ async function house_size({id})
 		throw new UserError('permission');
 	}
 
-	let houseSizes = await db.query(`
+	let houseSizes = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			house_size_group.id,
 			house_size_group.name
@@ -29,7 +30,7 @@ async function house_size({id})
 			return {
 				groupId: houseSizeObj.id,
 				groupName: houseSizeObj.name,
-				houseSizes: await db.query(`
+				houseSizes: await db.cacheQuery(constants.cacheKeys.acGame, `
 					SELECT
 						house_size.id,
 						house_size.name

@@ -50,9 +50,10 @@ async function user_ticket({id})
 	const types = constants.userTicket.types;
 	const notificationTypes = constants.notification.types;
 
-	const [ruleViolation, rule, userViolations, [firstUserViolation], messages, node, [totalRuleCounts],
-		ruleCounts, violator, previousDenied, assignee, utBan, currentBan, [supportTicketsCount],
-		supportTickets, listingComment] = await Promise.all([
+	const [ruleViolation, rule, userViolations, [firstUserViolation], messages,
+		node, [totalRuleCounts], ruleCounts, violator, previousDenied, assignee,
+		utBan, currentBan, [supportTicketsCount], supportTickets, listingComment,
+		serviceShop, roleShop] = await Promise.all([
 		userTicket.rule_violation_id ? db.query(`
 			SELECT rule_violation.severity_id, rule_violation.violation
 			FROM rule_violation
@@ -137,6 +138,16 @@ async function user_ticket({id})
 			SELECT listing_id
 			FROM listing_comment
 			WHERE id = $1::int
+		`, userTicket.reference_id) : null,
+		[types.shopServiceName, types.shopServiceDescription].includes(userTicket.type_identifier) && userTicket.reference_id ? db.query(`
+			SELECT shop_id
+			FROM shop_service
+			WHERE id = $1
+		`, userTicket.reference_id) : null,
+		[types.shopRoleName, types.shopRoleDescription].includes(userTicket.type_identifier) && userTicket.reference_id ? db.query(`
+			SELECT shop_id
+			FROM shop_role
+			WHERE id = $1
 		`, userTicket.reference_id) : null,
 		this.query('v1/notification/destroy', {
 			id: userTicket.id,
@@ -224,6 +235,14 @@ async function user_ticket({id})
 	else if (listingComment && listingComment[0])
 	{
 		parentId = listingComment[0].listing_id;
+	}
+	else if (serviceShop && serviceShop[0])
+	{
+		parentId = serviceShop[0].shop_id;
+	}
+	else if (roleShop && roleShop[0])
+	{
+		parentId = roleShop[0].shop_id;
 	}
 
 	return {

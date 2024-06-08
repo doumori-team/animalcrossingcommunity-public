@@ -2,23 +2,23 @@ import React from 'react';
 import { Link, useLoaderData } from 'react-router-dom';
 
 import { RequirePermission } from '@behavior';
-import { Form, Text, Select } from '@form';
+import { Form, Text } from '@form';
 import { Pagination, Header, Search, Section, Grid, InnerSection } from '@layout';
 import { constants, dateUtils } from '@utils';
 
 const UserSessionsPage = () =>
 {
-	const {username, startDate, endDate, urlId, urls, sessions, page, pageSize,
+	const {username, startDate, endDate, url, sessions, page, pageSize,
 		totalCount} = useLoaderData();
 
 	const link = `&username=${encodeURIComponent(username)}
 		&startDate=${encodeURIComponent(startDate)}
 		&endDate=${encodeURIComponent(endDate)}
-		&urlId=${encodeURIComponent(urlId)}
+		&url=${encodeURIComponent(url)}
 	`;
 
-	const sessionLink = urlId > 0 ?
-		`?urlId=${encodeURIComponent(urlId)}` : '';
+	const sessionLink = url > 0 ?
+		`?url=${encodeURIComponent(url)}` : '';
 
 	return (
 		<div className='UserSessionsPage'>
@@ -54,12 +54,11 @@ const UserSessionsPage = () =>
 						/>
 					</Form.Group>
 					<Form.Group>
-						<Select
+						<Text
 							label='URL'
-							name='urlId'
-							value={urlId}
-							options={[{id: '', url: 'All URLs'}].concat(urls)}
-							optionsMapping={{value: 'id', label: 'url'}}
+							name='url'
+							value={url}
+							maxLength={constants.max.url}
 						/>
 					</Form.Group>
 				</Search>
@@ -100,17 +99,16 @@ const UserSessionsPage = () =>
 	);
 }
 
-export async function loadData(_, {page, username, startDate, endDate, urlId})
+export async function loadData(_, {page, username, startDate, endDate, url})
 {
-	const [returnValue, urls] = await Promise.all([
+	const [returnValue] = await Promise.all([
 		this.query('v1/session/sessions', {
 			page: page ? page : 1,
 			username: username ? username : '',
 			startDate: startDate ? startDate : '',
 			endDate: endDate ? endDate : '',
-			urlId: urlId ? urlId : '',
+			url: url ? url : '',
 		}),
-		this.query('v1/session/urls'),
 	]);
 
 	return {
@@ -121,8 +119,7 @@ export async function loadData(_, {page, username, startDate, endDate, urlId})
 		username: returnValue.username,
 		startDate: returnValue.startDate,
 		endDate: returnValue.endDate,
-		urlId: returnValue.urlId,
-		urls: urls,
+		url: returnValue.url,
 	};
 }
 

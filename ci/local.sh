@@ -14,12 +14,16 @@ normal=$(tput sgr0)
 db_init=1
 npm_install=1
 verbose=0
-eval set -- `getopt -o 'OIv' --long 'no-db-init,no-npm-install,verbose' -- "$@"`
+compilers=1
+server=1
+eval set -- `getopt -o 'OIv' --long 'no-db-init,no-npm-install,verbose,no-compilers,no-server' -- "$@"`
 while true; do
 	case "$1" in
 		'-O'|'--no-db-init') db_init=0; shift;;
 		'-I'|'--no-npm-install') npm_install=0; shift;;
 		'-v'|'--verbose') verbose=1; shift;;
+		'-c'|'--no-compilers') compilers=0; shift;;
+		'-s'|'--no-server') server=0; shift;;
 		--) shift; break;;
 		*) echo "Internal error with getopt" >&2; exit 3;;
 	esac
@@ -44,7 +48,6 @@ if [ $db_init = 1 ]; then
 		createdb animalcrossingcommunity
 		# I feel like there ought to be a more elegant way of doing that?
 	fi
-	echo "DATABASE_URL=postgres://vagrant:ACCVagrantPostgresPassword@localhost/animalcrossingcommunity" > $repo_base_path/.env
 
 	# run scripts in db/init folder
 	cd "$repo_base_path/db/init"
@@ -98,9 +101,15 @@ else
 	echo "${blue}* Installing libraries from npm${normal} ...skipped"
 fi
 
-echo "ACCOUNTS_API_KEY=bzyyirat0psmqjzp" >> $repo_base_path/.env
-echo "TEST_SITE_PASSWORD=w3lcomeR&D" >> $repo_base_path/.env
-echo "AWS_URL=https://animalcrossingcommunity.s3.amazonaws.com" >> $repo_base_path/.env
+echo "${blue}* Clearing and Setting environment variables${normal}"
+
+# see webpack.config.js for client-side local environment variables
+# see heroku config vars for heroku environment variables
+echo "DATABASE_URL=postgres://vagrant:ACCVagrantPostgresPassword@localhost/animalcrossingcommunity" > $repo_base_path/.env
+echo "NODE_ENV=local" >> $repo_base_path/.env
+echo "ACCOUNTS_API_KEY=REPLACEME" >> $repo_base_path/.env
+echo "TEST_SITE_PASSWORD=REPLACEME" >> $repo_base_path/.env
+echo "AWS_URL=https://dts8l1aj0iycv.cloudfront.net" >> $repo_base_path/.env
 echo "HEROKU_APP_NAME=acc-test" >> $repo_base_path/.env
 
 echo "PAYPAL_BUTTON_ID=RN59DNFQPMKHG" >> $repo_base_path/.env
@@ -111,7 +120,16 @@ echo "AWS_ACCESS_KEY=REPLACEME" >> $repo_base_path/.env
 echo "AWS_SECRET_KEY=REPLACEME" >> $repo_base_path/.env
 echo "AWS_BUCKET_NAME=animalcrossingcommunity" >> $repo_base_path/.env
 
-echo "${blue}* Starting JavaScript & Sass compilers${normal}"
-npm run build
-echo "${blue}* Starting server${normal} (press Ctrl+C to quit)"
-heroku local
+if [ $compilers = 1 ]; then
+	echo "${blue}* Starting Babel, Sass & Webpack compilers${normal}"
+	npm run build
+else
+	echo "${blue}* Starting Babel, Sass & Webpack compilers${normal} ...skipped"
+fi
+
+if [ $server = 1 ]; then
+	echo "${blue}* Starting server${normal} (press Ctrl+C to quit)"
+	heroku local web
+else
+	echo "${blue}* Starting server${normal} ...skipped"
+fi

@@ -53,17 +53,7 @@ export default async function create({ruleId, number, name, description, content
 
 	await this.query('v1/notification/create', {id: threadId, type: constants.notification.types.FB});
 
-	await db.query(`
-		UPDATE node
-		SET latest_reply_time = (
-			SELECT child.creation_time
-			FROM node AS child
-			WHERE child.parent_node_id = node.id
-			ORDER BY child.creation_time DESC
-			LIMIT 1
-		)
-		WHERE node.type = 'thread' AND node.id = $1
-	`, threadId);
+	await db.updateThreadStats(threadId);
 
 	if (ruleId)
 	{

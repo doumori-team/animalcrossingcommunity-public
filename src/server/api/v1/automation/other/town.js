@@ -2,14 +2,12 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import { faker } from '@faker-js/faker/locale/en';
-import { residents as sortedResidents } from '@/catalog/residents.js';
-import { getPWPs } from '@/catalog/info.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Create basic town, character and FC (if possible)
  */
-
 async function town({gameId, userId})
 {
 	// You must be logged in and on a test site
@@ -28,6 +26,8 @@ async function town({gameId, userId})
 	userId = userId || this.userId;
 
 	// Perform queries
+
+	const sortedResidents = await ACCCache.get(constants.cacheKeys.residents);
 
 	// get info
 	const [grassShapeIds, ordinanceIds, hemisphereIds, fruitIds, nativeFruitIds,
@@ -178,7 +178,7 @@ async function town({gameId, userId})
 			const islandFruitId1 = faker.helpers.arrayElement(islandFruit1Ids).id;
 			const islandFruitId2 = faker.helpers.arrayElement(islandFruit2Ids).id;
 
-			const pwpIds = getPWPs(constants.gameIds.ACNL);
+			const pwpIds = (await ACCCache.get(constants.cacheKeys.pwps))[constants.gameIds.ACNL];
 			const pwps = faker.helpers.arrayElements(pwpIds, 30);
 
 			const stores = faker.helpers.arrayElements(storeIds, 5);

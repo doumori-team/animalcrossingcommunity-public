@@ -11,7 +11,7 @@ async function listings({id, page})
 		throw new UserError('permission');
 	}
 
-	const pageSize = 25;
+	const pageSize = 24;
 	const offset = (page * pageSize) - pageSize;
 
 	const results = await db.query(`

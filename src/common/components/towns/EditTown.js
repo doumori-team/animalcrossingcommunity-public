@@ -35,7 +35,7 @@ const EditTown = ({gameId, town, gameInfo}) =>
 				<InnerSection>
 					<h2 className='EditTown_sectionHeading'>
 						<img
-							src={`${process.env.AWS_URL}/images/icons/fruit.png`}
+							src={`${constants.AWS_URL}/images/icons/fruit.png`}
 							className='EditTown_sectionHeadingIcon'
 							alt='Fruit'
 						/>
@@ -100,7 +100,7 @@ const EditTown = ({gameId, town, gameInfo}) =>
 				<InnerSection>
 					<h2 className='EditTown_sectionHeading'>
 						<img
-							src={`${process.env.AWS_URL}/images/icons/villagers.png`}
+							src={`${constants.AWS_URL}/images/icons/villagers.png`}
 							className='EditTown_sectionHeadingIcon'
 							alt='Villagers'
 						/>
@@ -125,7 +125,7 @@ const EditTown = ({gameId, town, gameInfo}) =>
 				<InnerSection>
 					<h2 className='EditTown_sectionHeading'>
 						<img
-							src={`${process.env.AWS_URL}/images/icons/leaf.png`}
+							src={`${constants.AWS_URL}/images/icons/leaf.png`}
 							className='EditTown_sectionHeadingIcon'
 							alt='Leaf'
 						/>

@@ -74,7 +74,7 @@ async function email_needed({id, email})
 
 email_needed.apiTypes = {
 	id: {
-		type: APITypes.string,
+		type: APITypes.uuid,
 		required: true,
 	},
 	email: {

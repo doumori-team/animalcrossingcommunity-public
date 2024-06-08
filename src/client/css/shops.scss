@@ -1,0 +1,134 @@
+// hide breadcrumb to forums
+.ShopThreadBanner + .Node > .Node_main {
+	display: none;
+}
+
+.ShopsPage {
+	.Section {
+		.Grid {
+			.Shop {
+				@extend .GenericInnerSection;
+			}
+		}
+	}
+}
+
+.ShopPage {
+	.Header {
+		.Header_name {
+			display: flex;
+		}
+
+		.Header_description {
+			display: flex;
+		}
+	}
+
+	.Section {
+		.ShopPage_services, .ShopPage_roles {
+			li {
+				display: flex;
+				align-items: center;
+			}
+		}
+	}
+}
+
+.Shop {
+	position: relative;
+
+	&.header {
+		padding: 0 !important;
+		min-height: px2rem(40px);
+	}
+
+	.Shop_links {
+		@include links(125px);
+	}
+
+	.Shop_img_links {
+		a {
+			position: absolute;
+			right: .3rem;
+			line-height: 1;
+			padding: .5em .6em;
+			border-radius: .25em;
+			background-color: rgba(0,0,0,.4);
+			color: #fff;
+			top: .3rem;
+		}
+
+		.ReportProblem {
+			position: absolute;
+			right: 3rem;
+			padding: .5em .6em;
+		}
+	}
+
+	.Shop_name {
+		display: flex;
+		justify-content: center;
+	}
+
+	.Shop_shortDescription {
+		display: flex;
+		justify-content: center;
+		font-weight: normal;
+		font-size: px2rem(14px);
+	}
+
+	.Shop_vacation {
+		text-align: center;
+	}
+}
+
+.Shop_header {
+	width: px2rem(1299px);
+	max-width: 100%;
+	max-height: px2rem(350px);
+}
+
+.ShopThreadsPage {
+	.Grid {
+		@include responsive(1rem) {
+			@include grid($col-width: 20rem);
+		}
+
+		.ShopThreadsPage_order,
+		.ShopThreadsPage_application,
+		.ShopThreadsPage_thread {
+			@extend .GenericInnerSection;
+
+			.ShopThreadsPage_links {
+				@include links(125px);
+
+				a {
+					text-decoration: none;
+				}
+			}
+
+			a {
+				color: #8ab4f8;
+				text-decoration: underline;
+			}
+		}
+	}
+}
+
+.EmployeeRatingsPage {
+	.Section {
+		.Grid {
+			@include responsive(1rem) {
+				@include grid($col-width: 15rem);
+			}
+		}
+	}
+}
+
+.OrderPage, .ShopThreadBanner {
+	.Section {
+		.OrderPage_comment, .ShopThreadBanner_comment {
+			display: flex;
+		}
+	}
+}

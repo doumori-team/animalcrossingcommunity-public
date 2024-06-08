@@ -195,14 +195,7 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 
-
-
 # Project-specific additions
 .env
 .vagrant/
 lib/
-src/client/static/build.css
-src/client/static/build.js
-src/client/static/main.js
-src/client/static/vendor.js
-src/server/build.js

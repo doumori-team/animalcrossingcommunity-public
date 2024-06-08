@@ -32,22 +32,22 @@ const HomePage = () =>
 						<div className='HomePage_buttons'>
 							<Link to={`/forums/${encodeURIComponent(constants.boardIds.accForums)}`} reloadDocument>
 								<div className='HomePage_button'>
-									<img src='/images/layout/home_button1.png' alt='Forums' />
+									<img src={`${constants.AWS_URL}/images/layout/home_button1.png`} alt='Forums' />
 								</div>
 							</Link>
 							<Link to='/trading-post' reloadDocument>
 								<div className='HomePage_button'>
-									<img src='/images/layout/trading.png' alt='Trading' />
+									<img src={`${constants.AWS_URL}/images/layout/trading.png`} alt='Trading' />
 								</div>
 							</Link>
 							<Link to='/patterns' reloadDocument>
 								<div className='HomePage_button'>
-									<img src='/images/layout/patterns.png' alt='Patterns' />
+									<img src={`${constants.AWS_URL}/images/layout/patterns.png`} alt='Patterns' />
 								</div>
 							</Link>
 							<Link to='/guides' reloadDocument>
 								<div className='HomePage_button'>
-									<img src='/images/layout/guides.png' alt='Guides' />
+									<img src={`${constants.AWS_URL}/images/layout/guides.png`} alt='Guides' />
 								</div>
 							</Link>
 						</div>
@@ -96,7 +96,7 @@ const HomePage = () =>
 					<ContentBox>
 						<div className='HomePage_birthdaySection'>
 							<div className='HomePage_title'><img
-								src={`${process.env.AWS_URL}/images/icons/birthday.png`}
+								src={`${constants.AWS_URL}/images/icons/birthday.png`}
 								className='HomePage_icon'
 								alt='Candle'
 							/> Birthdays</div>
@@ -112,9 +112,9 @@ const HomePage = () =>
 														</Link>
 													</div>
 													<div className='HomePage_birthdayActions'>
-														<Link to={`/forums/${constants.boardIds.privateThreads}?addUsers=${birthday.username}`}>
+														<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${birthday.username}#TextBox`}>
 															<img
-																src={`${process.env.AWS_URL}/images/icons/pt.png`}
+																src={`${constants.AWS_URL}/images/icons/pt.png`}
 																className='HomePage_icon'
 																alt='Private Thread'
 															/>

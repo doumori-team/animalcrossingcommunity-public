@@ -83,6 +83,10 @@ async function ticket({id})
 			id: userTicket.id,
 			type: constants.notification.types.ticketProcessed
 		}),
+		this.query('v1/notification/destroy', {
+			id: userTicket.id,
+			type: constants.notification.types.modminUTPost
+		}),
 	]);
 
 	return {

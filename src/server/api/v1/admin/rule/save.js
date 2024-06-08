@@ -81,10 +81,9 @@ async function save({id, number, name, description, categoryId, reportable})
 
 		// update thread with latest info
 		await db.query(`
-			UPDATE node_revision
-			SET title = $2
-			WHERE node_id = $1::int
-		`, nodeId, `${number} - ${name ? name : description}`);
+			INSERT INTO node_revision (node_id, reviser_id, title)
+			VALUES ($1::int, $2::int, $3::text)
+		`, nodeId, this.userId, `${number} - ${name ? name : description}`);
 
 		await this.query('v1/admin/rule/node/update', {nodeId: nodeId, content: `The rule has been updated with the following description: ${description}`});
 	}

@@ -233,7 +233,7 @@ async function report({referenceId, type})
 	else if (type === types.rating)
 	{
 		const [checkId] = await db.query(`
-			SELECT comment, rating_user_id
+			SELECT comment, user_id
 			FROM rating
 			WHERE rating.id = $1::int
 		`, referenceId);
@@ -243,7 +243,7 @@ async function report({referenceId, type})
 			throw new UserError('no-such-rating');
 		}
 
-		violatorId = checkId.rating_user_id;
+		violatorId = checkId.user_id;
 		referenceText = checkId.comment;
 	}
 	else if (type === types.listing)
@@ -306,6 +306,135 @@ async function report({referenceId, type})
 		referenceText = checkId.comment;
 		parentId = checkId.listing_id;
 	}
+	else if (type.startsWith('shop_'))
+	{
+		if ([types.shopName, types.shopShortDescription, types.shopDescription, types.shopImage].includes(type))
+		{
+			const [checkId] = await db.query(`
+				SELECT
+					shop.name,
+					shop.short_description,
+					shop.description,
+					shop.description_format,
+					file.file_id,
+					shop_audit.user_id,
+					file.name AS filename
+				FROM shop
+				LEFT JOIN file ON (shop.header_file_id = file.id)
+				LEFT JOIN shop_audit ON (shop_audit.shop_id = shop.id AND shop_audit.value = $2)
+				WHERE shop.id = $1
+			`, referenceId, type);
+
+			if (!checkId)
+			{
+				throw new UserError('no-such-shop');
+			}
+
+			violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
+
+			if (type === types.shopName)
+			{
+				referenceText = checkId.name;
+			}
+			else if (type === types.shopShortDescription)
+			{
+				referenceText = checkId.short_description;
+			}
+			else if (type === types.shopDescription)
+			{
+				referenceText = checkId.description;
+				referenceFormat = checkId.description_format;
+			}
+			else if (type === types.shopImage)
+			{
+				referenceText = checkId.filename;
+				referenceUrl = `${constants.SHOP_FILE_DIR}${referenceId}/${checkId.file_id}`;
+			}
+		}
+		else if ([types.shopServiceName, types.shopServiceDescription].includes(type))
+		{
+			const [checkId] = await db.query(`
+				SELECT name, description, shop_audit.user_id
+				FROM shop_service
+				LEFT JOIN shop_audit ON (shop_audit.shop_id = shop_service.shop_id AND shop_audit.value = $2)
+				WHERE shop_service.id = $1
+			`, referenceId, type);
+
+			if (!checkId)
+			{
+				throw new UserError('no-such-service');
+			}
+
+			violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
+
+			if (type === types.shopServiceName)
+			{
+				referenceText = checkId.name;
+			}
+			else if (type === types.shopServiceDescription)
+			{
+				referenceText = checkId.description;
+			}
+		}
+		else if ([types.shopRoleName, types.shopRoleDescription].includes(type))
+		{
+			const [checkId] = await db.query(`
+				SELECT name, description, shop_audit.user_id
+				FROM shop_role
+				LEFT JOIN shop_audit ON (shop_audit.shop_id = shop_role.shop_id AND shop_audit.value = $2)
+				WHERE shop_role.id = $1
+			`, referenceId, type);
+
+			if (!checkId)
+			{
+				throw new UserError('no-such-role');
+			}
+
+			violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
+
+			if (type === types.shopRoleName)
+			{
+				referenceText = checkId.name;
+			}
+			else if (type === types.shopRoleDescription)
+			{
+				referenceText = checkId.description;
+			}
+		}
+		else if ([types.shopOrder].includes(type))
+		{
+			const [checkId] = await db.query(`
+				SELECT comment, customer_id
+				FROM shop_order
+				WHERE shop_order.id = $1
+			`, referenceId);
+
+			if (!checkId)
+			{
+				throw new UserError('no-such-order');
+			}
+
+			violatorId = checkId.customer_id;
+			referenceText = checkId.comment;
+		}
+		else if ([types.shopApplication].includes(type))
+		{
+			const [checkId] = await db.query(`
+				SELECT application, application_format, user_id
+				FROM shop_application
+				WHERE shop_application.id = $1
+			`, referenceId);
+
+			if (!checkId)
+			{
+				throw new UserError('no-such-application');
+			}
+
+			violatorId = checkId.user_id;
+			referenceText = checkId.application;
+			referenceFormat = checkId.application_format;
+		}
+	}
 	else if (type.startsWith('profile_'))
 	{
 		const [checkId] = await db.query(`
@@ -364,7 +493,7 @@ async function report({referenceId, type})
 	}
 
 	// Perform queries
-	const successImage = `${process.env.AWS_URL}/images/icons/icon_check.png`;
+	const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
 
 	const notificationTypes = constants.notification.types;
 

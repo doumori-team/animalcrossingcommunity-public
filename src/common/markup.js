@@ -12,7 +12,7 @@ export const markdownTags = {
 	'quote': { prefix: '> ' },
 	'monospace': { start: '`', end: '`' },
 	'list': { prefix: '* ' },
-	'colour': { start: '{color:$}', attrName: 'Color', attrType: 'color', end: '{color}' },
+	'color': { start: '{color:$}', attrName: 'Color', attrType: 'color', end: '{color}' },
 	'spoiler': { start: '!!', end: '!!' },
 	'link': { start: '[', attrName: 'URL', attrType: 'url', end: ']($)' },
 	'table': { prefix: `| Header 1 | Header 2 |
@@ -20,6 +20,8 @@ export const markdownTags = {
 | Col 1, Row 1 | Col 2, Row 1 |
 | Col 1, Row 2 | Col 2, Row 2 |`},
 	'center': { start: '{center}', end: '{center}' },
+	'line': { prefix: '---' },
+	'usertag': { start: '@', attrName: 'Username', attrType: 'username', end: '$' },
 }
 
 export const markdownHtmlTags = {
@@ -34,9 +36,12 @@ export const traditionalTags = {
 	'underline': { start: '[u]', end: '[/u]' },
 	'strikethrough': { start: '[s]', end: '[/s]' },
 	'quote': { start: '[bq]', end: '[/bq]' },
-	'colour': { start: '[color=$]', attrName: 'Color', attrType: 'color', end: '[/color]' },
+	'monospace': { start: '[code]', end: '[/code]' },
+	'color': { start: '[color=$]', attrName: 'Color', attrType: 'color', end: '[/color]' },
 	'spoiler': { start: '[spoiler]', end: '[/spoiler]' },
 	'link': { start: '[link=$]', attrName: 'URL', attrType: 'url', end: '[/link]' },
+	'line': { prefix: '[hr]' },
+	'usertag': { start: '@', attrName: 'Username', attrType: 'username', end: '$' },
 }
 
 // What emoji should insert
@@ -184,26 +189,28 @@ function parsePlaintext(text)
 //	- 'markdown'
 //	- 'markdown+html'
 // - emojiSettings: user emoji settings, for gendered emojis
-export function parse({text, format, emojiSettings})
+export function parse({text, format, emojiSettings, currentUser})
 {
 	if (format === 'markdown')
 	{
-		return parseMarkdown(text, emojiSettings);
+		return parseMarkdown(text, emojiSettings, currentUser);
 	}
 	else if (format === 'markdown+html')
 	{
-		return parseMarkdown(text, emojiSettings, true);
+		return parseMarkdown(text, emojiSettings, currentUser, true);
 	}
 	else if (format === 'bbcode')
 	{
 		return parseBbcode(text, {
 			emojiSettings: emojiSettings,
+			currentUser: currentUser,
 		});
 	}
 	else if (format === 'bbcode+html')
 	{
 		return parseBbcode(text, {
 			emojiSettings: emojiSettings,
+			currentUser: currentUser,
 		}, true);
 	}
 	else

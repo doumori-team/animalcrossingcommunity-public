@@ -1,18 +1,20 @@
 import React from 'react';
-import { useAsyncValue } from 'react-router-dom';
+import { useAsyncValue, useLocation, Link } from 'react-router-dom';
 
 import Node from '@/components/nodes/Node.js';
 import NodeWritingInterface from '@/components/nodes/NodeWritingInterface.js';
-import { Pagination, Search, ErrorMessage } from '@layout';
+import { Pagination, Search, ErrorMessage, Accordion } from '@layout';
 import { Form, Check, Switch } from '@form';
-import { constants } from '@utils';
+import { constants, dateUtils } from '@utils';
 import { UserContext } from '@contexts';
 
 const NodePage = () =>
 {
 	const {node, childNodes, page, pageSize, totalCount, addUsers, order, reverse,
 		locked, editNode, currentUserEmojiSettings, breadcrumb, nodeUsersEmojiSettings,
-		buddies, whitelistedUsers, boards, subBoards, error} = getData(useAsyncValue());
+		boards, subBoards, error, staffBoards, archivedBoards, listBoards} = getData(useAsyncValue());
+
+	const location = useLocation();
 
 	/**
 	 * routes.js for non-defered routes handles if it's a permission error by redirecting to homepage.
@@ -33,9 +35,20 @@ const NodePage = () =>
 		&locked=${encodeURIComponent(locked)}
 	` : '';
 
+	let pageLink = 'forums';
+
+	if (location.pathname.includes('shop'))
+	{
+		pageLink = 'shops/threads';
+	}
+	else if (location.pathname.includes('scout-hub'))
+	{
+		pageLink = 'scout-hub/adoption';
+	}
+
 	return (
 		<>
-			{(node.type === 'board' && ![constants.boardIds.publicThreads, constants.boardIds.accForums, constants.boardIds.trading, constants.boardIds.archivedBoards, constants.boardIds.archivedStaffBoards, constants.boardIds.archivedAdminBoards, constants.boardIds.siteRelated, constants.boardIds.featuresDashboard, constants.boardIds.archivedSpecialProjects].includes(node.id)) && (
+			{(node.type === 'board' && !listBoards.includes(node.id) && node.id != constants.boardIds.publicThreads) && (
 				<div className='NodePage_filter' key={node.id}>
 					<Search callback={`/forums/${encodeURIComponent(node.id)}`}>
 						<Form.Group>
@@ -54,13 +67,16 @@ const NodePage = () =>
 								defaultValue={[reverse]}
 							/>
 						</Form.Group>
-						<Form.Group>
-							<Switch
-								name='locked'
-								label='Show Locked'
-								value={locked}
-							/>
-						</Form.Group>
+
+						{!archivedBoards.includes(node.id) && (
+							<Form.Group>
+								<Switch
+									name='locked'
+									label='Show Locked'
+									value={locked}
+								/>
+							</Form.Group>
+						)}
 					</Search>
 				</div>
 			)}
@@ -81,18 +97,50 @@ const NodePage = () =>
 						emojiSettings={node.user ?
 							nodeUsersEmojiSettings.filter(s => s.userId === node.user.id) :
 							[]}
-						buddies={buddies}
-						whitelistedUsers={whitelistedUsers}
 						currentUser={currentUser}
 						subBoards={subBoards.filter(b => b.parentId === node.id)}
 						parentPermissions={node.permissions}
+						listBoards={listBoards}
 					/>
+
+					{(node.parentId === constants.boardIds.privateThreads && node.users.length > 0) && (
+						<div className='Node_invitedUsers'>
+							<Accordion
+								data={[
+									{
+										title: 'Invited Users',
+										description: <ul>
+											{node.users.map(({username, granted, id, viewed}, index) =>
+												<li key={index} className={granted ? `` : `removed`}>
+													<Link to={`/profile/${encodeURIComponent(id)}`}>
+														{username}
+													</Link>{viewed ? ` (${formatDate(viewed)})` : ''}
+												</li>
+											)}
+										</ul>,
+										fallback: <div class='AccordionFallback'>
+											<span>Invited Users: </span>
+											<ul>
+												{node.users.map(({username, granted, id, viewed}, index) =>
+													<li key={index} className={granted ? `` : `removed`}>
+														<Link to={`/profile/${encodeURIComponent(id)}`}>
+															{username}
+														</Link>{viewed ? ` (${formatDate(viewed)})` : ''}
+													</li>
+												)}
+											</ul>
+										</div>,
+									}
+								]}
+							/>
+						</div>
+					)}
 
 					<Pagination
 						page={page}
 						pageSize={pageSize}
 						totalCount={totalCount}
-						startLink={`forums/${encodeURIComponent(node.id)}`}
+						startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
 						queryParam={false}
 						endLink={link}
 					/>
@@ -106,13 +154,13 @@ const NodePage = () =>
 							emojiSettings={child.user ?
 								nodeUsersEmojiSettings.filter(s => s.userId === child.user.id) :
 								[]}
-							buddies={buddies}
-							whitelistedUsers={whitelistedUsers}
 							currentUser={currentUser}
 							followNode={node.id === constants.boardIds.publicThreads}
 							subBoards={subBoards.filter(b => b.parentId === child.id)}
 							parentPermissions={node.permissions}
 							nodeParentId={node.id}
+							pageLink={pageLink}
+							listBoards={listBoards}
 						/>
 					)}
 					</>
@@ -123,12 +171,12 @@ const NodePage = () =>
 				page={page}
 				pageSize={pageSize}
 				totalCount={totalCount}
-				startLink={`forums/${encodeURIComponent(node.id)}`}
+				startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
 				queryParam={false}
 				endLink={link}
 			/>
 
-			{(childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && ![constants.boardIds.publicThreads, constants.boardIds.accForums, constants.boardIds.trading, constants.boardIds.archivedBoards, constants.boardIds.archivedStaffBoards, constants.boardIds.archivedAdminBoards, constants.boardIds.siteRelated, constants.boardIds.featuresDashboard, constants.boardIds.archivedSpecialProjects].includes(node.id)) && (
+			{(childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && !listBoards.includes(node.id)) && (
 				<div className='Node_boardActions'>
 					<Form action='v1/node/lock' id='lockThreads' showButton buttonText='Lock' />
 				</div>
@@ -148,8 +196,8 @@ const NodePage = () =>
 							key={Math.random()}
 							emojiSettings={currentUserEmojiSettings}
 							nodeParentId={node.parentId}
-							nodeUserId={editNode.user?.id}
 							files={editNode.files}
+							staffBoards={staffBoards}
 						/>
 					}
 					</>
@@ -172,14 +220,26 @@ const NodePage = () =>
 						parentTitle={node.permissions.includes('edit') ? node.title : ''}
 						emojiSettings={currentUserEmojiSettings}
 						boards={boards}
-						nodeUserId={node.user?.id}
 						markupStyle={node.markupStyle}
+						staffBoards={staffBoards}
 					/>
 				}
 				</>
 			)}
 		</>
 	);
+}
+
+function formatDate(date)
+{
+	if (dateUtils.formatYear(date) === dateUtils.getCurrentYear())
+	{
+		return dateUtils.formatDateTime6(date);
+	}
+	else
+	{
+		return dateUtils.formatDateTime(date);
+	}
 }
 
 export async function loadData({id, page, editId}, {addUsers, locked, order, reverse})
@@ -190,7 +250,7 @@ export async function loadData({id, page, editId}, {addUsers, locked, order, rev
 			page: page,
 			editId: editId,
 			addUsers: addUsers,
-			locked: locked,
+			locked: locked ? locked : false,
 			order: order,
 			reverse: reverse,
 		}),
@@ -208,7 +268,8 @@ function getData(data)
 
 	const {node, breadcrumb, childNodes, page, totalCount, pageSize, addUsers,
 		reverse, order, locked, editNode, currentUserEmojiSettings,
-		nodeUsersEmojiSettings, buddies, whitelistedUsers, boards, subBoards} = data[0];
+		nodeUsersEmojiSettings, boards, subBoards,
+		staffBoards, archivedBoards, listBoards} = data[0];
 
 	return {
 		node,
@@ -224,10 +285,11 @@ function getData(data)
 		editNode,
 		currentUserEmojiSettings,
 		nodeUsersEmojiSettings,
-		buddies,
-		whitelistedUsers,
 		boards,
 		subBoards,
+		staffBoards,
+		archivedBoards,
+		listBoards,
 	};
 }
 

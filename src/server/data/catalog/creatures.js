@@ -1,10 +1,10 @@
 import { constants } from '@utils';
 
-import acgcCreatures from './acgc/creatures.json' assert { type: "json"};
-import acwwCreatures from './acww/creatures.json' assert { type: "json"};
-import accfCreatures from './accf/creatures.json' assert { type: "json"};
-import acnlCreatures from './acnl/creatures.json' assert { type: "json"};
-import acnhCreatures from '../acnh-sheet/creatures.json' assert { type: "json"};
+import acgcCreatures from './acgc/creatures.json' assert { type: 'json'};
+import acwwCreatures from './acww/creatures.json' assert { type: 'json'};
+import accfCreatures from './accf/creatures.json' assert { type: 'json'};
+import acnlCreatures from './acnl/creatures.json' assert { type: 'json'};
+import acnhCreatures from '../acnh-sheet/creatures.json' assert { type: 'json'};
 
 // Grabs the data from the files and sorts it in a way that's easier for the front-end
 export const creatures = {

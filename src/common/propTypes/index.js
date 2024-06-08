@@ -40,4 +40,5 @@ export { default as notificationShape } from './notification-shape.js';
 export { default as patternShape } from './pattern-shape.js';
 export { default as pollShape } from './poll-shape.js';
 export { default as ratingShape } from './rating-shape.js';
+export { default as shopShape } from './shop-shape.js';
 export { default as tuneShape } from './tune-shape.js';

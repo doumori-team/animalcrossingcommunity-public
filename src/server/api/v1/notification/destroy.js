@@ -9,7 +9,7 @@ async function destroy({id, type})
 	{
 		return;
 	}
-	
+
 	// Parameter Validation
 	const referenceId = Number(id);
 
@@ -164,6 +164,78 @@ async function destroy({id, type})
 			throw new UserError('no-such-support-email');
 		}
 	}
+	else if (
+		[
+			types.giftBellShop,
+			types.giftDonation,
+			types.donationReminder
+		].includes(type)
+	)
+	{
+		const [user] = await db.query(`
+			SELECT users.id
+			FROM users
+			WHERE users.id = $1::int
+		`, referenceId);
+
+		if (!user || this.userId !== referenceId)
+		{
+			throw new UserError('no-such-user');
+		}
+	}
+	else if (type === types.shopThread)
+	{
+		const [node] = await db.query(`
+			SELECT node.id
+			FROM node
+			JOIN shop_node ON (shop_node.node_id = node.id)
+			WHERE node.id = $1
+		`, referenceId);
+
+		if (!node)
+		{
+			throw new UserError('no-such-node');
+		}
+	}
+	else if (type === types.shopEmployee)
+	{
+		const [shop] = await db.query(`
+			SELECT id
+			FROM shop
+			WHERE id = $1
+		`, referenceId);
+
+		if (!shop)
+		{
+			throw new UserError('no-such-shop');
+		}
+	}
+	else if (type === types.shopOrder)
+	{
+		const [shopOrder] = await db.query(`
+			SELECT id
+			FROM shop_order
+			WHERE id = $1
+		`, referenceId);
+
+		if (!shopOrder)
+		{
+			throw new UserError('no-such-order');
+		}
+	}
+	else if (type === types.shopApplication)
+	{
+		const [shopApplication] = await db.query(`
+			SELECT id
+			FROM shop_application
+			WHERE id = $1
+		`, referenceId);
+
+		if (!shopApplication)
+		{
+			throw new UserError('no-such-application');
+		}
+	}
 	else
 	{
 		throw new UserError('bad-format');
@@ -220,6 +292,18 @@ async function destroy({id, type})
 				DELETE FROM notification
 				WHERE reference_id = $1::int AND reference_type_id = $2::int
 			`, referenceId, notificationType.id);
+		}
+		else if (
+			[
+				types.giftBellShop,
+				types.giftDonation
+			].includes(type)
+		)
+		{
+			await db.query(`
+				DELETE FROM notification
+				WHERE reference_type_id = $1::int AND user_id = $2::int
+			`, notificationType.id, this.userId);
 		}
 		else
 		{

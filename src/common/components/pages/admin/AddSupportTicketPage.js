@@ -31,7 +31,7 @@ const AddSupportTicketPage = () =>
 								formatName='format'
 								label='Message'
 								emojiSettings={currentUserEmojiSettings}
-								maxLength={constants.max.post}
+								maxLength={constants.max.post1}
 								required
 							/>
 						</Form.Group>

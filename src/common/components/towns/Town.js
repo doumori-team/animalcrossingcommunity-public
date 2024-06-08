@@ -105,7 +105,7 @@ const Town = ({id, name, game, userId, fruit, nativeFruit, grassShape,
 				<h2 className='Town_sectionHeading'>
 					<div className='Town_characterHeader'>
 						<div>
-							<img src={`${process.env.AWS_URL}/images/icons/character.png`}
+							<img src={`${constants.AWS_URL}/images/icons/character.png`}
 								className='Town_sectionHeadingIcon' alt='Characters' />
 							Characters
 						</div>
@@ -137,7 +137,7 @@ const Town = ({id, name, game, userId, fruit, nativeFruit, grassShape,
 
 			<InnerSection>
 				<h2 className='Town_sectionHeading'>
-					<img src={`${process.env.AWS_URL}/images/icons/museum.png`} className='Town_sectionHeadingIcon' alt='Museum' />
+					<img src={`${constants.AWS_URL}/images/icons/museum.png`} className='Town_sectionHeadingIcon' alt='Museum' />
 					Museum
 				</h2>
 				<ul>
@@ -149,7 +149,7 @@ const Town = ({id, name, game, userId, fruit, nativeFruit, grassShape,
 
 			<InnerSection>
 				<h2 className='Town_sectionHeading'>
-					<img src={`${process.env.AWS_URL}/images/icons/fruit.png`} className='Town_sectionHeadingIcon' alt='Fruit' />
+					<img src={`${constants.AWS_URL}/images/icons/fruit.png`} className='Town_sectionHeadingIcon' alt='Fruit' />
 					Fruit
 				</h2>
 				{fruit.length > 0 ? (
@@ -172,7 +172,7 @@ const Town = ({id, name, game, userId, fruit, nativeFruit, grassShape,
 
 			<InnerSection>
 				<h2 className='Town_sectionHeading'>
-					<img src={`${process.env.AWS_URL}/images/icons/villagers.png`} className='Town_sectionHeadingIcon' alt='Villagers' />
+					<img src={`${constants.AWS_URL}/images/icons/villagers.png`} className='Town_sectionHeadingIcon' alt='Villagers' />
 					Villagers
 				</h2>
 				{residents.length > 0 ? (
@@ -188,7 +188,7 @@ const Town = ({id, name, game, userId, fruit, nativeFruit, grassShape,
 
 			<InnerSection>
 				<h2 className='Town_sectionHeading'>
-					<img src={`${process.env.AWS_URL}/images/icons/leaf.png`} className='Town_sectionHeadingIcon' alt='Additional Information' />
+					<img src={`${constants.AWS_URL}/images/icons/leaf.png`} className='Town_sectionHeadingIcon' alt='Additional Information' />
 					Additional Information
 				</h2>
 				<ul>

@@ -1,5 +1,5 @@
 import * as db from '@db';
-import { ProfanityError } from '@errors';
+import { ProfanityError, UserError } from '@errors';
 import { utils } from '@utils';
 
 /*

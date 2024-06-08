@@ -11,17 +11,12 @@ async function save({signature = null, format, userTitle = null, flagOption,
 		throw new UserError('login-needed');
 	}
 
-	const user = await this.query('v1/user', {id: this.userId});
-
-	if (typeof(user) === 'undefined' || user.length === 0)
-	{
-		throw new UserError('no-such-user');
-	}
+	const userDonations = await this.query('v1/users/donations', {id: this.userId});
 
 	if (
-		(user.perks < 5 && format !== 'plaintext') ||
-		(user.perks < 10 && utils.realStringLength(signature) > constants.max.signature1) ||
-		(user.perks < 20 && utils.realStringLength(signature) > constants.max.signature2)
+		(userDonations.perks < 5 && format !== 'plaintext') ||
+		(userDonations.perks < 10 && utils.realStringLength(signature) > constants.max.signature1) ||
+		(userDonations.perks < 20 && utils.realStringLength(signature) > constants.max.signature2)
 	)
 	{
 		throw new UserError('bad-format');
@@ -97,7 +92,13 @@ save.apiTypes = {
 	showImages: {
 		type: APITypes.boolean,
 		default: 'false',
-	}
+	},
+	conciseMode: {
+		type: APITypes.number,
+		default: 3,
+		min: 1,
+		max: 4,
+	},
 }
 
 export default save;

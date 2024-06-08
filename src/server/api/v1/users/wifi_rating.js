@@ -26,8 +26,7 @@ async function wifi_rating({id})
 
 	// Confirm whitelists
 	let [whitelist] = await db.query(`
-		SELECT
-			id
+		SELECT id
 		FROM friend_code_whitelist
 		WHERE user_id = $1::int AND whitelist_user_id = $2::int
 	`, id, this.userId);
@@ -35,8 +34,7 @@ async function wifi_rating({id})
 	if (!whitelist)
 	{
 		[whitelist] = await db.query(`
-			SELECT
-				id
+			SELECT id
 			FROM wifi_rating_whitelist
 			WHERE (user_id = $1::int AND whitelist_user_id = $2::int) OR (user_id = $2::int AND whitelist_user_id = $1::int)
 		`, id, this.userId);
@@ -44,8 +42,7 @@ async function wifi_rating({id})
 	else
 	{
 		[whitelist] = await db.query(`
-			SELECT
-				id
+			SELECT id
 			FROM friend_code_whitelist
 			WHERE user_id = $1::int AND whitelist_user_id = $2::int
 		`, this.userId, id);
@@ -53,8 +50,7 @@ async function wifi_rating({id})
 		if (!whitelist)
 		{
 			[whitelist] = await db.query(`
-				SELECT
-					id
+				SELECT id
 				FROM wifi_rating_whitelist
 				WHERE user_id = $1::int AND whitelist_user_id = $2::int
 			`, this.userId, id);
@@ -68,8 +64,7 @@ async function wifi_rating({id})
 
 	// Perform queries
 	const [rating] = await db.query(`
-		SELECT
-			rating.id
+		SELECT rating.id
 		FROM rating
 		WHERE rating.user_id = $1::int AND rating.rating_user_id = $2::int AND listing_id IS NULL
 	`, this.userId, id);

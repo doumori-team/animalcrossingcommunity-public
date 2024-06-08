@@ -1,6 +1,7 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import { constants } from '@utils';
 
 async function save({whiteListUser, action})
 {
@@ -38,7 +39,7 @@ async function save({whiteListUser, action})
 		throw new UserError('bad-format');
 	}
 
-	const successImage = `${process.env.AWS_URL}/images/icons/icon_check.png`;
+	const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
 
 	// Check if user already has whitelisted user
 	await db.transaction(async query =>

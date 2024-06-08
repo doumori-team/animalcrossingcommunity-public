@@ -1,25 +1,47 @@
-.BellShopPage {
+.BellShopPage, .BellShopGiftPage {
 	.Header {
-		.BellShopPage_bells {
+		.BellShopPage_bells, .BellShopGiftPage_bells {
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
 			align-items: center;
 
-			.BellShopPage_userBells {
+			.BellShopPage_userBells, .BellShopGiftPage_userBells {
 				@extend .HeaderText;
 			}
 		}
 	}
+}
 
+.BellShopPage {
 	.Section {
+		.BellShopPage_sort {
+			display: flex;
+			justify-content: center;
+			align-items: baseline;
+
+			.BellShopPage_sortLink {
+				padding: px2rem(2px);
+			}
+
+			.BellShopPage_sortLink.selected {
+				color: red;
+			}
+		}
+
 		.Grid {
 			@include responsive(1rem) {
 				@include grid($col-width: 15rem);
 			}
 
-			a {
+			a:not(.BellShopPage_button) {
 				@extend .GenericButtonWithCustomImage;
+			}
+
+			a.BellShopPage_button {
+				display: flex;
+				justify-content: center;
+				transform-style: preserve-3d;
 			}
 		}
 	}
@@ -28,19 +50,19 @@
 		@extend .GenericButtonWithCustomImage;
 
 		&_avatar-accents {
-			background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/bell_shop/avatar_accents.png);
+			background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/bell_shop/avatar_accents.png);
 		}
 
 		&_avatar-backgrounds {
-			background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/bell_shop/avatar_backgrounds.png);
+			background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/bell_shop/avatar_backgrounds.png);
 		}
 
 		&_avatar-characters {
-			background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/bell_shop/avatar_characters.png);
+			background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/bell_shop/avatar_characters.png);
 		}
 
 		&_background-colorations {
-			background-image: url(https://animalcrossingcommunity.s3.amazonaws.com/images/bell_shop/background_colorations.png);
+			background-image: url(https://dts8l1aj0iycv.cloudfront.net/images/bell_shop/background_colorations.png);
 		}
 	}
 }
@@ -55,21 +77,21 @@
 	}
 }
 
-.BellShopPage_item, .BellShopRedeemedPage_item {
+.BellShopPage_item, .BellShopRedeemedPage_item, .BellShopGiftPage_item {
 	@extend .GenericInnerSection;
 
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 
-	.BellShopPage_name, .BellShopRedeemedPage_name {
+	.BellShopPage_name, .BellShopRedeemedPage_name, .BellShopGiftPage_name {
 		font-size: 20px;
 		font-weight: bold;
 		text-align: center;
 	}
 
-	.BellShopPage_prices {
-		.BellShopPage_button {
+	.BellShopPage_prices, .BellShopGiftPage_prices {
+		.BellShopPage_button, .BellShopGiftPage_button {
 			@include button;
 			margin: px2rem(1px);
 			text-align: center;
@@ -86,4 +108,15 @@
 			}
 		}
 	}
+}
+
+.BellShopGiftPage_prices {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.BellShopPage_prices {
+	display: flex;
+	flex-direction: column;
 }

@@ -1,9 +1,9 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { dateUtils } from '@utils';
+import { dateUtils, constants, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 
-async function session({id, page, urlId})
+async function session({id, page, url})
 {
 	const permissionGranted = await this.query('v1/permission', {permission: 'process-user-tickets'});
 
@@ -26,18 +26,22 @@ async function session({id, page, urlId})
 		throw new UserError('bad-format');
 	}
 
-	if (urlId > 0)
+	let urlId = null;
+
+	if (utils.realStringLength(url) > 0)
 	{
-		const [url] = await db.query(`
+		[urlId] = await db.query(`
 			SELECT id
 			FROM url
-			WHERE id = $1::int
-		`, urlId);
+			WHERE url = $1
+		`, url);
 
-		if (!url)
+		if (!urlId)
 		{
 			throw new UserError('bad-format');
 		}
+
+		urlId = urlId.id;
 	}
 
 	// Do actual search
@@ -127,7 +131,7 @@ async function session({id, page, urlId})
 		count: urls.length > 0 ? Number(urls[0].count) : 0,
 		page: page,
 		pageSize: pageSize,
-		urlId: urlId,
+		url: url,
 	};
 }
 
@@ -141,9 +145,10 @@ session.apiTypes = {
 		required: true,
 		min: 1,
 	},
-	urlId: {
-		type: APITypes.number,
-		default: 0,
+	url: {
+		type: APITypes.string,
+		default: '',
+		maxLength: constants.max.url,
 	},
 }
 

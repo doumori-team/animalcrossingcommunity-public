@@ -2,6 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({id, gameConsoleId, name, shortName, pattern, placeholder, sequence, isEnabled})
 {
@@ -185,6 +186,8 @@ async function save({id, gameConsoleId, name, shortName, pattern, placeholder, s
 	{
 		throw new UserError('no-such-game');
 	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.games);
 
 	return {
 		id: result.id

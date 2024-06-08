@@ -22,9 +22,8 @@ export default async function settings()
 			user_account_cache.username
 		FROM user_node_permission
 		JOIN user_account_cache ON (user_node_permission.user_id = user_account_cache.id)
-		JOIN node_permission ON (user_node_permission.node_permission_id = node_permission.id)
-		WHERE user_node_permission.node_id = $1::int AND node_permission.identifier = 'read'
-	`, nodeId);
+		WHERE user_node_permission.node_id = $1::int AND user_node_permission.node_permission_id = $2
+	`, nodeId, constants.nodePermissions.read);
 
 	return {
 		users: users,

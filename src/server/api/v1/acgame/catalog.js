@@ -1,7 +1,7 @@
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
-import { sortedAcGameCategories as sortedCategories } from '@/catalog/data.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 /*
  * Fetches information about a game's catalog.
@@ -18,18 +18,42 @@ async function catalog({id, categoryName, sortBy, name, query})
 		throw new UserError('permission');
 	}
 
+	let museum = false;
+
+	if (categoryName === 'museum')
+	{
+		categoryName = 'all';
+		museum = true;
+	}
+
+	let acgameCategories = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${id}_${categoryName}_${sortBy}`);
+
 	// Check parameters
-	if (categoryName !== 'all' && !sortedCategories[id][categoryName])
+	if (categoryName !== 'all' && !acgameCategories)
 	{
 		throw new UserError('no-such-catalog-category');
 	}
 
 	// Run calculations
-	const acgameCategories = sortedCategories[id][categoryName][sortBy];
+	if (museum)
+	{
+		const doesItemMatch = (item) => item.museum && item.genuine;
+		const doesGroupMatch = (group) => group.items.some(doesItemMatch);
+
+		acgameCategories = acgameCategories.filter((catalog) => catalog.groups.some(doesGroupMatch))
+			.map((catalog) => ({
+				...catalog,
+				groups: catalog.groups.filter(doesGroupMatch)
+					.map((group) => ({
+						...group,
+						items: group.items.filter(doesItemMatch)
+					}))
+			}));
+	}
 
 	if (utils.realStringLength(name) > 0)
 	{
-		const doesItemMatch = (item) => item.name.includes(name);
+		const doesItemMatch = (item) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
 		const doesGroupMatch = (group) => group.items.some(doesItemMatch);
 
 		return acgameCategories.filter((catalog) => catalog.groups.some(doesGroupMatch))
@@ -40,11 +64,12 @@ async function catalog({id, categoryName, sortBy, name, query})
 						...group,
 						items: group.items.filter(doesItemMatch)
 					}))
-			}))
+			}));
 	}
 	else if (utils.realStringLength(query) > 0)
 	{
-		return acgameCategories.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
+		// have direct match show first in the list
+		return acgameCategories.filter(item => item.name.toLowerCase() === query.toLowerCase()).concat(acgameCategories.filter(item => item.name.toLowerCase() !== query.toLowerCase() && item.name.toLowerCase().includes(query.toLowerCase())));
 	}
 
 	return acgameCategories;

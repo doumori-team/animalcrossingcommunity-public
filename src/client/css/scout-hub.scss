@@ -45,13 +45,6 @@
 	}
 }
 
-.NewMemberPage {
-	.NewMemberPage_button {
-		@extend .GenericButtonLink;
-		font-size: 100%;
-	}
-}
-
 .ReassignPage {
 	.Section {
 		.Grid {

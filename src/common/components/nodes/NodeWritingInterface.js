@@ -8,12 +8,18 @@ import { UserContext } from '@contexts';
 
 const NodeWritingInterface = ({parentId, parentType, permissions, lastPage,
 	addUsers, nodeParentId, threadType, parentTitle, parentContent, threadId,
-	emojiSettings, boards, nodeUserId, markupStyle, files}) =>
+	emojiSettings, boards, markupStyle, files, staffBoards}) =>
 {
-	let callback, title;
+	let callback, title, callbackPrefix = 'forums';
 
-	const callbackPrefix = (constants.boardIds.adopteeThread === parentId ||
-		nodeParentId === constants.boardIds.adopteeThread) ? 'scout-hub/adoption' : 'forums';
+	if (constants.boardIds.adopteeThread === parentId || nodeParentId === constants.boardIds.adopteeThread)
+	{
+		callbackPrefix = 'scout-hub/adoption';
+	}
+	else if (constants.boardIds.shopThread === parentId || nodeParentId === constants.boardIds.shopThread)
+	{
+		callbackPrefix = 'shops/threads'
+	}
 
 	// If we're currently on a board:
 	if (parentType === 'board')
@@ -51,14 +57,14 @@ const NodeWritingInterface = ({parentId, parentType, permissions, lastPage,
 	}
 
 	return (
-		<fieldset className='NodeWritingInterface'>
+		<fieldset className='NodeWritingInterface' id='TextBox'>
 			<Form action='v1/node/create' callback={callback} showButton>
 				<div role='group'>
 					<h1 className='NodeWritingInterface_heading'>
 						{title}
 					</h1>
 
-					{permissions.includes('lock') && (
+					{(permissions.includes('lock') && parentType === 'thread') && (
 						<div className='NodeWritingInterface_lock'>
 							<Switch
 								name='lock'
@@ -105,45 +111,58 @@ const NodeWritingInterface = ({parentId, parentType, permissions, lastPage,
 				)}
 
 				<UserContext.Consumer>
-					{currentUser => currentUser && (
-						([parentId, nodeParentId].includes(constants.boardIds.privateThreads) && (nodeUserId === currentUser.id || parentId === constants.boardIds.privateThreads)) && (
+					{currentUser => (
+						<>
+						{permissions.includes('add-users') && (
 							<div className='NodeWritingInterface_usernames'>
 								<Text
-									name='users'
-									label='Username(s)'
+									name='addUsers'
+									label='Add Username(s)'
 									maxLength={constants.max.addMultipleUsers}
 									value={addUsers}
 									information='Use to add users to the thread. You may add multiple users by separating their usernames with a comma. For example: jader201,aldericon'
 								/>
 							</div>
-						)
+						)}
+
+						{permissions.includes('remove-users') && (
+							<div className='NodeWritingInterface_usernames'>
+								<Text
+									name='removeUsers'
+									label='Remove Username(s)'
+									maxLength={constants.max.addMultipleUsers}
+								/>
+							</div>
+						)}
+
+						<RichTextArea
+							textName='text'
+							formatName='format'
+							key={Math.random()}
+							label={title}
+							textValue={parentContent.text}
+							formatValue={markupStyle ? markupStyle : parentContent.format}
+							emojiSettings={emojiSettings}
+							maxLength={[nodeParentId, parentId].some(pid => staffBoards.includes(pid)) ? constants.max.staffPost : (currentUser && currentUser.monthlyPerks >= 5 ? (currentUser.monthlyPerks < 10 ? constants.max.post2 : constants.max.post3) : constants.max.post1)}
+							upload
+							files={files}
+							previewSignature
+						/>
+						</>
 					)}
 				</UserContext.Consumer>
-
-				<RichTextArea
-					textName='text'
-					formatName='format'
-					key={Math.random()}
-					label={title}
-					textValue={parentContent.text}
-					formatValue={markupStyle ? markupStyle : parentContent.format}
-					emojiSettings={emojiSettings}
-					maxLength={[nodeParentId, parentId].some(pid => constants.staffBoards.includes(pid)) ? constants.max.staffPost : constants.max.post}
-					upload
-					files={files}
-				/>
 			</Form>
 		</fieldset>
 	);
 }
 
 NodeWritingInterface.propTypes = {
-	parentId: PropTypes.number.isRequired,
+	parentId: PropTypes.number.isRequired, // direct parent, the thread / board
 	parentType: PropTypes.string.isRequired,
 	permissions: PropTypes.arrayOf(PropTypes.string).isRequired,
 	lastPage: PropTypes.number,
 	addUsers: PropTypes.string,
-	nodeParentId: PropTypes.number,
+	nodeParentId: PropTypes.number, // the parent's parent, board of some type
 	threadType: PropTypes.string,
 	parentTitle: PropTypes.string,
 	parentContent: PropTypes.shape({
@@ -152,9 +171,9 @@ NodeWritingInterface.propTypes = {
 	}),
 	threadId: PropTypes.number,
 	emojiSettings: emojiSettingsShape,
-	nodeUserId: PropTypes.number,
 	markupStyle: PropTypes.string,
 	files: fileShape,
+	staffBoards: PropTypes.arrayOf(PropTypes.number),
 }
 
 NodeWritingInterface.defaultProps = {
@@ -168,6 +187,7 @@ NodeWritingInterface.defaultProps = {
 	boards: [],
 	markupStyle: null,
 	files: [],
+	staffBoards: [],
 }
 
 export default NodeWritingInterface;

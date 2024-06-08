@@ -7,6 +7,7 @@ import emoji from 'markdown-it-emoji';
 import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
 import userTag from './markdown-user-tag.js';
 import center from './markdown-center.js';
+import { constants } from '@utils';
 
 const parserEmojiDef = {
 	defs: { ...emojiDefs[0], ...emojiDefs[1] },
@@ -49,7 +50,6 @@ parser.use(ins); // Plugin: adds ++ tags (for underlining)
 parser.use(spoiler); // Plugin: adds !! tags (for spoilers)
 parser.use(color); // Plugin (our own): adds {color} tags
 parser.use(emoji, parserEmojiDef); // Plugin: add emoji
-parser.use(userTag); // Plugin (our own): adds @username tag
 parser.use(center); // Plugin (our own): auto-center text
 
 var defaultRender = parser.renderer.rules.link_open || function(tokens, idx, options, env, self)
@@ -87,10 +87,9 @@ htmlParser.use(ins);
 htmlParser.use(spoiler);
 htmlParser.use(color);
 htmlParser.use(emoji, parserEmojiDef);
-htmlParser.use(userTag);
 htmlParser.use(attrs); // Plugin: adds attributes (id, class, etc.)
 
-export default function parse(text, emojiSettings, html = false)
+export default function parse(text, emojiSettings, currentUser, html = false)
 {
 	function renderEmoji(token, idx)
 	{
@@ -108,17 +107,27 @@ export default function parse(text, emojiSettings, html = false)
 			src = `reaction/`;
 		}
 
-		return `<img src='${process.env.AWS_URL}/images/emoji/${src}${emoji.content}.png' />`;
+		return `<img src='${constants.AWS_URL}/images/emoji/${src}${emoji.content}.png' />`;
 	}
 
 	if (html)
 	{
 		htmlParser.renderer.rules.emoji = renderEmoji;
 
+		if (currentUser)
+		{
+			htmlParser.use(userTag); // Plugin (our own): adds @username tag
+		}
+
 		return htmlParser.render(text);
 	}
 
 	parser.renderer.rules.emoji = renderEmoji;
+
+	if (currentUser)
+	{
+		parser.use(userTag); // Plugin (our own): adds @username tag
+	}
 
 	return parser.render(text);
 }

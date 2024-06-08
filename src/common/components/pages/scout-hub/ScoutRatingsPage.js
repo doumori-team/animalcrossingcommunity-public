@@ -77,7 +77,7 @@ export async function loadData({userId}, {page})
 			page: page ? page : 1,
 			type: constants.rating.types.scout
 		}),
-		this.query('v1/user', {id: userId}),
+		this.query('v1/users/ratings', {id: userId}),
 	]);
 
 	return {

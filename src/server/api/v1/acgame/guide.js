@@ -1,6 +1,7 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 async function guide({id})
 {
@@ -12,7 +13,7 @@ async function guide({id})
 	}
 
 	const [guides, modifyGuidesPerm] = await Promise.all([
-		db.query(`
+		db.cacheQuery(constants.cacheKeys.guides, `
 			SELECT
 				id,
 				name,

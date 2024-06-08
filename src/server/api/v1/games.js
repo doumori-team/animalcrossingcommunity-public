@@ -1,5 +1,6 @@
 import * as db from '@db';
 import { UserError } from '@errors';
+import { constants } from '@utils';
 
 export default async function games()
 {
@@ -13,7 +14,7 @@ export default async function games()
 		throw new UserError('permission');
 	}
 
-	const games = await db.query(`
+	const games = await db.cacheQuery(constants.cacheKeys.games, `
 		SELECT
 			game.id,
 			game.name,

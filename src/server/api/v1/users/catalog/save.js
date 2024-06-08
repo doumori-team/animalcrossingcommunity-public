@@ -1,7 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { sortedCategories } from '@/catalog/data.js';
 import * as APITypes from '@apiTypes';
+import { constants } from '@utils';
+import { ACCCache } from '@cache';
 
 async function save({inventory, wishlist, remove})
 {
@@ -19,7 +20,7 @@ async function save({inventory, wishlist, remove})
 
 	// Check parameters
 	// all items
-	const catalogItems = sortedCategories['all']['items'];
+	const catalogItems = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
 	// Check inventory
 	inventory = await Promise.all(inventory.map(async (id) =>

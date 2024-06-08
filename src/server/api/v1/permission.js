@@ -6,7 +6,20 @@ import * as APITypes from '@apiTypes';
  */
 async function permission({permission})
 {
-	const groupIds = await this.query('v1/users/user_groups');
+	const [groupIds, userData] = await Promise.all([
+		db.getUserGroups(this.userId),
+		this.userId ? db.query(`
+			SELECT ban_length.description
+			FROM users
+			JOIN ban_length ON (ban_length.id = users.current_ban_length_id)
+			WHERE users.id = $1::int
+		`, this.userId) : null,
+	]);
+
+	if (userData && userData[0] && userData[0].description)
+	{
+		return false;
+	}
 
 	const permissionGranted = await db.query(`
 		SELECT *

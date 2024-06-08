@@ -1,9 +1,8 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
-import { residents as sortedResidents } from '@/catalog/residents.js';
-import { getPWPs } from '@/catalog/info.js';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({gameId, id, name, nativeTownFruit, islandFruitId1, islandFruitId2,
 	fruit, grassShapeId, dreamAddress, ordinanceId, stores, nookId, pwps, islandName,
@@ -142,6 +141,17 @@ async function save({gameId, id, name, nativeTownFruit, islandFruitId1, islandFr
 		if (!foundGameId)
 		{
 			throw new UserError('no-such-ac-game');
+		}
+
+		const [towns] = await db.query(`
+			SELECT count(*) AS count
+			FROM town
+			WHERE user_id = $1
+		`, this.userId);
+
+		if (towns.count >= constants.max.towns)
+		{
+			throw new UserError('too-many-towns');
 		}
 
 		const [town] = await db.query(`
@@ -373,7 +383,7 @@ async function validatePublicWorkProjects(gameId, pwps)
 		throw new UserError('too-many-pwps');
 	}
 
-	const gamePWPs = getPWPs(gameId);
+	const gamePWPs = (await ACCCache.get(constants.cacheKeys.pwps))[gameId];
 
 	pwps.map(pwpId => {
 		if (!gamePWPs.find(p => p.id === pwpId))
@@ -418,7 +428,7 @@ async function validateResidents(gameId, islandResidentId, residents)
 		residents.push(islandResidentId);
 	}
 
-	const gameResidents = sortedResidents[gameId];
+	const gameResidents = (await ACCCache.get(constants.cacheKeys.residents))[gameId];
 
 	await Promise.all([
 		residents.map(async (residentId) => {
@@ -530,7 +540,7 @@ save.apiTypes = {
 	},
 	grassShapeId: {
 		type: APITypes.number,
-		default: 0,
+		nullable: true,
 	},
 	dreamAddress: {
 		type: APITypes.string,
@@ -538,6 +548,7 @@ save.apiTypes = {
 	},
 	ordinanceId: {
 		type: APITypes.number,
+		default: 1,
 	},
 	stores: {
 		type: APITypes.array,

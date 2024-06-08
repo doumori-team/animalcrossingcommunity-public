@@ -42,7 +42,7 @@ async function threads({threads, posts, boardId})
 			const [thread] = await query(`
 				INSERT INTO node (parent_node_id, user_id, type)
 				VALUES ($1::int, $2::int, $3::node_type)
-				RETURNING id;
+				RETURNING id
 			`, boardId, threadUserId, 'thread');
 
 			await query(`
@@ -54,7 +54,7 @@ async function threads({threads, posts, boardId})
 			const [firstPost] = await query(`
 				INSERT INTO node (parent_node_id, user_id, type)
 				VALUES ($1::int, $2::int, $3::node_type)
-				RETURNING id;
+				RETURNING id
 			`, thread.id, threadUserId, 'post');
 
 			await query(`
@@ -75,7 +75,7 @@ async function threads({threads, posts, boardId})
 				const [post] = await query(`
 					INSERT INTO node (parent_node_id, user_id, type)
 					VALUES ($1::int, $2::int, $3::node_type)
-					RETURNING id;
+					RETURNING id
 				`, threadId, postUserId, 'post');
 
 				await query(`
@@ -85,17 +85,7 @@ async function threads({threads, posts, boardId})
 			});
 		}
 
-		await db.query(`
-			UPDATE node
-			SET latest_reply_time = (
-				SELECT child.creation_time
-				FROM node AS child
-				WHERE child.parent_node_id = node.id
-				ORDER BY child.creation_time DESC
-				LIMIT 1
-			)
-			WHERE node.type = 'thread' AND node.id = $1
-		`, threadId);
+		await db.updateThreadStats(threadId);
 	}
 
 	return {

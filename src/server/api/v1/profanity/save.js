@@ -160,17 +160,7 @@ async function createThread(word, content, active)
 
 	await this.query('v1/notification/create', {id: thread.id, type: constants.notification.types.FB});
 
-	await db.query(`
-		UPDATE node
-		SET latest_reply_time = (
-			SELECT child.creation_time
-			FROM node AS child
-			WHERE child.parent_node_id = node.id
-			ORDER BY child.creation_time DESC
-			LIMIT 1
-		)
-		WHERE node.type = 'thread' AND node.id = $1
-	`, thread.id);
+	await db.updateThreadStats(thread.id);
 
 	return thread.id;
 }

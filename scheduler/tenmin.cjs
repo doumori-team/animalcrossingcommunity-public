@@ -6,6 +6,8 @@
 const pg = require('pg');
 const Imap = require('imap');
 const { convert } = require('html-to-text');
+const importSync = require('import-sync');
+const constants = importSync('../src/common/utils/constants.js');
 
 const pool = new pg.Pool(
 {
@@ -23,7 +25,6 @@ async function tenmin()
 		port: process.env.EMAIL_PORT,
 		tls: true,
 		tlsOptions: { servername: process.env.EMAIL_HOST },
-		//debug: console.error
 	});
 
 	function findTextPart(struct)
@@ -102,6 +103,12 @@ async function tenmin()
 					getMsgByUID(attrs.uid, cb, partId);
 				}
 			});
+		});
+
+		f.once('end', function() {
+			console.log('Done fetching all messages!');
+
+			imap.end();
 		});
 	}
 
@@ -187,19 +194,31 @@ async function tenmin()
 
 			// get all not read in last day
 			imap.search(['UNSEEN'], (err, results) => {
-				if (!results || results.length === 0)
-				{
-					console.log('No unseen emails available.');
-					//imap.end();
-
-					return;
-				}
-
 				if (err)
 				{
 					console.error(err);
 					return;
 				}
+
+				if (!results || results.length === 0)
+				{
+					console.log('No unseen emails available.');
+
+					imap.end();
+
+					return;
+				}
+				else
+				{
+					console.log(`Importing ${results.length} emails`);
+				}
+
+				imap.setFlags(results, ['\\Seen'], (err) => {
+					if (err)
+					{
+						console.error(err);
+					}
+				});
 
 				// get messages; for every message then....
 				getMessages(results, async (err, msg) => {
@@ -218,7 +237,7 @@ async function tenmin()
 
 					if (from.includes('<') && from.includes('>'))
 					{
-						let fromMatches = from.match(/[^< ]+(?=>)/g);
+						let fromMatches = from.match(constants.regexes.parseEmail);
 
 						if (fromMatches)
 						{
@@ -226,7 +245,7 @@ async function tenmin()
 						}
 					}
 
-					if (/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/.test(body))
+					if (constants.regexes.base64.test(body))
 					{
 						body = Buffer.from(body, 'base64').toString('ascii');
 					}
@@ -241,16 +260,7 @@ async function tenmin()
 							recorded = EXCLUDED.recorded,
 							body = EXCLUDED.body
 					`, [from, to, subject, recorded, body, msg.uid]);
-
-					imap.setFlags([msg.uid], ['\\Seen'], (err) => {
-						if (err)
-						{
-							console.error(err);
-						}
-					});
 				});
-
-				//imap.end();
 			});
 		});
 	});
@@ -259,10 +269,14 @@ async function tenmin()
 		console.error('IMAP Error: ' + err);
 	});
 
+	imap.once('end', function() {
+		console.log('Connection ended.');
+	});
+
 	imap.connect();
 }
 
 tenmin().then(function()
 {
-	console.log("Ten Minute scripts complete");
+	console.log('Ten Minute scripts complete');
 });

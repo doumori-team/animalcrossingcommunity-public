@@ -5,13 +5,14 @@ import * as APITypes from '@apiTypes';
 
 async function rating({id})
 {
-	const [useFriendCodesPerm, useTradingPostPerm, viewRatingsPerm] = await Promise.all([
+	const [useFriendCodesPerm, useTradingPostPerm, viewRatingsPerm, viewShopsPerm] = await Promise.all([
 		this.query('v1/permission', {permission: 'use-friend-codes'}),
 		this.query('v1/permission', {permission: 'use-trading-post'}),
 		this.query('v1/permission', {permission: 'view-ratings'}),
+		this.query('v1/permission', {permission: 'view-shops'}),
 	]);
 
-	if (!(useFriendCodesPerm || useTradingPostPerm || viewRatingsPerm))
+	if (!(useFriendCodesPerm || useTradingPostPerm || viewRatingsPerm || viewShopsPerm))
 	{
 		throw new UserError('permission');
 	}
@@ -26,10 +27,13 @@ async function rating({id})
 			rating.rating,
 			rating.comment,
 			rating.listing_id,
-			rating.adoption_node_id
+			rating.adoption_node_id,
+			rating.shop_node_id,
+			user_node_permission.granted
 		FROM rating
+		LEFT JOIN user_node_permission ON (user_node_permission.node_id = rating.shop_node_id AND user_node_permission.user_id = $2 AND user_node_permission.node_permission_id = $3)
 		WHERE rating.id = $1::int
-	`, id);
+	`, id, this.userId, constants.nodePermissions.read);
 
 	if (!rating)
 	{
@@ -70,6 +74,7 @@ async function rating({id})
 		comment: rating.comment,
 		listingId: rating.listing_id,
 		adoptionNodeId: rating.adoption_node_id,
+		shopNodeId: rating.granted ? rating.shop_node_id : null,
 	};
 }
 

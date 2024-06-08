@@ -2,6 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
+import { ACCCache } from '@cache';
 
 async function save({id, gameId, name, description, content})
 {
@@ -46,6 +47,9 @@ async function save({id, gameId, name, description, content})
 
 		id = id.id;
 	}
+
+	ACCCache.deleteMatch(constants.cacheKeys.guides);
+	ACCCache.deleteMatch(constants.cacheKeys.acGameGuide);
 
 	return {
 		id: id

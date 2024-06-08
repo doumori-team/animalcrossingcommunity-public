@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 
-async function sessions({page, username, startDate, endDate, urlId})
+async function sessions({page, username, startDate, endDate, url})
 {
 	const permissionGranted = await this.query('v1/permission', {permission: 'process-user-tickets'});
 
@@ -12,18 +12,22 @@ async function sessions({page, username, startDate, endDate, urlId})
 		throw new UserError('permission');
 	}
 
-	if (urlId > 0)
+	let urlId = null;
+
+	if (utils.realStringLength(url) > 0)
 	{
-		const [url] = await db.query(`
+		[urlId] = await db.query(`
 			SELECT id
 			FROM url
-			WHERE id = $1::int
-		`, urlId);
+			WHERE url = $1
+		`, url);
 
-		if (!url)
+		if (!urlId)
 		{
 			throw new UserError('bad-format');
 		}
+
+		urlId = urlId.id;
 	}
 
 	// Do actual search
@@ -149,7 +153,7 @@ async function sessions({page, username, startDate, endDate, urlId})
 		username: username,
 		startDate: startDate,
 		endDate: endDate,
-		urlId: urlId,
+		url: url,
 	};
 }
 
@@ -172,9 +176,10 @@ sessions.apiTypes = {
 		type: APITypes.date,
 		default: '',
 	},
-	urlId: {
-		type: APITypes.number,
-		default: 0,
+	url: {
+		type: APITypes.string,
+		default: '',
+		maxLength: constants.max.url,
 	},
 }
 

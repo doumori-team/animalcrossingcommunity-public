@@ -28,18 +28,17 @@ async function destroy({id})
 
 	await db.transaction(async query =>
 	{
-		await Promise.all([
-			// update any trades using this character
-			query(`
-				UPDATE listing_offer
-				SET character_id = null
-				WHERE character_id = $1::int
-			`, id),
-			query(`
-				DELETE FROM character
-				WHERE id = $1::int
-			`, id),
-		]);
+		// update any trades using this character; see v1/town/destroy.js
+		await query(`
+			UPDATE listing_offer
+			SET character_id = null
+			WHERE character_id = $1::int
+		`, id);
+
+		await query(`
+			DELETE FROM character
+			WHERE id = $1::int
+		`, id);
 	});
 }
 

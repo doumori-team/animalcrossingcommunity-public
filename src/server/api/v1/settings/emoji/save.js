@@ -42,7 +42,8 @@ export default async function save(emojiSettings)
 	await db.transaction(async query =>
 	{
 		await query(`
-			DELETE FROM emoji_setting WHERE user_id = $1::int
+			DELETE FROM emoji_setting
+			WHERE user_id = $1::int
 		`, this.userId);
 
 		if (settings.length === 0)
