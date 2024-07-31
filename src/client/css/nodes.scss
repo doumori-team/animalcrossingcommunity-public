@@ -654,6 +654,16 @@
 			text-transform: capitalize;
 		}
 	}
+
+	.GridMessage {
+		@extend .GenericSection;
+	}
+}
+
+.ThreadsPage {
+	.GridMessage {
+		@extend .GenericSection;
+	}
 }
 
 .NodePage_filter {

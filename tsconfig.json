@@ -1,0 +1,52 @@
+{
+	"include": ["./src/**/**/**/**/*", "global.d.ts"],
+	"compilerOptions": {
+		"noImplicitAny": true,
+		"module": "esnext",
+		"target": "es2020",
+		"jsx": "react",
+		"allowJs": true,
+		"moduleResolution": "node",
+		"forceConsistentCasingInFileNames": true,
+		"allowSyntheticDefaultImports": true,
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"baseUrl": "./src",
+		"strict": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"downlevelIteration": true,
+		"inlineSourceMap": true,
+		"paths": {
+			"common": ["common"],
+			"server": ["server"],
+			"@/components/*": ["common/components/*"],
+			"@/pages/*": ["common/components/pages/*"],
+			"@accounts": ["server/accounts.ts"],
+			"@behavior": ["common/components/behavior/index.ts"],
+			"@contexts": ["common/contexts.ts"],
+			"@db": ["server/db.ts"],
+			"@errors": ["common/errors.ts"],
+			"@form": ["common/components/form/index.ts"],
+			"@layout": ["common/components/layout/index.ts"],
+			"@types": ["common/types/index.ts"],
+			"@utils": ["common/utils/index.ts"],
+			"@apiTypes": ["server/api-types.ts"],
+			"@cache": ["server/cache.ts"],
+		}
+	},
+	"watchOptions": {
+		// Use native file system events for files and directories
+		"watchFile": "useFsEvents",
+		"watchDirectory": "useFsEvents",
+		// Poll files for updates more frequently
+		// when they're updated a lot.
+		"fallbackPolling": "dynamicPriority",
+		// Don't coalesce watch notification
+		"synchronousWatchDirectory": true,
+		// Finally, two additional settings for reducing the amount of possible
+		// files to track  work from these directories
+		"excludeDirectories": ["**/node_modules"],
+	}
+}

@@ -1,8 +1,16 @@
 // used by babel when compiling javascript
 {
-	"presets": ["@babel/preset-react"],
+	"presets": [
+		"@babel/preset-react",
+		["@babel/preset-typescript", {
+			"rewriteImportExtensions": true // changes .ts(x) imports to .js in .ts files
+		}]
+	],
 	"plugins": [
 		"@babel/plugin-syntax-import-assertions", // allows for import json files
+		["replace-import-extension", { // changes .ts(x) exports to .js in .js files
+			"extMapping": { ".ts": ".js", ".tsx": ".js" }
+		}],
 		["module-resolver", { // allows for @ throughout code
 			"root": ["./src"],
 			"alias": {
@@ -10,17 +18,17 @@
 				"server": "./src/server",
 				"@/components": "./src/common/components/",
 				"@/pages": "./src/common/components/pages/",
-				"@accounts": "./src/server/accounts.js",
-				"@behavior": "./src/common/components/behavior/index.js",
-				"@contexts": "./src/common/contexts.js",
-				"@db": "./src/server/db.js",
-				"@errors": "./src/common/errors.js",
-				"@form": "./src/common/components/form/index.js",
-				"@layout": "./src/common/components/layout/index.js",
-				"@propTypes": "./src/common/propTypes/index.js",
-				"@utils": "./src/common/utils/index.js",
-				"@apiTypes": "./src/server/api-types.js",
-				"@cache": "./src/server/cache.js"
+				"@accounts": "./src/server/accounts.ts",
+				"@behavior": "./src/common/components/behavior/index.ts",
+				"@contexts": "./src/common/contexts.ts",
+				"@db": "./src/server/db.ts",
+				"@errors": "./src/common/errors.ts",
+				"@form": "./src/common/components/form/index.ts",
+				"@layout": "./src/common/components/layout/index.ts",
+				"@types": "./src/common/types/index.ts",
+				"@utils": "./src/common/utils/index.ts",
+				"@apiTypes": "./src/server/api-types.ts",
+				"@cache": "./src/server/cache.ts"
 			}
 		}]
 	]

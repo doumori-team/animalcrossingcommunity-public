@@ -16,7 +16,8 @@ npm_install=1
 verbose=0
 compilers=1
 server=1
-eval set -- `getopt -o 'OIv' --long 'no-db-init,no-npm-install,verbose,no-compilers,no-server' -- "$@"`
+env=1
+eval set -- `getopt -o 'OIv' --long 'no-db-init,no-npm-install,verbose,no-compilers,no-server,no-env' -- "$@"`
 while true; do
 	case "$1" in
 		'-O'|'--no-db-init') db_init=0; shift;;
@@ -24,6 +25,7 @@ while true; do
 		'-v'|'--verbose') verbose=1; shift;;
 		'-c'|'--no-compilers') compilers=0; shift;;
 		'-s'|'--no-server') server=0; shift;;
+		'-e'|'--no-env') server=0; shift;;
 		--) shift; break;;
 		*) echo "Internal error with getopt" >&2; exit 3;;
 	esac
@@ -101,30 +103,33 @@ else
 	echo "${blue}* Installing libraries from npm${normal} ...skipped"
 fi
 
-echo "${blue}* Clearing and Setting environment variables${normal}"
+if [ $env = 1 ]; then
+	echo "${blue}* Clearing and Setting environment variables${normal}"
 
-# see webpack.config.js for client-side local environment variables
-# see heroku config vars for heroku environment variables
-echo "DATABASE_URL=postgres://vagrant:ACCVagrantPostgresPassword@localhost/animalcrossingcommunity" > $repo_base_path/.env
-echo "NODE_ENV=local" >> $repo_base_path/.env
-echo "ACCOUNTS_API_KEY=REPLACEME" >> $repo_base_path/.env
-echo "TEST_SITE_PASSWORD=REPLACEME" >> $repo_base_path/.env
-echo "AWS_URL=https://dts8l1aj0iycv.cloudfront.net" >> $repo_base_path/.env
-echo "HEROKU_APP_NAME=acc-test" >> $repo_base_path/.env
+	# see webpack.config.js for client-side local environment variables
+	# see heroku config vars for heroku environment variables
+	echo "DATABASE_URL=postgres://vagrant:ACCVagrantPostgresPassword@localhost/animalcrossingcommunity" > $repo_base_path/.env
+	echo "NODE_ENV=local" >> $repo_base_path/.env
+	echo "ACCOUNTS_API_KEY=REPLACEME" >> $repo_base_path/.env
+	echo "TEST_SITE_PASSWORD=REPLACEME" >> $repo_base_path/.env
+	echo "HEROKU_APP_NAME=acc-test" >> $repo_base_path/.env
 
-echo "PAYPAL_BUTTON_ID=RN59DNFQPMKHG" >> $repo_base_path/.env
-echo "PAYPAL_MERCHANT_ID=WDGA2G3D6TBRL" >> $repo_base_path/.env
+	echo "PAYPAL_BUTTON_ID=RN59DNFQPMKHG" >> $repo_base_path/.env
+	echo "PAYPAL_MERCHANT_ID=WDGA2G3D6TBRL" >> $repo_base_path/.env
 
-echo "AWS_BUCKET_REGION=us-east-1" >> $repo_base_path/.env
-echo "AWS_ACCESS_KEY=REPLACEME" >> $repo_base_path/.env
-echo "AWS_SECRET_KEY=REPLACEME" >> $repo_base_path/.env
-echo "AWS_BUCKET_NAME=animalcrossingcommunity" >> $repo_base_path/.env
+	echo "AWS_BUCKET_REGION=us-east-1" >> $repo_base_path/.env
+	echo "AWS_ACCESS_KEY=REPLACEME" >> $repo_base_path/.env
+	echo "AWS_SECRET_KEY=REPLACEME" >> $repo_base_path/.env
+	echo "AWS_BUCKET_NAME=animalcrossingcommunity" >> $repo_base_path/.env
+else
+	echo "${blue}* Clearing and Setting environment variables${normal} ...skipped"
+fi
 
 if [ $compilers = 1 ]; then
-	echo "${blue}* Starting Babel, Sass & Webpack compilers${normal}"
+	echo "${blue}* Starting Typescript, Babel, Sass & Webpack compilers${normal}"
 	npm run build
 else
-	echo "${blue}* Starting Babel, Sass & Webpack compilers${normal} ...skipped"
+	echo "${blue}* Starting Typescript, Babel, Sass & Webpack compilers${normal} ...skipped"
 fi
 
 if [ $server = 1 ]; then

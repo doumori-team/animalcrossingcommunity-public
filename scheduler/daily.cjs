@@ -5,7 +5,7 @@
 
 const pg = require('pg');
 const importSync = require('import-sync');
-const constants = importSync('../src/common/utils/constants.js');
+const constants = importSync('../lib/common/utils/constants.js'); // *.ts is converted to *.js with babel so keep *.js
 
 const pool = new pg.Pool(
 {
@@ -15,10 +15,10 @@ const pool = new pg.Pool(
 
 async function daily()
 {
-	console.log('Starting daily');
+	console.info('Starting daily');
 
 	// expire any 'Open' listings
-	console.log('Expiring any open listings');
+	console.info('Expiring any open listings');
 
 	await pool.query(`
 		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
@@ -31,6 +31,9 @@ async function daily()
 		JOIN listing_offer ON (listing_offer.listing_id = listing.id)
 		JOIN users ON (listing.creator_id = users.id)
 		WHERE listing_offer.status IN ('${constants.tradingPost.offerStatuses.pending}', '${constants.tradingPost.offerStatuses.onHold}', '${constants.tradingPost.offerStatuses.accepted}') AND listing.status IN ('${constants.tradingPost.listingStatuses.open}', '${constants.tradingPost.listingStatuses.offerAccepted}') AND users.last_active_time < (current_date - interval '1 day' * ${constants.tradingPost.tradeExpiry})
+		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
+			notified = null,
+			description = EXCLUDED.description
 	`);
 
 	await pool.query(`
@@ -48,7 +51,7 @@ async function daily()
 	`);
 
 	// adoptee thread closing reminders
-	console.log('Creating adoptee thread closing reminders');
+	console.info('Creating adoptee thread closing reminders');
 
 	await pool.query(`
 		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
@@ -60,11 +63,13 @@ async function daily()
 		FROM adoption
 		JOIN node ON (node.id = adoption.node_id)
 		WHERE adopted < (current_date - interval '1 day' * ${constants.scoutHub.newMemberEligibility}) AND node.locked is null
-		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET notified = null
+		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
+			notified = null,
+			description = EXCLUDED.description
 	`);
 
 	// Clear out avatars that are no longer available
-	console.log('Clearing out avatars that are no longer available');
+	console.info('Clearing out avatars that are no longer available');
 
 	// see v1/avatars.js
 	await pool.query(`
@@ -75,14 +80,14 @@ async function daily()
 	`);
 
 	// delete users who haven't given consent
-	console.log('Deleting users who have not given content');
+	console.info('Deleting users who have not given content');
 
 	await pool.query(`
 		DELETE FROM users USING user_account_cache WHERE user_account_cache.id = users.id AND users.consent_given = false AND user_account_cache.signup_date < now() - interval '30' day
 	`);
 
 	// any users who don't meet donation minimum for signature color
-	console.log('Reseting signature format based on donation');
+	console.info('Reseting signature format based on donation');
 
 	await pool.query(`
 		UPDATE users
@@ -97,7 +102,7 @@ async function daily()
 	`);
 
 	// clean up tables to keep database small
-	console.log('Clearing out older tables: poll_answer');
+	console.info('Clearing out older tables: poll_answer');
 
 	await pool.query(`
 		DELETE FROM poll_answer
@@ -107,6 +112,17 @@ async function daily()
 			WHERE start_date + duration < now() - interval '30' day
 			ORDER BY start_date DESC
 			LIMIT 100
+		)
+	`);
+
+	console.info('Clearing out older tables: notifications for perma-banned users');
+
+	await pool.query(`
+		DELETE FROM notification
+		WHERE user_id IN (
+			SELECT id
+			FROM users
+			WHERE current_ban_length_id = 7
 		)
 	`);
 
@@ -138,7 +154,7 @@ async function daily()
 
 	if (updateStatsDate == todaysDate)
 	{
-		console.log('Updating last year stats');
+		console.info('Updating last year stats');
 
 		await pool.query(`
 			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_posts
@@ -147,7 +163,7 @@ async function daily()
 		await pool.query(`
 			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_threads
 		`);
-	
+
 		await pool.query(`
 			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_treasure_offers
 		`);
@@ -196,7 +212,15 @@ async function daily()
 			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_donations
 		`);
 
-		console.log('Update top_bell_latest');
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_bell_shop
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_shop_orders
+		`);
+
+		console.info('Update top_bell_latest');
 
 		await pool.query(`
 			UPDATE site_setting
@@ -215,24 +239,38 @@ async function daily()
 		await pool.query(`
 			REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_search
 		`);
+
+		console.loog('Locking any public unlocked normal thread that hasn not been replied to in 5 years');
+
+		await pool.query(`
+			UPDATE node
+			SET locked = now()
+			WHERE type = 'thread' AND locked is null AND parent_node_id IN (200000001,200000002,200000003,200000033,200000055,200000062,200000065,200000069,200000070,200000090,200000093,200000097,200000098,200000140,200000145,200000149,200000152,200000255,200000257,200000267,200000306,200000318,200000319,200000320,200000337,200000356,200000363,200000364,200000365,200000137,200000139,200000138,200000002,200000336) AND thread_type = 'normal' AND latest_reply_time < now() - interval '5' year
+		`);
 	}
 
-	console.log('Notify Admins: Support Emails');
+	console.info('Notify Admins: Support Emails');
 
 	await pool.query(`
 		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
 		SELECT users.id AS user_id, support_email.id AS support_email_id, 32, 'Pending Support Email'
 		FROM support_email, users
 		WHERE users.user_group_id = 3 AND support_email.recorded < current_date - interval '7' day AND read = false
+		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
+			notified = null,
+			description = EXCLUDED.description
 	`);
 
-	console.log('Notify Admins: User Tickets');
+	console.info('Notify Admins: User Tickets');
 
 	await pool.query(`
 		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
 		SELECT users.id AS user_id, user_ticket.id AS user_ticket_id, 21, 'Pending User Ticket'
 		FROM user_ticket, users
 		WHERE users.user_group_id = 3 AND user_ticket.created < current_date - interval '7' day AND closed IS NULL
+		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
+			notified = null,
+			description = EXCLUDED.description
 	`);
 
 	var schrodingersChatOnDate = new Date(`4/1/${todaysDate.getFullYear()}`);
@@ -242,7 +280,7 @@ async function daily()
 
 	if (schrodingersChatOnDate == todaysDate)
 	{
-		console.log('Turn on Schrödingers Chat');
+		console.info('Turn on Schrödingers Chat');
 
 		await pool.query(`
 			UPDATE user_group_node_permission
@@ -252,7 +290,7 @@ async function daily()
 	}
 	else if (schrodingersChatOffDate == todaysDate)
 	{
-		console.log('Turn off Schrödingers Chat');
+		console.info('Turn off Schrödingers Chat');
 
 		await pool.query(`
 			UPDATE user_group_node_permission
@@ -261,7 +299,7 @@ async function daily()
 		`);
 	}
 
-	console.log('Donation Reminders');
+	console.info('Donation Reminders');
 
 	await pool.query(`
 		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
@@ -269,10 +307,13 @@ async function daily()
 		FROM user_donation
 		GROUP BY user_donation.user_id
 		HAVING current_date - interval '1 year' - interval '1 day' = max(date(user_donation.donated))
+		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
+			notified = null,
+			description = EXCLUDED.description
 	`);
 }
 
 daily().then(function()
 {
-	console.log('Daily scripts complete');
+	console.info('Daily scripts complete');
 });

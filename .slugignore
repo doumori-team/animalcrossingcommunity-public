@@ -11,3 +11,5 @@ jsconfig.json
 /ci/update-init-scripts.sh
 /ci/local.sh
 /db/init/*
+/db/update_old/*
+app.json

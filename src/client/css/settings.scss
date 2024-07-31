@@ -229,3 +229,16 @@
 		}
 	}
 }
+
+.AccountSettingsPage {
+	.FormGroup {
+		margin-top: px2rem(10px);
+		margin-bottom: px2rem(10px);
+		display: block;
+	}
+
+	.AccountSettingsPage_siteHeader {
+		@extend .GenericBoolCheckbox;
+		--active: var(--seasonal-color-dark);
+	}
+}

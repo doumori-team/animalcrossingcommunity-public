@@ -1,23 +1,24 @@
 // configuration file to assist text editor
 {
 	"compilerOptions": {
+		"jsx": "react",
 		"baseUrl": "./src",
 		"paths": {
 			"common": ["common"],
 			"server": ["server"],
 			"@/components": ["common/components/"],
 			"@/pages": ["common/components/pages/"],
-			"@accounts": ["server/accounts.js"],
-			"@behavior": ["common/components/behavior/index.js"],
-			"@contexts": ["common/contexts.js"],
-			"@db": ["server/db.js"],
-			"@errors": ["common/errors.js"],
-			"@form": ["common/components/form/index.js"],
-			"@layout": ["common/components/layout/index.js"],
-			"@propTypes": ["common/propTypes/index.js"],
-			"@utils": ["common/utils/index.js"],
-			"@apiTypes": ["server/api-types.js"],
-			"@cache": ["server/cache.js"],
+			"@accounts": ["server/accounts.ts"],
+			"@behavior": ["common/components/behavior/index.ts"],
+			"@contexts": ["common/contexts.ts"],
+			"@db": ["server/db.ts"],
+			"@errors": ["common/errors.ts"],
+			"@form": ["common/components/form/index.ts"],
+			"@layout": ["common/components/layout/index.ts"],
+			"@types": ["common/types/index.ts"],
+			"@utils": ["common/utils/index.ts"],
+			"@apiTypes": ["server/api-types.ts"],
+			"@cache": ["server/cache.ts"],
 		}
 	},
 	"include": ["src/**/*"]

@@ -64,6 +64,7 @@ TRUNCATE TABLE file CASCADE;
 TRUNCATE TABLE user_donation_identification;
 TRUNCATE TABLE user_avatar;
 TRUNCATE TABLE site_statistic_data;
+TRUNCATE TABLE users_site_header;
 DELETE FROM users WHERE user_group_id NOT IN (11, 10, 9, 8, 6, 5, 4, 3, 2) AND id != 63167; -- All non active staff, ACC user for Adoption BT
 UPDATE users SET bio_location = null, signature = null, last_active_time = null, show_birthday = false, show_age = false, away_start_date = null, away_end_date = null, name = null, show_email = false, bio = null, bio_format = null, signature_format = null, user_title = null;
 
