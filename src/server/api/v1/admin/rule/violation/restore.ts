@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function restore(this: APIThisType, {id}: restoreProps): Promise<void>
+async function restore(this: APIThisType, { id }: restoreProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -36,7 +36,7 @@ async function restore(this: APIThisType, {id}: restoreProps): Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -62,10 +62,10 @@ restore.apiTypes = {
 		type: APITypes.ruleViolationId,
 		required: true,
 	},
-}
+};
 
 type restoreProps = {
 	id: number
-}
+};
 
 export default restore;

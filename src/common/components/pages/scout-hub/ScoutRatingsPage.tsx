@@ -11,7 +11,7 @@ import { APIThisType, RatingsReceivedType, UserRatingType } from '@types';
 
 const ScoutRatingsPage = () =>
 {
-	const {ratings, page, pageSize, totalCount, user} = useLoaderData() as ScoutRatingsPageProps;
+	const { ratings, page, pageSize, totalCount, user } = useLoaderData() as ScoutRatingsPageProps;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -19,66 +19,66 @@ const ScoutRatingsPage = () =>
 		<div className='ScoutRatingsPage'>
 			<RequirePermission permission='scout-pages' silent>
 				<UserContext.Consumer>
-					{scout => scout && (
+					{scout => scout &&
 						<>
-						<Header
-							name='Scout Ratings'
-							links={
-								<>
-								<Link to={`/scout-hub`}>Scout Hub</Link>
-								<Link to={`/scout-hub/new-members`}>New Members</Link>
-								<Link to={`/scout-hub/settings`}>Settings</Link>
-								<Link to={`/scout-hub/ratings`}>
-									Feedback
-								</Link>
-								<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
-									Adoptee BT
-								</Link>
-								</>
-							}
-						>
-							<TotalRatings
-								positiveRatingsTotal={user.positiveScoutRatingsTotal}
-								neutralRatingsTotal={user.neutralScoutRatingsTotal}
-								negativeRatingsTotal={user.negativeScoutRatingsTotal}
-								type={constants.rating.types.scout}
-							/>
-						</Header>
+							<Header
+								name='Scout Ratings'
+								links={
+									<>
+										<Link to={`/scout-hub`}>Scout Hub</Link>
+										<Link to={`/scout-hub/new-members`}>New Members</Link>
+										<Link to={`/scout-hub/settings`}>Settings</Link>
+										<Link to={`/scout-hub/ratings`}>
+											Feedback
+										</Link>
+										<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
+											Adoptee BT
+										</Link>
+									</>
+								}
+							>
+								<TotalRatings
+									positiveRatingsTotal={user.positiveScoutRatingsTotal}
+									neutralRatingsTotal={user.neutralScoutRatingsTotal}
+									negativeRatingsTotal={user.negativeScoutRatingsTotal}
+									type={constants.rating.types.scout}
+								/>
+							</Header>
 
-						<Section>
-							<Grid options={ratings} message='This user has no ratings.'>
-								{ratings.map(rating =>
-									<Rating
-										key={rating.id}
-										rating={rating}
-									/>
-								)}
-							</Grid>
+							<Section>
+								<Grid options={ratings} message='This user has no ratings.'>
+									{ratings.map(rating =>
+										<Rating
+											key={rating.id}
+											rating={rating}
+										/>,
+									)}
+								</Grid>
 
-							<Pagination
-								page={page}
-								pageSize={pageSize}
-								totalCount={totalCount}
-								startLink={`/scout-hub/ratings/${encodedId}`}
-							/>
-						</Section>
+								<Pagination
+									page={page}
+									pageSize={pageSize}
+									totalCount={totalCount}
+									startLink={`/scout-hub/ratings/${encodedId}`}
+								/>
+							</Section>
 						</>
-					)}
-					</UserContext.Consumer>
+					}
+				</UserContext.Consumer>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {page}: {page?: string})
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string })
 {
 	const [ratings, user] = await Promise.all([
 		this.query('v1/users/ratings_received', {
 			id: userId,
 			page: page ? page : 1,
-			type: constants.rating.types.scout
+			type: constants.rating.types.scout,
 		}),
-		this.query('v1/users/ratings', {id: userId}),
+		this.query('v1/users/ratings', { id: userId }),
 	]);
 
 	return {
@@ -96,6 +96,6 @@ type ScoutRatingsPageProps = {
 	page: RatingsReceivedType['page']
 	pageSize: RatingsReceivedType['pageSize']
 	user: UserRatingType
-}
+};
 
 export default ScoutRatingsPage;

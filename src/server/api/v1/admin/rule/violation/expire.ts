@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function expire(this: APIThisType, {id}: expireProps) : Promise<void>
+async function expire(this: APIThisType, { id }: expireProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -36,13 +36,13 @@ async function expire(this: APIThisType, {id}: expireProps) : Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		let nodeId = rule.node_id;
 
 		if (!nodeId)
 		{
-			nodeId = await this.query('v1/admin/rule/node/create', {ruleId: ruleViolation.rule_id, number: rule.number, name: rule.name, description: rule.description});
+			nodeId = await this.query('v1/admin/rule/node/create', { ruleId: ruleViolation.rule_id, number: rule.number, name: rule.name, description: rule.description });
 		}
 
 		await Promise.all([
@@ -68,10 +68,10 @@ expire.apiTypes = {
 		type: APITypes.ruleViolationId,
 		required: true,
 	},
-}
+};
 
 type expireProps = {
 	id: number
-}
+};
 
 export default expire;

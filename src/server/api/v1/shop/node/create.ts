@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ThreadApplicationType, ThreadOrderType, ShopType, MarkupStyleType } from '@types';
 
-async function create(this: APIThisType, {orderId, applicationId, shopId, title, users, text, format}: createProps) : Promise<{id: number}>
+async function create(this: APIThisType, { orderId, applicationId, shopId, title, users, text, format }: createProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -18,7 +18,7 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	if (!Array.isArray(users))
 	{
@@ -37,7 +37,7 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 		}
 	}
 
-	let userIds:number[] = [], employeeIds:number[] = [];
+	let userIds: number[] = [], employeeIds: number[] = [];
 
 	await Promise.all(users.map(async (username) =>
 	{
@@ -95,7 +95,7 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 
 	if (orderId)
 	{
-		const order:ThreadOrderType = await this.query('v1/shop/thread', {id: orderId, category: constants.shops.categories.orders});
+		const order: ThreadOrderType = await this.query('v1/shop/thread', { id: orderId, category: constants.shops.categories.orders });
 
 		if (!order.claim)
 		{
@@ -107,7 +107,7 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 	}
 	else if (applicationId)
 	{
-		const application:ThreadApplicationType = await this.query('v1/shop/thread', {id: applicationId, category: constants.shops.categories.applications});
+		const application: ThreadApplicationType = await this.query('v1/shop/thread', { id: applicationId, category: constants.shops.categories.applications });
 
 		if (!application.contact)
 		{
@@ -119,7 +119,7 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 	}
 	else
 	{
-		const shop:ShopType = await this.query('v1/shop', {id: shopId});
+		const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 		if (!shop)
 		{
@@ -166,14 +166,15 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 		`, shopId, this.userId),
 	]);
 
-	owners.concat(chain).map((user:any) => {
+	owners.concat(chain).map((user: any) =>
+	{
 		if (!employeeIds.includes(user.user_id))
 		{
 			employeeIds.push(user.user_id);
 		}
-	})
+	});
 
-	const threadId = await db.transaction(async (query:any) =>
+	const threadId = await db.transaction(async (query: any) =>
 	{
 		// create thread
 		const [thread] = await query(`
@@ -199,7 +200,8 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 		`, message.id, this.userId, text, format);
 
 		await Promise.all([
-			userIds.map(async (userId) => {
+			userIds.map(async (userId) =>
+			{
 				await query(`
 					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
 					VALUES ($1::int, $2::int, $3::int, true)
@@ -212,7 +214,8 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 				`, userId, thread.id, constants.nodePermissions.reply);
 			}),
-			employeeIds.map(async (userId) => {
+			employeeIds.map(async (userId) =>
+			{
 				await query(`
 					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
 					VALUES ($1::int, $2::int, $3::int, true)
@@ -270,11 +273,11 @@ async function create(this: APIThisType, {orderId, applicationId, shopId, title,
 		return thread.id;
 	});
 
-	await this.query('v1/notification/create', {id: threadId, type: constants.notification.types.shopThread});
+	await this.query('v1/notification/create', { id: threadId, type: constants.notification.types.shopThread });
 
 	return {
 		id: threadId,
-	}
+	};
 }
 
 create.apiTypes = {
@@ -315,16 +318,16 @@ create.apiTypes = {
 		includes: ['markdown', 'bbcode', 'plaintext'],
 		required: true,
 	},
-}
+};
 
 type createProps = {
-	orderId: number|null
-	applicationId: number|null
-	shopId: number|null
+	orderId: number | null
+	applicationId: number | null
+	shopId: number | null
 	title: string
-	users: string|any[]
+	users: string | any[]
 	text: string
 	format: MarkupStyleType
-}
+};
 
 export default create;

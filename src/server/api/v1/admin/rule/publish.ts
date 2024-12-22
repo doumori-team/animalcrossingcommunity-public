@@ -4,16 +4,16 @@ import { ACCCache } from '@cache';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-export default async function publish(this: APIThisType) : Promise<void>
+export default async function publish(this: APIThisType): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
 		throw new UserError('permission');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		// expire any rules that are being expired
 		await query(`
@@ -40,7 +40,8 @@ export default async function publish(this: APIThisType) : Promise<void>
 			WHERE rule.start_date IS NULL AND rule_violation.expiration_date IS NULL
 		`);
 
-		await Promise.all(currentViolations.map(async (violation:any) => {
+		await Promise.all(currentViolations.map(async (violation: any) =>
+		{
 			// only copy over those that haven't been modified
 			const [modifiedViolation] = await query(`
 				SELECT id

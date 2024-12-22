@@ -21,9 +21,9 @@ import { APIThisType, PollType } from '@types';
  * 			sequence - number - position in which to display this option
  * 			votes - number - amount of votes received for this option
  */
-async function poll(this: APIThisType, {id}: pollProps) : Promise<PollType>
+async function poll(this: APIThisType, { id }: pollProps): Promise<PollType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-polls'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-polls' });
 
 	if (!permissionGranted)
 	{
@@ -75,9 +75,9 @@ async function poll(this: APIThisType, {id}: pollProps) : Promise<PollType>
 		duration: poll.duration.days,
 		isMultipleChoice: poll.is_multiple_choice,
 		isEnabled: poll.is_enabled,
-		userHasVoted: (userVote !== undefined),
+		userHasVoted: userVote !== undefined,
 		description: poll.description,
-		options: pollOptions
+		options: pollOptions,
 	};
 }
 
@@ -86,10 +86,10 @@ poll.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type pollProps = {
 	id: number
-}
+};
 
 export default poll;

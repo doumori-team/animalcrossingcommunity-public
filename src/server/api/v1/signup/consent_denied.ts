@@ -5,7 +5,7 @@ import * as db from '@db';
 import { dateUtils } from '@utils';
 import { APIThisType, SuccessType } from '@types';
 
-async function consent_denied(this: APIThisType, {id}: consentDeniedProps) : Promise<SuccessType>
+async function consent_denied(this: APIThisType, { id }: consentDeniedProps): Promise<SuccessType>
 {
 	if (this.userId)
 	{
@@ -40,7 +40,7 @@ async function consent_denied(this: APIThisType, {id}: consentDeniedProps) : Pro
 	`, user.user_id);
 
 	return {
-		_success: "Your child's account has been deactivated."
+		_success: "Your child's account has been deactivated.",
 	};
 }
 
@@ -49,10 +49,10 @@ consent_denied.apiTypes = {
 		type: APITypes.uuid,
 		required: true,
 	},
-}
+};
 
 type consentDeniedProps = {
 	id: string
-}
+};
 
 export default consent_denied;

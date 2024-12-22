@@ -2,9 +2,9 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, GameConsoleType } from '@types';
 
-export default async function game_consoles(this: APIThisType) : Promise<GameConsoleType[]>
+export default async function game_consoles(this: APIThisType): Promise<GameConsoleType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'games-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'games-admin' });
 
 	if (!permissionGranted)
 	{
@@ -18,7 +18,8 @@ export default async function game_consoles(this: APIThisType) : Promise<GameCon
 		ORDER BY game_console.sequence ASC
 	`);
 
-	return await Promise.all(gameConsoles.map(async (gameConsole:any) => {
-		return this.query('v1/admin/game_console/game_console', {id: gameConsole.id})
+	return await Promise.all(gameConsoles.map(async (gameConsole: any) =>
+	{
+		return this.query('v1/admin/game_console/game_console', { id: gameConsole.id });
 	}));
 }

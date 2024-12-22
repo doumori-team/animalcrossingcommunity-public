@@ -8,8 +8,8 @@ import { APIThisType, UserNotificationsType } from '@types';
 
 const NotificationsPage = () =>
 {
-	const {userNotifications, globalNotifications, page, pageSize,
-		userTotalCount, globalTotalCount, sortBy} = useLoaderData() as NotificationsPageProps;
+	const { userNotifications, globalNotifications, page, pageSize,
+		userTotalCount, globalTotalCount, sortBy } = useLoaderData() as NotificationsPageProps;
 
 	return (
 		<RequireUser>
@@ -38,7 +38,7 @@ const NotificationsPage = () =>
 								<div className='NotificationsPage_notificationNotified'>
 									Notified: {notification.formattedNotified}
 								</div>
-							</InnerSection>
+							</InnerSection>,
 						)}
 					</Grid>
 
@@ -51,69 +51,71 @@ const NotificationsPage = () =>
 				</Section>
 
 				<Section>
-					{userNotifications.length > 0 ? (
+					{userNotifications.length > 0 ?
 						<>
-						<div className='NotificationsPage_sort'>
-							<h3>Sort by:</h3>
-							<Link
-								className={sortBy === 'category' ? 'NotificationsPage_sortLink selected' : 'NotificationsPage_sortLink'}
-								to={`/notifications?sort=category`}>
-								Category
-							</Link>
-							{' | '}
-							<Link
-								className={!sortBy || sortBy === 'notified' ? 'NotificationsPage_sortLink selected' : 'NotificationsPage_sortLink'}
-								to={`/notifications?sort=notified`}>
-								Notified
-							</Link>
-						</div>
-
-						<SelectAllCheckbox
-							name='toggle_buddyUsers'
-							select='.Grid input[name="notificationIds"]'
-						/>
-
-						<Form
-							action='v1/notification/clear'
-							showButton
-							buttonText='Remove Selected Notifications'
-						>
-							<div className='Grid'>
-								{userNotifications.map(notification =>
-									<InnerSection key={notification.id}>
-										<Form.Group>
-											<Checkbox
-												name='notificationIds'
-												label='Remove Notification'
-												value={notification.id}
-												hideLabel
-											/>
-										</Form.Group>
-
-										<div className='NotificationsPage_notificationDescription'>
-											<Link
-												to={notification.url}
-												reloadDocument={notification.anchor ? true : false}
-											>
-												{notification.description}
-											</Link>
-										</div>
-
-										<div className='NotificationsPage_notificationCreated'>
-											Created: {notification.formattedCreated}
-										</div>
-
-										<div className='NotificationsPage_notificationNotified'>
-											Notified: {notification.formattedNotified}
-										</div>
-									</InnerSection>
-								)}
+							<div className='NotificationsPage_sort'>
+								<h3>Sort by:</h3>
+								<Link
+									className={sortBy === 'category' ? 'NotificationsPage_sortLink selected' : 'NotificationsPage_sortLink'}
+									to={`/notifications?sort=category`}
+								>
+									Category
+								</Link>
+								{' | '}
+								<Link
+									className={!sortBy || sortBy === 'notified' ? 'NotificationsPage_sortLink selected' : 'NotificationsPage_sortLink'}
+									to={`/notifications?sort=notified`}
+								>
+									Notified
+								</Link>
 							</div>
-						</Form>
+
+							<SelectAllCheckbox
+								name='toggle_buddyUsers'
+								select='.Grid input[name="notificationIds"]'
+							/>
+
+							<Form
+								action='v1/notification/clear'
+								showButton
+								buttonText='Remove Selected Notifications'
+							>
+								<div className='Grid'>
+									{userNotifications.map(notification =>
+										<InnerSection key={notification.id}>
+											<Form.Group>
+												<Checkbox
+													name='notificationIds'
+													label='Remove Notification'
+													value={notification.id}
+													hideLabel
+												/>
+											</Form.Group>
+
+											<div className='NotificationsPage_notificationDescription'>
+												<Link
+													to={notification.url}
+													reloadDocument={notification.anchor ? true : false}
+												>
+													{notification.description}
+												</Link>
+											</div>
+
+											<div className='NotificationsPage_notificationCreated'>
+												Created: {notification.formattedCreated}
+											</div>
+
+											<div className='NotificationsPage_notificationNotified'>
+												Notified: {notification.formattedNotified}
+											</div>
+										</InnerSection>,
+									)}
+								</div>
+							</Form>
 						</>
-					) : (
+						:
 						'You have no notifications.'
-					)}
+					}
 
 					<Pagination
 						page={page}
@@ -125,9 +127,9 @@ const NotificationsPage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {page, sort}: {page?: string, sort?: string}) : Promise<NotificationsPageProps>
+export async function loadData(this: APIThisType, _: any, { page, sort }: { page?: string, sort?: string }): Promise<NotificationsPageProps>
 {
 	const sortBy = sort ? sort : '';
 
@@ -157,6 +159,6 @@ type NotificationsPageProps = {
 	userTotalCount: UserNotificationsType['userTotalCount']
 	globalTotalCount: UserNotificationsType['globalTotalCount']
 	sortBy: string
-}
+};
 
 export default NotificationsPage;

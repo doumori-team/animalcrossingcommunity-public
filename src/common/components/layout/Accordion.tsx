@@ -8,8 +8,9 @@ const AccordionItem = ({
 	title,
 	description,
 	isOpen,
-	onClick
-}: AccordionItemProps) => {
+	onClick,
+}: AccordionItemProps) =>
+{
 	const contentHeight = useRef<any>();
 
 	return(
@@ -23,38 +24,40 @@ const AccordionItem = ({
 
 			<div ref={contentHeight} className='description-container' style={
 				isOpen ? { height: contentHeight.current.scrollHeight } : { height: '0' }
-			}>
+			}
+			>
 				<p className='description-content'>
 					{description}
 				</p>
 			</div>
 		</div>
-	)
-}
+	);
+};
 
 type AccordionItemProps = {
 	title: string,
 	description: string
 	isOpen: boolean
 	onClick: ClickHandlerButtonType
-}
+};
 
-const Accordion = ({data}: {data: AccordionData[]}) => {
-	const [active, setActive] = useState<number|null>(null);
+const Accordion = ({ data }: { data: AccordionData[] }) =>
+{
+	const [active, setActive] = useState<number | null>(null);
 
 	return (
 		<div className='Accordion'>
-			{data.map((item, index) => (
-				<RequireClientJS fallback={item.fallback}>
+			{data.map((item, index) =>
+				<RequireClientJS fallback={item.fallback} key={index}>
 					<AccordionItem
 						key={index}
 						title={item.title}
 						description={item.description}
 						isOpen={active === index}
-						onClick={() => setActive((prevIndex) => (prevIndex === index ? null : index))}
+						onClick={() => setActive((prevIndex) => prevIndex === index ? null : index)}
 					/>
-				</RequireClientJS>
-			))}
+				</RequireClientJS>,
+			)}
 		</div>
 	);
 };
@@ -63,6 +66,6 @@ type AccordionData = {
 	title: string
 	description: any
 	fallback: any
-}
+};
 
 export default Accordion;

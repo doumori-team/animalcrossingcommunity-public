@@ -10,7 +10,7 @@ import { APIThisType, UserGroupType, EmojiSettingType } from '@types';
 
 const StaffRolesPage = () =>
 {
-	const {staffGroups, selectedGroupId, emojiSettings} = useLoaderData() as StaffRolesPageProps;
+	const { staffGroups, selectedGroupId, emojiSettings } = useLoaderData() as StaffRolesPageProps;
 
 	const selectedStaffGroup = selectedGroupId ?
 		staffGroups.find(sg => sg.id === selectedGroupId) : null;
@@ -22,7 +22,7 @@ const StaffRolesPage = () =>
 		constants.staffIdentifiers.researcher,
 		constants.staffIdentifiers.devTL,
 		constants.staffIdentifiers.dev,
-		constants.staffIdentifiers.scout
+		constants.staffIdentifiers.scout,
 	];
 
 	let title = '';
@@ -33,14 +33,14 @@ const StaffRolesPage = () =>
 
 		if ([
 			constants.staffIdentifiers.mod,
-			constants.staffIdentifiers.scout
+			constants.staffIdentifiers.scout,
 		].includes(selectedStaffGroup.identifier))
 		{
 			title = `Nominate a ${selectedStaffGroup.name}`;
 		}
 	}
 
-	const getGroupInfo = (selectedStaffGroup: UserGroupType) : any =>
+	const getGroupInfo = (selectedStaffGroup: UserGroupType): any =>
 	{
 		switch (selectedStaffGroup.identifier)
 		{
@@ -70,7 +70,6 @@ const StaffRolesPage = () =>
 						</ul>
 					</div>
 				</>;
-
 			case constants.staffIdentifiers.mod:
 				return <>
 					<div className='StaffRolesPage_description'>
@@ -131,14 +130,12 @@ const StaffRolesPage = () =>
 						</ul>
 					</div>
 				</>;
-
 			case constants.staffIdentifiers.researcherTL:
 				return <>
 					<div className='StaffRolesPage_description'>
 						A few Researchers are also given the position of Researcher Lead. They are responsible for overseeing events, as well as newsletter and other miscellaneous tasks. Team Leads delegate tasks and other assignments to each Researcher, begin conversations regarding upcoming events/tasks, and ensure all responsibilities required are met. Team Leads also keep documentation organized and manage upcoming deadlines by setting quotas and ensuring they are met.
 					</div>
 				</>;
-
 			case constants.staffIdentifiers.researcher:
 				return <>
 					<div className='StaffRolesPage_description'>
@@ -199,18 +196,16 @@ const StaffRolesPage = () =>
 						</ul>
 					</div>
 				</>;
-
 			case constants.staffIdentifiers.devTL:
 				return <>
 					<div className='StaffRolesPage_description'>
 						A few Developers are also given the position of Developer Team Leads and they act as gatekeepers for all code submissions. It is their job to merge every code change into one usable codebase by checking that features are working correctly. Team Leads also make decisions on whether features are ready for testing, plus they decide when each testing phase is complete. When Team Leads confirm that testing is free from errors and further amendments are not required, they then merge the changes to the live site. Team Leads may also be entrusted with sensitive information in order to upgrade the code as needed.
 					</div>
 				</>;
-
 			case constants.staffIdentifiers.dev:
 				return <>
 					<div className='StaffRolesPage_description'>
-						Developers work with Researchers and other Staff to discuss ideas for improving and updating the site. With their coding ability, Developers bring a unique perspective to discussions and also help to steer ideas because they know what is feasible within the existing code. 
+						Developers work with Researchers and other Staff to discuss ideas for improving and updating the site. With their coding ability, Developers bring a unique perspective to discussions and also help to steer ideas because they know what is feasible within the existing code.
 					</div>
 					<div className='StaffRolesPage_responsibilities'>
 						<h3>Responsibilities</h3>
@@ -267,7 +262,6 @@ const StaffRolesPage = () =>
 						</ul>
 					</div>
 				</>;
-
 			case constants.staffIdentifiers.scout:
 				return <>
 					<div className='StaffRolesPage_description'>
@@ -323,7 +317,7 @@ const StaffRolesPage = () =>
 					</div>
 				</>;
 		}
-	}
+	};
 
 	return (
 		<div className='StaffRolesPage'>
@@ -332,13 +326,13 @@ const StaffRolesPage = () =>
 					{staffGroups
 						.sort((a, b) => sortOrder.indexOf(a.identifier) - sortOrder.indexOf(b.identifier))
 						.map(staffGroup =>
-						<NavMenu.Button path={`/staff-roles/${encodeURIComponent(staffGroup.id)}`}>
-							{staffGroup.name}
-						</NavMenu.Button>
-					)}
+							<NavMenu.Button path={`/staff-roles/${encodeURIComponent(staffGroup.id)}`} key={staffGroup.id}>
+								{staffGroup.name}
+							</NavMenu.Button>,
+						)}
 				</NavMenu>
 			</Header>
-			{selectedStaffGroup && (
+			{selectedStaffGroup &&
 				<ContentBox>
 					<div className='StaffRolesPage_section'>
 						{getGroupInfo(selectedStaffGroup)}
@@ -348,17 +342,17 @@ const StaffRolesPage = () =>
 							constants.staffIdentifiers.mod,
 							constants.staffIdentifiers.scout,
 							constants.staffIdentifiers.dev,
-							constants.staffIdentifiers.researcher
-						].includes(selectedStaffGroup.identifier) && (
+							constants.staffIdentifiers.researcher,
+						].includes(selectedStaffGroup.identifier) &&
 							<div className='StaffRolesPage_section'>
 								<h3>
 									{[
 										constants.staffIdentifiers.mod,
-										constants.staffIdentifiers.scout
+										constants.staffIdentifiers.scout,
 									].includes(selectedStaffGroup.identifier) && 'Nomination'}
 									{[
 										constants.staffIdentifiers.dev,
-										constants.staffIdentifiers.researcher
+										constants.staffIdentifiers.researcher,
 									].includes(selectedStaffGroup.identifier) && 'Application'}
 								</h3>
 								<div className='StaffRolesPage_apply'>
@@ -369,21 +363,21 @@ const StaffRolesPage = () =>
 										</li>
 										{[
 											constants.staffIdentifiers.dev,
-											constants.staffIdentifiers.researcher
-										].includes(selectedStaffGroup.identifier) && (
+											constants.staffIdentifiers.researcher,
+										].includes(selectedStaffGroup.identifier) &&
 											<>
-											<li>
-												Submit only one application in a six month period. If you've not had a response, you may reapply six months after your previous application or if we announce that applications are needed. Wait for us to contact you. We will contact you only if your application is successful and if we are in need of additional Staff.
-											</li>
-											{[
-												constants.staffIdentifiers.dev,
-											].includes(selectedStaffGroup.identifier) && (
 												<li>
-													If you have evidence of your technical and / or graphical skills, be sure to include such evidence. For example, links to a website you contribute to, or examples of completely original graphic design. While this is not necessarily a requirement, failure to provide evidence for claimed qualifications may disqualify your application.
+													Submit only one application in a six month period. If you've not had a response, you may reapply six months after your previous application or if we announce that applications are needed. Wait for us to contact you. We will contact you only if your application is successful and if we are in need of additional Staff.
 												</li>
-											)}
+												{[
+													constants.staffIdentifiers.dev,
+												].includes(selectedStaffGroup.identifier) &&
+													<li>
+														If you have evidence of your technical and / or graphical skills, be sure to include such evidence. For example, links to a website you contribute to, or examples of completely original graphic design. While this is not necessarily a requirement, failure to provide evidence for claimed qualifications may disqualify your application.
+													</li>
+												}
 											</>
-										)}
+										}
 									</ul>
 								</div>
 								<RequirePermission permission='apply-nominate-staff' silent>
@@ -403,8 +397,8 @@ const StaffRolesPage = () =>
 
 											{[
 												constants.staffIdentifiers.mod,
-												constants.staffIdentifiers.scout
-											].includes(selectedStaffGroup.identifier) && (
+												constants.staffIdentifiers.scout,
+											].includes(selectedStaffGroup.identifier) &&
 												<Text
 													hideLabel
 													className='NodeWritingInterface_title'
@@ -413,7 +407,7 @@ const StaffRolesPage = () =>
 													maxLength={constants.max.postTitle}
 													required
 												/>
-											)}
+											}
 
 											<RichTextArea
 												textName='text'
@@ -428,15 +422,15 @@ const StaffRolesPage = () =>
 									</fieldset>
 								</RequirePermission>
 							</div>
-						)}
+						}
 					</RequireUser>
 				</ContentBox>
-			)}
+			}
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<StaffRolesPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<StaffRolesPageProps>
 {
 	const selectedGroupId = Number(id);
 
@@ -446,14 +440,14 @@ export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<
 	]);
 
 	return {
-		staffGroups: userGroups.filter((ug:UserGroupType) => [
+		staffGroups: userGroups.filter((ug: UserGroupType) => [
 			constants.staffIdentifiers.mod,
 			constants.staffIdentifiers.researcher,
 			constants.staffIdentifiers.dev,
 			constants.staffIdentifiers.scout,
 			constants.staffIdentifiers.admin,
 			constants.staffIdentifiers.devTL,
-			constants.staffIdentifiers.researcherTL
+			constants.staffIdentifiers.researcherTL,
 		].includes(ug.identifier)),
 		selectedGroupId: selectedGroupId,
 		emojiSettings: emojiSettings,
@@ -464,6 +458,6 @@ type StaffRolesPageProps = {
 	staffGroups: UserGroupType[]
 	selectedGroupId: number
 	emojiSettings: EmojiSettingType[]
-}
+};
 
 export default StaffRolesPage;

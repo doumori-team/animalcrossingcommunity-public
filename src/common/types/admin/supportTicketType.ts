@@ -9,13 +9,13 @@ type SupportTicketType = {
 	title: string
 	user: UserLiteType
 	formattedCreated: string
-	userTicketId: number|null
+	userTicketId: number | null
 	ban: {
 		id: number
 		description: string
 		days: number
 	} | null
-	currentBan?: BanLengthType|null
+	currentBan?: BanLengthType | null
 	messages: {
 		id: number
 		user: UserLiteType | null

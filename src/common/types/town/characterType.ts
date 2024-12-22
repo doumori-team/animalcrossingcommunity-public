@@ -1,3 +1,5 @@
+import { UserLiteType } from '../user/userLiteType';
+
 // based on v1/character
 type CharacterType = {
 	id: number
@@ -37,6 +39,27 @@ type CharacterType = {
 	happyHomeNetworkId: string | null
 	creatorId: string | null
 	museumTotal: number
+	paint: {
+		id: number
+		name: string
+		hex: string
+	} | null
+	doorPattern: {
+		id: number | null
+		name: string
+		creator: UserLiteType
+		published: boolean
+		dataUrl: string
+		gameId: number
+		gameShortName: string
+		formattedDate: null
+		isFavorite: null
+		designId: null
+	} | null
+	monument: {
+		id: number
+		name: string
+	} | null
 };
 
 export type { CharacterType };

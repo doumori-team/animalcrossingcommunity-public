@@ -1,7 +1,7 @@
 import * as db from '@db';
 import { APIThisType, DonationsType } from '@types';
 
-export default async function donations(this: APIThisType) : Promise<DonationsType>
+export default async function donations(this: APIThisType): Promise<DonationsType>
 {
 	return await db.query(`
 		SELECT

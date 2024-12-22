@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, RatingType } from '@types';
 
-async function wifi_rating(this: APIThisType, {id}: wifiRatingProps) : Promise<RatingType|null>
+async function wifi_rating(this: APIThisType, { id }: wifiRatingProps): Promise<RatingType | null>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -14,11 +14,11 @@ async function wifi_rating(this: APIThisType, {id}: wifiRatingProps) : Promise<R
 
 	if (!this.userId)
 	{
-		throw new UserError('login-needed');	
+		throw new UserError('login-needed');
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	// Confirm whitelists
 	let [whitelist] = await db.query(`
@@ -67,7 +67,7 @@ async function wifi_rating(this: APIThisType, {id}: wifiRatingProps) : Promise<R
 
 	if (rating)
 	{
-		return await this.query('v1/rating', {id: rating.id});
+		return await this.query('v1/rating', { id: rating.id });
 	}
 
 	return null;
@@ -78,10 +78,10 @@ wifi_rating.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type wifiRatingProps = {
 	id: number
-}
+};
 
 export default wifi_rating;

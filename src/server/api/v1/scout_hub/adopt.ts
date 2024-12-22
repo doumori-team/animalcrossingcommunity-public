@@ -4,7 +4,7 @@ import { utils, dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserType, UserLiteType } from '@types';
 
-async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Promise<{id: number}>
+async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Promise<{ id: number }>
 {
 	if (!this.userId)
 	{
@@ -14,7 +14,7 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 	// Only new user or those who can reassign may do adoption
 	if (this.userId !== adopteeId)
 	{
-		const permGranted:boolean = await this.query('v1/permission', {permission: 'adoption-reassign'});
+		const permGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
 
 		if (!permGranted)
 		{
@@ -23,15 +23,15 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 	}
 
 	// Check parameters
-	const adoptee:UserType = await this.query('v1/user', {id: adopteeId});
+	const adoptee: UserType = await this.query('v1/user', { id: adopteeId });
 
-	let scout:UserLiteType|null = null;
+	let scout: UserLiteType | null = null;
 
 	if (scoutId)
 	{
-		scout = await this.query('v1/user_lite', {id: scoutId});
+		scout = await this.query('v1/user_lite', { id: scoutId });
 
-		const permissionGranted:boolean = await this.query('v1/permission', {permission: 'adoption-reassign'});
+		const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
 
 		if (!permissionGranted)
 		{
@@ -100,7 +100,7 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 
 	// Create adoption thread
 
-	const nodeId = await db.transaction(async (query:any) =>
+	const nodeId = await db.transaction(async (query: any) =>
 	{
 		if (scoutId)
 		{
@@ -121,12 +121,8 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 			}
 		}
 
-		let [userGroups, nodeId, scoutSettings] = await Promise.all([
-			query(`
-				SELECT id, identifier
-				FROM user_group
-			`),
-			db.transaction(async (_:any) =>
+		let [nodeId, scoutSettings] = await Promise.all([
+			db.transaction(async (_: any) =>
 			{
 				const [result] = await query(`
 					INSERT INTO node (parent_node_id, user_id, type)
@@ -143,7 +139,7 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 
 				return nodeId;
 			}),
-			this.query('v1/scout_hub/settings', {id: scout?.id}),
+			this.query('v1/scout_hub/settings', { id: scout?.id }),
 			query(`
 				DELETE FROM adoption
 				WHERE adoptee_id = $1::int
@@ -152,13 +148,14 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 
 		let welcomeTemplate = scoutSettings.welcomeTemplate ? scoutSettings.welcomeTemplate : constants.scoutHub.defaultWelcomeTemplate;
 
-		utils.getScoutTemplateConfig(scout, adoptee).map(config => {
+		utils.getScoutTemplateConfig(scout, adoptee).map(config =>
+		{
 			welcomeTemplate = welcomeTemplate.replaceAll(config.character, config.replace);
 		});
 
 		const format = scoutSettings.welcomeTemplateFormat ? scoutSettings.welcomeTemplateFormat : 'plaintext';
 
-		await db.transaction(async (_:any) =>
+		await db.transaction(async (_: any) =>
 		{
 			const [result] = await query(`
 				INSERT INTO node (parent_node_id, user_id, type)
@@ -171,8 +168,6 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 				VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
 			`, result.id, scout.id, welcomeTemplate, format);
 		});
-
-		userGroups = userGroups.reduce((r:any,{id,identifier}: any) => (r[identifier]=id,r), {});
 
 		await Promise.all([
 			// Allow read / reply to scout & adoptee, lock to scout
@@ -202,11 +197,11 @@ async function adopt(this: APIThisType, {adopteeId, scoutId}: adoptProps) : Prom
 
 	await this.query('v1/notification/create', {
 		id: nodeId,
-		type: constants.notification.types.scoutAdoption
+		type: constants.notification.types.scoutAdoption,
 	});
 
 	return {
-		id: nodeId
+		id: nodeId,
 	};
 }
 
@@ -219,11 +214,11 @@ adopt.apiTypes = {
 		type: APITypes.userId,
 		nullable: true,
 	},
-}
+};
 
 type adoptProps = {
 	adopteeId: number
-	scoutId: number|null
-}
+	scoutId: number | null
+};
 
 export default adopt;

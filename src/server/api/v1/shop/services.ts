@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ServiceType } from '@types';
 
-async function services(this: APIThisType, {id, inactive = false}: servicesProps) : Promise<ServiceType[]>
+async function services(this: APIThisType, { id, inactive = false }: servicesProps): Promise<ServiceType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -81,13 +81,14 @@ async function services(this: APIThisType, {id, inactive = false}: servicesProps
 			`, id),
 		]);
 
-		return defaultServices.concat(shopServices).map((service:any) => {
+		return defaultServices.concat(shopServices).map((service: any) =>
+		{
 			return {
 				id: service.id,
 				name: service.name,
 				description: service.description,
 				default: service.default,
-				games: service.default ? defaultServicesGames.filter((g:any) => g.service_id = service.real_id) : servicesGames.filter((g:any) => g.service_id = service.real_id),
+				games: service.default ? defaultServicesGames.filter((g: any) => g.service_id = service.real_id) : servicesGames.filter((g: any) => g.service_id = service.real_id),
 			};
 		});
 	}
@@ -111,15 +112,16 @@ async function services(this: APIThisType, {id, inactive = false}: servicesProps
 			FROM ac_game
 			JOIN shop_default_service_ac_game ON (shop_default_service_ac_game.game_id = ac_game.id)
 		`),
-	])
+	]);
 
-	return defaultServices.map((s:any) => {
+	return defaultServices.map((s: any) =>
+	{
 		return {
 			id: s.id,
 			name: s.name,
 			description: s.description,
 			default: s.default,
-			games: defaultServicesGames.filter((g:any) => g.service_id = s.real_id),
+			games: defaultServicesGames.filter((g: any) => g.service_id = s.real_id),
 		};
 	});
 }
@@ -130,11 +132,11 @@ services.apiTypes = {
 		nullable: true,
 	},
 	// inactive will always be boolean
-}
+};
 
 type servicesProps = {
 	id: number | null
 	inactive: boolean
-}
+};
 
 export default services;

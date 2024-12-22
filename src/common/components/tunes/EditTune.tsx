@@ -7,12 +7,12 @@ import { utils, constants } from '@utils';
 const EditTune = ({
 	townId,
 	tune,
-	userId
+	userId,
 }: EditTuneProps) =>
 {
 	let callback = '/town-tunes';
 
-	if (townId != null && townId > 0 && userId != null)
+	if (townId && userId)
 	{
 		callback = `/profile/${encodeURIComponent(userId)}/towns`;
 	}
@@ -50,26 +50,26 @@ const EditTune = ({
 						<Form.Group>
 							<Check
 								options={utils.getTownTunes()}
-								optionsMapping={{id: 'id', name: 'name', filename: 'img_name'}}
+								optionsMapping={{ id: 'id', name: 'name', filename: 'img_name' }}
 								name={`noteId${index}`}
 								defaultValue={[note]}
 								required
 								imageLocation='tunes'
 								useImageFilename
 								hideName
-								label={`Note #${index+1}`}
+								label={`Note #${index + 1}`}
 							/>
 						</Form.Group>
-					</div>
+					</div>,
 				)}
 			</Form>
 		</div>
 	);
-}
+};
 
 type EditTuneProps = {
 	townId?: number
-	tune?: TuneType|NonNullable<TownType['tune']>
+	tune?: TuneType | NonNullable<TownType['tune']>
 	userId?: number
 };
 

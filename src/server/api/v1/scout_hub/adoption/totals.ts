@@ -6,9 +6,9 @@ import { APIThisType, AdoptionTotalsType } from '@types';
 /*
  * Adoption totals for scouts.
  */
-export default async function totals(this: APIThisType) : Promise<AdoptionTotalsType[]>
+export default async function totals(this: APIThisType): Promise<AdoptionTotalsType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'adoption-reassign'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
 
 	if (!permissionGranted)
 	{
@@ -29,9 +29,10 @@ export default async function totals(this: APIThisType) : Promise<AdoptionTotals
 		WHERE user_group.identifier = 'scout'
 	`, constants.scoutHub.newMemberEligibility);
 
-	return await Promise.all(totals.map(async (total:any) => {
+	return await Promise.all(totals.map(async (total: any) =>
+	{
 		return {
-			scout: await this.query('v1/user', {id: total.scout_id}),
+			scout: await this.query('v1/user', { id: total.scout_id }),
 			total: Number(total.count),
 		};
 	}));

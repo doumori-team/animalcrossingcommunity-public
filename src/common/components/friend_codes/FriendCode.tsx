@@ -7,7 +7,7 @@ import { Keyboard } from '@layout';
 import { FriendCodeType } from '@types';
 
 const FriendCode = ({
-	friendCode
+	friendCode,
 }: FriendCodeProps) =>
 {
 	const encodedUserId = encodeURIComponent(friendCode.userId);
@@ -37,7 +37,7 @@ const FriendCode = ({
 				{friendCode.code}
 			</div>
 
-			{friendCode.character && (
+			{friendCode.character &&
 				<div className='FriendCode_character'>
 					<Link to={`/profile/${encodedUserId}/towns`}>
 						<Keyboard
@@ -49,10 +49,10 @@ const FriendCode = ({
 						gameId={friendCode.game.id}
 					/>)
 				</div>
-			)}
+			}
 		</div>
 	);
-}
+};
 
 type FriendCodeProps = {
 	friendCode: FriendCodeType

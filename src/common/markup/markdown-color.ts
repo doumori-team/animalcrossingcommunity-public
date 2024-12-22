@@ -1,9 +1,9 @@
 'use strict';
 
-var TOKEN_TYPE = 'color_text';
-var MARKUP = "{color}";
+let TOKEN_TYPE = 'color_text';
+let MARKUP = '{color}';
 
-function tokenize(state:any, silent:any) : boolean
+function tokenize(state: any, silent: any): boolean
 {
 	if (silent)
 	{
@@ -23,7 +23,7 @@ function tokenize(state:any, silent:any) : boolean
 			return false;
 		}
 	}
-	
+
 	if (state.src.charCodeAt(valueStart) === 0x7D/* } */)
 	{
 		// This is a closing tag
@@ -56,7 +56,7 @@ function tokenize(state:any, silent:any) : boolean
 	return false;
 }
 
-function render(tokens:any, idx:any) : string
+function render(tokens: any, idx: any): string
 {
 	const token = tokens[idx];
 	if (token.nesting === -1)
@@ -70,7 +70,7 @@ function render(tokens:any, idx:any) : string
 	}
 }
 
-export default function color(md:any) : void
+export default function color(md: any): void
 {
 	md.inline.ruler.after('emphasis', TOKEN_TYPE, tokenize);
 	md.renderer.rules[TOKEN_TYPE] = render;

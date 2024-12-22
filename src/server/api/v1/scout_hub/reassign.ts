@@ -5,16 +5,16 @@ import { APIThisType } from '@types';
 /*
  * Reassign which scout is set for user.
  */
-async function reassign(this: APIThisType, {adopteeId, scoutId}: reassignProps) : Promise<void>
+async function reassign(this: APIThisType, { adopteeId, scoutId }: reassignProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'adoption-reassign'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
 
 	if (!permissionGranted)
 	{
 		throw new UserError('permission');
 	}
 
-	await this.query('v1/scout_hub/adopt', {adopteeId: adopteeId, scoutId: scoutId});
+	await this.query('v1/scout_hub/adopt', { adopteeId: adopteeId, scoutId: scoutId });
 }
 
 reassign.apiTypes = {
@@ -26,11 +26,11 @@ reassign.apiTypes = {
 		type: APITypes.userId,
 		nullable: true,
 	},
-}
+};
 
 type reassignProps = {
 	adopteeId: number
-	scoutId: number|null
-}
+	scoutId: number | null
+};
 
 export default reassign;

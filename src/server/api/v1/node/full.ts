@@ -8,9 +8,9 @@ import { APIThisType, NodeType } from '@types';
  * Retrieves all properties of a specific node needed to display it.
  * See db.getChildren.
  */
-async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : Promise<NodeType>
+async function full(this: APIThisType, { id, loadingNode = false }: fullProps): Promise<NodeType>
 {
-	const permission:boolean = await this.query('v1/node/permission', {permission: 'read', nodeId: id});
+	const permission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: id });
 
 	if (!permission)
 	{
@@ -50,14 +50,14 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 			FROM node_revision
 			WHERE node_id = $1::int
 		`, id),
-		this.query('v1/node/permission', {permission: 'edit', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'reply', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'lock', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'admin-lock', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'sticky', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'move', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'add-users', nodeId: id}),
-		this.query('v1/node/permission', {permission: 'remove-users', nodeId: id}),
+		this.query('v1/node/permission', { permission: 'edit', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'reply', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'lock', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'admin-lock', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'sticky', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'move', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'add-users', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'remove-users', nodeId: id }),
 		db.query(`
 			SELECT
 				user_account_cache.id,
@@ -83,7 +83,7 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 			FROM followed_node
 			WHERE node_id = $1::int
 		`, id),
-		this.query('v1/permission', {permission: 'view-followers'}),
+		this.query('v1/permission', { permission: 'view-followers' }),
 		this.userId ? db.query(`
 			SELECT markup_style, concise_mode, show_images
 			FROM users
@@ -101,11 +101,11 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 		throw new UserError('login-needed');
 	}
 
-	const conciseMode:number = userSettings && userSettings[0] ? Number(userSettings[0].concise_mode) : 2;
+	const conciseMode: number = userSettings && userSettings[0] ? Number(userSettings[0].concise_mode) : 2;
 
 	const [parent, user, latestPage, latestPost, lastChecked, nodeFiles, unreadTotal] = await Promise.all([
-		result.type === 'thread' ? this.query('v1/node/lite', {id: result.parent_node_id}) : null,
-		result.user_id ? this.query('v1/user', {id: result.user_id}) : null,
+		result.type === 'thread' ? this.query('v1/node/lite', { id: result.parent_node_id }) : null,
+		result.user_id ? this.query('v1/user', { id: result.user_id }) : null,
 		!loadingNode && result.type === 'thread' && this.userId ? db.getLatestPage(result.id, this.userId) : null,
 		!loadingNode && result.type === 'thread' && this.userId ? db.getLatestPost(result.id, this.userId) : null,
 		!loadingNode && result.type === 'thread' ? db.query(`
@@ -140,7 +140,7 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 		`, id, this.userId) : null,
 	]);
 
-	let permissions:string[] = [];
+	let permissions: string[] = [];
 
 	if (editPerm)
 	{
@@ -182,9 +182,9 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 		permissions.push('remove-users');
 	}
 
-	const returnLatestPost:number = latestPost && latestPost[0] ? latestPost[0].latest_post : 0;
+	const returnLatestPost: number = latestPost && latestPost[0] ? latestPost[0].latest_post : 0;
 
-	const replies:number = result.reply_count ? Number(result.reply_count)-1 : 0;
+	const replies: number = result.reply_count ? Number(result.reply_count) - 1 : 0;
 
 	const returnVal = <NodeType>{
 		id: result.id,
@@ -204,10 +204,11 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 		replyCount: replies,
 		latestPage: latestPage && latestPage[0] ? latestPage[0].latest_page : null,
 		latestPost: returnLatestPost,
-		unread: this.userId && result.type === 'thread' ? (lastChecked.length > 0 ? (returnLatestPost > 0 ? true : false) : (result.locked ? false : true)) : false,
-		unreadTotal: unreadTotal ? (unreadTotal[0] ? Number(unreadTotal[0].count) : replies+1) : null,
+		unread: this.userId && result.type === 'thread' ? lastChecked.length > 0 ? returnLatestPost > 0 ? true : false : result.locked ? false : true : false,
+		unreadTotal: unreadTotal ? unreadTotal[0] ? Number(unreadTotal[0].count) : replies + 1 : null,
 		markupStyle: userSettings ? userSettings[0].markup_style : null,
-		files: nodeFiles ? nodeFiles.map((file: any) => {
+		files: nodeFiles ? nodeFiles.map((file: any) =>
+		{
 			return {
 				id: file.id,
 				fileId: file.file_id,
@@ -215,7 +216,7 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 				width: file.width,
 				height: file.height,
 				caption: file.caption,
-			}
+			};
 		}) : [],
 		conciseMode: conciseMode,
 		content: null,
@@ -232,8 +233,8 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 	{
 		returnVal.content = {
 			text: result.content,
-			format: result.content_format
-		}
+			format: result.content_format,
+		};
 	}
 
 	if (result.latest_reply_time)
@@ -249,38 +250,38 @@ async function full(this: APIThisType, {id, loadingNode = false}: fullProps) : P
 		{
 			if (returnVal.parentId === constants.boardIds.privateThreads)
 			{
-				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.PT});
+				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.PT });
 			}
 			else if (returnVal.parentId === constants.boardIds.adopteeThread)
 			{
 				await Promise.all([
-					this.query('v1/notification/destroy', {id: returnVal.id, type: types.scoutAdoption}),
-					this.query('v1/notification/destroy', {id: returnVal.id, type: types.scoutThread}),
+					this.query('v1/notification/destroy', { id: returnVal.id, type: types.scoutAdoption }),
+					this.query('v1/notification/destroy', { id: returnVal.id, type: types.scoutThread }),
 				]);
 			}
 			else if (returnVal.parentId === constants.boardIds.adopteeBT)
 			{
-				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.scoutBT});
+				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.scoutBT });
 			}
 			else if (returnVal.parentId === constants.boardIds.announcements)
 			{
-				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.announcement});
+				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.announcement });
 			}
 			else if (returnVal.parentId === constants.boardIds.shopThread)
 			{
-				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.shopThread});
+				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.shopThread });
 			}
 			else
 			{
-				await this.query('v1/notification/destroy', {id: returnVal.id, type: types.FT});
+				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.FT });
 			}
 
-			await this.query('v1/notification/destroy', {id: returnVal.id, type: types.usernameTag});
-			await this.query('v1/notification/destroy', {id: returnVal.parentId, type: types.FB});
+			await this.query('v1/notification/destroy', { id: returnVal.id, type: types.usernameTag });
+			await this.query('v1/notification/destroy', { id: returnVal.parentId, type: types.FB });
 		}
 		else if (returnVal.type === 'board')
 		{
-			await this.query('v1/notification/destroy', {id: returnVal.id, type: types.FB});
+			await this.query('v1/notification/destroy', { id: returnVal.id, type: types.FB });
 		}
 	}
 
@@ -293,11 +294,11 @@ full.apiTypes = {
 		required: true,
 	},
 	// loadingNode not checked on purpose
-}
+};
 
 type fullProps = {
 	id: number,
 	loadingNode: boolean
-}
+};
 
 export default full;

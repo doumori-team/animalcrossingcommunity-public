@@ -9,7 +9,7 @@ import MarkupButton from '@/components/form/MarkupButton.tsx';
 import Select from '@/components/form/Select.tsx';
 import { constants } from '@utils';
 import EmojiButton from '@/components/form/EmojiButton.tsx';
-import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
 import { EmojiSettingType, FileType, MarkupFormatType, FileInProcessType, ElementClickButtonType, MarkupStyleType } from '@types';
 import { ErrorMessage, Tabs, PhotoSlideshow, PhotoGallery, Markup, FontAwesomeIcon } from '@layout';
 import * as iso from 'common/iso.js';
@@ -36,22 +36,22 @@ const RichTextArea = ({
 	upload = false,
 	maxImages = constants.max.imagesPost,
 	files = [],
-	previewSignature = false
+	previewSignature = false,
 }: RichTextAreaProps) =>
 {
 	const [format, setFormat] = useState<MarkupFormatType>(formatValue);
 	const [curTextValue, setCurTextValue] = useState<string>(String(textValue || ''));
 	const [errors, setErrors] = useState<string[]>([]);
-	const [nodeFiles, setNodeFiles] = useState<FileType[]|FileInProcessType[]>(files);
+	const [nodeFiles, setNodeFiles] = useState<FileType[] | FileInProcessType[]>(files);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [fileIndex, setFileIndex] = useState<number>(-1);
 
 	const textareaRef = useRef<any>(null);
 
-	const onChangeText = () : void =>
+	const onChangeText = (): void =>
 	{
 		setCurTextValue(textareaRef.current?.value);
-	}
+	};
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) =>
 	{
@@ -77,9 +77,9 @@ const RichTextArea = ({
 				doQuickMarkup(getTagDetails('underline'));
 			}
 		}
-	}
+	};
 
-	const getTagDetails = (type:string) : any|null =>
+	const getTagDetails = (type: string): any | null =>
 	{
 		if (format === 'markdown')
 		{
@@ -95,9 +95,9 @@ const RichTextArea = ({
 		}
 
 		return null;
-	}
+	};
 
-	const getEmojiTagDetails = (type:string) : any|null =>
+	const getEmojiTagDetails = (type: string): any | null =>
 	{
 		if (format === 'markdown' || format === 'markdown+html')
 		{
@@ -109,13 +109,13 @@ const RichTextArea = ({
 		}
 
 		return null;
-	}
+	};
 
-	const doEmojiMarkup = (tag:string) : void =>
+	const doEmojiMarkup = (tag: string): void =>
 	{
 		const textarea = textareaRef.current;
 
-		const {selectionStart, selectionEnd, value} = textarea;
+		const { selectionStart, selectionEnd, value } = textarea;
 
 		textarea.value =
 			value.slice(0, selectionStart) + tag
@@ -125,14 +125,14 @@ const RichTextArea = ({
 		textarea.focus();
 
 		onChangeText();
-	}
+	};
 
-	const doQuickMarkup = (tag:any) : void =>
+	const doQuickMarkup = (tag: any): void =>
 	{
 		const textarea = textareaRef.current;
 
-		const {selectionStart, selectionEnd, value} = textarea;
-		const {prefix, attrName} = tag;
+		const { selectionStart, selectionEnd, value } = textarea;
+		const { prefix, attrName } = tag;
 		let { start, end } = tag; // These ones need to be writeable so we can modify them if there is an attribute
 		let attrVal;
 
@@ -167,20 +167,20 @@ const RichTextArea = ({
 				+ lines.join('\n' + prefix) + value.slice(selectionEnd);
 			textarea.setSelectionRange(
 				selectionStart + prefix.length,
-				selectionEnd + prefix.length * lines.length
+				selectionEnd + prefix.length * lines.length,
 			);
 			textarea.focus();
 		}
 
 		onChangeText();
-	}
+	};
 
-	const scanFile = async (e:any) : Promise<void> =>
+	const scanFile = async (e: any): Promise<void> =>
 	{
 		setErrors([]);
 		setLoading(true);
 
-		const files:File[] = Array.from(e.target.files);
+		const files: File[] = Array.from(e.target.files);
 
 		if (nodeFiles.length + files.length > maxImages)
 		{
@@ -192,7 +192,8 @@ const RichTextArea = ({
 
 		let addFiles = [...nodeFiles];
 
-		await Promise.all(files.map(async file => {
+		await Promise.all(files.map(async file =>
+		{
 			const compressedFile = await compressImage(file);
 
 			// 10000 KB / 10 MB max size
@@ -214,36 +215,37 @@ const RichTextArea = ({
 				name: compressedFile.name.replace(/\.[^/.]+$/, ''),
 				fileId: fileName,
 				width: img.width,
-				height: img.height
+				height: img.height,
 			});
 		}));
 
 		setNodeFiles(addFiles);
 		setLoading(false);
-	}
+	};
 
-	const compressImage = async (file:File|Blob) : Promise<any> =>
+	const compressImage = async (file: File | Blob): Promise<any> =>
 	{
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) =>
+		{
 			new Compressor(file, {
 				convertSize: 1000000,
 				success: resolve,
 				error: reject,
 			});
 		});
-	}
+	};
 
-	const uploadImage = async (file:any) =>
+	const uploadImage = async (file: any) =>
 	{
 		let params = new FormData();
 		params.append('imageExtension', file.type.replace(/(.*)\//g, ''));
 
 		return await (iso as any).query(null, 'v1/users/upload_image', params)
-			.then(async ({s3PresignedUrl, fileName}: {s3PresignedUrl: string, fileName: string}) =>
+			.then(async ({ s3PresignedUrl, fileName }: { s3PresignedUrl: string, fileName: string }) =>
 			{
 				try
 				{
-					await axios.put(s3PresignedUrl, file, {headers: {'Content-Type': file.type}});
+					await axios.put(s3PresignedUrl, file, { headers: { 'Content-Type': file.type } });
 
 					return fileName;
 				}
@@ -256,7 +258,7 @@ const RichTextArea = ({
 					setLoading(false);
 				}
 			})
-			.catch((error:any) =>
+			.catch((error: any) =>
 			{
 				console.error('Error attempting to get presigned url.');
 				console.error(error);
@@ -264,9 +266,9 @@ const RichTextArea = ({
 				setErrors(['bad-format']);
 				setLoading(false);
 			});
-	}
+	};
 
-	const removeFile = async (e:ElementClickButtonType, index:number) : Promise<void> =>
+	const removeFile = async (e: ElementClickButtonType, index: number): Promise<void> =>
 	{
 		e.preventDefault();
 
@@ -274,9 +276,9 @@ const RichTextArea = ({
 		newFiles.splice(index, 1);
 
 		setNodeFiles(newFiles);
-	}
+	};
 
-	const getQuickMarkupButtons = () : React.ReactNode =>
+	const getQuickMarkupButtons = (): React.ReactNode =>
 	{
 		return (
 			<div className='RichTextArea_quickMarkupButtons'>
@@ -365,21 +367,21 @@ const RichTextArea = ({
 						/>
 					</span>
 					<span className='RichTextArea_quickMarkupGroup'>
-						{format === 'markdown+html' && (
+						{format === 'markdown+html' &&
 							<>
-							<MarkupButton
-								tag={getTagDetails('image')}
-								clickHandler={doQuickMarkup.bind(this)}
-								name='Image' icon='image'
-							/>
-							<MarkupButton
-								tag={getTagDetails('anchor')}
-								clickHandler={doQuickMarkup.bind(this)}
-								name='Anchor' icon='anchor'
-							/>
+								<MarkupButton
+									tag={getTagDetails('image')}
+									clickHandler={doQuickMarkup.bind(this)}
+									name='Image' icon='image'
+								/>
+								<MarkupButton
+									tag={getTagDetails('anchor')}
+									clickHandler={doQuickMarkup.bind(this)}
+									name='Anchor' icon='anchor'
+								/>
 							</>
-						)}
-						{upload && (
+						}
+						{upload &&
 							<RequirePermission permission='post-images' silent>
 								<label
 									className='MarkupButton'
@@ -398,14 +400,14 @@ const RichTextArea = ({
 									multiple
 								/>
 							</RequirePermission>
-						)}
+						}
 					</span>
 				</RequireClientJS>
 			</div>
-		)
-	}
+		);
+	};
 
-	const getMarkupStyle = () : React.ReactNode =>
+	const getMarkupStyle = (): React.ReactNode =>
 	{
 		return (
 			<div className='RichTextArea_markupStyle'>
@@ -413,18 +415,18 @@ const RichTextArea = ({
 					name={formatName}
 					label='Markup style'
 					value={format}
-					changeHandler={(event:any) => setFormat(event.target.value)}
+					changeHandler={(event: any) => setFormat(event.target.value)}
 					options={[
-						{value: 'markdown', label: 'Markdown'},
-						{value: 'bbcode', label: 'Traditional'},
-						{value: 'plaintext', label: 'No Markup'},
+						{ value: 'markdown', label: 'Markdown' },
+						{ value: 'bbcode', label: 'Traditional' },
+						{ value: 'plaintext', label: 'No Markup' },
 					]}
 				/>
 			</div>
-		)
-	}
+		);
+	};
 
-	const renderPhoto = ({photo, layoutOptions, imageProps: {alt, style, ...restImageProps}}: any) =>
+	const renderPhoto = ({ photo, layoutOptions, imageProps: { alt, style, ...restImageProps } }: any) =>
 	{
 		const [caption, setCaption] = useState<string>(photo.description);
 
@@ -486,81 +488,82 @@ const RichTextArea = ({
 	{
 		return (
 			<>
-			<RequireClientJS fallback={
-				formatName && (
+				<RequireClientJS fallback={
+					formatName &&
+						<div className='RichTextArea_quickMarkup'>
+							{getQuickMarkupButtons()}
+							{getMarkupStyle()}
+						</div>
+
+				}
+				>
 					<div className='RichTextArea_quickMarkup'>
 						{getQuickMarkupButtons()}
-						{getMarkupStyle()}
+						{formatName &&
+							getMarkupStyle()
+						}
 					</div>
-				)
-			}>
-				<div className='RichTextArea_quickMarkup'>
-					{getQuickMarkupButtons()}
-					{formatName && (
-						getMarkupStyle()
-					)}
-				</div>
-			</RequireClientJS>
-			<div className='RichTextArea_textarea'>
-				<textarea
-					className='RichTextArea_textbox'
-					name={textName}
-					id={htmlId}
-					defaultValue={curTextValue}
-					maxLength={maxLength}
-					ref={textareaRef}
-					onKeyDown={onKeyDown}
-					onChange={onChangeText}
-					data-lpignore='true'
-					autoComplete='off'
-					aria-label={label}
-					placeholder={placeholder}
-					required={required}
-				/>
-				{!hideEmojis && (
-					<RequireClientJS>
-						<div className='RichTextArea_emoji'>
-							{Object.keys((emojiDefs as any)[0]).map((def, index) =>
-								<EmojiButton
-									key={index}
-									tag={getEmojiTagDetails(def)}
-									clickHandler={doEmojiMarkup.bind(this)}
-									name={(emojiDefs as any)[0][def]}
-									icon={(emojiDefs as any)[0][def]}
-									type={def}
-									emojiSettings={emojiSettings}
-								/>
-							)}
-							<hr />
-							{Object.keys((emojiDefs as any)[1]).map((def, index) =>
-								<EmojiButton
-									key={index}
-									tag={getEmojiTagDetails(def)}
-									clickHandler={doEmojiMarkup.bind(this)}
-									name={(emojiDefs as any)[1][def]}
-									icon={(emojiDefs as any)[1][def]}
-									type={def}
-									emojiSettings={emojiSettings}
-								/>
-							)}
-						</div>
-					</RequireClientJS>
-				)}
-			</div>
-			{(characterCount && curTextValue != null) && (
-				<RequireClientJS>
-					(Character count: {curTextValue.length} / {maxLength} max)
 				</RequireClientJS>
-			)}
+				<div className='RichTextArea_textarea'>
+					<textarea
+						className='RichTextArea_textbox'
+						name={textName}
+						id={htmlId}
+						defaultValue={curTextValue}
+						maxLength={maxLength}
+						ref={textareaRef}
+						onKeyDown={onKeyDown}
+						onChange={onChangeText}
+						data-lpignore='true'
+						autoComplete='off'
+						aria-label={label}
+						placeholder={placeholder}
+						required={required}
+					/>
+					{!hideEmojis &&
+						<RequireClientJS>
+							<div className='RichTextArea_emoji'>
+								{Object.keys((emojiDefs as any)[0]).map((def, index) =>
+									<EmojiButton
+										key={index}
+										tag={getEmojiTagDetails(def)}
+										clickHandler={doEmojiMarkup.bind(this)}
+										name={(emojiDefs as any)[0][def]}
+										icon={(emojiDefs as any)[0][def]}
+										type={def}
+										emojiSettings={emojiSettings}
+									/>,
+								)}
+								<hr />
+								{Object.keys((emojiDefs as any)[1]).map((def, index) =>
+									<EmojiButton
+										key={index}
+										tag={getEmojiTagDetails(def)}
+										clickHandler={doEmojiMarkup.bind(this)}
+										name={(emojiDefs as any)[1][def]}
+										icon={(emojiDefs as any)[1][def]}
+										type={def}
+										emojiSettings={emojiSettings}
+									/>,
+								)}
+							</div>
+						</RequireClientJS>
+					}
+				</div>
+				{characterCount && curTextValue != null &&
+					<RequireClientJS>
+						(Character count: {curTextValue.length} / {maxLength} max)
+					</RequireClientJS>
+				}
 			</>
-		)
-	}
+		);
+	};
 
 	return (
 		<div className='RichTextArea'>
 			{errors.map(
 				(identifier, index) =>
-					(<ErrorMessage identifier={identifier} key={index} />)
+					<ErrorMessage identifier={identifier} key={index} />,
 			)}
 			<Tabs defaultActiveKey='write' variant='light' fallback={getWriteSection()}>
 				<Tabs.Tab eventKey='write' title='Write'>
@@ -577,62 +580,63 @@ const RichTextArea = ({
 							emojiSettings={emojiSettings}
 						/>
 
-						{previewSignature && (
+						{previewSignature &&
 							<UserContext.Consumer>
-								{currentUser => currentUser && (
+								{currentUser => currentUser &&
 									<>
-									{nodeFiles.length > 0 && (
-										currentUser.showImages ? (
-											<PhotoGallery
-												userId={currentUser.id}
-												files={nodeFiles}
-											/>
-										) : (
-											<>
-											<Button
-												type='button'
-												label='View Image(s)'
-												className='Node_link'
-												clickHandler={() => setFileIndex(0)}
-											/>
+										{nodeFiles.length > 0 && (
+											currentUser.showImages ?
+												<PhotoGallery
+													userId={currentUser.id}
+													files={nodeFiles}
+												/>
+												:
+												<>
+													<Button
+														type='button'
+														label='View Image(s)'
+														className='Node_link'
+														clickHandler={() => setFileIndex(0)}
+													/>
 
-											<PhotoSlideshow
-												userId={currentUser.id}
-												files={nodeFiles}
-												reportType={constants.userTicket.types.postImage}
-												fileIndex={fileIndex}
-												setFileIndex={setFileIndex}
-												key={fileIndex}
-											/>
-											</>
-										)
-									)}
+													<PhotoSlideshow
+														userId={currentUser.id}
+														files={nodeFiles}
+														reportType={constants.userTicket.types.postImage}
+														fileIndex={fileIndex}
+														setFileIndex={setFileIndex}
+														key={fileIndex}
+													/>
+												</>
 
-									{currentUser.signature && (
-										<div className='Node_signature'>
-											<Markup
-												text={currentUser.signature}
-												format={currentUser.signatureFormat}
-												emojiSettings={emojiSettings}
-											/>
-										</div>
-									)}
+										)}
+
+										{currentUser.signature &&
+											<div className='Node_signature'>
+												<Markup
+													text={currentUser.signature}
+													format={currentUser.signatureFormat}
+													emojiSettings={emojiSettings}
+												/>
+											</div>
+										}
 									</>
-								)}
+								}
 							</UserContext.Consumer>
-						)}
+						}
 					</div>
 				</Tabs.Tab>
 			</Tabs>
-			{loading && (
+			{loading &&
 				<Spinner />
-			)}
-			{nodeFiles.length > 0 && (
+			}
+			{nodeFiles.length > 0 &&
 				<UserContext.Consumer>
-					{currentUser => currentUser && (
+					{currentUser => currentUser &&
 						<PhotoAlbum
 							layout='columns'
-							photos={(nodeFiles as any).map((file: FileType, index:number) => {
+							photos={(nodeFiles as any).map((file: FileType, index: number) =>
+							{
 								return {
 									src: `${constants.USER_FILE_DIR}${currentUser.id}/${file.fileId}`,
 									alt: file.caption,
@@ -650,12 +654,12 @@ const RichTextArea = ({
 							columns={4}
 							renderPhoto={renderPhoto}
 						/>
-					)}
+					}
 				</UserContext.Consumer>
-			)}
+			}
 		</div>
-	)
-}
+	);
+};
 
 type RichTextAreaProps = {
 	textName: string // name to be assigned to the form control for the text itself

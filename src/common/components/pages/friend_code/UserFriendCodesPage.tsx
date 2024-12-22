@@ -10,13 +10,14 @@ import { APIThisType, UserFriendCodesType, RatingType } from '@types';
 
 const UserFriendCodesPage = () =>
 {
-	const {userId, friendCodes, rating, haveWhitelisted, page, pageSize,
-		totalCount} = useLoaderData() as UserFriendCodesPageProps;
+	const { userId, friendCodes, rating, haveWhitelisted, page, pageSize,
+		totalCount } = useLoaderData() as UserFriendCodesPageProps;
 
 	const encodedId = encodeURIComponent(userId);
 
 	const showRatings = Object.keys(constants.rating.configs)
-		.map(x => {
+		.map(x =>
+		{
 			return {
 				id: (constants.rating.configs as any)[x].id,
 				filename: (constants.rating.configs as any)[x].image,
@@ -26,7 +27,7 @@ const UserFriendCodesPage = () =>
 	return (
 		<div className='UserFriendCodesPage'>
 			<RequireUser permission='use-friend-codes'>
-				{rating && (
+				{rating &&
 					<Section>
 						<h2>Update Wifi Rating</h2>
 						<Form
@@ -64,11 +65,11 @@ const UserFriendCodesPage = () =>
 							</div>
 						</Form>
 					</Section>
-				)}
+				}
 
 				<Section>
 					<Grid options={friendCodes} message={
-						!haveWhitelisted ? (
+						!haveWhitelisted ?
 							<Form
 								action='v1/rating/whitelist/save'
 								callback={`/profile/${encodedId}/friend-codes`}
@@ -77,16 +78,17 @@ const UserFriendCodesPage = () =>
 							>
 								<input type='hidden' name='whitelistUserId' value={userId} />
 							</Form>
-						) : (
+							:
 							'No friend codes available.'
-						)
-					}>
+
+					}
+					>
 						{friendCodes.map(fc =>
 							<InnerSection key={fc.id}>
 								<FriendCode
 									friendCode={fc}
 								/>
-							</InnerSection>
+							</InnerSection>,
 						)}
 					</Grid>
 
@@ -100,16 +102,16 @@ const UserFriendCodesPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}, {page}: {page?: string}) : Promise<UserFriendCodesPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }, { page }: { page?: string }): Promise<UserFriendCodesPageProps>
 {
 	const userId = Number(id);
 
 	const [fcObj, rating, haveWhitelisted] = await Promise.all([
-		this.query('v1/users/friend_codes', {id: id, page: page ? page : 1}),
-		this.query('v1/users/wifi_rating', {id: id}),
-		this.query('v1/rating/whitelist/have_whitelisted', {id: id}),
+		this.query('v1/users/friend_codes', { id: id, page: page ? page : 1 }),
+		this.query('v1/users/wifi_rating', { id: id }),
+		this.query('v1/rating/whitelist/have_whitelisted', { id: id }),
 	]);
 
 	return {
@@ -119,18 +121,18 @@ export async function loadData(this: APIThisType, {id}: {id: string}, {page}: {p
 		haveWhitelisted,
 		totalCount: fcObj.count,
 		page: fcObj.page,
-		pageSize: fcObj.pageSize
+		pageSize: fcObj.pageSize,
 	};
 }
 
 type UserFriendCodesPageProps = {
 	userId: number
 	friendCodes: UserFriendCodesType['results']
-	rating: RatingType|null
+	rating: RatingType | null
 	haveWhitelisted: boolean
 	totalCount: UserFriendCodesType['count']
 	page: UserFriendCodesType['page']
 	pageSize: UserFriendCodesType['pageSize']
-}
+};
 
 export default UserFriendCodesPage;

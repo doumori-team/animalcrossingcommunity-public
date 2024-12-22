@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, BedLocationType } from '@types';
 
-async function bed_location(this: APIThisType, {id}: bedLocationProps) : Promise<BedLocationType[]>
+async function bed_location(this: APIThisType, { id }: bedLocationProps): Promise<BedLocationType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -29,10 +29,10 @@ bed_location.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type bedLocationProps = {
 	id: number
-}
+};
 
 export default bed_location;

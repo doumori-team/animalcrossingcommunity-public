@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {gameId, hemisphereId, categories}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { gameId, hemisphereId, categories }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -13,7 +13,7 @@ async function save(this: APIThisType, {gameId, hemisphereId, categories}: saveP
 
 	// check params
 
-	let settings:any = [];
+	let settings: any = [];
 
 	if (hemisphereId > 0)
 	{
@@ -32,7 +32,7 @@ async function save(this: APIThisType, {gameId, hemisphereId, categories}: saveP
 	await Promise.all(categories.map(async (value) =>
 	{
 		let gameId = value.substring(0, value.indexOf('_'));
-		const categoryId = value.substring(value.indexOf('_')+'_'.length);
+		const categoryId = value.substring(value.indexOf('_') + '_'.length);
 
 		if (isNaN(gameId))
 		{
@@ -73,7 +73,7 @@ async function save(this: APIThisType, {gameId, hemisphereId, categories}: saveP
 			throw new UserError('missing-hemisphere');
 		}
 
-		const setting = settings.find((s:any) => s.id === gameId);
+		const setting = settings.find((s: any) => s.id === gameId);
 
 		if (!setting)
 		{
@@ -91,7 +91,7 @@ async function save(this: APIThisType, {gameId, hemisphereId, categories}: saveP
 
 	// update settings
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await query(`
 			DELETE FROM calendar_setting WHERE user_id = $1::int
@@ -102,14 +102,16 @@ async function save(this: APIThisType, {gameId, hemisphereId, categories}: saveP
 			return { _success: 'Your calendar settings have been updated.' };
 		}
 
-		settings.map(async (setting:any) => {
+		settings.map(async (setting: any) =>
+		{
 			const [calendarSetting] = await query(`
 				INSERT INTO calendar_setting (user_id, game_id, hemisphere_id, homepage) VALUES
 				($1::int, $2::int, $3, $4)
 				RETURNING id
 			`, this.userId, setting.id, setting.hemisphereId, setting.id === gameId);
 
-			setting.categories.map(async (categoryId:number) => {
+			setting.categories.map(async (categoryId: number) =>
+			{
 				await query(`
 					INSERT INTO calendar_setting_category (calendar_setting_id, category_id) VALUES
 					($1::int, $2::int)
@@ -136,12 +138,12 @@ save.apiTypes = {
 	categories: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	gameId: number
 	hemisphereId: number
 	categories: any[]
-}
+};
 
 export default save;

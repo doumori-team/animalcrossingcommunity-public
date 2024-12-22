@@ -8,7 +8,7 @@ import { APIThisType, RuleCategoryType, RuleType } from '@types';
 
 const EditAdminRulePage = () =>
 {
-	const {rule, categories} = useLoaderData() as EditAdminRulePageProps;
+	const { rule, categories } = useLoaderData() as EditAdminRulePageProps;
 
 	return (
 		<div className='EditAdminRulePage'>
@@ -22,21 +22,21 @@ const EditAdminRulePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {ruleId}: {ruleId: string}) : Promise<EditAdminRulePageProps>
+export async function loadData(this: APIThisType, { ruleId }: { ruleId: string }): Promise<EditAdminRulePageProps>
 {
 	const [rule, categories] = await Promise.all([
-		this.query('v1/admin/rule', {id: ruleId}),
+		this.query('v1/admin/rule', { id: ruleId }),
 		this.query('v1/rule/categories'),
 	]);
 
-	return {rule, categories};
+	return { rule, categories };
 }
 
 type EditAdminRulePageProps = {
 	rule: RuleType
 	categories: RuleCategoryType[]
-}
+};
 
 export default EditAdminRulePage;

@@ -25,7 +25,7 @@ const Pagination = ({
 	endLink = '',
 	queryParam = true,
 	onPageChange,
-	pageName = 'page'
+	pageName = 'page',
 }: PaginationProps) =>
 {
 	if (totalCount === 0)
@@ -48,20 +48,20 @@ const Pagination = ({
 
 	let numbers = [], allNumbers = [];
 	const sideNum = 3;
-	const lowEnd = page <= sideNum ? 1 : page-sideNum;
+	const lowEnd = page <= sideNum ? 1 : page - sideNum;
 	const highEnd = page === lastPage ? page :
-		page+(lastPage-page < sideNum ? lastPage-page : sideNum);
+		page + (lastPage - page < sideNum ? lastPage - page : sideNum);
 
 	for (let i = lowEnd; i <= highEnd; i++)
 	{
 		numbers.push(i);
 	}
 
-	if (lastPage > (sideNum+1))
+	if (lastPage > sideNum + 1)
 	{
 		for (let i = 1; i <= lastPage; i++)
 		{
-			allNumbers.push({value: i, label: i});
+			allNumbers.push({ value: i, label: i });
 		}
 	}
 
@@ -78,127 +78,132 @@ const Pagination = ({
 		}
 	}
 
-	const changePage = (e:any) : void =>
+	const changePage = (e: any): void =>
 	{
 		navigate(`/${startLink}${startPageLink}${encodeURIComponent(Number(e.target.value))}${endPageLink}${endLink}`);
-	}
+	};
 
 	return (
 		<>
-		<div className='Pagination'>
-			{page > 1 && (
-				onPageChange ? (
-					<button
-						className='Pagination_first'
-						type='button'
-						onClick={() => onPageChange(1)}
-					>
-						First
-					</button>
-				) : (
-					<Link to={`/${startLink}${startPageLink}1${endPageLink}${endLink}`}
-						className='Pagination_first' reloadDocument>
-						First
-					</Link>
-				)
-			)}
-			{page > 2 && (
-				onPageChange ? (
-					<button
-						className='Pagination_previous'
-						type='button'
-						onClick={() => onPageChange(page - 1)}
-					>
-						Previous
-					</button>
-				) : (
-					<Link to={`/${startLink}${startPageLink}${encodeURIComponent(page-1)}${endPageLink}${endLink}`}
-						className='Pagination_previous' reloadDocument>
-						Previous
-					</Link>
-				)
-			)}
-			{numbers.map(i =>
-				onPageChange ? (
-					<button
-						key={i}
-						className={`Pagination_number ${i === page ? 'Pagination_currentNumber' : ''}`}
-						type='button'
-						onClick={() => onPageChange(i)}
-					>
-						{i}
-					</button>
-				) : (
-					<Link key={i} to={`/${startLink}${startPageLink}${encodeURIComponent(i)}${endPageLink}${endLink}`}
-						className={`Pagination_number ${i === page ? 'Pagination_currentNumber' : ''}`} reloadDocument>
-						{i}
-					</Link>
-				)
-			)}
-			{page < lastPage - 1 && (
-				onPageChange ? (
-					<button
-						className='Pagination_next'
-						type='button'
-						onClick={() => onPageChange(page + 1)}
-					>
-						Next
-					</button>
-				) : (
-					<Link to={`/${startLink}${startPageLink}${encodeURIComponent(page+1)}${endPageLink}${endLink}`}
-						className='Pagination_next' reloadDocument>
-						Next
-					</Link>
-				)
-			)}
-			{page < lastPage && (
-				onPageChange ? (
-					<button
-						className='Pagination_last'
-						type='button'
-						onClick={() => onPageChange(lastPage)}
-					>
-						Last
-					</button>
-				) : (
-					<Link to={`/${startLink}${startPageLink}${encodeURIComponent(lastPage)}${endPageLink}${endLink}`}
-						className='Pagination_last' reloadDocument>
-						Last
-					</Link>
-				)
-			)}
-		</div>
-		{allNumbers.length > 0 && (
-			<RequireClientJS>
-				{onPageChange ? (
-					<div className='Pagination_dropdown'>
-						<Select
-							label='Pagination'
-							hideLabel
-							name='page'
-							options={allNumbers}
-							value={page}
-							changeHandler={(e:any) => onPageChange(Number(e.target.value))}
-						/>
-					</div>
-				) : (
-					<div className='Pagination_dropdown'>
-						<Select
-							label='Pagination'
-							hideLabel
-							name='page'
-							options={allNumbers}
-							value={page}
-							changeHandler={(e:any) => changePage(e)}
-							key={page}
-						/>
-					</div>
+			<div className='Pagination'>
+				{page > 1 && (
+					onPageChange ?
+						<button
+							className='Pagination_first'
+							type='button'
+							onClick={() => onPageChange(1)}
+						>
+							First
+						</button>
+						:
+						<Link to={`/${startLink}${startPageLink}1${endPageLink}${endLink}`}
+							className='Pagination_first' reloadDocument
+						>
+							First
+						</Link>
+
 				)}
-			</RequireClientJS>
-		)}
+				{page > 2 && (
+					onPageChange ?
+						<button
+							className='Pagination_previous'
+							type='button'
+							onClick={() => onPageChange(page - 1)}
+						>
+							Previous
+						</button>
+						:
+						<Link to={`/${startLink}${startPageLink}${encodeURIComponent(page - 1)}${endPageLink}${endLink}`}
+							className='Pagination_previous' reloadDocument
+						>
+							Previous
+						</Link>
+
+				)}
+				{numbers.map(i =>
+					onPageChange ?
+						<button
+							key={i}
+							className={`Pagination_number ${i === page ? 'Pagination_currentNumber' : ''}`}
+							type='button'
+							onClick={() => onPageChange(i)}
+						>
+							{i}
+						</button>
+						:
+						<Link key={i} to={`/${startLink}${startPageLink}${encodeURIComponent(i)}${endPageLink}${endLink}`}
+							className={`Pagination_number ${i === page ? 'Pagination_currentNumber' : ''}`} reloadDocument
+						>
+							{i}
+						</Link>
+					,
+				)}
+				{page < lastPage - 1 && (
+					onPageChange ?
+						<button
+							className='Pagination_next'
+							type='button'
+							onClick={() => onPageChange(page + 1)}
+						>
+							Next
+						</button>
+						:
+						<Link to={`/${startLink}${startPageLink}${encodeURIComponent(page + 1)}${endPageLink}${endLink}`}
+							className='Pagination_next' reloadDocument
+						>
+							Next
+						</Link>
+
+				)}
+				{page < lastPage && (
+					onPageChange ?
+						<button
+							className='Pagination_last'
+							type='button'
+							onClick={() => onPageChange(lastPage)}
+						>
+							Last
+						</button>
+						:
+						<Link to={`/${startLink}${startPageLink}${encodeURIComponent(lastPage)}${endPageLink}${endLink}`}
+							className='Pagination_last' reloadDocument
+						>
+							Last
+						</Link>
+
+				)}
+			</div>
+			{allNumbers.length > 0 &&
+				<RequireClientJS>
+					{onPageChange ?
+						<div className='Pagination_dropdown'>
+							<Select
+								label='Pagination'
+								hideLabel
+								name='page'
+								options={allNumbers}
+								value={page}
+								changeHandler={(e: any) => onPageChange(Number(e.target.value))}
+							/>
+						</div>
+						:
+						<div className='Pagination_dropdown'>
+							<Select
+								label='Pagination'
+								hideLabel
+								name='page'
+								options={allNumbers}
+								value={page}
+								changeHandler={(e: any) => changePage(e)}
+								key={page}
+							/>
+						</div>
+					}
+				</RequireClientJS>
+			}
 		</>
 	);
-}
+};
 
 type PaginationProps = {
 	page: number
@@ -207,7 +212,7 @@ type PaginationProps = {
 	startLink?: string
 	endLink?: string
 	queryParam?: boolean
-	onPageChange?: (pageNumber:number) => void
+	onPageChange?: (pageNumber: number) => void
 	pageName?: string
 };
 

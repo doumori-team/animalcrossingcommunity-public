@@ -6,9 +6,9 @@ import { APIThisType } from '@types';
 /*
  * Whether the logged-in user is on this user's whitelist and has given this user whitelist to rate.
  */
-async function have_whitelisted(this: APIThisType, {id}: haveWhitelistedProps) : Promise<boolean>
+async function have_whitelisted(this: APIThisType, { id }: haveWhitelistedProps): Promise<boolean>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -20,7 +20,7 @@ async function have_whitelisted(this: APIThisType, {id}: haveWhitelistedProps) :
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	if (id === this.userId)
 	{
@@ -79,10 +79,10 @@ have_whitelisted.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type haveWhitelistedProps = {
 	id: number
-}
+};
 
 export default have_whitelisted;

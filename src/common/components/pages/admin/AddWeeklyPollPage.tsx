@@ -18,6 +18,6 @@ const AddWeeklyPollPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
 export default AddWeeklyPollPage;

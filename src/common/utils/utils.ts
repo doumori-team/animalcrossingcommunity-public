@@ -4,17 +4,17 @@
 
 import * as constants from './constants.ts';
 
-import acgcMapTiles from '../maps/acgc.json' assert { type: 'json' };
-import acwwMapTiles from '../maps/acww.json' assert { type: 'json' };
-import accfMapTiles from '../maps/accf.json' assert { type: 'json' };
-import acnlMapTiles from '../maps/acnl.json' assert { type: 'json' };
-import townTunes from '../tunes/tunes.json' assert { type: 'json' };
-import acgcPatterns from '../patterns/acgc.json' assert { type: 'json' };
-import acwwPatterns from '../patterns/acww.json' assert { type: 'json' };
-import accfPatterns from '../patterns/accf.json' assert { type: 'json' };
-import acnlPatterns from '../patterns/acnl.json' assert { type: 'json' };
-import acnhPatterns from '../patterns/acnh.json' assert { type: 'json' };
-import acnhMaps from '../maps/acnh.json' assert { type: 'json' };
+import acgcMapTiles from '../maps/acgc.json' with { type: 'json' };
+import acwwMapTiles from '../maps/acww.json' with { type: 'json' };
+import accfMapTiles from '../maps/accf.json' with { type: 'json' };
+import acnlMapTiles from '../maps/acnl.json' with { type: 'json' };
+import townTunes from '../tunes/tunes.json' with { type: 'json' };
+import acgcPatterns from '../patterns/acgc.json' with { type: 'json' };
+import acwwPatterns from '../patterns/acww.json' with { type: 'json' };
+import accfPatterns from '../patterns/accf.json' with { type: 'json' };
+import acnlPatterns from '../patterns/acnl.json' with { type: 'json' };
+import acnhPatterns from '../patterns/acnh.json' with { type: 'json' };
+import acnhMaps from '../maps/acnh.json' with { type: 'json' };
 
 import {
 	UserTicketType,
@@ -27,7 +27,8 @@ import {
 	PatternColorInfoType,
 	MapDesignerColorsType,
 	MapDesignerImagesType,
-	MapDesignerMapInfoType
+	MapDesignerMapInfoType,
+	GrassShapeType,
 } from '@types';
 
 // For case-insensitive, diacritical mark ignoring, natural number sorting
@@ -36,21 +37,21 @@ export const sortingCollator = new Intl.Collator('en', { numeric: true, sensitiv
 /*
  * Returns the noun possessively written.
  */
-export function getPossessiveNoun(noun:string) : string
+export function getPossessiveNoun(noun: string): string
 {
 	if (noun.endsWith('s'))
 	{
-		return noun + "’";
+		return noun + '’';
 	}
 
-	return noun + "’s";
+	return noun + '’s';
 }
 
 /*
  * Returns the actual length of a string, counting 'astral plane'
  * characters like emoji as one character rather than two.
  */
-export function realStringLength(string:any) : number
+export function realStringLength(string: any): number
 {
 	// JavaScript uses UTF-16 internally, so each astral character is encoded as
 	// a pair of bytes: a 'high surrogate' between 0xD800 and 0xDBFF followed by
@@ -61,7 +62,7 @@ export function realStringLength(string:any) : number
 /*
  * removes whitespace from the start and end of a string
  */
-export function trimString(string:any) : string
+export function trimString(string: any): string
 {
 	return String(string || '').replace(/(^\s+|\s+$)/g, '');
 }
@@ -69,7 +70,7 @@ export function trimString(string:any) : string
 /*
  * Returns map tiles for the given game.
  */
-export function getMapTiles(gameId:number) : MapTilesType
+export function getMapTiles(gameId: number): MapTilesType
 {
 	switch (gameId)
 	{
@@ -88,7 +89,7 @@ export function getMapTiles(gameId:number) : MapTilesType
 /*
  * Returns town tune notes for the given game.
  */
-export function getTownTunes() : {id: number, name: string, img_name: string}[]
+export function getTownTunes(): { id: number, name: string, img_name: string }[]
 {
 	return townTunes;
 }
@@ -96,7 +97,7 @@ export function getTownTunes() : {id: number, name: string, img_name: string}[]
 /*
  * Returns pattern colors for the given game.
  */
-export function getPatternPalettes(gameId?:number) : PatternPalettesType
+export function getPatternPalettes(gameId?: number): PatternPalettesType
 {
 	switch (gameId)
 	{
@@ -124,7 +125,7 @@ export function getPatternPalettes(gameId?:number) : PatternPalettesType
 /*
  * Returns pattern colors for the given game.
  */
-export function getPatternColors(gameId?:number) : PatternColorsType
+export function getPatternColors(gameId?: number): PatternColorsType
 {
 	switch (gameId)
 	{
@@ -152,7 +153,7 @@ export function getPatternColors(gameId?:number) : PatternColorsType
 /*
  * Returns additional pattern color info for a game.
  */
-export function getPatternColorInfo(gameId?:number) : PatternColorInfoType
+export function getPatternColorInfo(gameId?: number): PatternColorInfoType
 {
 	switch (gameId)
 	{
@@ -177,20 +178,20 @@ export function getPatternColorInfo(gameId?:number) : PatternColorInfoType
 /*
  * Whether a color is on the lighter end of spectrum.
  */
-export function isColorLight(color:string) : boolean
+export function isColorLight(color: string): boolean
 {
 	const hex = color.replace('#', '');
-	const c_r = parseInt(hex.substr(0, 2), 16);
-	const c_g = parseInt(hex.substr(2, 2), 16);
-	const c_b = parseInt(hex.substr(4, 2), 16);
-	const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+	const c_r = parseInt(hex.substring(0, 2), 16);
+	const c_g = parseInt(hex.substring(2, 2), 16);
+	const c_b = parseInt(hex.substring(4, 2), 16);
+	const brightness = (c_r * 299 + c_g * 587 + c_b * 114) / 1000;
 	return brightness > 155;
 }
 
 /*
  * Convert a string to be url friendly. (XSS Protection)
  */
-export function convertForUrl(string:string) : string
+export function convertForUrl(string: string): string
 {
 	return encodeURIComponent(string.replace(/\s+/g, '-').toLowerCase());
 }
@@ -198,7 +199,7 @@ export function convertForUrl(string:string) : string
 /*
  * Returns map colors for the given game.
  */
-export function getMapColors(gameId:number) : MapDesignerColorsType
+export function getMapColors(gameId: number): MapDesignerColorsType
 {
 	switch (gameId)
 	{
@@ -211,7 +212,7 @@ export function getMapColors(gameId:number) : MapDesignerColorsType
 /*
  * Returns map images for the given game.
  */
-export function getMapImages(gameId:number) : MapDesignerImagesType
+export function getMapImages(gameId: number): MapDesignerImagesType
 {
 	switch (gameId)
 	{
@@ -224,7 +225,7 @@ export function getMapImages(gameId:number) : MapDesignerImagesType
 /*
  * Returns map info for the given game.
  */
-export function getMapInfo(gameId:number) : MapDesignerMapInfoType
+export function getMapInfo(gameId: number): MapDesignerMapInfoType
 {
 	switch (gameId)
 	{
@@ -237,15 +238,18 @@ export function getMapInfo(gameId:number) : MapDesignerMapInfoType
 /*
  * Equivalent of test-transform: capitalize
  */
-export function capitalize(text:string) : string
+export function capitalize(text: string): string
 {
-	return text.replace(/\b\w/g , function(m){ return m.toUpperCase(); } );
+	return text.replace(/\b\w/g , function(m)
+	{
+		return m.toUpperCase();
+	});
 }
 
 /*
  * Put ellipsis in the middle of long text
  */
-export function ellipsisLongText(str:string) : string
+export function ellipsisLongText(str: string): string
 {
 	if (str === null)
 	{
@@ -254,7 +258,7 @@ export function ellipsisLongText(str:string) : string
 
 	if (str.length > 65)
 	{
-		return str.substr(0, 50) + '...' + str.substr(str.length-10, str.length);
+		return str.substring(0, 50) + '...' + str.substring(str.length - 10, str.length);
 	}
 
 	return str;
@@ -263,7 +267,7 @@ export function ellipsisLongText(str:string) : string
 /*
  * Get link for UT's reference
  */
-export function getReferenceLink(ticket:UserTicketType|TicketType) : string
+export function getReferenceLink(ticket: UserTicketType | TicketType): string
 {
 	const type = ticket.type.identifier;
 	const types = constants.userTicket.types;
@@ -339,7 +343,7 @@ export function getReferenceLink(ticket:UserTicketType|TicketType) : string
 /*
  * Get default map for each AC game.
  */
-export function getDefaultMapAcres(gameId:number) : number[]|null
+export function getDefaultMapAcres(gameId: number): number[] | null
 {
 	switch (gameId)
 	{
@@ -361,7 +365,7 @@ export function getDefaultMapAcres(gameId:number) : number[]|null
 /*
  * Special words that will be replaced in scout templates
  */
-export function getScoutTemplateConfig(scout:UserLiteType, adoptee:UserType) : {character: string, replace: string}[]
+export function getScoutTemplateConfig(scout: UserLiteType, adoptee: UserType): { character: string, replace: string }[]
 {
 	return [
 		{ character: 'ScoutName', replace: scout?.username },
@@ -374,7 +378,7 @@ export function getScoutTemplateConfig(scout:UserLiteType, adoptee:UserType) : {
 /*
  * Get password reset email.
  */
-export function getPasswordResetEmail(link:string, orgEmail:string) : string
+export function getPasswordResetEmail(link: string, orgEmail: string): string
 {
 	const vbnewline = '<br/>';
 
@@ -386,21 +390,21 @@ export function getPasswordResetEmail(link:string, orgEmail:string) : string
 
 	email += `If you didn't sign up to ACC, please ignore this email or reply to let us know. This link is only valid for the next 24 hours.${vbnewline}${vbnewline}`;
 
-	return '<span style="font-family: Verdana; font-size: 11px;">'+origSendTo+email+'</span>';
+	return '<span style="font-family: Verdana; font-size: 11px;">' + origSendTo + email + '</span>';
 }
 
 /*
  * For Permissions.
  * Recursively get children boards of each board.
  */
-export function getChildBoards(boardPermissions:any[], parentId:string|null)
+export function getChildBoards(boardPermissions: any[], parentId: string | null)
 {
 	const boards = boardPermissions.filter(bp => bp.parent_id === parentId);
-	let returnBoardPerms:any = [];
+	let returnBoardPerms: any = [];
 
 	for (let board of boards)
 	{
-		let found = returnBoardPerms.find((b:any) => b.id === board.node_id);
+		let found = returnBoardPerms.find((b: any) => b.id === board.node_id);
 
 		if (!found)
 		{
@@ -436,13 +440,13 @@ export function getChildBoards(boardPermissions:any[], parentId:string|null)
 /**
  * For Notifications.
  */
-export function getNotificationReferenceLink(notification:any, userCheck:boolean, currentUserId:number, extra:any) : string
+export function getNotificationReferenceLink(notification: any, userCheck: boolean, currentUserId: number, extra: any): string
 {
 	const type = notification.identifier;
 
 	if (
 		[
-			constants.notification.types.FB
+			constants.notification.types.FB,
 		].includes(type)
 	)
 	{
@@ -457,7 +461,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 		[
 			constants.notification.types.PT,
 			constants.notification.types.FT,
-			constants.notification.types.usernameTag
+			constants.notification.types.usernameTag,
 		].includes(type)
 	)
 	{
@@ -475,7 +479,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 			constants.notification.types.scoutAdoption,
 			constants.notification.types.scoutThread,
 			constants.notification.types.scoutClosed,
-			constants.notification.types.scoutBT
+			constants.notification.types.scoutBT,
 		].includes(type)
 	)
 	{
@@ -497,7 +501,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 			constants.notification.types.listingContact,
 			constants.notification.types.listingCompleted,
 			constants.notification.types.listingFailed,
-			constants.notification.types.listingFeedback
+			constants.notification.types.listingFeedback,
 		].includes(type)
 	)
 	{
@@ -507,7 +511,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 		[
 			constants.notification.types.modminUT,
 			constants.notification.types.modminUTMany,
-			constants.notification.types.modminUTDiscussion
+			constants.notification.types.modminUTDiscussion,
 		].includes(type)
 	)
 	{
@@ -524,7 +528,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 	}
 	else if (
 		[
-			constants.notification.types.ticketProcessed
+			constants.notification.types.ticketProcessed,
 		].includes(type)
 	)
 	{
@@ -543,7 +547,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 		[
 			constants.notification.types.feature,
 			constants.notification.types.featurePost,
-			constants.notification.types.followFeature
+			constants.notification.types.followFeature,
 		].includes(type)
 	)
 	{
@@ -551,7 +555,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 	}
 	else if (
 		[
-			constants.notification.types.supportEmail
+			constants.notification.types.supportEmail,
 		].includes(type)
 	)
 	{
@@ -559,7 +563,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 	}
 	else if (
 		[
-			constants.notification.types.giftBellShop
+			constants.notification.types.giftBellShop,
 		].includes(type)
 	)
 	{
@@ -567,7 +571,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 	}
 	else if (
 		[
-			constants.notification.types.giftDonation
+			constants.notification.types.giftDonation,
 		].includes(type)
 	)
 	{
@@ -607,7 +611,7 @@ export function getNotificationReferenceLink(notification:any, userCheck:boolean
 /**
  * For Global Notifications.
  */
-export function getGlobalNotificationReferenceLink(notification:any) : string
+export function getGlobalNotificationReferenceLink(notification: any): string
 {
 	const type = notification.identifier;
 
@@ -619,18 +623,18 @@ export function getGlobalNotificationReferenceLink(notification:any) : string
 	return '';
 }
 
-export function getRandomColor() : string
+export function getRandomColor(): string
 {
-	return '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+	return '#' + (Math.random() * 0xFFFFFF << 0).toString(16);
 }
 
-export function startLog(request:any, location:string) : string
+export function startLog(request: any, location: string): string
 {
-	let ipAddresses:string|string[] = request.headers['x-forwarded-for'];
-	let protocol:string = request.headers['x-forwarded-proto'];
-	let httpVersion:string = request.httpVersion;
+	let ipAddresses: string | string[] = request.headers['x-forwarded-for'];
+	let protocol: string = request.headers['x-forwarded-proto'];
+	let httpVersion: string = request.httpVersion;
 	let tls = 'true';
-	let tlsVersion:string|string[] = 'unknown';
+	let tlsVersion: string | string[] = 'unknown';
 
 	if (request.headers['cloudfront-viewer-address'])
 	{
@@ -691,7 +695,80 @@ export function startLog(request:any, location:string) : string
 	return log;
 }
 
-export function isNumber(value:any) : boolean
+export function isNumber(value: any): boolean
 {
 	return !isNaN(value);
+}
+
+/*
+ * Get game name abbreviation file subdirectory
+ */
+export function getIconDirectoryFromGameID(gameId: number): string
+{
+	return constants.gameIdFolderMap[gameId] ?? '';
+}
+
+/*
+ * Get an icon URL for any villager given a name string and a game ID
+ */
+export function villagerIconUrl(villagerName: string, gameId: number)
+{
+	const filename = villagerName.toLowerCase().replace(/é/g, 'e').replace(/\s/g, '_').replace(/[^a-z_]/g, '');
+	const gameAbbrev = getIconDirectoryFromGameID(gameId);
+	return `${constants.AWS_URL}/images/games/${gameAbbrev}/villagers/icons/${filename}.png`;
+}
+
+/*
+ * Get a texture icon of today's shade of grass for any shape
+ */
+export function grassTileFilename(shape: GrassShapeType, time: number): string
+{
+	if (!shape?.name)
+	{
+		return '';
+	}
+
+	const now = new Date(time);
+
+	const currentYear = now.getFullYear();
+	const cutoffs = [
+		new Date(`${currentYear}-02-25`),
+		new Date(`${currentYear}-04-01`),
+		new Date(`${currentYear}-07-23`),
+		new Date(`${currentYear}-09-16`),
+		new Date(`${currentYear}-10-01`),
+		new Date(`${currentYear}-10-16`),
+		new Date(`${currentYear}-10-30`),
+		new Date(`${currentYear}-11-13`),
+		new Date(`${currentYear}-11-29`),
+		new Date(`${currentYear}-12-10`),
+	];
+
+	// this is just some janky math to make the grass IDs in the filename match up with this calendar
+	// https://docs.google.com/spreadsheets/d/14CdvRHy0Bpm5qkbBYSGRJAytu4UqOKXcatMTBOf3PAU/edit?gid=1606798138#gid=1606798138
+	const index = cutoffs.filter(d => d <= now).length;
+	const id = (9 + index) % 10;
+
+	return `${shape.name.toLowerCase()}_${1 + id}.png`;
+}
+
+/* 
+ * Get an icon for a NL public work
+ */
+export function publicWorkIconUrl(name: string): string
+{
+	return `${name.
+		toLowerCase().
+		replace(/\s+/g, '_').
+		replace(/[^a-zé\-_]/g, '')}.png`;
+}
+
+/* 
+ * Get an icon for a NL amenity (abides by the Check component's filename normalization)
+ */
+export function amenityIconUrl(name: string): string
+{
+	return `${name.
+		toLowerCase().
+		replace(/\s+/g, '-')}.png`;
 }

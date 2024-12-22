@@ -3,11 +3,11 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, TownType } from '@types';
 
-async function towns(this: APIThisType, {id}: townsProps) : Promise<TownType[]>
+async function towns(this: APIThisType, { id }: townsProps): Promise<TownType[]>
 {
 	const [useTradingPostPerm, viewTowns] = await Promise.all([
-		this.query('v1/permission', {permission: 'use-trading-post'}),
-		this.query('v1/permission', {permission: 'view-towns'}),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
+		this.query('v1/permission', { permission: 'view-towns' }),
 	]);
 
 	if (!(useTradingPostPerm || viewTowns))
@@ -26,8 +26,9 @@ async function towns(this: APIThisType, {id}: townsProps) : Promise<TownType[]>
 		LIMIT 30
 	`, id);
 
-	return await Promise.all(towns.map(async (town:any) => {
-		return this.query('v1/town', {id: town.id})
+	return await Promise.all(towns.map(async (town: any) =>
+	{
+		return this.query('v1/town', { id: town.id });
 	}));
 }
 
@@ -37,10 +38,10 @@ towns.apiTypes = {
 		default: true,
 		nullable: true,
 	},
-}
+};
 
 type townsProps = {
 	id: number
-}
+};
 
 export default towns;

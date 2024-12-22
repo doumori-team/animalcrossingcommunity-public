@@ -3,13 +3,13 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, CharacterType } from '@types';
 
-async function character(this: APIThisType, {id}: characterProps) : Promise<CharacterType>
+async function character(this: APIThisType, { id }: characterProps): Promise<CharacterType>
 {
 	const [viewTownsPerm, useFriendCodesPerm, viewUserCatalogPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'view-towns'}),
-		this.query('v1/permission', {permission: 'use-friend-codes'}),
-		this.query('v1/permission', {permission: 'view-user-catalog'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'view-towns' }),
+		this.query('v1/permission', { permission: 'use-friend-codes' }),
+		this.query('v1/permission', { permission: 'view-user-catalog' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(viewTownsPerm || useFriendCodesPerm || viewUserCatalogPerm || useTradingPostPerm))
@@ -29,18 +29,30 @@ async function character(this: APIThisType, {id}: characterProps) : Promise<Char
 			character.debt,
 			character.hra_score,
 			character.bed_location_id,
+			paint.name AS paint_name,
+			paint.hex AS paint_hex,
+			character.monument_id,
+			monument.name AS monument_name,
 			bed_location.filename AS bed_location_filename,
 			character.face_id,
 			face.filename AS face_filename,
 			town.user_id,
 			character.nook_miles,
 			character.happy_home_network_id,
-			character.creator_id
+			character.creator_id,
+			ac_game_paint.id AS paint_id,
+			character.door_pattern_id,
+			character.door_pattern_creator_id,
+			character.door_pattern_name,
+			character.door_pattern_data_url
 		FROM character
 		JOIN town ON (town.id = character.town_id)
 		JOIN ac_game ON (town.game_id = ac_game.id)
 		LEFT JOIN bed_location ON (character.bed_location_id = bed_location.id)
 		LEFT JOIN face ON (character.face_id = face.id)
+		LEFT JOIN ac_game_paint ON (character.paint_id = ac_game_paint.id)
+		LEFT JOIN paint ON (ac_game_paint.paint_id = paint.id)
+		LEFT JOIN monument ON (character.monument_id = monument.id)
 		WHERE character.id = $1::int
 	`, id);
 
@@ -49,10 +61,11 @@ async function character(this: APIThisType, {id}: characterProps) : Promise<Char
 		throw new UserError('no-such-character');
 	}
 
-	const [houseSizes, catalogTotal, museumTotal] = await Promise.all([
+	const [houseSizes, catalogTotal, museumTotal, doorPatternCreator] = await Promise.all([
 		getHouseSizes.bind(this)(character.id),
 		getCatalogTotal.bind(this)(character.id),
 		getMuseumTotal.bind(this)(character.id),
+		character.door_pattern_creator_id ? this.query('v1/user_lite', { id: character.door_pattern_creator_id }) : null,
 	]);
 
 	return <CharacterType>{
@@ -64,7 +77,7 @@ async function character(this: APIThisType, {id}: characterProps) : Promise<Char
 			game: {
 				id: character.game_id,
 				shortname: character.ac_game,
-			}
+			},
 		},
 		game: {
 			id: character.game_id,
@@ -89,10 +102,31 @@ async function character(this: APIThisType, {id}: characterProps) : Promise<Char
 		happyHomeNetworkId: character.happy_home_network_id,
 		creatorId: character.creator_id,
 		museumTotal: museumTotal,
+		paint: character.paint_id ? {
+			id: character.paint_id,
+			name: character.paint_name,
+			hex: character.paint_hex,
+		} : null,
+		doorPattern: character.door_pattern_name ? {
+			id: character.door_pattern_id,
+			name: character.door_pattern_name,
+			creator: doorPatternCreator,
+			published: true,
+			dataUrl: character.door_pattern_data_url,
+			gameId: character.game_id,
+			gameShortName: character.ac_game,
+			formattedDate: null,
+			isFavorite: null,
+			designId: null,
+		} : null,
+		monument: character.monument_id ? {
+			id: character.monument_id,
+			name: character.monument_name,
+		} : null,
 	};
 }
 
-async function getHouseSizes(id: number) : Promise<CharacterType['houseSizes']>
+async function getHouseSizes(id: number): Promise<CharacterType['houseSizes']>
 {
 	let houseSizes = await db.query(`
 		SELECT
@@ -104,7 +138,8 @@ async function getHouseSizes(id: number) : Promise<CharacterType['houseSizes']>
 		WHERE character_house_size.character_id = $1::int
 	`, id);
 
-	return houseSizes.map((houseSize:any) => {
+	return houseSizes.map((houseSize: any) =>
+	{
 		return {
 			id: houseSize.id,
 			name: houseSize.name,
@@ -113,7 +148,7 @@ async function getHouseSizes(id: number) : Promise<CharacterType['houseSizes']>
 	});
 }
 
-async function getCatalogTotal(id: number) : Promise<number>
+async function getCatalogTotal(id: number): Promise<number>
 {
 	const [count] = await db.query(`
 		SELECT
@@ -125,7 +160,7 @@ async function getCatalogTotal(id: number) : Promise<number>
 	return Number(count.count);
 }
 
-async function getMuseumTotal(id: number) : Promise<number>
+async function getMuseumTotal(id: number): Promise<number>
 {
 	const [count] = await db.query(`
 		SELECT count(*) AS count
@@ -141,10 +176,10 @@ character.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type characterProps = {
 	id: number
-}
+};
 
 export default character;

@@ -11,7 +11,7 @@ const PrivacyPage = () =>
 				<h2>What This Policy Covers</h2>
 				<p>This Privacy Policy applies to information that we collect about you when you use our website (animalcrossingcommunity.com).</p>
 				<p>Below we explain how we collect, use, and share information about you, along with the choices that you have with respect to that information.</p>
-				<p>If you have any questions about this Privacy Policy, please contact us at <a href={"mailto:support@animalcrossingcommunity.com"}>support@animalcrossingcommunity.com</a>.</p>
+				<p>If you have any questions about this Privacy Policy, please contact us at <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a>.</p>
 				<hr/>
 				<h2>Information We Collect</h2>
 				<p>We only collect information about you if we have a reason to do so – for example, to operate our website, to communicate with you, or to make our website better.</p>
@@ -48,7 +48,7 @@ const PrivacyPage = () =>
 				<p>We share information about you in the following limited circumstances:</p>
 				<ul>
 					<li>Some of our staff members – Administrators, Moderators and Developer Team Leads – may be given access to any information we hold about you, including your email address, birth date and the contents of your Private Threads, to allow us to enforce our <Link to='/legal/terms'>terms of service</Link> or to help operate the website or to process the information on our behalf. All our staff members are independent volunteers, whom we require to follow this Privacy Policy when working with any personal information that we share with them.</li>
-					<li>We may share information about you with third party vendors who need to know information about you in order to provide their services to us. Specifically, we may share information about you with our hosting providers Heroku (a subsidiary of Salesforce). For details on how these vendors have agreed to process information about you, see the <a href="https://www.salesforce.com/company/legal/agreements/">Salesforce Data Processing Addendum</a>.</li>
+					<li>We may share information about you with third party vendors who need to know information about you in order to provide their services to us. Specifically, we may share information about you with our hosting providers Heroku (a subsidiary of Salesforce). For details on how these vendors have agreed to process information about you, see the <a href='https://www.salesforce.com/company/legal/agreements/'>Salesforce Data Processing Addendum</a>.</li>
 					<li>We may disclose information about you in response to a subpoena, court order, or other governmental request.</li>
 					<li>We may disclose information about you when we believe in good faith that disclosure is reasonably necessary to protect the property or rights of Animal Crossing Community, third parties, or the public at large. For example, if we have a good faith belief that there is an imminent danger of death or serious physical injury, we may disclose information related to the emergency without delay.</li>
 					<li>We may share information that has been aggregated or reasonably de-identified, so that the information could not reasonably be used to identify you. For instance, we may publish aggregate statistics about how people use our website.</li>
@@ -71,11 +71,11 @@ const PrivacyPage = () =>
 				<h3>Transferring Information</h3>
 				<p>Animal Crossing Community is a worldwide service. By accessing or using the website or otherwise providing information to us, you consent to the processing, transfer, and storage of information in and to the United States and other countries, which may have rights and protections that are different from those in your home country.</p>
 				<h3>Erasure</h3>
-				<p>You have the right to have your personal information erased, as long as there are no overriding legitimate grounds for us to process it. For example, we can’t delete an account altogether because we need to keep some information, such as your birth date and in some cases your email address, to fulfill our legal obligations or to monitor and protect the security of our website and enforce our terms of service. However, you are able to remove most other information from your profile yourself, and if you encounter any problems we are happy to help. Requests for erasure should be directed to <a href={"mailto:support@animalcrossingcommunity.com"}>support@animalcrossingcommunity.com</a>.</p>
+				<p>You have the right to have your personal information erased, as long as there are no overriding legitimate grounds for us to process it. For example, we can’t delete an account altogether because we need to keep some information, such as your birth date and in some cases your email address, to fulfill our legal obligations or to monitor and protect the security of our website and enforce our terms of service. However, you are able to remove most other information from your profile yourself, and if you encounter any problems we are happy to help. Requests for erasure should be directed to <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a>.</p>
 				<h3>Services Provided by Others</h3>
-				<p>If you send us an email or perform a monetary transaction with us, our email provider (<a href="https://www.google.com/intl/en_us/gmail/about/">Gmail</a>) or our payment provider (<a href="https://www.paypal.com/">PayPal</a>) may collect information about you in accordance with their own privacy policies.</p>
+				<p>If you send us an email or perform a monetary transaction with us, our email provider (<a href='https://www.google.com/intl/en_us/gmail/about/'>Gmail</a>) or our payment provider (<a href='https://www.paypal.com/'>PayPal</a>) may collect information about you in accordance with their own privacy policies.</p>
 				<h3>Attribution</h3>
-				<p>We adapted the text of this Privacy Policy from one produced by <a href={"https://automattic.com/privacy/"}>Automattic, Inc.</a></p>
+				<p>We adapted the text of this Privacy Policy from one produced by <a href={'https://automattic.com/privacy/'}>Automattic, Inc.</a></p>
 				<hr/>
 				<h2>Privacy Policy Changes</h2>
 				<p>Although most changes are likely to be minor, Animal Crossing Community may change this Privacy Policy from time to time. We encourage visitors to frequently check this page for any changes to this Privacy Policy. If we make changes, we will notify you by posting an announcement on the homepage. If you have an account, we may also send you an email or Private Thread alerting you to these changes. Your continued use of the website after any change in this Privacy Policy will constitute your consent to such change.</p>
@@ -83,6 +83,6 @@ const PrivacyPage = () =>
 			</ContentBox>
 		</div>
 	);
-}
+};
 
 export default PrivacyPage;

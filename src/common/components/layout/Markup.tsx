@@ -14,17 +14,17 @@ import { UserContext } from '@contexts';
  * 	- emojiSettings: user emoji settings, for preview and gendered emojis
  */
 
- const Markup = ({
+const Markup = ({
 	text,
 	format,
-	emojiSettings
+	emojiSettings,
 }: MarkupProps) =>
 {
 	const formatClassName = format.split('+')[0];
 
 	return (
 		<UserContext.Consumer>
-			{currentUser => (
+			{currentUser =>
 				<HTMLPurify
 					className={`Markup Markup-${formatClassName}`}
 					html={markup.parse({
@@ -34,10 +34,10 @@ import { UserContext } from '@contexts';
 						currentUser: currentUser,
 					})}
 				/>
-			)}
+			}
 		</UserContext.Consumer>
 	);
-}
+};
 
 type MarkupProps = {
 	text: string

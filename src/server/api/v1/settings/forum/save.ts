@@ -4,20 +4,20 @@ import { constants, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, UserDonationsType, MarkupStyleType } from '@types';
 
-async function save(this: APIThisType, {signature = null, format, userTitle = null, flagOption,
-	markupStyle, showImages, conciseMode}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { signature = null, format, userTitle = null, flagOption,
+	markupStyle, showImages, conciseMode }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	const userDonations:UserDonationsType = await this.query('v1/users/donations', {id: this.userId});
+	const userDonations: UserDonationsType = await this.query('v1/users/donations', { id: this.userId });
 
 	if (
-		(userDonations.perks < 5 && format !== 'plaintext') ||
-		(userDonations.perks < 10 && utils.realStringLength(signature) > constants.max.signature1) ||
-		(userDonations.perks < 20 && utils.realStringLength(signature) > constants.max.signature2)
+		userDonations.perks < 5 && format !== 'plaintext' ||
+		userDonations.perks < 10 && utils.realStringLength(signature) > constants.max.signature1 ||
+		userDonations.perks < 20 && utils.realStringLength(signature) > constants.max.signature2
 	)
 	{
 		throw new UserError('bad-format');
@@ -35,9 +35,9 @@ async function save(this: APIThisType, {signature = null, format, userTitle = nu
 			FROM user_group
 		`);
 
-		const userTitles = groups.map((g:any) => g.name).concat(['Honorary Citizen']).concat(['New Member']);
+		const userTitles = groups.map((g: any) => g.name).concat(['Honorary Citizen']).concat(['New Member']);
 
-		if (userTitles.some((ut:any) => userTitle.toLowerCase() == ut.toLowerCase()))
+		if (userTitles.some((ut: any) => userTitle.toLowerCase() === ut.toLowerCase()))
 		{
 			throw new UserError('bad-format');
 		}
@@ -100,16 +100,16 @@ save.apiTypes = {
 		min: 1,
 		max: 4,
 	},
-}
+};
 
 type saveProps = {
-	signature: string|null
+	signature: string | null
 	format: MarkupStyleType
-	userTitle: string|null
+	userTitle: string | null
 	flagOption: 'never' | 'create' | 'create_reply'
 	markupStyle: MarkupStyleType
 	showImages: boolean
 	conciseMode: number
-}
+};
 
 export default save;

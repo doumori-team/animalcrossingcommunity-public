@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function vote(this: APIThisType, {pollId, choices}: voteProps) : Promise<{pollId: number}>
+async function vote(this: APIThisType, { pollId, choices }: voteProps): Promise<{ pollId: number }>
 {
-	const permission:boolean = await this.query('v1/permission', {permission: 'vote-poll'});
+	const permission: boolean = await this.query('v1/permission', { permission: 'vote-poll' });
 
 	if (!permission)
 	{
@@ -82,7 +82,7 @@ async function vote(this: APIThisType, {pollId, choices}: voteProps) : Promise<{
 		throw new UserError('bad-format');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -98,7 +98,7 @@ async function vote(this: APIThisType, {pollId, choices}: voteProps) : Promise<{
 	});
 
 	return {
-		pollId: poll.id
+		pollId: poll.id,
 	};
 }
 
@@ -110,11 +110,11 @@ vote.apiTypes = {
 	choices: {
 		type: APITypes.array,
 	},
-}
+};
 
 type voteProps = {
 	pollId: number
 	choices: any[]
-}
+};
 
 export default vote;

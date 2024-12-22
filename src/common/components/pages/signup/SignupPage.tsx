@@ -13,7 +13,7 @@ const SignupPage = () =>
 		<div className='SignupPage'>
 			<RequireGroup group={constants.groupIdentifiers.anonymous}>
 				<ContentBox>
-					<p>Please read the <Link to='/legal/tos'>Terms of Service</Link>, <Link to='/rules'>Site Rules</Link>, <Link to='/legal/policies'>Site Policies</Link> and <Link to='/legal/privacy'>Privacy Policies</Link> carefully. If you are under 16, ask a parent or guardian to read through it with you. These are not the usual legal jargon that comes at the beginning of software installs (you know, that screen where you quickly click I Accept). These are a summary of the main rules that you must follow to be a member of this site. You will be responsible for these rules whether you read them or not, so be sure you understand them, and <a href={"mailto:support@animalcrossingcommunity.com"}>reach out to support</a> if anything is unclear.</p>
+					<p>Please read the <Link to='/legal/tos'>Terms of Service</Link>, <Link to='/rules'>Site Rules</Link>, <Link to='/legal/policies'>Site Policies</Link> and <Link to='/legal/privacy'>Privacy Policies</Link> carefully. If you are under 16, ask a parent or guardian to read through it with you. These are not the usual legal jargon that comes at the beginning of software installs (you know, that screen where you quickly click I Accept). These are a summary of the main rules that you must follow to be a member of this site. You will be responsible for these rules whether you read them or not, so be sure you understand them, and <a href={'mailto:support@animalcrossingcommunity.com'}>reach out to support</a> if anything is unclear.</p>
 
 					<Form action='v1/signup/signup' showButton>
 						<Form.Group>
@@ -57,6 +57,6 @@ const SignupPage = () =>
 			</RequireGroup>
 		</div>
 	);
-}
+};
 
 export default SignupPage;

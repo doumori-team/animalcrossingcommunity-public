@@ -6,24 +6,25 @@ import { constants } from '@utils';
 
 const EditGameConsole = ({
 	gameConsole,
-	gameConsoles
+	gameConsoles,
 }: EditGameConsoleProps) =>
 {
-	var gameConsolesSequence = gameConsoles.map(system => {
-		const text = (gameConsole && gameConsole.id == system.id)
+	let gameConsolesSequence = gameConsoles.map(system =>
+	{
+		const text = gameConsole && gameConsole.id === system.id
 			? `Current Position`
-			: (!gameConsole || system.sequence < gameConsole.sequence)
+			: !gameConsole || system.sequence < gameConsole.sequence
 				? `Before ${system.name}`
 				: `After ${system.name}`;
 
-		return {sequence: system.sequence, text};
+		return { sequence: system.sequence, text };
 	});
 
 	if (!gameConsole)
 	{
 		gameConsolesSequence.push({
 			sequence: gameConsolesSequence.length + 1,
-			text: `(New Game Console)`
+			text: `(New Game Console)`,
 		});
 	}
 
@@ -52,8 +53,9 @@ const EditGameConsole = ({
 						options={gameConsolesSequence}
 						optionsMapping={{
 							value: 'sequence',
-							label: (system:any) => {
-								return `${system.sequence} - ${system.text}`
+							label: (system: any) =>
+							{
+								return `${system.sequence} - ${system.text}`;
 							},
 						}}
 					/>
@@ -74,10 +76,10 @@ const EditGameConsole = ({
 						value={gameConsole ? gameConsole.isEnabled : false}
 					/>
 				</Form.Group>
-			 </Form>
+			</Form>
 		</div>
 	);
-}
+};
 
 type EditGameConsoleProps = {
 	gameConsole?: GameConsoleType

@@ -3,14 +3,14 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, WhitelistUserType } from '@types';
 
-async function users(this: APIThisType, {query}: usersProps) : Promise<WhitelistUserType[]>
+async function users(this: APIThisType, { query }: usersProps): Promise<WhitelistUserType[]>
 {
 	if (!this.userId)
 	{
 		return [];
 	}
 
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -18,7 +18,7 @@ async function users(this: APIThisType, {query}: usersProps) : Promise<Whitelist
 	}
 
 	// Check paramters
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	// Perform queries
 	if (query === null)
@@ -49,10 +49,10 @@ users.apiTypes = {
 		nullable: true,
 		min: 3,
 	},
-}
+};
 
 type usersProps = {
 	query: string | null
-}
+};
 
 export default users;

@@ -7,9 +7,9 @@ import { APIThisType } from '@types';
 /*
  * Mark a UT as In Progress.
  */
-async function progress(this: APIThisType, {id}: progressProps) : Promise<void>
+async function progress(this: APIThisType, { id }: progressProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -49,10 +49,10 @@ progress.apiTypes = {
 		type: APITypes.userTicketId,
 		required: true,
 	},
-}
+};
 
 type progressProps = {
 	id: number
-}
+};
 
 export default progress;

@@ -7,9 +7,9 @@ import { APIThisType, NodeHistoryType } from '@types';
 /*
  * Get change history of node.
  */
-async function history(this: APIThisType, {id}: historyProps) : Promise<NodeHistoryType[]>
+async function history(this: APIThisType, { id }: historyProps): Promise<NodeHistoryType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-edit-history'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-edit-history' });
 
 	if (!permissionGranted)
 	{
@@ -28,7 +28,8 @@ async function history(this: APIThisType, {id}: historyProps) : Promise<NodeHist
 		WHERE node_id = $1::int
 	`, id);
 
-	return await Promise.all(nodes.map(async (node:any) => {
+	return await Promise.all(nodes.map(async (node: any) =>
+	{
 		const nodeFiles = await db.query(`
 			SELECT file.id, file.file_id, file.name, file.width, file.height
 			FROM node_revision_file
@@ -39,20 +40,21 @@ async function history(this: APIThisType, {id}: historyProps) : Promise<NodeHist
 		return {
 			id: node.id,
 			formattedDate: dateUtils.formatDateTime(node.time),
-			user: await this.query('v1/user_lite', {id: node.reviser_id}),
+			user: await this.query('v1/user_lite', { id: node.reviser_id }),
 			title: node.title,
 			content: {
 				text: node.content,
 				format: node.content_format,
 			},
-			files: nodeFiles ? nodeFiles.map((file:any) => {
+			files: nodeFiles ? nodeFiles.map((file: any) =>
+			{
 				return {
 					id: file.id,
 					fileId: file.file_id,
 					name: file.name,
 					width: file.width,
 					height: file.height,
-				}
+				};
 			}) : [],
 			showImages: true,
 		};
@@ -64,10 +66,10 @@ history.apiTypes = {
 		type: APITypes.nodeId,
 		required: true,
 	},
-}
+};
 
 type historyProps = {
 	id: number
-}
+};
 
 export default history;

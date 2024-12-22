@@ -13,11 +13,11 @@ const PatternPage = () =>
 	const [toggleTransparent, setToggleTransparent] = useState<boolean>(false);
 	const [toggleColor, setToggleColor] = useState<any>([]);
 
-	const {pattern} = useLoaderData() as PatternPageProps;
+	const { pattern } = useLoaderData() as PatternPageProps;
 
 	// Convert the 1D array to 2D array for printing
 	// also record all unique colors included in the pattern
-	let decoded:any = [], includedColors:any = [], transparentIncluded = false;
+	let decoded: any = [], includedColors: any = [], transparentIncluded = false;
 
 	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
@@ -47,14 +47,14 @@ const PatternPage = () =>
 
 	// start off with the colors in the palette
 	const palettes = utils.getPatternPalettes(pattern.gameId);
-	const orgPalette = [...(palettes as any)[pattern.paletteId-1].colors];
+	const orgPalette = [...(palettes as any)[pattern.paletteId - 1].colors];
 	let palette = [...orgPalette];
 
 	// for AC:NL & AC:NH, you can change out colors
 	// change out any colors that aren't used for ones that are
 
 	// what colors are in the pattern that isn't in the palette
-	const incColors = includedColors.filter((x:any) => !palette.includes(x));
+	const incColors = includedColors.filter((x: any) => !palette.includes(x));
 
 	if (incColors.length > 0)
 	{
@@ -62,7 +62,7 @@ const PatternPage = () =>
 		const palColors = palette.filter(x => !includedColors.includes(x));
 		let i = 0;
 
-		for (var key in palette)
+		for (let key in palette)
 		{
 			// if this color is one not used
 			if (palColors.includes(palette[key]))
@@ -85,15 +85,15 @@ const PatternPage = () =>
 	// changed, so the color number doesn't matter and thus is 1-15. However
 	// there isn't a game lookup for NL colors, so we give an image of all
 	// the colors numbers and use that for the numbers.
-	let indexes:any = [];
+	let indexes: any = [];
 	let i = 1;
 	const colors = utils.getPatternColors(pattern.gameId);
 
-	for (var key in palette)
+	for (let key in palette)
 	{
 		if (pattern.gameId === constants.gameIds.ACNL)
 		{
-			indexes[key] = ((colors as any).indexOf(palette[key]))+1;
+			indexes[key] = (colors as any).indexOf(palette[key]) + 1;
 		}
 		else
 		{
@@ -116,18 +116,18 @@ const PatternPage = () =>
 
 	const colorInfo = utils.getPatternColorInfo(pattern.gameId);
 
-	const toggleColorFunc = (rgb:string, index:number) : void =>
+	const toggleColorFunc = (rgb: string, index: number): void =>
 	{
-		var newToggleColor = [...toggleColor];
-		newToggleColor[index] = newToggleColor[index] && newToggleColor[index] == 'white' ? rgb : 'white';
+		let newToggleColor = [...toggleColor];
+		newToggleColor[index] = newToggleColor[index] && newToggleColor[index] === 'white' ? rgb : 'white';
 
 		setToggleColor(newToggleColor);
-	}
+	};
 
-	const toggleTransparentColor = () : void =>
+	const toggleTransparentColor = (): void =>
 	{
 		setToggleTransparent(!toggleTransparent);
-	}
+	};
 
 	return (
 		<div className='PatternPage'>
@@ -153,17 +153,20 @@ const PatternPage = () =>
 						<RequireLargeScreen size='657'>
 							<div className='PatternPage_copyPattern'>
 								<div className='PatternPage_pattern'>
-									{decoded.map((inner:any, key:any) => {
+									{decoded.map((inner: any, key: any) =>
+									{
 										return (
 											<div key={key} className='PatternPage_gridRow'>
-												{inner.map((rgb:any, index:any) => {
+												{inner.map((rgb: any, index: any) =>
+												{
 													let number = -1;
 
 													if (Number(rgb) === constants.pattern.transparentColorId)
 													{
 														return (
 															<div key={index}
-																className={`PatternPage_grid ${toggleTransparent ? '' : 'Pattern_transparent'}`}>
+																className={`PatternPage_grid ${toggleTransparent ? '' : 'Pattern_transparent'}`}
+															>
 																<span className={`${toggleTransparent ? 'hideNumber' : ''}`}>
 																	{indexes[constants.pattern.numberOfColors]}
 																</span>
@@ -185,8 +188,9 @@ const PatternPage = () =>
 
 													return (
 														<div key={index} className='PatternPage_grid'
-															style={{backgroundColor: toggleColor[number] ? toggleColor[number] : rgb, color: color}}>
-															<span className={`${toggleColor[number] && toggleColor[number] == 'white' ? 'hideNumber' : ''}`}>
+															style={{ backgroundColor: toggleColor[number] ? toggleColor[number] : rgb, color: color }}
+														>
+															<span className={`${toggleColor[number] && toggleColor[number] === 'white' ? 'hideNumber' : ''}`}>
 																{number}
 															</span>
 														</div>
@@ -199,7 +203,8 @@ const PatternPage = () =>
 
 								<div className='PatternPage_palette'>
 									<div className='PatternPage_palettes'>
-										{palette.map((rgb, index) => {
+										{palette.map((rgb, index) =>
+										{
 											let number = indexes[index], addInfo = '';
 
 											if (rgb === constants.pattern.transparentColorId)
@@ -210,14 +215,14 @@ const PatternPage = () =>
 															{number}
 														</div>
 														<RequireClientJS>
-															{includedColors.includes(constants.pattern.transparentColorId) && (
+															{includedColors.includes(constants.pattern.transparentColorId) &&
 																<Checkbox
 																	checked={true}
 																	clickHandler={() => toggleTransparentColor()}
 																	label='Toggle Transparent Color'
 																	hideLabel
 																/>
-															)}
+															}
 														</RequireClientJS>
 													</div>
 												);
@@ -225,7 +230,7 @@ const PatternPage = () =>
 											// grab hue, vividness, brightness if NH
 											else if (pattern.gameId === constants.gameIds.ACNH && orgPalette.indexOf(rgb) < 0)
 											{
-												let patternColor = (colorInfo as any).find((c:any) => c.hex === rgb);
+												let patternColor = (colorInfo as any).find((c: any) => c.hex === rgb);
 												addInfo = `Hue: ${patternColor.hue}
 													Vividness: ${patternColor.vividness}
 													Brightness: ${patternColor.brightness}
@@ -243,18 +248,19 @@ const PatternPage = () =>
 											return (
 												<div key={index} className='PatternPage_paletteColor'>
 													<div className='palette'
-														style={{backgroundColor: rgb, color: color}}>
+														style={{ backgroundColor: rgb, color: color }}
+													>
 														{number}
 													</div>
 													<RequireClientJS>
-														{includedColors.includes(rgb) && (
+														{includedColors.includes(rgb) &&
 															<Checkbox
 																checked={true}
 																clickHandler={() => toggleColorFunc(rgb, number)}
 																label='Toggle Color'
 																hideLabel
 															/>
-														)}
+														}
 													</RequireClientJS>
 													<div className='PatternPage_paletteAdd'>{addInfo}</div>
 												</div>
@@ -262,45 +268,46 @@ const PatternPage = () =>
 										})}
 									</div>
 									<div className='PatternPage_paletteName'>
-										{incColors.length > 0 && (
+										{incColors.length > 0 &&
 											'Modified '
-										)}
+										}
 										Palette #{pattern.paletteId}
 									</div>
 								</div>
 
-								{pattern.gameId === constants.gameIds.ACNL && (
+								{pattern.gameId === constants.gameIds.ACNL &&
 									<img src={`${constants.AWS_URL}/images/pattern/acnl_color_reference.jpg`}
 										alt='AC:NL Color Reference'
-										className='PatternPage_nlColorReference' />
-								)}
+										className='PatternPage_nlColorReference'
+									/>
+								}
 							</div>
 						</RequireLargeScreen>
 					</div>
 
-					{pattern.qrCodeUrl && (
+					{pattern.qrCodeUrl &&
 						<div className='PatternPage_copyQr'>
 							<h3>Copy via QR Code:</h3>
 							<img src={pattern.qrCodeUrl} alt='QR Code' />
 						</div>
-					)}
+					}
 				</Section>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<PatternPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<PatternPageProps>
 {
 	const [pattern] = await Promise.all([
-		this.query('v1/pattern', {id: id}),
+		this.query('v1/pattern', { id: id }),
 	]);
 
-	return {pattern};
+	return { pattern };
 }
 
 type PatternPageProps = {
 	pattern: PatternType
-}
+};
 
 export default PatternPage;

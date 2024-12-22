@@ -22,6 +22,6 @@ const LeavingSitePage = () =>
 			</Alert>
 		</div>
 	);
-}
+};
 
 export default LeavingSitePage;

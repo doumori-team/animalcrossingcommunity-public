@@ -8,8 +8,8 @@ import { APIThisType, UserCatalogCategoryType, CatalogItemsType, GroupItemType }
 
 const EditCharacterCatalogPage = () =>
 {
-	const {catalogItems, acgameCatalog, by, category, userId,
-		selectedCharacterId, catalogCategories, name} = useLoaderData() as EditCharacterCatalogPageProps;
+	const { catalogItems, acgameCatalog, by, category, userId,
+		selectedCharacterId, catalogCategories, name } = useLoaderData() as EditCharacterCatalogPageProps;
 
 	return (
 		<RequireUser id={userId} permission='modify-towns'>
@@ -29,9 +29,9 @@ const EditCharacterCatalogPage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId, characterId}: {userId: string, characterId: string}, {by, name, category} : {by?: string, name?: string, category?: string}) : Promise<EditCharacterCatalogPageProps>
+export async function loadData(this: APIThisType, { userId, characterId }: { userId: string, characterId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditCharacterCatalogPageProps>
 {
 	const selectedCharacterId = Number(characterId);
 	const selectedUserId = Number(userId);
@@ -41,16 +41,16 @@ export async function loadData(this: APIThisType, {userId, characterId}: {userId
 	category = category ? utils.convertForUrl(category) : '';
 
 	const [character, catalogCategories, catalogItems] = await Promise.all([
-		this.query('v1/character', {id: selectedCharacterId}),
-		this.query('v1/character/catalog/category', {characterId: selectedCharacterId}),
-		this.query('v1/character/catalog', {id: selectedCharacterId}),
+		this.query('v1/character', { id: selectedCharacterId }),
+		this.query('v1/character/catalog/category', { characterId: selectedCharacterId }),
+		this.query('v1/character/catalog', { id: selectedCharacterId }),
 	]);
 
 	const [acgameCatalog] = await Promise.all([
-		this.query('v1/acgame/catalog', {id: character.game.id, categoryName: category, sortBy: by, name: name}),
+		this.query('v1/acgame/catalog', { id: character.game.id, categoryName: category, sortBy: by, name: name }),
 	]);
 
-	return {selectedCharacterId, acgameCatalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name};
+	return { selectedCharacterId, acgameCatalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
 
 type EditCharacterCatalogPageProps = {
@@ -62,6 +62,6 @@ type EditCharacterCatalogPageProps = {
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
 	name: string
-}
+};
 
 export default EditCharacterCatalogPage;

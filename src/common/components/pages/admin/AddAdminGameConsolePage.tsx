@@ -8,7 +8,7 @@ import { APIThisType, GameConsoleType } from '@types';
 
 const AddAdminGameConsolePage = () =>
 {
-	const {gameConsoles} = useLoaderData() as AddAdminGameConsolePageProps;
+	const { gameConsoles } = useLoaderData() as AddAdminGameConsolePageProps;
 
 	return (
 		<div className='AddAdminGameConsolePage'>
@@ -24,19 +24,19 @@ const AddAdminGameConsolePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddAdminGameConsolePageProps>
+export async function loadData(this: APIThisType): Promise<AddAdminGameConsolePageProps>
 {
 	const [gameConsoles] = await Promise.all([
-		this.query('v1/admin/game_consoles')
+		this.query('v1/admin/game_consoles'),
 	]);
 
-	return {gameConsoles};
+	return { gameConsoles };
 }
 
 type AddAdminGameConsolePageProps = {
 	gameConsoles: GameConsoleType[]
-}
+};
 
 export default AddAdminGameConsolePage;

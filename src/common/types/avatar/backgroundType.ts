@@ -1,5 +1,5 @@
 type BackgroundType = {
-	id: number|null
+	id: number | null
 	name: string
 	image: string
 	colorable: boolean

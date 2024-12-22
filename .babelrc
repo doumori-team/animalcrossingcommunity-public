@@ -2,5 +2,8 @@
 	"ignore": [
 		"src/common/types",
 		"src/client/css"
-	]
+	],
+	"generatorOpts": {
+		"importAttributesKeyword": "with"
+	}
 }

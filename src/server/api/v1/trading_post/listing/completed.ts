@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function completed(this: APIThisType, {id}: completedProps) : Promise<void>
+async function completed(this: APIThisType, { id }: completedProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function completed(this: APIThisType, {id}: completedProps) : Promise<void
 	}
 
 	// Check parameters
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 	const offerStatuses = constants.tradingPost.offerStatuses;
@@ -39,7 +39,7 @@ async function completed(this: APIThisType, {id}: completedProps) : Promise<void
 		WHERE listing_id = $1::int AND user_id = $2::int
 	`, id, this.userId);
 
-	const updatedListing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const updatedListing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	if (updatedListing.offers.accepted?.completed && updatedListing.completed)
 	{
@@ -64,7 +64,7 @@ async function completed(this: APIThisType, {id}: completedProps) : Promise<void
 		`, id),
 		this.query('v1/notification/create', {
 			id: id,
-			type: constants.notification.types.listingCompleted
+			type: constants.notification.types.listingCompleted,
 		}),
 	]);
 }
@@ -74,10 +74,10 @@ completed.apiTypes = {
 		type: APITypes.listingId,
 		required: true,
 	},
-}
+};
 
 type completedProps = {
 	id: number
-}
+};
 
 export default completed;

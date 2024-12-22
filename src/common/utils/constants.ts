@@ -3,7 +3,7 @@
 
 export const LIVE_SITE = process.env.HEROKU_APP_NAME === 'animalcrossingcommunity';
 
-export const SITE_URL = LIVE_SITE ? 'https://www.animalcrossingcommunity.com' : (process.env.HEROKU_APP_NAME == 'acc-test' ? 'http://localhost:5000' : `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`);
+export const SITE_URL = LIVE_SITE ? 'https://www.animalcrossingcommunity.com' : process.env.HEROKU_APP_NAME === 'acc-test' ? 'http://localhost:5000' : `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`;
 
 export const AWS_URL = 'https://cdn-s3.animalcrossingcommunity.com';
 
@@ -16,13 +16,13 @@ export const SHOP_FILE_DIR = LIVE_SITE ? `${AWS_URL}/images/shops/` : `${AWS_URL
 export const SHOP_FILE_DIR2 = LIVE_SITE ? `images/shops/` : `images/stage/shops/`;
 
 // Update this with each release; it helps with css / js caching (see index.ejs)
-export const version = '2.3.3';
+export const version = '2.3.9';
 
 // used for invalidating cache with heroku preboot
-export const lastVersion = '2.3.2';
+export const lastVersion = '2.3.8';
 
 // Update this when package.json is changed
-export const vendorVersion = '2.3.0';
+export const vendorVersion = '2.3.9';
 
 export const gameIds = {
 	ACGC: 1,
@@ -31,6 +31,14 @@ export const gameIds = {
 	ACNL: 4,
 	ACPC: 7,
 	ACNH: 8,
+};
+
+export const gameIdFolderMap = {
+	[gameIds.ACGC]: 'gc',
+	[gameIds.ACWW]: 'ww',
+	[gameIds.ACCF]: 'cf',
+	[gameIds.ACNL]: 'nl',
+	[gameIds.ACNH]: 'nh',
 };
 
 // String Regexes
@@ -46,7 +54,7 @@ export const regexes = {
 	wholeNumber: '^\\d+$',
 	// Regex for email addresses.
 	email: '^[^@]+@[^@]+(\\.[^@]+)+$',
-	email2: '^[^\\s@]+@[^\\s@]+\.[^\\s@]+$',
+	email2: '^[^\\s@]+@[^\\s@]+\.[^\\s@]+$', // eslint-disable-line no-useless-escape
 	// Retrieves the pattern design id regex
 	designId: '^MO-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$',
 	// Retrieves the dodo code regex
@@ -182,13 +190,13 @@ export const max = {
 	shopOrderComment: 100,
 	url: 100,
 	towns: 30,
-	supportEmailBody: 8000
+	supportEmailBody: 8000,
 };
 
 export const min = {
 	username: 3,
 	number: 1,
-}
+};
 
 export const pattern = {
 	// Identifier for transparent color
@@ -294,7 +302,7 @@ export const tradingPost = {
 		closed: 'Closed',
 		cancelled: 'Cancelled',
 		failed: 'Failed',
-		expired: 'Expired'
+		expired: 'Expired',
 	},
 	// Get statuses for offers.
 	offerStatuses: {
@@ -313,7 +321,7 @@ export const tradingPost = {
 	listingTypesArray: [
 		{ id: 'Buy', name: 'Looking For' },
 		{ id: 'Sell', name: 'Selling' },
-		{ id: 'Both', name: 'Both' }
+		{ id: 'Both', name: 'Both' },
 	],
 	// Get types for trade (real world items or game items).
 	tradeTypes: {
@@ -456,7 +464,7 @@ export const notification = {
 		shopApplication: 'shop_application',
 		donationReminder: 'donation_reminder',
 	},
-}
+};
 
 export const orderOptions = {
 	node: [
@@ -495,7 +503,7 @@ export const shops = {
 		applications: 'applications',
 		threads: 'threads',
 	},
-}
+};
 
 // OTHER //
 
@@ -548,41 +556,41 @@ export const defaultAvatar = {
 		name: 'Default',
 		image: 'default',
 		colorable: false,
-		tags: []
+		tags: [],
 	},
 	coloration: null,
 	character: {
 		id: null,
 		name: 'Default',
 		image: 'default',
-		tags: []
+		tags: [],
 	},
 	accent: null,
-	accentPosition: null
+	accentPosition: null,
 };
 
 export const avatarAccentPositions = [
 	{
 		id: 1,
 		name: 'Upper left',
-		filename: 'upper_left.png'		
+		filename: 'upper_left.png',
 	},
 	{
 		id: 2,
 		name: 'Upper right',
-		filename: 'upper_right.png'		
+		filename: 'upper_right.png',
 	},
 	{
 		id: 3,
 		name: 'Lower left',
-		filename: 'lower_left.png'		
+		filename: 'lower_left.png',
 	},
 	{
 		id: 4,
 		name: 'Lower right',
-		filename: 'lower_right.png'		
-	}
-]
+		filename: 'lower_right.png',
+	},
+];
 
 export const boolOptions = [
 	{ id: 'yes', name: 'Yes' },
@@ -686,7 +694,7 @@ export const approvedURLs = [
 	'https://www.animalcrossingcommunity.com',
 	'https://accommunity-staging.herokuapp.com',
 	'https://cdn-s3.animalcrossingcommunity.com',
-	'https://accommunity-staging.autoidleapp.com'
+	'https://accommunity-staging.autoidleapp.com',
 ];
 
 export const launchDate = '2023-09-25';

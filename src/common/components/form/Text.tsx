@@ -21,100 +21,101 @@ const Text = ({
 	pattern,
 	textRef,
 	step = 1,
-	information
+	information,
 }: TextProps) =>
 {
-    const getInput = (javascriptOff:boolean = false) =>
-    {
-        const useClass = `${className}${placeholder && !hideLabel ? ' placeholder' : ''}`
+	const getInput = (javascriptOff: boolean = false) =>
+	{
+		const useClass = `${className}${placeholder && !hideLabel ? ' placeholder' : ''}`;
 
-        return (
-            changeHandler ? (
-                <input
-                    type={type}
-                    name={name}
-                    value={value == null ? '' : value}
-                    onChange={changeHandler}
-                    id={name}
-                    aria-label={label}
-                    data-lpignore='true'
-                    autoComplete='off'
-                    required={required}
-                    placeholder={placeholder}
-                    maxLength={maxLength}
-                    minLength={minLength}
-                    min={min}
-                    max={max}
-                    className={useClass}
-                    pattern={pattern}
-                    ref={textRef}
-                    step={step}
-                />
-            ) : (
-                javascriptOff ? (
-                    <input
-                        type={type}
-                        name={name}
-                        defaultValue={value == null ? '' : value}
-                        id={name}
-                        aria-label={label}
-                        data-lpignore='true'
-                        autoComplete='off'
-                        required={required}
-                        placeholder={placeholder}
-                        maxLength={maxLength}
-                        minLength={minLength}
-                        min={min}
-                        max={max}
-                        className={useClass}
-                        ref={textRef}
-                        step={step}
-                    />
-                ) : (
-                    <input
-                        type={type}
-                        name={name}
-                        defaultValue={value == null ? '' : value}
-                        id={name}
-                        aria-label={label}
-                        data-lpignore='true'
-                        autoComplete='off'
-                        required={required}
-                        placeholder={placeholder}
-                        maxLength={maxLength}
-                        minLength={minLength}
-                        min={min}
-                        max={max}
-                        className={useClass}
-                        pattern={pattern}
-                        ref={textRef}
-                        step={step}
-                    />
-                )
-            )
-        );
-    }
+		return (
+			changeHandler ?
+				<input
+					type={type}
+					name={name}
+					value={value ?? ''}
+					onChange={changeHandler}
+					id={name}
+					aria-label={label}
+					data-lpignore='true'
+					autoComplete='off'
+					required={required}
+					placeholder={placeholder}
+					maxLength={maxLength}
+					minLength={minLength}
+					min={min}
+					max={max}
+					className={useClass}
+					pattern={pattern}
+					ref={textRef}
+					step={step}
+				/>
+				:
+				javascriptOff ?
+					<input
+						type={type}
+						name={name}
+						defaultValue={value ?? ''}
+						id={name}
+						aria-label={label}
+						data-lpignore='true'
+						autoComplete='off'
+						required={required}
+						placeholder={placeholder}
+						maxLength={maxLength}
+						minLength={minLength}
+						min={min}
+						max={max}
+						className={useClass}
+						ref={textRef}
+						step={step}
+					/>
+					:
+					<input
+						type={type}
+						name={name}
+						defaultValue={value ?? ''}
+						id={name}
+						aria-label={label}
+						data-lpignore='true'
+						autoComplete='off'
+						required={required}
+						placeholder={placeholder}
+						maxLength={maxLength}
+						minLength={minLength}
+						min={min}
+						max={max}
+						className={useClass}
+						pattern={pattern}
+						ref={textRef}
+						step={step}
+					/>
 
-    return (
-        <>
-        {!hideLabel && (
-            <>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
-        )}
-        {(placeholder && !hideLabel) ? (
-            <div className='placeholder'>
-                <RequireClientJS fallback={
-                    getInput(true)
-                }>
-                    {getInput()}
-                </RequireClientJS>
-                <span>({placeholder})</span>
-            </div>
-        ) : (
-            getInput()
-        )}
-        </>
-    );
-}
+
+		);
+	};
+
+	return (
+		<>
+			{!hideLabel &&
+				<>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
+			}
+			{placeholder && !hideLabel ?
+				<div className='placeholder'>
+					<RequireClientJS fallback={
+						getInput(true)
+					}
+					>
+						{getInput()}
+					</RequireClientJS>
+					<span>({placeholder})</span>
+				</div>
+				:
+				getInput()
+			}
+		</>
+	);
+};
 
 type TextProps = {
 	hideLabel?: boolean

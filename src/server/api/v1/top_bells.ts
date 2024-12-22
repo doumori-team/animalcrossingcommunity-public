@@ -7,7 +7,7 @@ import { APIThisType, TopBellsType } from '@types';
 /*
  * Get users' bell information.
  */
-async function top_bells(this: APIThisType, {page, username, order, reverse}: topBellsProps) : Promise<TopBellsType>
+async function top_bells(this: APIThisType, { page, username, order, reverse }: topBellsProps): Promise<TopBellsType>
 {
 	if (!this.userId)
 	{
@@ -16,8 +16,8 @@ async function top_bells(this: APIThisType, {page, username, order, reverse}: to
 
 	// Do actual search
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -66,7 +66,7 @@ async function top_bells(this: APIThisType, {page, username, order, reverse}: to
 
 	// Add group by, order by & limit
 	query += `
-		ORDER BY ${order === 'rank' ? 'top_bell.total_bells' : order} ${order === 'rank' ? (reverse ? '' : 'DESC') : (reverse ? 'DESC' : '')}
+		ORDER BY ${order === 'rank' ? 'top_bell.total_bells' : order} ${order === 'rank' ? reverse ? '' : 'DESC' : reverse ? 'DESC' : ''}
 		LIMIT $1::int OFFSET $2::int
 	`;
 
@@ -85,7 +85,8 @@ async function top_bells(this: APIThisType, {page, username, order, reverse}: to
 
 	if (users.length > 0)
 	{
-		results = users.map((user:any) => {
+		results = users.map((user: any) =>
+		{
 			return {
 				id: user.id,
 				username: user.username,
@@ -133,19 +134,19 @@ top_bells.apiTypes = {
 	order: {
 		type: APITypes.string,
 		default: 'rank',
-		includes: orderOptions
+		includes: orderOptions,
 	},
 	reverse: {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type topBellsProps = {
 	page: number
 	username: string
 	order: typeof orderOptions[number]
 	reverse: boolean
-}
+};
 
 export default top_bells;

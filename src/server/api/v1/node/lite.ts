@@ -6,9 +6,9 @@ import { APIThisType, NodeLiteType } from '@types';
 /*
  * Retrieves the most important properties of a specific node.
  */
-async function lite(this: APIThisType, {id}: liteProps) : Promise<NodeLiteType>
+async function lite(this: APIThisType, { id }: liteProps): Promise<NodeLiteType>
 {
-	const permission:boolean = await this.query('v1/node/permission', {permission: 'read', nodeId: id});
+	const permission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: id });
 
 	if (!permission)
 	{
@@ -53,10 +53,10 @@ lite.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type liteProps = {
 	id: number
-}
+};
 
 export default lite;

@@ -9,12 +9,12 @@ const Clock = () =>
 	return (
 		<TimeContext.Consumer>
 			{time =>
-				<span className="Clock">
+				<span className='Clock'>
 					{dateUtils.formatDateTime4(time)}
 				</span>
 			}
 		</TimeContext.Consumer>
 	);
-}
+};
 
 export default Clock;

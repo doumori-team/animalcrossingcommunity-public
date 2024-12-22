@@ -5,7 +5,7 @@ import * as db from '@db';
 import { utils, constants, dateUtils } from '@utils';
 import { APIThisType, SuccessType } from '@types';
 
-async function email_needed(this: APIThisType, {id, email}: emailNeededProps) : Promise<SuccessType>
+async function email_needed(this: APIThisType, { id, email }: emailNeededProps): Promise<SuccessType>
 {
 	if (this.userId)
 	{
@@ -40,7 +40,7 @@ async function email_needed(this: APIThisType, {id, email}: emailNeededProps) : 
 
 		throw new UserError('email-taken');
 	}
-	catch (error:any)
+	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
 		{
@@ -54,10 +54,10 @@ async function email_needed(this: APIThisType, {id, email}: emailNeededProps) : 
 	}
 
 	await accounts.pushData(
-	{
-		user_id: user.user_id,
-		email: email,
-	});
+		{
+			user_id: user.user_id,
+			email: email,
+		});
 
 	const link = await accounts.resetPassword(user.user_id);
 
@@ -70,7 +70,7 @@ async function email_needed(this: APIThisType, {id, email}: emailNeededProps) : 
 	return {
 		_success: 'We have sent a reset password link to your email.',
 		_useCallback: true,
-	}
+	};
 }
 
 email_needed.apiTypes = {
@@ -85,11 +85,11 @@ email_needed.apiTypes = {
 		profanity: true,
 		required: true,
 	},
-}
+};
 
 type emailNeededProps = {
 	id: string
 	email: string
-}
+};
 
 export default email_needed;

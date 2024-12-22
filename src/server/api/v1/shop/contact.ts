@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserLiteType, ShopType, MarkupStyleType } from '@types';
 
-async function contact(this: APIThisType, {id, text, format}: contactProps) : Promise<{id: number}>
+async function contact(this: APIThisType, { id, text, format }: contactProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -18,14 +18,14 @@ async function contact(this: APIThisType, {id, text, format}: contactProps) : Pr
 		throw new UserError('login-needed');
 	}
 
-	const shop:ShopType = await this.query('v1/shop', {id: id});
+	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
 	{
 		throw new UserError('no-such-shop');
 	}
 
-	const user:UserLiteType = await this.query('v1/user_lite', {id: this.userId});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
 	const contacts = await db.query(`
 		SELECT shop_user.user_id
@@ -35,7 +35,7 @@ async function contact(this: APIThisType, {id, text, format}: contactProps) : Pr
 		WHERE shop_role.shop_id = $1::int AND shop_role.contact = true AND shop_role.active = true AND shop_user.active = true
 	`, shop.id);
 
-	const threadId = await db.transaction(async (query:any) =>
+	const threadId = await db.transaction(async (query: any) =>
 	{
 		const [thread] = await query(`
 			INSERT INTO node (parent_node_id, user_id, type)
@@ -62,7 +62,8 @@ async function contact(this: APIThisType, {id, text, format}: contactProps) : Pr
 		`, message.id, this.userId, text, format);
 
 		await Promise.all([
-			(contacts.length > 0 ? contacts.map((c:any) => c.user_id) : shop.owners.map((o:any) => o.id)).concat([this.userId]).map(async (userId:any) => {
+			(contacts.length > 0 ? contacts.map((c: any) => c.user_id) : shop.owners.map((o: any) => o.id)).concat([this.userId]).map(async (userId: any) =>
+			{
 				await query(`
 					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
 					VALUES ($1::int, $2::int, $3::int, true)
@@ -80,7 +81,7 @@ async function contact(this: APIThisType, {id, text, format}: contactProps) : Pr
 					VALUES ($1::int, $2::int, $3::int, true)
 					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 				`, userId, thread.id, constants.nodePermissions.lock);
-			})
+			}),
 		]);
 
 		await query(`
@@ -91,11 +92,11 @@ async function contact(this: APIThisType, {id, text, format}: contactProps) : Pr
 		return thread.id;
 	});
 
-	await this.query('v1/notification/create', {id: threadId, type: constants.notification.types.shopThread});
+	await this.query('v1/notification/create', { id: threadId, type: constants.notification.types.shopThread });
 
 	return {
 		id: threadId,
-	}
+	};
 }
 
 contact.apiTypes = {
@@ -116,12 +117,12 @@ contact.apiTypes = {
 		includes: ['markdown', 'bbcode', 'plaintext'],
 		required: true,
 	},
-}
+};
 
 type contactProps = {
 	id: number
 	text: string
 	format: MarkupStyleType
-}
+};
 
 export default contact;

@@ -2,7 +2,7 @@ import { LIVE_SITE } from 'common/utils/constants.ts';
 
 const acc_beta = process.env.TEST_SITE_PASSWORD;
 
-function testSitePassword (request:any, response:any, next:any) : void
+function testSitePassword (request: any, response: any, next: any): void
 {
 	if (LIVE_SITE || request.cookies.acc_beta === acc_beta)
 	{
@@ -21,11 +21,11 @@ function testSitePassword (request:any, response:any, next:any) : void
 
 			if (request.body.acc_beta)
 			{
-				response.render('test-site-password', {incorrect: true});
+				response.render('test-site-password', { incorrect: true });
 			}
 			else
 			{
-				response.render('test-site-password', {incorrect: false});
+				response.render('test-site-password', { incorrect: false });
 			}
 		}
 	}

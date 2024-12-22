@@ -9,8 +9,8 @@ import { APIThisType, FeaturesType, FeatureCategoryType, FeatureStatusType } fro
 
 const FeaturesDashboardPage = () =>
 {
-	const {features, categories, statuses, page, pageSize, totalCount, categoryId,
-		isBug, statusId, following, staffOnly, readOnly, assignedUser, createdUser} = useLoaderData() as FeaturesDashboardPageProps;
+	const { features, categories, statuses, page, pageSize, totalCount, categoryId,
+		isBug, statusId, following, staffOnly, readOnly, assignedUser, createdUser } = useLoaderData() as FeaturesDashboardPageProps;
 
 	const link = `&categoryId=${encodeURIComponent(categoryId)}
 		&isBug=${encodeURIComponent(isBug)}
@@ -41,9 +41,9 @@ const FeaturesDashboardPage = () =>
 							name='categoryId'
 							value={categoryId}
 							options={[
-								{id: 0, name: 'All Categories'},
-							].concat(categories.concat([{id: -1, name: 'Other'}]))}
-							optionsMapping={{value: 'id', label: 'name'}}
+								{ id: 0, name: 'All Categories' },
+							].concat(categories.concat([{ id: -1, name: 'Other' }]))}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -65,9 +65,9 @@ const FeaturesDashboardPage = () =>
 							name='statusId'
 							value={statusId}
 							options={[
-								{id: '', name: 'All Statuses'},
+								{ id: '', name: 'All Statuses' },
 							].concat(statuses)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -144,7 +144,7 @@ const FeaturesDashboardPage = () =>
 								<div className='FeaturesDashboardPage_featureItem'>
 									Type: {feature.isBug ? 'Bug Report' : 'Feature Request'}
 								</div>
-							</div>
+							</div>,
 						)}
 					</Grid>
 
@@ -159,9 +159,9 @@ const FeaturesDashboardPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, categoryId, isBug, statusId, following, staffOnly, readOnly, createdUser, assignedUser}: {page?: string, categoryId?: string, isBug?: string, statusId?: string, following?: string, staffOnly?: string, readOnly?: string, createdUser?: string, assignedUser?: string}) : Promise<FeaturesDashboardPageProps>
+export async function loadData(this: APIThisType, _: any, { page, categoryId, isBug, statusId, following, staffOnly, readOnly, createdUser, assignedUser }: { page?: string, categoryId?: string, isBug?: string, statusId?: string, following?: string, staffOnly?: string, readOnly?: string, createdUser?: string, assignedUser?: string }): Promise<FeaturesDashboardPageProps>
 {
 	const [returnValue, categories, statuses] = await Promise.all([
 		this.query('v1/features', {
@@ -176,7 +176,7 @@ export async function loadData(this: APIThisType, _:any, {page, categoryId, isBu
 			assignedUser: assignedUser ? assignedUser : '',
 		}),
 		this.query('v1/feature/categories'),
-		this.query('v1/feature/statuses')
+		this.query('v1/feature/statuses'),
 	]);
 
 	return {
@@ -212,6 +212,6 @@ type FeaturesDashboardPageProps = {
 	assignedUser: FeaturesType['assignedUser']
 	categories: FeatureCategoryType[]
 	statuses: FeatureStatusType[]
-}
+};
 
 export default FeaturesDashboardPage;

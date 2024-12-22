@@ -8,11 +8,11 @@ import { APIThisType, UserType } from '@types';
 /*
  * Extracts a user's information. Anything more then id / username.
  */
-async function user(this: APIThisType, {id, username}: userProps) : Promise<UserType>
+async function user(this: APIThisType, { id, username }: userProps): Promise<UserType>
 {
-	if (id == null)
+	if (!id)
 	{
-		if (typeof(username) === 'undefined')
+		if (typeof username === 'undefined')
 		{
 			id = this.userId;
 		}
@@ -30,9 +30,9 @@ async function user(this: APIThisType, {id, username}: userProps) : Promise<User
 	if (!currentUser)
 	{
 		[reassignAdopteesPerm, accForumsPerm, viewProfiles] = await Promise.all([
-			this.query('v1/permission', {permission: 'adoption-reassign'}),
-			this.query('v1/node/permission', {permission: 'read', nodeId: constants.boardIds.accForums}),
-			this.query('v1/permission', {permission: 'view-profiles'}),
+			this.query('v1/permission', { permission: 'adoption-reassign' }),
+			this.query('v1/node/permission', { permission: 'read', nodeId: constants.boardIds.accForums }),
+			this.query('v1/permission', { permission: 'view-profiles' }),
 		]);
 
 		if (!(reassignAdopteesPerm || accForumsPerm || viewProfiles))
@@ -43,9 +43,9 @@ async function user(this: APIThisType, {id, username}: userProps) : Promise<User
 
 	const [
 		avatar, [group], [profileInfo], [treasure], [missedTreasure], [siteLastUpdated],
-		[adoption], [adopteeThreadPermission], [redeemedBells]
+		[adoption], [adopteeThreadPermission], [redeemedBells],
 	] = await Promise.all([
-		this.query('v1/users/avatar', {id: accountData.id}),
+		this.query('v1/users/avatar', { id: accountData.id }),
 		db.query(`
 			SELECT
 				user_group.id,
@@ -133,7 +133,7 @@ async function user(this: APIThisType, {id, username}: userProps) : Promise<User
 		nonFormattedTotalBells: totalBells,
 		adoptionThreadId: currentUser ? adoption?.node_id : null,
 		scoutUsername: currentUser ? adoption?.scout_username : null,
-		adopteeBuddyThreadId: currentUser ? (adopteeThreadPermission?.granted ? constants.boardIds.adopteeBT : null) : null,
+		adopteeBuddyThreadId: currentUser ? adopteeThreadPermission?.granted ? constants.boardIds.adopteeBT : null : null,
 		awayStartDate: viewProfiles || reassignAdopteesPerm ? profileInfo.away_start_date : null,
 		awayEndDate: viewProfiles || reassignAdopteesPerm ? profileInfo.away_end_date : null,
 		reviewTOS: reviewTOS,
@@ -144,11 +144,11 @@ user.apiTypes = {
 	id: {
 		type: APITypes.number,
 	},
-}
+};
 
 type userProps = {
 	id?: number | string | null
 	username?: string
-}
+};
 
 export default user;

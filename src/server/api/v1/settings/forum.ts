@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, ForumSettingType } from '@types';
 
-export default async function forum(this: APIThisType) : Promise<ForumSettingType>
+export default async function forum(this: APIThisType): Promise<ForumSettingType>
 {
 	if (!this.userId)
 	{
@@ -29,6 +29,6 @@ export default async function forum(this: APIThisType) : Promise<ForumSettingTyp
 		flagOption: result.flag_option,
 		markupStyle: result.markup_style,
 		showImages: result.show_images,
-		conciseMode: result.concise_mode
+		conciseMode: result.concise_mode,
 	};
 }

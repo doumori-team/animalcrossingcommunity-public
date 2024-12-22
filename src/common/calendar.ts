@@ -13,41 +13,41 @@ import { SeasonsType } from '@types';
 // These were eyedropped from the grass textures in AC:NL (for spring and summer) and WW (for autumn and winter),
 // and then the saturation was increased by 20% across the board.
 const grassData = [
-	{point: 0.0000, colors: [{h:145,s:100,l: 31},{h: 94,s: 59,l: 51},{h:130,s: 62,l: 46},{h: 72,s: 58,l: 46}]},
-	{point: 0.2504, colors: [{h:151,s:100,l: 29},{h:107,s: 62,l: 44},{h:145,s:100,l: 36},{h:159,s: 99,l: 35}]},
-	{point: 0.5467, colors: [{h:161,s:100,l: 26},{h:124,s: 29,l: 49},{h:135,s: 64,l: 42},{h:169,s:100,l: 32}]},
-	{point: 0.6844, colors: [{h:100,s: 63,l: 33},{h: 90,s: 70,l: 44},{h: 99,s: 78,l: 38},{h: 80,s: 65,l: 36}]},
-	{point: 0.7589, colors: [{h: 53,s: 59,l: 36},{h: 56,s: 88,l: 39},{h: 46,s: 83,l: 42},{h: 71,s: 74,l: 41}]},
-	{point: 0.8489, colors: [{h: 37,s: 68,l: 42},{h: 51,s: 91,l: 44},{h: 43,s: 80,l: 47},{h: 33,s: 67,l: 50}]},
-	{point: 0.9101, colors: [{h: 33,s: 64,l: 39},{h: 41,s: 90,l: 42},{h: 37,s: 84,l: 44},{h: 26,s: 68,l: 46}]},
-	{point: 0.9560, colors: [{h: 15,s: 53,l: 38},{h: 36,s: 76,l: 42},{h: 30,s: 70,l: 44},{h:-15,s: 36,l: 49}]},
-	{point: 1.0000, colors: [{h:  0,s: 29,l: 35},{h: 20,s: 30,l: 52},{h:  0,s: 20,l: 44},{h: 12,s: 36,l: 49}]}
-]
+	{ point: 0.0000, colors: [{ h:145,s:100,l: 31 },{ h: 94,s: 59,l: 51 },{ h:130,s: 62,l: 46 },{ h: 72,s: 58,l: 46 }] },
+	{ point: 0.2504, colors: [{ h:151,s:100,l: 29 },{ h:107,s: 62,l: 44 },{ h:145,s:100,l: 36 },{ h:159,s: 99,l: 35 }] },
+	{ point: 0.5467, colors: [{ h:161,s:100,l: 26 },{ h:124,s: 29,l: 49 },{ h:135,s: 64,l: 42 },{ h:169,s:100,l: 32 }] },
+	{ point: 0.6844, colors: [{ h:100,s: 63,l: 33 },{ h: 90,s: 70,l: 44 },{ h: 99,s: 78,l: 38 },{ h: 80,s: 65,l: 36 }] },
+	{ point: 0.7589, colors: [{ h: 53,s: 59,l: 36 },{ h: 56,s: 88,l: 39 },{ h: 46,s: 83,l: 42 },{ h: 71,s: 74,l: 41 }] },
+	{ point: 0.8489, colors: [{ h: 37,s: 68,l: 42 },{ h: 51,s: 91,l: 44 },{ h: 43,s: 80,l: 47 },{ h: 33,s: 67,l: 50 }] },
+	{ point: 0.9101, colors: [{ h: 33,s: 64,l: 39 },{ h: 41,s: 90,l: 42 },{ h: 37,s: 84,l: 44 },{ h: 26,s: 68,l: 46 }] },
+	{ point: 0.9560, colors: [{ h: 15,s: 53,l: 38 },{ h: 36,s: 76,l: 42 },{ h: 30,s: 70,l: 44 },{ h:-15,s: 36,l: 49 }] },
+	{ point: 1.0000, colors: [{ h:  0,s: 29,l: 35 },{ h: 20,s: 30,l: 52 },{ h:  0,s: 20,l: 44 },{ h: 12,s: 36,l: 49 }] },
+];
 // The "-15 degrees" hue on one of the colours above is a bit of a hack to make sure it's within 180 degrees of the neighbouring hues,
 // so that we don't have to do any modular arithmetic. It means the same thing as 345 degrees (i.e. reddish-purple).
 
 // Colours for UI components, accessible through CSS. In order, these are "default", "light" and "dark".
 // These were eyedropped from the AC:NL tree textures, and then the saturation was reduced by 20% across the board.
 const treeData = [
-	{point:-0.1384, colors: [{h:115,s: 24,l: 40},{h:120,s:  7,l: 51},{h:120,s:  7,l: 81},{h:110,s: 10,l: 33}]},
-	{point: 0.1419, colors: [{h: 92,s: 64,l: 40},{h: 90,s: 52,l: 49},{h: 90,s: 52,l: 79},{h:107,s: 71,l: 34}]},
-	{point: 0.1696, colors: [{h:117,s: 67,l: 39},{h: 97,s: 40,l: 52},{h: 97,s: 40,l: 82},{h:129,s: 80,l: 26}]},
-	{point: 0.4533, colors: [{h:137,s: 63,l: 41},{h:129,s: 49,l: 49},{h:129,s: 49,l: 79},{h:157,s: 80,l: 26}]},
-	{point: 0.5156, colors: [{h:142,s: 80,l: 26},{h:158,s: 61,l: 32},{h:158,s: 61,l: 62},{h:156,s: 69,l: 18}]},
-	{point: 0.6747, colors: [{h:139,s: 61,l: 38},{h: 95,s: 43,l: 51},{h: 95,s: 43,l: 81},{h:117,s: 73,l: 29}]},
-	{point: 0.7024, colors: [{h: 73,s: 48,l: 43},{h: 60,s: 40,l: 51},{h: 60,s: 40,l: 81},{h: 93,s: 80,l: 26}]},
-	{point: 0.8096, colors: [{h: 55,s: 80,l: 41},{h: 53,s: 80,l: 44},{h: 53,s: 80,l: 74},{h: 54,s: 72,l: 37}]},
-	{point: 0.8374, colors: [{h: 50,s: 75,l: 42},{h: 60,s: 80,l: 43},{h: 60,s: 80,l: 73},{h: 44,s: 80,l: 36}]},
-	{point: 0.8651, colors: [{h: 30,s: 78,l: 47},{h: 55,s: 80,l: 43},{h: 55,s: 80,l: 73},{h: 27,s: 57,l: 42}]},
-	{point: 0.8927, colors: [{h: 37,s: 72,l: 50},{h: 37,s: 70,l: 52},{h: 37,s: 70,l: 82},{h: 16,s: 67,l: 41}]},
-	{point: 0.9204, colors: [{h: 23,s: 67,l: 48},{h: 25,s: 67,l: 54},{h: 25,s: 67,l: 84},{h: 14,s: 80,l: 35}]},
-	{point: 0.9481, colors: [{h:  2,s: 78,l: 41},{h:  5,s: 69,l: 45},{h:  5,s: 69,l: 75},{h: 10,s: 80,l: 25}]},
-	{point: 0.9654, colors: [{h: 23,s: 70,l: 32},{h: 19,s: 46,l: 47},{h: 19,s: 46,l: 77},{h: 17,s: 68,l: 26}]},
-	{point: 0.9827, colors: [{h: 24,s: 63,l: 39},{h: 28,s: 59,l: 61},{h: 28,s: 59,l: 91},{h: 25,s: 80,l: 25}]},
-	{point: 1.0000, colors: [{h: 25,s: 68,l: 31},{h: 24,s: 52,l: 34},{h: 24,s: 52,l: 64},{h: 26,s: 78,l: 24}]}
-]
+	{ point:-0.1384, colors: [{ h:115,s: 24,l: 40 },{ h:120,s:  7,l: 51 },{ h:120,s:  7,l: 81 },{ h:110,s: 10,l: 33 }] },
+	{ point: 0.1419, colors: [{ h: 92,s: 64,l: 40 },{ h: 90,s: 52,l: 49 },{ h: 90,s: 52,l: 79 },{ h:107,s: 71,l: 34 }] },
+	{ point: 0.1696, colors: [{ h:117,s: 67,l: 39 },{ h: 97,s: 40,l: 52 },{ h: 97,s: 40,l: 82 },{ h:129,s: 80,l: 26 }] },
+	{ point: 0.4533, colors: [{ h:137,s: 63,l: 41 },{ h:129,s: 49,l: 49 },{ h:129,s: 49,l: 79 },{ h:157,s: 80,l: 26 }] },
+	{ point: 0.5156, colors: [{ h:142,s: 80,l: 26 },{ h:158,s: 61,l: 32 },{ h:158,s: 61,l: 62 },{ h:156,s: 69,l: 18 }] },
+	{ point: 0.6747, colors: [{ h:139,s: 61,l: 38 },{ h: 95,s: 43,l: 51 },{ h: 95,s: 43,l: 81 },{ h:117,s: 73,l: 29 }] },
+	{ point: 0.7024, colors: [{ h: 73,s: 48,l: 43 },{ h: 60,s: 40,l: 51 },{ h: 60,s: 40,l: 81 },{ h: 93,s: 80,l: 26 }] },
+	{ point: 0.8096, colors: [{ h: 55,s: 80,l: 41 },{ h: 53,s: 80,l: 44 },{ h: 53,s: 80,l: 74 },{ h: 54,s: 72,l: 37 }] },
+	{ point: 0.8374, colors: [{ h: 50,s: 75,l: 42 },{ h: 60,s: 80,l: 43 },{ h: 60,s: 80,l: 73 },{ h: 44,s: 80,l: 36 }] },
+	{ point: 0.8651, colors: [{ h: 30,s: 78,l: 47 },{ h: 55,s: 80,l: 43 },{ h: 55,s: 80,l: 73 },{ h: 27,s: 57,l: 42 }] },
+	{ point: 0.8927, colors: [{ h: 37,s: 72,l: 50 },{ h: 37,s: 70,l: 52 },{ h: 37,s: 70,l: 82 },{ h: 16,s: 67,l: 41 }] },
+	{ point: 0.9204, colors: [{ h: 23,s: 67,l: 48 },{ h: 25,s: 67,l: 54 },{ h: 25,s: 67,l: 84 },{ h: 14,s: 80,l: 35 }] },
+	{ point: 0.9481, colors: [{ h:  2,s: 78,l: 41 },{ h:  5,s: 69,l: 45 },{ h:  5,s: 69,l: 75 },{ h: 10,s: 80,l: 25 }] },
+	{ point: 0.9654, colors: [{ h: 23,s: 70,l: 32 },{ h: 19,s: 46,l: 47 },{ h: 19,s: 46,l: 77 },{ h: 17,s: 68,l: 26 }] },
+	{ point: 0.9827, colors: [{ h: 24,s: 63,l: 39 },{ h: 28,s: 59,l: 61 },{ h: 28,s: 59,l: 91 },{ h: 25,s: 80,l: 25 }] },
+	{ point: 1.0000, colors: [{ h: 25,s: 68,l: 31 },{ h: 24,s: 52,l: 34 },{ h: 24,s: 52,l: 64 },{ h: 26,s: 78,l: 24 }] },
+];
 
-export function getSeason(dateOverride:string|null = null, southernHemisphere:boolean = false) : SeasonsType
+export function getSeason(dateOverride: string | null = null, southernHemisphere: boolean = false): SeasonsType
 {
 	let time = dateUtils.getCurrentDate();
 	let debug = false;
@@ -60,7 +60,7 @@ export function getSeason(dateOverride:string|null = null, southernHemisphere:bo
 
 		if (!isNaN(parsedDate))
 		{
-			time = parsedDate + (5 * 60 * 60 * 1000); // ACC timezone
+			time = parsedDate + 5 * 60 * 60 * 1000; // ACC timezone
 			debug = true;
 		}
 	}
@@ -98,8 +98,8 @@ export function getSeason(dateOverride:string|null = null, southernHemisphere:bo
 	let season = 'summer', event = null, headerColor = 'rgba(0,190,0,.2)';
 
 	// March-April 1 (EDT), April 10 - May
-	if ((time >= dateUtils.toUTC(year, 2, 1, 5) && time < dateUtils.toUTC(year, 3, 1, 4)) ||
-		(time >= dateUtils.toUTC(year, 3, 10, 4) && time < dateUtils.toUTC(year, 5, 1, 4))
+	if (time >= dateUtils.toUTC(year, 2, 1, 5) && time < dateUtils.toUTC(year, 3, 1, 4) ||
+		time >= dateUtils.toUTC(year, 3, 10, 4) && time < dateUtils.toUTC(year, 5, 1, 4)
 	)
 	{
 		season = southernHemisphere ? 'autumn' : 'spring';
@@ -142,14 +142,14 @@ export function getSeason(dateOverride:string|null = null, southernHemisphere:bo
 		}
 
 		// August Fireworks (Sundays in August)
-		if (time >= dateUtils.toUTC(year, 7, 1, 4) && time < dateUtils.toUTC(year, 8, 1, 4) && dateUtils.toDate(time).getDay() === 0)
+		if (time >= dateUtils.toUTC(year, 7, 1, 4) && time < dateUtils.toUTC(year, 8, 1, 4) && dateUtils.dateToTimezone(time).getDay() === 0)
 		{
 			event = 'fireworks';
 		}
 	}
 	// September-October 1 (EDT), October 10 - November
-	else if ((time >= dateUtils.toUTC(year, 8, 1, 4) && time < dateUtils.toUTC(year, 9, 1, 4)) ||
-		(time >= dateUtils.toUTC(year, 9, 10, 4) && time < dateUtils.toUTC(year, 11, 1, 5))
+	else if (time >= dateUtils.toUTC(year, 8, 1, 4) && time < dateUtils.toUTC(year, 9, 1, 4) ||
+		time >= dateUtils.toUTC(year, 9, 10, 4) && time < dateUtils.toUTC(year, 11, 1, 5)
 	)
 	{
 		season = southernHemisphere ? 'spring' : 'autumn';
@@ -193,7 +193,7 @@ export function getSeason(dateOverride:string|null = null, southernHemisphere:bo
 	}
 	// December, January-February
 	else if (time >= dateUtils.toUTC(year, 11, 1, 5) ||
-		(time >= dateUtils.toUTC(year, 0, 1, 0) && time < dateUtils.toUTC(year, 2, 1, 5))
+		time >= dateUtils.toUTC(year, 0, 1, 0) && time < dateUtils.toUTC(year, 2, 1, 5)
 	)
 	{
 		season = southernHemisphere ? 'summer' : 'winter';
@@ -235,7 +235,7 @@ export function getSeason(dateOverride:string|null = null, southernHemisphere:bo
 		}
 	}
 
-	const bannerName = utils.realStringLength(event) > 0 && event != 'aprilfools' ? event : season;
+	const bannerName = utils.realStringLength(event) > 0 && event !== 'aprilfools' ? event : season;
 
 	return {
 		bg_colors: grassColors,
@@ -251,18 +251,19 @@ export function getSeason(dateOverride:string|null = null, southernHemisphere:bo
 		event,
 		bannerName: String(bannerName || ''),
 		debug,
-	}
+		time,
+	};
 }
 
-function getColors(breakpoints:any, yearProgress:any) : string[]
+function getColors(breakpoints: any, yearProgress: any): string[]
 {
 	// Find which pair of breakpoints we are between
 	let breakpoint1, breakpoint2;
 	for (let i = 1; i < breakpoints.length; i++)
 	{
-		if (yearProgress >= breakpoints[i-1].point && yearProgress < breakpoints[i].point)
+		if (yearProgress >= breakpoints[i - 1].point && yearProgress < breakpoints[i].point)
 		{
-			breakpoint1 = breakpoints[i-1];
+			breakpoint1 = breakpoints[i - 1];
 			breakpoint2 = breakpoints[i];
 			break;
 		}
@@ -276,7 +277,7 @@ function getColors(breakpoints:any, yearProgress:any) : string[]
 
 	for (let i = 0; i < breakpoint1.colors.length; i++)
 	{
-		const color1 = breakpoint1.colors[i]
+		const color1 = breakpoint1.colors[i];
 		const color2 = breakpoint2.colors[i];
 
 		let h = color1.h + (color2.h - color1.h) * factor;

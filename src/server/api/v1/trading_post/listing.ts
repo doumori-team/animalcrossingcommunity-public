@@ -5,9 +5,9 @@ import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function listing(this: APIThisType, {id}: listingProps) : Promise<ListingType>
+async function listing(this: APIThisType, { id }: listingProps): Promise<ListingType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -68,12 +68,12 @@ async function listing(this: APIThisType, {id}: listingProps) : Promise<ListingT
 			FROM listing_offer
 			WHERE listing_offer.listing_id = $1::int AND listing_offer.user_id != $2::int AND listing_offer.status = $3
 		`, listing.id, listing.creator_id, offerStatuses.accepted),
-		this.query('v1/user', {id: listing.creator_id}),
-		this.query('v1/users/ratings', {id: listing.creator_id}),
-		listing.game_id ? this.query('v1/acgame', {id: listing.game_id}) : null,
+		this.query('v1/user', { id: listing.creator_id }),
+		this.query('v1/users/ratings', { id: listing.creator_id }),
+		listing.game_id ? this.query('v1/acgame', { id: listing.game_id }) : null,
 		this.query('v1/notification/destroy', {
 			id: id,
-			type: 'listing'
+			type: 'listing',
 		}),
 	]);
 
@@ -87,15 +87,17 @@ async function listing(this: APIThisType, {id}: listingProps) : Promise<ListingT
 	}
 
 	const [listingOffer, offerAccepted, offersList, commentsList] = await Promise.all([
-		this.query('v1/trading_post/listing/offer', {id: listingOfferId.id}),
-		offerAcceptedId ? this.query('v1/trading_post/listing/offer', {id: offerAcceptedId.id}) : null,
-		Promise.all(offers.filter((offer:any) => offer.status !== offerStatuses.accepted).map(async (offer:any) => {
-			return this.query('v1/trading_post/listing/offer', {id: offer.id});
+		this.query('v1/trading_post/listing/offer', { id: listingOfferId.id }),
+		offerAcceptedId ? this.query('v1/trading_post/listing/offer', { id: offerAcceptedId.id }) : null,
+		Promise.all(offers.filter((offer: any) => offer.status !== offerStatuses.accepted).map(async (offer: any) =>
+		{
+			return this.query('v1/trading_post/listing/offer', { id: offer.id });
 		})),
-		Promise.all(comments.map(async (comment:any) => {
+		Promise.all(comments.map(async (comment: any) =>
+		{
 			return {
 				id: comment.id,
-				user: await this.query('v1/user_lite', {id: comment.user_id}),
+				user: await this.query('v1/user_lite', { id: comment.user_id }),
 				formattedDate: dateUtils.formatDateTime(comment.created),
 				comment: comment.comment,
 				format: comment.comment_format,
@@ -105,7 +107,7 @@ async function listing(this: APIThisType, {id}: listingProps) : Promise<ListingT
 
 	return <ListingType>{
 		id: listing.id,
-		creator: {...creator, ...creatorRatings},
+		creator: { ...creator, ...creatorRatings },
 		formattedDate: dateUtils.formatDateTime(listing.created),
 		game: game,
 		offers: {
@@ -137,10 +139,10 @@ listing.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type listingProps = {
 	id: number
-}
+};
 
 export default listing;

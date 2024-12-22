@@ -10,18 +10,18 @@ const CatalogCategory = ({
 	acgameCatalog,
 	sortBy,
 	name,
-	edit = false
+	edit = false,
 }: CatalogCategoryProps) =>
 {
 	const [remove, setRemove] = useState<string[]>([]);
 
-	const handleChange = (itemId: string) : void =>
+	const handleChange = (itemId: string): void =>
 	{
 		// if no checkboxes checked with that value, add to remove list
-		var allUnchecked = true;
-		var inputElements = document.querySelectorAll<HTMLInputElement>('.CatalogCategory input[value="'+itemId+'"]');
+		let allUnchecked = true;
+		let inputElements = document.querySelectorAll<HTMLInputElement>('.CatalogCategory input[value="' + itemId + '"]');
 
-		for (var i = 0; inputElements[i]; ++i)
+		for (let i = 0; inputElements[i]; ++i)
 		{
 			if ((inputElements[i] as HTMLInputElement).checked)
 			{
@@ -43,14 +43,15 @@ const CatalogCategory = ({
 		}
 
 		setRemove(array);
-	}
+	};
 
 	return (
 		<div className='CatalogCategory'>
 			<input type='hidden' name='remove' value={remove} />
 
 			{acgameCatalog.map(category =>
-				category.groups.map(group => {
+				category.groups.map(group =>
+				{
 					let count = 0, className = 'CatalogCategory_name';
 
 					if (sortBy !== 'theme')
@@ -70,9 +71,10 @@ const CatalogCategory = ({
 
 					return (
 						<div key={group.groupName}
-							className={'CatalogCategory_group ' + javascriptFriendlyGroupName}>
+							className={'CatalogCategory_group ' + javascriptFriendlyGroupName}
+						>
 							<h3 className={className}>
-								{utils.realStringLength(name) === 0 ? (
+								{utils.realStringLength(name) === 0 ?
 									<>
 										{count === group.total &&
 											<img
@@ -82,10 +84,10 @@ const CatalogCategory = ({
 										}
 										{group.groupName} ({count}/{group.total})
 									</>
-								) : (
+									:
 									group.groupName
-								)}
-								{edit && (
+								}
+								{edit &&
 									<div className='CatalogCategory_groupToggle'>
 										<div className='CatalogCategory_groupOption'>
 											<SelectAllCheckbox
@@ -94,7 +96,7 @@ const CatalogCategory = ({
 												select={'.CatalogCategory .' + javascriptFriendlyGroupName + ' input[name="inventory"]'}
 											/>
 										</div>
-										{group.items.some(item => item.museum) && (
+										{group.items.some(item => item.museum) &&
 											<div className='CatalogCategory_groupOption'>
 												<SelectAllCheckbox
 													name={`toggle_${javascriptFriendlyGroupName}M`}
@@ -102,12 +104,13 @@ const CatalogCategory = ({
 													select={'.CatalogCategory .' + javascriptFriendlyGroupName + ' input[name="museum"]'}
 												/>
 											</div>
-										)}
+										}
 									</div>
-								)}
+								}
 							</h3>
 							<div className='CatalogCategory_groupItems'>
-								{group.items.map(item => {
+								{group.items.map(item =>
+								{
 									let className = 'CatalogCategory_item';
 									const catalogItem = catalogItems
 										.find(ci => ci.id === item.id);
@@ -127,7 +130,7 @@ const CatalogCategory = ({
 											<div className='CatalogCategory_itemName'>
 												{item.name}
 											</div>
-											{edit && (
+											{edit &&
 												<div className='CatalogCategory_itemOptions'>
 													<div className='CatalogCategory_itemOption'>
 														<Checkbox
@@ -149,7 +152,7 @@ const CatalogCategory = ({
 															clickHandler={() => handleChange(item.id)}
 														/>
 													</div>
-													{(item.museum && item.genuine) && (
+													{item.museum && item.genuine &&
 														<div className='CatalogCategory_itemOption'>
 															<Checkbox
 																name='museum'
@@ -160,20 +163,20 @@ const CatalogCategory = ({
 																clickHandler={() => handleChange(item.id)}
 															/>
 														</div>
-													)}
+													}
 												</div>
-											)}
+											}
 										</div>
 									);
 								})}
 							</div>
 						</div>
 					);
-				})
+				}),
 			)}
 		</div>
 	);
-}
+};
 
 type CatalogCategoryProps = {
 	catalogItems: CatalogItemsType[]

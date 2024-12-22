@@ -1,16 +1,16 @@
 type RuleType = {
 	id: number
 	number: number
-	name: string|null
+	name: string | null
 	startDate: string
 	description: string
 	violations: {
 		id: number
-		severityId: number|null
+		severityId: number | null
 		violation: string
 		number: number
 	}[]
-	originalRuleId: number|null
+	originalRuleId: number | null
 	categoryId: number
 	category: string
 	reportable: boolean
@@ -18,12 +18,12 @@ type RuleType = {
 
 // based on v1/rule/current
 type CurrentRuleType = {
-    currentRules: {
-        id: number
-        name: string
-        rules: RuleType[]
-    }[]
-    lastUpdated: string
+	currentRules: {
+		id: number
+		name: string
+		rules: RuleType[]
+	}[]
+	lastUpdated: string
 };
 
 export type { CurrentRuleType };

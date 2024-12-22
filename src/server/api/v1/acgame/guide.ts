@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, ACGameGuideType } from '@types';
 
-async function guide(this: APIThisType, {id}: guideProps) : Promise<ACGameGuideType>
+async function guide(this: APIThisType, { id }: guideProps): Promise<ACGameGuideType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-guides'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-guides' });
 
 	if (!permissionGranted)
 	{
@@ -26,10 +26,11 @@ async function guide(this: APIThisType, {id}: guideProps) : Promise<ACGameGuideT
 			WHERE game_id = $1::int
 			ORDER BY name ASC, updated_name ASC
 		`, id),
-		this.query('v1/permission', {permission: 'modify-guides'}),
+		this.query('v1/permission', { permission: 'modify-guides' }),
 	]);
 
-	return guides.filter((g:any) => modifyGuidesPerm || (!modifyGuidesPerm && g.last_published !== null)).map((guide:any) => {
+	return guides.filter((g: any) => modifyGuidesPerm || !modifyGuidesPerm && g.last_published !== null).map((guide: any) =>
+	{
 		return {
 			id: guide.id,
 			name: guide.updated_name && modifyGuidesPerm ? guide.updated_name : guide.name,
@@ -43,10 +44,10 @@ guide.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type guideProps = {
 	id: number
-}
+};
 
 export default guide;

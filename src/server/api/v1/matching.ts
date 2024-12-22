@@ -7,9 +7,9 @@ import { APIThisType, UserMatchingType } from '@types';
 /*
  * Find matching users based on: FCs, IPs
  */
-async function matching(this: APIThisType, {username, match}: matchingProps) : Promise<UserMatchingType>
+async function matching(this: APIThisType, { username, match }: matchingProps): Promise<UserMatchingType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -56,9 +56,10 @@ async function matching(this: APIThisType, {username, match}: matchingProps) : P
 
 		if (matches.length > 0)
 		{
-			results = await Promise.all(matches.map(async (match:any) => {
+			results = await Promise.all(matches.map(async (match: any) =>
+			{
 				return {
-					user: await this.query('v1/user', {id: match.user_id}),
+					user: await this.query('v1/user', { id: match.user_id }),
 				};
 			}));
 		}
@@ -82,11 +83,11 @@ matching.apiTypes = {
 		default: constants.matching.friendCodes,
 		includes: Object.values(constants.matching),
 	},
-}
+};
 
 type matchingProps = {
 	username: string
 	match: string
-}
+};
 
 export default matching;

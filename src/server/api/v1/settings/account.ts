@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import * as accounts from '@accounts';
 import { APIThisType, AccountSettingType } from '@types';
 
-export default async function account(this: APIThisType) : Promise<AccountSettingType>
+export default async function account(this: APIThisType): Promise<AccountSettingType>
 {
 	if (!this.userId)
 	{

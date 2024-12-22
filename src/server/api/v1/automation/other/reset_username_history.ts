@@ -9,7 +9,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Reset a test account's username history
  */
-async function reset_username_history(this: APIThisType, {username}: resetUsernameHistory) : Promise<SuccessType>
+async function reset_username_history(this: APIThisType, { username }: resetUsernameHistory): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -48,7 +48,7 @@ async function reset_username_history(this: APIThisType, {username}: resetUserna
 	ACCCache.deleteMatch(constants.cacheKeys.userLite);
 
 	return {
-		_success: `The user's username history has been cleared.`
+		_success: `The user's username history has been cleared.`,
 	};
 }
 
@@ -58,10 +58,10 @@ reset_username_history.apiTypes = {
 		required: true,
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type resetUsernameHistory = {
 	username: string
-}
+};
 
 export default reset_username_history;

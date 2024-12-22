@@ -8,7 +8,7 @@ import { APIThisType, SuccessType } from '@types';
  * Reset a new member's Scout
  */
 
-async function reset_scout(this: APIThisType, {username}: resetScoutProps) : Promise<SuccessType>
+async function reset_scout(this: APIThisType, { username }: resetScoutProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -46,7 +46,7 @@ async function reset_scout(this: APIThisType, {username}: resetScoutProps) : Pro
 		throw new UserError('bad-format');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -77,7 +77,7 @@ async function reset_scout(this: APIThisType, {username}: resetScoutProps) : Pro
 	});
 
 	return {
-		_success: `The user has had their scout removed!`
+		_success: `The user has had their scout removed!`,
 	};
 }
 
@@ -87,10 +87,10 @@ reset_scout.apiTypes = {
 		required: true,
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type resetScoutProps = {
 	username: string
-}
+};
 
 export default reset_scout;

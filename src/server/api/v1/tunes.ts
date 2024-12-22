@@ -4,9 +4,9 @@ import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
 import { APIThisType, TunesType } from '@types';
 
-async function tunes(this: APIThisType, {page, name, creator}: tunesProps) : Promise<TunesType>
+async function tunes(this: APIThisType, { page, name, creator }: tunesProps): Promise<TunesType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-tunes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-tunes' });
 
 	if (!permissionGranted)
 	{
@@ -19,8 +19,8 @@ async function tunes(this: APIThisType, {page, name, creator}: tunesProps) : Pro
 	}
 
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -87,8 +87,9 @@ async function tunes(this: APIThisType, {page, name, creator}: tunesProps) : Pro
 
 	if (tunes.length > 0)
 	{
-		results = await Promise.all(tunes.map(async (tune:any) => {
-			return this.query('v1/tune', {id: tune.id})
+		results = await Promise.all(tunes.map(async (tune: any) =>
+		{
+			return this.query('v1/tune', { id: tune.id });
 		}));
 
 		count = Number(tunes[0].count);
@@ -122,12 +123,12 @@ tunes.apiTypes = {
 		length: constants.max.searchUsername,
 		profanity: true,
 	},
-}
+};
 
 type tunesProps = {
 	page: number
 	name: string
 	creator: string
-}
+};
 
 export default tunes;

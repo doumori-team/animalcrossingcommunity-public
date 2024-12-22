@@ -4,7 +4,7 @@ import { dateUtils, constants, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, NotificationType } from '@types';
 
-async function notification(this: APIThisType, {id}: notificationProps) : Promise<NotificationType|null>
+async function notification(this: APIThisType, { id }: notificationProps): Promise<NotificationType | null>
 {
 	if (!this.userId)
 	{
@@ -36,36 +36,36 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 		throw new UserError('permission');
 	}
 
-	const type:string = notification.identifier;
+	const type: string = notification.identifier;
 
 	// it's possible the user no longer has access to where the notification leads to
 	let permission = true;
 
 	if ([
-			constants.notification.types.PT,
-			constants.notification.types.FT,
-			constants.notification.types.FB,
-			constants.notification.types.usernameTag,
-			constants.notification.types.scoutAdoption,
-			constants.notification.types.scoutThread,
-			constants.notification.types.scoutClosed,
-			constants.notification.types.scoutFeedback,
-			constants.notification.types.scoutBT
-		].includes(type)
+		constants.notification.types.PT,
+		constants.notification.types.FT,
+		constants.notification.types.FB,
+		constants.notification.types.usernameTag,
+		constants.notification.types.scoutAdoption,
+		constants.notification.types.scoutThread,
+		constants.notification.types.scoutClosed,
+		constants.notification.types.scoutFeedback,
+		constants.notification.types.scoutBT,
+	].includes(type)
 	)
 	{
-		permission = await this.query('v1/node/permission', {permission: 'read', nodeId: notification.reference_id});
+		permission = await this.query('v1/node/permission', { permission: 'read', nodeId: notification.reference_id });
 	}
 	else if (
 		[
 			constants.notification.types.modminUT,
 			constants.notification.types.modminUTMany,
 			constants.notification.types.modminUTDiscussion,
-			constants.notification.types.supportEmail
+			constants.notification.types.supportEmail,
 		].includes(type)
 	)
 	{
-		permission = await this.query('v1/permission', {permission: 'process-user-tickets'});
+		permission = await this.query('v1/permission', { permission: 'process-user-tickets' });
 	}
 	else if (type === constants.notification.types.modminUTPost)
 	{
@@ -80,7 +80,7 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 
 		if (!permission)
 		{
-			permission = await this.query('v1/permission', {permission: 'process-user-tickets'});
+			permission = await this.query('v1/permission', { permission: 'process-user-tickets' });
 		}
 	}
 	else if (type === constants.notification.types.supportTicket)
@@ -96,7 +96,7 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 
 		if (!permission)
 		{
-			permission = await this.query('v1/permission', {permission: 'process-user-tickets'});
+			permission = await this.query('v1/permission', { permission: 'process-user-tickets' });
 		}
 	}
 
@@ -110,7 +110,7 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 		return null;
 	}
 
-	let notified:string = notification.notified;
+	let notified: string = notification.notified;
 
 	if (notified === null)
 	{
@@ -136,10 +136,10 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 
 	if (notification.identifier === constants.notification.types.modminUTPost)
 	{
-		userCheck = await this.query('v1/permission', {permission: 'process-user-tickets'});
+		userCheck = await this.query('v1/permission', { permission: 'process-user-tickets' });
 	}
 
-	let extra:any = {
+	let extra: any = {
 		post: null,
 	};
 
@@ -148,11 +148,11 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 			constants.notification.types.PT,
 			constants.notification.types.FT,
 			constants.notification.types.usernameTag,
-			constants.notification.types.shopThread
+			constants.notification.types.shopThread,
 		].includes(notification.identifier)
 	)
 	{
-		let children = [], nodeUser = null, parentId:number = notification.reference_id, post:number|null = notification.reference_id;
+		let children = [], nodeUser = null, parentId: number = notification.reference_id, post: number | null = notification.reference_id;
 
 		if (constants.notification.types.usernameTag === notification.identifier)
 		{
@@ -196,7 +196,7 @@ async function notification(this: APIThisType, {id}: notificationProps) : Promis
 
 		for (let child of children)
 		{
-			if (index % constants.threadPageSize === 0 && index != 0)
+			if (index % constants.threadPageSize === 0 && index)
 			{
 				page++;
 			}
@@ -242,10 +242,10 @@ notification.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type notificationProps = {
 	id: number
-}
+};
 
 export default notification;

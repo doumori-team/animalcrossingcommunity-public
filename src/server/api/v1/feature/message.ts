@@ -4,14 +4,14 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function message(this: APIThisType, {id, message, staffOnly, format}: messageProps) : Promise<void>
+async function message(this: APIThisType, { id, message, staffOnly, format }: messageProps): Promise<void>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	const [feature] = await db.query(`
 		SELECT read_only, staff_only
@@ -24,7 +24,7 @@ async function message(this: APIThisType, {id, message, staffOnly, format}: mess
 		throw new UserError('no-such-feature');
 	}
 
-	const advancedPermission:boolean = await this.query('v1/permission', {permission: 'advanced-features'});
+	const advancedPermission: boolean = await this.query('v1/permission', { permission: 'advanced-features' });
 
 	if (!advancedPermission && (feature.read_only || feature.staff_only))
 	{
@@ -45,7 +45,7 @@ async function message(this: APIThisType, {id, message, staffOnly, format}: mess
 
 	this.query('v1/notification/create', {
 		id: featureMessage.id,
-		type: constants.notification.types.featurePost
+		type: constants.notification.types.featurePost,
 	});
 }
 
@@ -70,13 +70,13 @@ message.apiTypes = {
 		includes: constants.formatOptions,
 		required: true,
 	},
-}
+};
 
 type messageProps = {
 	id: number
 	message: string
 	staffOnly: boolean
 	format: string
-}
+};
 
 export default message;

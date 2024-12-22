@@ -4,7 +4,7 @@ import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SiteStatsType } from '@types';
 
-async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsType>
+async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStatsType>
 {
 	if (!this.userId)
 	{
@@ -12,19 +12,19 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 	}
 
 	const [scoutPerm, userTicketPerm, supportTicketPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'scout-pages'}),
-		this.query('v1/permission', {permission: 'process-user-tickets'}),
-		this.query('v1/permission', {permission: 'process-support-tickets'}),
+		this.query('v1/permission', { permission: 'scout-pages' }),
+		this.query('v1/permission', { permission: 'process-user-tickets' }),
+		this.query('v1/permission', { permission: 'process-support-tickets' }),
 	]);
 
 	const startDateTS = date + ' 00:00:00';
 	const endDateTS = date + ' 23:59:59';
 	let afterLaunch = true;
-	let lineGraphStats:SiteStatsType['lineGraphStats'] = {
+	let lineGraphStats: SiteStatsType['lineGraphStats'] = {
 		statData: [],
 		lines: [],
 	};
-	let barGraphStats:SiteStatsType['barGraphStats'] = [];
+	let barGraphStats: SiteStatsType['barGraphStats'] = [];
 
 	if (dateUtils.isBefore(date, constants.launchDate))
 	{
@@ -48,7 +48,7 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 		yearTotalSignups, yearTotalMembers, yearTotalFeatures, yearTotalOffers,
 		yearTotalRequests, yearTotalAdoptions, yearTotalUTs, yearTotalSTs,
 		yearTotalEmails, yearTotalTunes, yearTotalDonations, yearTotalBellShopPurchases,
-		yearTotalShopOrders
+		yearTotalShopOrders,
 	] = await Promise.all([
 		db.cacheQuery(cacheKey, `
 			SELECT count(*) AS count
@@ -342,7 +342,8 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 		`), // yearTotalShopOrders
 	]);
 
-	lastTotalRequests.map((r:any) => {
+	lastTotalRequests.map((r: any) =>
+	{
 		const posts = lastTotalPosts.find((x: any) => x.day === r.day);
 		const threads = lastTotalThreads.find((x: any) => x.day === r.day);
 		const patterns = lastTotalPatterns.find((x: any) => x.day === r.day);
@@ -356,7 +357,7 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 		const bellShopPurchases = lastTotalBellShopPurchases.find((x: any) => x.day === r.day);
 		const shopOrders = lastTotalShopOrders.find((x: any) => x.day === r.day);
 
-		let statData:any = {
+		let statData: any = {
 			'name': r.day,
 			'Posts': posts ? Number(posts.count) : 0,
 			'Threads': threads ? Number(threads.count) : 0,
@@ -399,7 +400,8 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 		lineGraphStats.statData.push(statData);
 	});
 
-	yearTotalSignups.map((s: any) => {
+	yearTotalSignups.map((s: any) =>
+	{
 		const posts = yearTotalPosts.find((x: any) => x.year === s.year);
 		const threads = yearTotalThreads.find((x: any) => x.year === s.year);
 		const patterns = yearTotalPatterns.find((x: any) => x.year === s.year);
@@ -451,7 +453,7 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 		}
 	});
 
-	let results:SiteStatsType['results'] = [
+	let results: SiteStatsType['results'] = [
 		{
 			label: 'Total Posts',
 			number: Number(totalPosts.count).toLocaleString(),
@@ -483,7 +485,7 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 		{
 			label: 'Total Donations',
 			number: Number(totalDonations.count).toLocaleString(),
-		}
+		},
 	];
 
 	lineGraphStats.lines.push('Posts');
@@ -572,7 +574,7 @@ async function stats(this: APIThisType, {date}: statsProps) : Promise<SiteStatsT
 	};
 }
 
-function setYearResults(barGraphStats:SiteStatsType['barGraphStats'], name:string, data:any, year:number)
+function setYearResults(barGraphStats: SiteStatsType['barGraphStats'], name: string, data: any, year: number)
 {
 	const stat = barGraphStats.find((x: any) => x.name === name);
 
@@ -591,8 +593,8 @@ function setYearResults(barGraphStats:SiteStatsType['barGraphStats'], name:strin
 				{
 					year: year,
 					[name]: data ? Number(data.count) : 0,
-				}
-			]
+				},
+			],
 		});
 	}
 
@@ -604,10 +606,10 @@ stats.apiTypes = {
 		type: APITypes.date,
 		default: dateUtils.formatYesterdayYearMonthDay(),
 	},
-}
+};
 
 type statsProps = {
 	date: string
-}
+};
 
 export default stats;

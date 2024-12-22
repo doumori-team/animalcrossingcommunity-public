@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SupportEmailsType } from '@types';
 
-async function support_emails(this: APIThisType, {page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser}: supportEmailsProps) : Promise<SupportEmailsType>
+async function support_emails(this: APIThisType, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: supportEmailsProps): Promise<SupportEmailsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -58,8 +58,8 @@ async function support_emails(this: APIThisType, {page, fromUser, fromEmail, toU
 
 	// Do actual search
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -211,8 +211,9 @@ async function support_emails(this: APIThisType, {page, fromUser, fromEmail, toU
 
 	if (supportEmails.length > 0)
 	{
-		results = await Promise.all(supportEmails.map(async (supportEmail:any) => {
-			return this.query('v1/support_email', {id: supportEmail.id})
+		results = await Promise.all(supportEmails.map(async (supportEmail: any) =>
+		{
+			return this.query('v1/support_email', { id: supportEmail.id });
 		}));
 
 		count = Number(supportEmails[0].count);
@@ -230,7 +231,7 @@ async function support_emails(this: APIThisType, {page, fromUser, fromEmail, toU
 		startDate,
 		endDate,
 		read,
-		forUser
+		forUser,
 	};
 }
 
@@ -278,7 +279,7 @@ support_emails.apiTypes = {
 		default: '',
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type supportEmailsProps = {
 	page: number
@@ -290,6 +291,6 @@ type supportEmailsProps = {
 	endDate: string
 	read: string
 	forUser: string
-}
+};
 
 export default support_emails;

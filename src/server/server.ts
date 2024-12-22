@@ -23,7 +23,7 @@ const staticFilesPath = new URL('../client/static', import.meta.url).pathname;
 const layoutsPath = new URL('./views', import.meta.url).pathname;
 
 // Configuration for Express
-app.set('port', (process.env.PORT || 5000));
+app.set('port', process.env.PORT || 5000);
 app.set('views', layoutsPath);
 app.set('view engine', 'ejs');
 
@@ -36,10 +36,10 @@ app.use(cookieParser());                        // Self-explanatory; used for te
 app.use(multer().any());                        // Parse form submissions
 app.use(bodyParser.urlencoded({                 // Parse queries from _getLoaderFunction
 	type: 'application/x-www-form-urlencoded',
-	extended: true
+	extended: true,
 }));
 app.use(judoscaleMiddleware(new Judoscale({
-	api_base_url: process.env.JUDOSCALE_URL
+	api_base_url: process.env.JUDOSCALE_URL,
 })));
 
 // Add custom middleware (from the middleware/ source folder)

@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, GameConsoleType } from '@types';
 
-async function game_console(this: APIThisType, {id}: gameConsoleProps) : Promise<GameConsoleType>
+async function game_console(this: APIThisType, { id }: gameConsoleProps): Promise<GameConsoleType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'games-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'games-admin' });
 
 	if (!permissionGranted)
 	{
@@ -33,7 +33,7 @@ async function game_console(this: APIThisType, {id}: gameConsoleProps) : Promise
 		name: gameConsole.name,
 		sequence: gameConsole.sequence,
 		isLegacy: gameConsole.is_legacy,
-		isEnabled: gameConsole.is_enabled
+		isEnabled: gameConsole.is_enabled,
 	};
 }
 
@@ -42,10 +42,10 @@ game_console.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type gameConsoleProps = {
 	id: number
-}
+};
 
 export default game_console;

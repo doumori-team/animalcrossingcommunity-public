@@ -6,7 +6,7 @@ import { Button } from '@form';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { BuddiesType, ClickHandlerButtonType } from '@types';
 
-const BuddiesMenu = forwardRef<HTMLElement, BuddiesMenuProps>(({dynamic, closeFunc, buddies}, ref) =>
+const BuddiesMenu = forwardRef<HTMLElement, BuddiesMenuProps>(({ dynamic, closeFunc, buddies }, ref) =>
 {
 	let className = 'BuddiesMenu';
 
@@ -28,7 +28,7 @@ const BuddiesMenu = forwardRef<HTMLElement, BuddiesMenuProps>(({dynamic, closeFu
 				</Navbar>
 			}
 			<ul className='BuddiesMenu_content'>
-				{buddies && buddies.buddies.concat(buddies.staff).length > 0 ? (
+				{buddies && buddies.buddies.concat(buddies.staff).length > 0 ?
 					buddies.buddies.concat(buddies.staff).map(buddy =>
 						<li key={buddy.id} className='BuddiesMenu_link'>
 							<div className='BuddiesMenu_name'>
@@ -43,17 +43,18 @@ const BuddiesMenu = forwardRef<HTMLElement, BuddiesMenuProps>(({dynamic, closeFu
 									showDate={true}
 								/>
 							</div>
-						</li>
+						</li>,
 					)
-				) : (
+					:
 					<li className='BuddiesMenu_link'>
 						No online buddies.
 					</li>
-				)}
+				}
 			</ul>
 		</nav>
 	);
 });
+BuddiesMenu.displayName = 'BuddiesMenu';
 
 type BuddiesMenuProps = {
 	dynamic: boolean

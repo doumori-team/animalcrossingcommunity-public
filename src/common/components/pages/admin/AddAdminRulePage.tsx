@@ -8,7 +8,7 @@ import { APIThisType, RuleCategoryType } from '@types';
 
 const AddAdminRulePage = () =>
 {
-	const {categories} = useLoaderData() as AddAdminRulePageProps;
+	const { categories } = useLoaderData() as AddAdminRulePageProps;
 
 	return (
 		<div className='AddAdminRulePage'>
@@ -21,19 +21,19 @@ const AddAdminRulePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddAdminRulePageProps>
+export async function loadData(this: APIThisType): Promise<AddAdminRulePageProps>
 {
 	const [categories] = await Promise.all([
 		this.query('v1/rule/categories'),
 	]);
 
-	return {categories};
+	return { categories };
 }
 
 type AddAdminRulePageProps = {
 	categories: RuleCategoryType[]
-}
+};
 
 export default AddAdminRulePage;

@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, AvatarsType } from '@types';
 
-async function use(this: APIThisType, {id}: useProps) : Promise<SuccessType>
+async function use(this: APIThisType, { id }: useProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -33,19 +33,19 @@ async function use(this: APIThisType, {id}: useProps) : Promise<SuccessType>
 	}
 
 	// We can't have just a background or just foregrounds
-	if ((userAvatar.background_id && !userAvatar.character_id) || (!userAvatar.background_id && userAvatar.character_id))
+	if (userAvatar.background_id && !userAvatar.character_id || !userAvatar.background_id && userAvatar.character_id)
 	{
 		throw new UserError('incomplete-avatar');
 	}
 
-	const {backgrounds, colorations, accents, characters}:AvatarsType = await this.query('v1/avatars');
+	const { backgrounds, colorations, accents, characters }: AvatarsType = await this.query('v1/avatars');
 
 	const background = backgrounds.find(bg => bg.id === userAvatar.background_id);
 
 	if (!background ||
 		!characters.some(character => character.id === userAvatar.character_id) ||
-		(userAvatar.accent_id && !accents.some(accent => accent.id === userAvatar.accent_id)) ||
-		(userAvatar.coloration_id && !colorations.some(coloration => coloration.id === userAvatar.coloration_id))
+		userAvatar.accent_id && !accents.some(accent => accent.id === userAvatar.accent_id) ||
+		userAvatar.coloration_id && !colorations.some(coloration => coloration.id === userAvatar.coloration_id)
 	)
 	{
 		throw new UserError('avatar-permission');
@@ -72,10 +72,10 @@ use.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type useProps = {
 	id: number
-}
+};
 
 export default use;

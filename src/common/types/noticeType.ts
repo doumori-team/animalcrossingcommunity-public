@@ -1,5 +1,5 @@
 type NoticeType = {
-    _notice: string
+	_notice: string
 };
 
 export type { NoticeType };

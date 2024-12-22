@@ -3,11 +3,11 @@ import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
 import { APIThisType, UserFriendCodesType, FriendCodeType } from '@types';
 
-async function friend_codes(this: APIThisType, {id, page}: friendCodesProps) : Promise<UserFriendCodesType>
+async function friend_codes(this: APIThisType, { id, page }: friendCodesProps): Promise<UserFriendCodesType>
 {
 	const [useTradingPostPerm, useFriendCodes] = await Promise.all([
-		this.query('v1/permission', {permission: 'use-trading-post'}),
-		this.query('v1/permission', {permission: 'use-friend-codes'}),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
+		this.query('v1/permission', { permission: 'use-friend-codes' }),
 	]);
 
 	if (!(useTradingPostPerm || useFriendCodes))
@@ -17,7 +17,7 @@ async function friend_codes(this: APIThisType, {id, page}: friendCodesProps) : P
 
 	// Perform queries
 	const pageSize = 24;
-	const offset = isNaN(page) ? 0 : (page * pageSize) - pageSize;
+	const offset = isNaN(page) ? 0 : page * pageSize - pageSize;
 
 	let query = `
 		SELECT
@@ -30,7 +30,7 @@ async function friend_codes(this: APIThisType, {id, page}: friendCodesProps) : P
 		ORDER BY game_console.is_legacy NULLS FIRST, game_console.sequence, game.sequence, game.name, friend_code.id
 	`;
 
-	let params:any = [id];
+	let params: any = [id];
 	let paramIndex = params.length;
 
 	if (!isNaN(page) && page > 0)
@@ -50,12 +50,13 @@ async function friend_codes(this: APIThisType, {id, page}: friendCodesProps) : P
 
 	const friendCodes = await db.query(query, ...params);
 
-	const returnedFriendCodes = await Promise.all(friendCodes.map(async (friendCode:any) => {
-		return this.query('v1/friend_code', {id: friendCode.id})
+	const returnedFriendCodes = await Promise.all(friendCodes.map(async (friendCode: any) =>
+	{
+		return this.query('v1/friend_code', { id: friendCode.id });
 	}));
 
 	// either you're going to have access to all of them or not
-	const results = returnedFriendCodes.filter((value:FriendCodeType|null) => value != null);
+	const results = returnedFriendCodes.filter((value: FriendCodeType | null) => value != null);
 
 	return {
 		results: results,
@@ -74,11 +75,11 @@ friend_codes.apiTypes = {
 	page: {
 		type: APITypes.number,
 	},
-}
+};
 
 type friendCodesProps = {
-	id: number|null
+	id: number | null
 	page: number
-}
+};
 
 export default friend_codes;

@@ -7,7 +7,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Add missed bells, by type, to your account
  */
-async function miss(this: APIThisType, {type}: missProps) : Promise<SuccessType>
+async function miss(this: APIThisType, { type }: missProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -22,19 +22,19 @@ async function miss(this: APIThisType, {type}: missProps) : Promise<SuccessType>
 
 	// Perform queries
 
-	const amount:number = type === 'jackpot' ? await this.query('v1/treasure/jackpot') : Number(type);
+	const amount: number = type === 'jackpot' ? await this.query('v1/treasure/jackpot') : Number(type);
 
 	if (amount > 0)
 	{
 		await db.query(`
 			INSERT INTO treasure_offer (user_id, bells, type, offer)
 			VALUES ($1::int, $2::int, $3, (now() - interval '1 minute' * $4))
-		`, this.userId, amount, type === 'jackpot' ? 'jackpot' : 'amount', constants.bellThreshold+10);
+		`, this.userId, amount, type === 'jackpot' ? 'jackpot' : 'amount', constants.bellThreshold + 10);
 	}
 
 	const [user] = await Promise.all([
-		this.query('v1/user', {id: this.userId}),
-		db.regenerateTopBells({userId: this.userId}),
+		this.query('v1/user', { id: this.userId }),
+		db.regenerateTopBells({ userId: this.userId }),
 	]);
 
 	return {
@@ -49,10 +49,10 @@ miss.apiTypes = {
 		required: true,
 		includes: ['100', '1000', '10000', 'jackpot'],
 	},
-}
+};
 
 type missProps = {
 	type: '100' | '1000' | '10000' | 'jackpot'
-}
+};
 
 export default miss;

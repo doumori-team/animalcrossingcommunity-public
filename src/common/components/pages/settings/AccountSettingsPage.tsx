@@ -12,7 +12,7 @@ import {
 	CalendarSettingType,
 	ACGameType,
 	HemisphereType,
-	HeaderSettingType
+	HeaderSettingType,
 } from '@types';
 
 const AccountSettingsPage = () =>
@@ -20,7 +20,7 @@ const AccountSettingsPage = () =>
 	const {
 		email, showBirthday, showAge, acgames, settings, hemispheres,
 		showEmail, emailNotifications, blockedUsers, showStaff, shopDNC,
-		southernHemisphere, stayForever, userSiteHeaders
+		southernHemisphere, stayForever, userSiteHeaders,
 	} = useLoaderData() as AccountSettingsPageProps;
 
 	return (
@@ -140,7 +140,7 @@ const AccountSettingsPage = () =>
 									value={header.id}
 									label={header.name}
 								/>
-							</Form.Group>
+							</Form.Group>,
 						)}
 					</Form>
 				</div>
@@ -202,7 +202,7 @@ const AccountSettingsPage = () =>
 								label='List of Blocked Users'
 								placeholder='List of blocked users'
 								options={blockedUsers}
-								optionsMapping={{value: 'id', label: 'username'}}
+								optionsMapping={{ value: 'id', label: 'username' }}
 								multiple
 							/>
 						</Form.Group>
@@ -215,63 +215,64 @@ const AccountSettingsPage = () =>
 
 				<Form action='v1/settings/calendar/save' showButton>
 					<ul>
-					{acgames.filter(g => g.hasTown).map(acGame => {
-						const setting = settings.games.find(g => g.id === acGame.id);
+						{acgames.filter(g => g.hasTown).map(acGame =>
+						{
+							const setting = settings.games.find(g => g.id === acGame.id);
 
-						return (
-							<li key={acGame.id}>
-								<Checkbox
-									type='radio'
-									name='gameId'
-									value={acGame.id}
-									checked={setting ? setting.homepage : false}
-									label={acGame.name}
-								/>
+							return (
+								<li key={acGame.id}>
+									<Checkbox
+										type='radio'
+										name='gameId'
+										value={acGame.id}
+										checked={setting ? setting.homepage : false}
+										label={acGame.name}
+									/>
 
-								{acGame.id === constants.gameIds.ACNH && (
+									{acGame.id === constants.gameIds.ACNH &&
+										<ul>
+											<li>
+												{hemispheres.map(hemisphere =>
+													<Checkbox
+														key={hemisphere.id}
+														type='radio'
+														name='hemisphereId'
+														value={hemisphere.id}
+														checked={setting ? setting.hemisphereId === hemisphere.id : false}
+														label={hemisphere.name}
+													/>,
+												)}
+											</li>
+										</ul>
+									}
+
 									<ul>
 										<li>
-										{hemispheres.map(hemisphere =>
+											{settings.categories
+										.filter(c => acGame.id === constants.gameIds.ACGC && c.identifier !== 'birthdays' ||
+											acGame.id !== constants.gameIds.ACGC)
+										.map(category =>
 											<Checkbox
-												key={hemisphere.id}
-												type='radio'
-												name='hemisphereId'
-												value={hemisphere.id}
-												checked={setting ? setting.hemisphereId === hemisphere.id : false}
-												label={hemisphere.name}
-											/>
+												key={category.id}
+												name='categories'
+												value={`${acGame.id}_${category.id}`}
+												checked={setting ? setting.categoryIds.includes(category.id) : false}
+												label={category.name}
+											/>,
 										)}
 										</li>
 									</ul>
-								)}
-
-								<ul>
-									<li>
-									{settings.categories
-										.filter(c => (acGame.id === constants.gameIds.ACGC && c.identifier !== 'birthdays') ||
-											acGame.id !== constants.gameIds.ACGC)
-										.map(category =>
-										<Checkbox
-											key={category.id}
-											name='categories'
-											value={`${acGame.id}_${category.id}`}
-											checked={setting ? setting.categoryIds.includes(category.id) : false}
-											label={category.name}
-										/>
-									)}
-									</li>
-								</ul>
-							</li>
-						);
-					})}
+								</li>
+							);
+						})}
 					</ul>
 				</Form>
 			</Section>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AccountSettingsPageProps>
+export async function loadData(this: APIThisType): Promise<AccountSettingsPageProps>
 {
 	const [results, acgames, settings, hemispheres, blockedUsers, userSiteHeaders] = await Promise.all([
 		this.query('v1/settings/account'),
@@ -315,6 +316,6 @@ type AccountSettingsPageProps = {
 	southernHemisphere: AccountSettingType['southernHemisphere']
 	stayForever: AccountSettingType['stayForever']
 	userSiteHeaders: HeaderSettingType[]
-}
+};
 
 export default AccountSettingsPage;

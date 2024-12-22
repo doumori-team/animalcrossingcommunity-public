@@ -7,14 +7,14 @@ import { APIThisType, UserType, MarkupStyleType } from '@types';
 /*
  * Save scout settings.
  */
-async function save(this: APIThisType, {welcomeTemplate, closingTemplate, welcomeTemplateFormat, closingTemplateFormat}: saveProps) : Promise<void>
+async function save(this: APIThisType, { welcomeTemplate, closingTemplate, welcomeTemplateFormat, closingTemplateFormat }: saveProps): Promise<void>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	const user:UserType = await this.query('v1/user', {id: this.userId});
+	const user: UserType = await this.query('v1/user', { id: this.userId });
 
 	if (user.group.identifier !== constants.staffIdentifiers.scout)
 	{
@@ -50,13 +50,13 @@ save.apiTypes = {
 		default: '',
 		includes: ['plaintext', 'markdown', 'bbcode'],
 	},
-}
+};
 
 type saveProps = {
 	welcomeTemplate: string
 	closingTemplate: string
 	welcomeTemplateFormat: MarkupStyleType
 	closingTemplateFormat: MarkupStyleType
-}
+};
 
 export default save;

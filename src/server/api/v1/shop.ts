@@ -4,9 +4,9 @@ import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ShopType } from '@types';
 
-async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
+async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -39,7 +39,7 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 
 	const [owners, games, items, pendingOrders, transfer, ownersActive,
 		[positiveRatings], [neutralRatings], [negativeRatings], shopServicesData,
-		shopDefaultServicesData, statsUsers
+		shopDefaultServicesData, statsUsers,
 	] = await Promise.all([
 		db.query(`
 			SELECT user_account_cache.id, user_account_cache.username
@@ -142,15 +142,16 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 			JOIN user_account_cache ON (user_account_cache.id = shop_user.user_id)
 			WHERE shop_role.shop_id = $1 AND shop_user.active = true AND shop_role.stats = true
 		`, shop.id),
-		this.query('v1/notification/destroy', {id: shop.id, type: constants.notification.types.shopEmployee}),
+		this.query('v1/notification/destroy', { id: shop.id, type: constants.notification.types.shopEmployee }),
 	]);
 
-	let statData:any = [], extraStatData:any = null;
+	let statData: any = [], extraStatData: any = null;
 
 	if (shopServicesData.length > 0 || shopDefaultServicesData.length > 0)
 	{
-		shopDefaultServicesData.concat(shopServicesData).map((s:any) => {
-			const stat = statData.find((x:any) => x.name === s.name)
+		shopDefaultServicesData.concat(shopServicesData).map((s: any) =>
+		{
+			const stat = statData.find((x: any) => x.name === s.name);
 
 			if (stat)
 			{
@@ -166,7 +167,7 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 		});
 	}
 
-	if (statsUsers.find((u:any) => u.id === this.userId))
+	if (statsUsers.find((u: any) => u.id === this.userId))
 	{
 		extraStatData = {
 			stats: [],
@@ -205,8 +206,9 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 			`, id),
 		]);
 
-		shopDefaultServicesUsers.concat(shopServicesUsers).map((s:any) => {
-			const stat = extraStatData.stats.find((x:any) => x.username === s.username)
+		shopDefaultServicesUsers.concat(shopServicesUsers).map((s: any) =>
+		{
+			const stat = extraStatData.stats.find((x: any) => x.username === s.username);
 
 			if (stat)
 			{
@@ -221,7 +223,8 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 			}
 		});
 
-		extraStatData.employees = employees.map((u:any) => {
+		extraStatData.employees = employees.map((u: any) =>
+		{
 			return {
 				id: u.id,
 				username: u.username,
@@ -253,25 +256,26 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 		fileId: shop.file_id,
 		owners: owners,
 		games: games.length > 0 ?
-			games.map((game:any) => {
+			games.map((game: any) =>
+			{
 				let color = '';
 
 				switch(game.id)
 				{
 					case constants.gameIds.ACGC:
-						color = '#c94024' // red
+						color = '#c94024'; // red
 						break;
 					case constants.gameIds.ACWW:
-						color = '#29b524' // green
+						color = '#29b524'; // green
 						break;
 					case constants.gameIds.ACCF:
-						color = '#bdb51a' // yellow
+						color = '#bdb51a'; // yellow
 						break;
 					case constants.gameIds.ACNL:
-						color = '#c425bf' // pink
+						color = '#c425bf'; // pink
 						break;
 					case constants.gameIds.ACNH:
-						color = '#1d69ab' // blue
+						color = '#1d69ab'; // blue
 						break;
 				}
 
@@ -282,11 +286,11 @@ async function shop(this: APIThisType, {id}: shopProps) : Promise<ShopType>
 					perOrder: game.per_order,
 					stackOrQuantity: game.stack_or_quantity,
 					completeOrder: game.complete_order,
-					items: items.filter((i:any) => i.game_id === game.id).map((i:any) => i.catalog_item_id),
+					items: items.filter((i: any) => i.game_id === game.id).map((i: any) => i.catalog_item_id),
 					color: color,
 				};
 			})
-		: [],
+			: [],
 		pendingOrder: pendingOrders.length > 0,
 		transfer: shop.allow_transfer && transfer.length > 0 && ownersActive.length === 0,
 		positiveRatingsTotal: positiveRatings.count,
@@ -303,10 +307,10 @@ shop.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type shopProps = {
 	id: number
-}
+};
 
 export default shop;

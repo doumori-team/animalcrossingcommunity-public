@@ -1,7 +1,7 @@
 import * as db from '@db';
 import { APIThisType, CurrentRuleType } from '@types';
 
-export default async function current(this: APIThisType) : Promise<CurrentRuleType>
+export default async function current(this: APIThisType): Promise<CurrentRuleType>
 {
 	const [rules, violations, [rulesSetting], categories] = await Promise.all([
 		db.query(`
@@ -40,20 +40,23 @@ export default async function current(this: APIThisType) : Promise<CurrentRuleTy
 		this.query('v1/rule/categories'),
 	]);
 
-	let currentRules = categories.map((category:any) => {
+	let currentRules = categories.map((category: any) =>
+	{
 		return {
 			id: category.id,
 			name: category.name,
 			rules: rules
-				.filter((rule:any) => rule.category_id === category.id)
-				.map((rule:any) => {
+				.filter((rule: any) => rule.category_id === category.id)
+				.map((rule: any) =>
+				{
 					return {
 						id: rule.id,
 						number: rule.number,
 						name: rule.name,
 						startDate: rule.start_date,
 						description: rule.description,
-						violations: violations.filter((v:any) => v.rule_id === rule.id).map((violation:any) => {
+						violations: violations.filter((v: any) => v.rule_id === rule.id).map((violation: any) =>
+						{
 							return {
 								id: violation.id,
 								severityId: violation.severity_id,
@@ -66,12 +69,12 @@ export default async function current(this: APIThisType) : Promise<CurrentRuleTy
 						category: rule.category,
 						reportable: rule.reportable,
 					};
-				})
-		}
+				}),
+		};
 	});
 
 	return {
-		currentRules: currentRules.filter((c:any) => c.rules.length > 0),
+		currentRules: currentRules.filter((c: any) => c.rules.length > 0),
 		lastUpdated: rulesSetting.updated,
-	}
+	};
 }

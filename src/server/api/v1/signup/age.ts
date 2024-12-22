@@ -5,7 +5,7 @@ import * as db from '@db';
 import { dateUtils } from '@utils';
 import { APIThisType } from '@types';
 
-async function age(this: APIThisType, {id}: ageProps) : Promise<number>
+async function age(this: APIThisType, { id }: ageProps): Promise<number>
 {
 	if (this.userId)
 	{
@@ -33,10 +33,10 @@ age.apiTypes = {
 		type: APITypes.uuid,
 		required: true,
 	},
-}
+};
 
 type ageProps = {
 	id: string
-}
+};
 
 export default age;

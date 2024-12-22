@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, OrdinanceType } from '@types';
 
-async function ordinance(this: APIThisType, {id}: ordinanceProps) : Promise<OrdinanceType[]>
+async function ordinance(this: APIThisType, { id }: ordinanceProps): Promise<OrdinanceType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -27,10 +27,10 @@ ordinance.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type ordinanceProps = {
 	id: number
-}
+};
 
 export default ordinance;

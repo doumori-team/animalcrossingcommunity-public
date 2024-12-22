@@ -3,9 +3,9 @@ import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, BellShopCategoryType } from '@types';
 
-export default async function categories(this: APIThisType) : Promise<BellShopCategoryType[]>
+export default async function categories(this: APIThisType): Promise<BellShopCategoryType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'purchase-bell-shop'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'purchase-bell-shop' });
 
 	if (!permissionGranted)
 	{

@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, UserDonationsType } from '@types';
 
-async function save(this: APIThisType, {buddyUsers, action}: saveProps) : Promise<SuccessType|boolean>
+async function save(this: APIThisType, { buddyUsers, action }: saveProps): Promise<SuccessType | boolean>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-buddy-system'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-buddy-system' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function save(this: APIThisType, {buddyUsers, action}: saveProps) : Promis
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	if (!Array.isArray(buddyUsers))
 	{
@@ -30,7 +30,7 @@ async function save(this: APIThisType, {buddyUsers, action}: saveProps) : Promis
 				throw new UserError('bad-format');
 			}
 
-			buddyUsers = buddyUsers.split(',').map((username:string) => username.trim());
+			buddyUsers = buddyUsers.split(',').map((username: string) => username.trim());
 		}
 		else
 		{
@@ -38,7 +38,7 @@ async function save(this: APIThisType, {buddyUsers, action}: saveProps) : Promis
 		}
 	}
 
-	let buddyUserIds = await Promise.all(buddyUsers.map(async (username:string) =>
+	let buddyUserIds = await Promise.all(buddyUsers.map(async (username: string) =>
 	{
 		const [check] = await db.query(`
 			SELECT id
@@ -78,7 +78,7 @@ async function save(this: APIThisType, {buddyUsers, action}: saveProps) : Promis
 
 	if (action === 'add')
 	{
-		const userDonations:UserDonationsType = await this.query('v1/users/donations', {id: this.userId});
+		const userDonations: UserDonationsType = await this.query('v1/users/donations', { id: this.userId });
 
 		// Check how many buddies user currently has
 		const [buddyCount] = await db.query(`
@@ -88,8 +88,8 @@ async function save(this: APIThisType, {buddyUsers, action}: saveProps) : Promis
 		`, this.userId);
 
 		if (
-			(userDonations.perks < 10 && buddyCount.count >= 100) ||
-			(userDonations.perks < 20 && buddyCount.count >= 200)
+			userDonations.perks < 10 && buddyCount.count >= 100 ||
+			userDonations.perks < 20 && buddyCount.count >= 200
 		)
 		{
 			throw new UserError('max-buddies');
@@ -127,11 +127,11 @@ save.apiTypes = {
 		required: true,
 		includes: ['add', 'remove'],
 	},
-}
+};
 
 type saveProps = {
 	buddyUsers: any
 	action: 'add' | 'remove'
-}
+};
 
 export default save;

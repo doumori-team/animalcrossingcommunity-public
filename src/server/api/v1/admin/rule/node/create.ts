@@ -6,9 +6,9 @@ import { APIThisType } from '@types';
 /*
  * Create the thread + original message for rule.
  */
-export default async function create(this: APIThisType, {ruleId, number, name, description, content}: createProps) : Promise<number>
+export default async function create(this: APIThisType, { ruleId, number, name, description, content }: createProps): Promise<number>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -22,7 +22,7 @@ export default async function create(this: APIThisType, {ruleId, number, name, d
 
 	content = String(content || `A rule is being updated. Current rule is: ${description}`);
 
-	const threadId = await db.transaction(async (query:any) =>
+	const threadId = await db.transaction(async (query: any) =>
 	{
 		// create thread
 		const [thread] = await query(`
@@ -52,7 +52,7 @@ export default async function create(this: APIThisType, {ruleId, number, name, d
 		return thread.id;
 	});
 
-	await this.query('v1/notification/create', {id: threadId, type: constants.notification.types.FB});
+	await this.query('v1/notification/create', { id: threadId, type: constants.notification.types.FB });
 
 	await db.updateThreadStats(threadId);
 
@@ -71,8 +71,8 @@ export default async function create(this: APIThisType, {ruleId, number, name, d
 
 type createProps = {
 	ruleId: number
-	number: number|string
+	number: number | string
 	name: string
 	description: string
 	content: string
-}
+};

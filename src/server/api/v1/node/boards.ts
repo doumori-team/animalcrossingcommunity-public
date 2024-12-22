@@ -3,7 +3,7 @@ import { constants } from '@utils';
 import { UserError } from '@errors';
 import { APIThisType, NodeBoardType } from '@types';
 
-export default async function boards(this: APIThisType, {nodeIds}: {nodeIds?:number[]}) : Promise<NodeBoardType[]>
+export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?: number[] }): Promise<NodeBoardType[]>
 {
 	// Check params
 	if (Array.isArray(nodeIds))
@@ -139,7 +139,8 @@ export default async function boards(this: APIThisType, {nodeIds}: {nodeIds?:num
 		`, groupIds, this.userId, constants.nodePermissions.read);
 	}
 
-	return boards.map((board:any) => {
+	return boards.map((board: any) =>
+	{
 		return {
 			id: board.id,
 			type: board.type,

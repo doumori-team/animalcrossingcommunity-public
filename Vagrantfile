@@ -26,6 +26,7 @@ Vagrant.configure("2") do |config|
   # config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "forwarded_port", guest: 5000, host: 5000 # http
   config.vm.network "forwarded_port", guest: 5432, host: 6985 # postgres
+  config.vm.network "forwarded_port", id: "ssh", host: 8072, guest: 22
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
@@ -66,10 +67,11 @@ Vagrant.configure("2") do |config|
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    export DEBIAN_FRONTEND=noninteractive # prevents "dpkg-reconfigure: unable to re-open stdin: No file or directory" errors
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     apt-get update
     apt-get upgrade -y
-    apt-get install -y nodejs build-essential postgresql-16 imagemagick
+    apt-get install -y nodejs build-essential postgresql imagemagick
 
     snap install --classic heroku
 

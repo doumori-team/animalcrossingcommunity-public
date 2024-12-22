@@ -9,8 +9,8 @@ import { APIThisType, UserBioType, EmojiSettingType, UserDonationsType, UserType
 
 const EditProfileBioPage = () =>
 {
-	const {bio, emojiSettings, userDonations} = useLoaderData() as EditProfileBioPageProps;
-	const {user} = useOutletContext() as {user: UserType};
+	const { bio, emojiSettings, userDonations } = useLoaderData() as EditProfileBioPageProps;
+	const { user } = useOutletContext() as { user: UserType };
 
 	return (
 		<RequireUser id={user.id} permission='modify-profiles'>
@@ -54,7 +54,7 @@ const EditProfileBioPage = () =>
 								textValue={bio.bio ? bio.bio : ''}
 								formatName='format'
 								formatValue={bio.format ? bio.format : 'markdown'}
-								maxLength={userDonations.monthlyPerks >= 5 ? (userDonations.monthlyPerks < 10 ? constants.max.bio3 : constants.max.bio4) : (userDonations.perks < 20 ? constants.max.bio1 : constants.max.bio2)}
+								maxLength={userDonations.monthlyPerks >= 5 ? userDonations.monthlyPerks < 10 ? constants.max.bio3 : constants.max.bio4 : userDonations.perks < 20 ? constants.max.bio1 : constants.max.bio2}
 								label='Other Stuff About Me'
 								characterCount
 								emojiSettings={emojiSettings}
@@ -68,23 +68,23 @@ const EditProfileBioPage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<EditProfileBioPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditProfileBioPageProps>
 {
 	const [bio, emojiSettings, userDonations] = await Promise.all([
-		this.query('v1/users/bio', {id}),
+		this.query('v1/users/bio', { id }),
 		this.query('v1/settings/emoji'),
-		this.query('v1/users/donations', {id}),
+		this.query('v1/users/donations', { id }),
 	]);
 
-	return {bio, emojiSettings, userDonations};
+	return { bio, emojiSettings, userDonations };
 }
 
 type EditProfileBioPageProps = {
 	bio: UserBioType
 	emojiSettings: EmojiSettingType[]
 	userDonations: UserDonationsType
-}
+};
 
 export default EditProfileBioPage;

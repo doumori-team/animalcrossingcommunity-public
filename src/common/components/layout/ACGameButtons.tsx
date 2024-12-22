@@ -7,7 +7,7 @@ import Grid from '@/components/layout/Grid.tsx';
 const ACGameButtons = ({
 	acgames,
 	link,
-	reloadDocument = false
+	reloadDocument = false,
 }: ACGameButtonsProps) =>
 {
 	const location = useLocation() as LocationType;
@@ -24,11 +24,11 @@ const ACGameButtons = ({
 					reloadDocument={reloadDocument}
 				>
 					<p>{acGame.name}</p>
-				</Link>
+				</Link>,
 			)}
 		</Grid>
 	);
-}
+};
 
 type ACGameButtonsProps = {
 	acgames: ACGameType[]

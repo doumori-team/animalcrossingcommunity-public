@@ -8,10 +8,10 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, PatternColorsType, UserLiteType } from '@types';
 
-async function save(this: APIThisType, {id, patternName, published, designId, data, dataUrl,
-	gamePaletteId, palette, townId}: saveProps) : Promise<{id: number|null}>
+async function save(this: APIThisType, { id, patternName, published, designId, data, dataUrl,
+	gamePaletteId, palette, townId, characterId }: saveProps): Promise<{ id: number | null }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-patterns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-patterns' });
 
 	if (!permissionGranted)
 	{
@@ -24,7 +24,7 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 	}
 
 	// Check parameters
-	const gameId = Number(gamePaletteId.substr(0, gamePaletteId.indexOf('-')) || 0);
+	const gameId = Number(gamePaletteId.substring(0, gamePaletteId.indexOf('-')) || 0);
 
 	if (isNaN(gameId))
 	{
@@ -42,7 +42,16 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 		throw new UserError('no-such-ac-game');
 	}
 
-	const paletteId = Number(gamePaletteId.substr(gamePaletteId.indexOf('-')+1) || 0);
+	// Don't allow saving as a door pattern or house flag if this isn't a GC or CF pattern.
+	if (checkId.id !== constants.gameIds.ACGC &&
+			checkId.id !== constants.gameIds.ACCF &&
+			characterId != null &&
+			characterId != 0)
+	{
+		throw new UserError('bad-format');
+	}
+
+	const paletteId = Number(gamePaletteId.substring(gamePaletteId.indexOf('-') + 1) || 0);
 
 	if (paletteId < 1 || paletteId > 16)
 	{
@@ -61,7 +70,7 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 		}
 		else
 		{
-			if (isNaN(id) || id < 0 || id > ((colors as PatternColorsType[number]).length)-1)
+			if (isNaN(id) || id < 0 || id > (colors as PatternColorsType[number]).length - 1)
 			{
 				throw new UserError('bad-format');
 			}
@@ -99,6 +108,23 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 		throw new UserError('bad-format');
 	}
 
+	// If saving a door pattern, check perms
+	if (characterId != null && characterId > 0)
+	{
+		const [character] = await db.query(`
+			SELECT town.user_id
+			FROM character
+			JOIN town ON (town.id = character.town_id)
+			WHERE character.id = $1::int
+		`, characterId);
+
+		if (character.user_id != this.userId)
+		{
+			throw new UserError('permission');
+		}
+	}
+
+	// If saving a town flag, check perms
 	if (townId != null && townId > 0)
 	{
 		const [town] = await db.query(`
@@ -114,7 +140,7 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 	}
 
 	// Perform queries
-	const user:UserLiteType = await this.query('v1/user_lite', {id: this.userId});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
 	const [qrCodeUrl] = await Promise.all([
 		createQRCode.bind(this)(gameId, patternName, user.username, 'ACC', palette, originalData, (colors as PatternColorsType[number]), (utils.getPatternColors(constants.gameIds.ACNL) as PatternColorsType[number])),
@@ -122,23 +148,29 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 
 	if (id != null && id > 0)
 	{
-		let [checkPatternId] = await db.query(`
-			SELECT pattern.creator_id, pattern.published
+		let [checkPattern] = await db.query(`
+			SELECT pattern.creator_id, pattern.published, pattern.game_id
 			FROM pattern
 			WHERE pattern.id = $1::int
 		`, id);
 
-		if (!checkPatternId)
+		if (!checkPattern)
 		{
 			throw new UserError('no-such-pattern');
 		}
 
-		if (checkPatternId.creator_id != this.userId)
+		// Don't allow changing the game ID of an existing pattern.
+		if (checkPattern.game_id !== gameId)
+		{
+			throw new UserError('bad-format');
+		}
+
+		if (checkPattern.creator_id != this.userId)
 		{
 			throw new UserError('permission');
 		}
 
-		if (checkPatternId.published)
+		if (checkPattern.published)
 		{
 			throw new UserError('pattern-published');
 		}
@@ -160,6 +192,17 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 		id = newPattern.id;
 	}
 
+	// Right now the frontend offers no reason for this to ever receive both a character ID and a town ID,
+	// but in the interest of keeping the API stupid, attempt both non-exclusively
+	if (characterId != null && characterId > 0)
+	{
+		await db.query(`
+			UPDATE character
+			SET door_pattern_id = $1::int, door_pattern_data_url = $3, door_pattern_creator_id = $4, door_pattern_name = $5
+			WHERE id = $2::int
+		`, id, characterId, dataUrl, this.userId, patternName);
+	}
+
 	if (townId != null && townId > 0)
 	{
 		await db.query(`
@@ -172,7 +215,7 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
 	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 
 	return {
-		id: id
+		id: id,
 	};
 }
 
@@ -189,7 +232,7 @@ async function save(this: APIThisType, {id, patternName, published, designId, da
  * 	colors - array - current game colors
  * 	nlColors - array - NL & QR Code colors
  */
-async function createQRCode(gameId:number, patternName:string, author:string, townName:string, palette:any[], data:any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]) : Promise<string|null|void|Promise<string>>
+async function createQRCode(gameId: number, patternName: string, author: string, townName: string, palette: any[], data: any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): Promise<string | null | void | Promise<string>>
 {
 	if (!canCreateQRCode(gameId, data, colors, nlColors))
 	{
@@ -200,12 +243,12 @@ async function createQRCode(gameId:number, patternName:string, author:string, to
 	if (gameId !== constants.gameIds.ACNL)
 	{
 		// need to update palette & data to use NL color indexes
-		let newPalette:any = [], matchingDelta:any = [];
+		let newPalette: any = [], matchingDelta: any = [];
 
 		for (let i = 0; i < data.length; i++)
 		{
 			let rgb = colors[data[i]], newRgbIndex = 0;
-			let alreadyCalculated = matchingDelta.find((x:any) => x.rgb === rgb);
+			let alreadyCalculated = matchingDelta.find((x: any) => x.rgb === rgb);
 
 			if (alreadyCalculated)
 			{
@@ -261,14 +304,14 @@ async function createQRCode(gameId:number, patternName:string, author:string, to
 	// Unknown purpose: bytes 42-43
 	hexbytes[42] = 'b6';
 	hexbytes[43] = 'ec';
-	
+
 	// Author's character: bytes 44-63
 	hexbytes = unicodeEncode(author, 44, hexbytes);
-	
+
 	// Unknown purpose: bytes 64-65
 	hexbytes[64] = '44';
 	hexbytes[65] = 'c5';
-	
+
 	// Author's town name: bytes 66-85
 	hexbytes = unicodeEncode(townName, 66, hexbytes);
 
@@ -292,23 +335,23 @@ async function createQRCode(gameId:number, patternName:string, author:string, to
 			paletteDechex = dechex(Math.floor(decval / 9)) + dechex(decval % 9);
 		}
 
-		hexbytes[i+88] = paletteDechex;
+		hexbytes[i + 88] = paletteDechex;
 	}
 
 	// Unknown purpose: byte 103-104
 	hexbytes[103] = 'cc';
 	hexbytes[104] = '0a';
-	
+
 	// Pattern type: byte 105
 	hexbytes[105] = '09'; // only support normal for now
-	
+
 	// Null: bytes 106-107
 	// Already set to '00', so do nothing
-	
+
 	// Data: bytes 108-585
 
 	// convert data (array of color indexes) to 2D array of palette indexes
-	let formData:any = [];
+	let formData: any = [];
 
 	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
@@ -326,11 +369,11 @@ async function createQRCode(gameId:number, patternName:string, author:string, to
 	// go column by column, swap the hex values order and update QR code data
 	let index = 108;
 
-	for (let y = 0;  y < constants.pattern.paletteLength; y++)
+	for (let y = 0; y < constants.pattern.paletteLength; y++)
 	{
 		for (let x = 0; x < constants.pattern.paletteLength; x += 2)
 		{
-			hexbytes[index] = dechex(formData[x+1][y]) + dechex(formData[x][y]);
+			hexbytes[index] = dechex(formData[x + 1][y]) + dechex(formData[x][y]);
 			index++;
 		}
 	}
@@ -340,7 +383,7 @@ async function createQRCode(gameId:number, patternName:string, author:string, to
 	{
 		return await QRCode.toDataURL([{
 			data: (Buffer.from(hexbytes.map(hex => parseInt(hex, 16))) as any),
-			mode: 'byte'
+			mode: 'byte',
 		}]);
 	}
 	catch (e)
@@ -361,7 +404,7 @@ async function createQRCode(gameId:number, patternName:string, author:string, to
  * 	colors - array - current game colors
  * 	nlColors - array - NL & QR Code colors
  */
-function canCreateQRCode(gameId:number, data:any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]) : boolean
+function canCreateQRCode(gameId: number, data: any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): boolean
 {
 	// QR codes are made with NL colors, so if NL palette we're good
 	if (gameId === constants.gameIds.ACNL)
@@ -371,7 +414,7 @@ function canCreateQRCode(gameId:number, data:any[], colors: PatternColorsType[nu
 
 	// check if all colors used are found in NL
 	// if so, we can also create a QR code
-	let includedColors:any = [];
+	let includedColors: any = [];
 
 	outerLoop: for (let i = 0; i < data.length; i++)
 	{
@@ -416,25 +459,25 @@ function canCreateQRCode(gameId:number, data:any[], colors: PatternColorsType[nu
 /*
  * Check how much one color code matches another.
  */
-function hexColorDelta(hex1:string, hex2:string) : number
+function hexColorDelta(hex1: string, hex2: string): number
 {
-	hex1 = hex1.substr(1);
-	hex2 = hex2.substr(1);
+	hex1 = hex1.substring(1);
+	hex2 = hex2.substring(1);
 
 	// get red/green/blue int values of hex1
-	var r1 = parseInt(hex1.substring(0, 2), 16);
-	var g1 = parseInt(hex1.substring(2, 4), 16);
-	var b1 = parseInt(hex1.substring(4, 6), 16);
+	let r1 = parseInt(hex1.substring(0, 2), 16);
+	let g1 = parseInt(hex1.substring(2, 4), 16);
+	let b1 = parseInt(hex1.substring(4, 6), 16);
 
 	// get red/green/blue int values of hex2
-	var r2 = parseInt(hex2.substring(0, 2), 16);
-	var g2 = parseInt(hex2.substring(2, 4), 16);
-	var b2 = parseInt(hex2.substring(4, 6), 16);
+	let r2 = parseInt(hex2.substring(0, 2), 16);
+	let g2 = parseInt(hex2.substring(2, 4), 16);
+	let b2 = parseInt(hex2.substring(4, 6), 16);
 
 	// calculate differences between reds, greens and blues
-	var r = 255 - Math.abs(r1 - r2);
-	var g = 255 - Math.abs(g1 - g2);
-	var b = 255 - Math.abs(b1 - b2);
+	let r = 255 - Math.abs(r1 - r2);
+	let g = 255 - Math.abs(g1 - g2);
+	let b = 255 - Math.abs(b1 - b2);
 
 	// limit differences between 0 and 1
 	r /= 255;
@@ -448,7 +491,7 @@ function hexColorDelta(hex1:string, hex2:string) : number
 /*
  * Converts string to hex, then updates the QR code array data.
  */
-function unicodeEncode(string:string, offset:number, hexbytes:any[]) : any[]
+function unicodeEncode(string: string, offset: number, hexbytes: any[]): any[]
 {
 	let index = offset;
 
@@ -460,9 +503,9 @@ function unicodeEncode(string:string, offset:number, hexbytes:any[]) : any[]
 		let ord = dechex(string.charCodeAt(i)).padStart(4, '0');
 
 		// swap the first two with the last two; Nintendo does this for 'security'
-		hexbytes[index] = ord.substr(2, 2);
+		hexbytes[index] = ord.substring(2, 2);
 		index++;
-		hexbytes[index] = ord.substr(0, 2);
+		hexbytes[index] = ord.substring(0, 2);
 		index++;
 	}
 
@@ -472,7 +515,7 @@ function unicodeEncode(string:string, offset:number, hexbytes:any[]) : any[]
 /*
  * Converts decimal to hexadecimal. Named after php function.
  */
-function dechex(number:number) : string
+function dechex(number: number): string
 {
 	return number.toString(16);
 }
@@ -515,18 +558,19 @@ save.apiTypes = {
 		type: APITypes.townId,
 		nullable: true,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	patternName: string
 	published: boolean
-	designId: string|null
-	data: any[]|string
+	designId: string | null
+	data: any[] | string
 	dataUrl: string
 	gamePaletteId: string
 	palette: any[]
-	townId: number|null
-}
+	townId: number | null
+	characterId: number | null
+};
 
 export default save;

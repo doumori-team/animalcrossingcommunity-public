@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function accept(this: APIThisType, {id}: acceptProps) : Promise<void>
+async function accept(this: APIThisType, { id }: acceptProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -28,7 +28,7 @@ async function accept(this: APIThisType, {id}: acceptProps) : Promise<void>
 		throw new UserError('no-such-offer');
 	}
 
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: offer.listing_id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: offer.listing_id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 	const offerStatuses = constants.tradingPost.offerStatuses;
@@ -49,7 +49,7 @@ async function accept(this: APIThisType, {id}: acceptProps) : Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -70,11 +70,11 @@ async function accept(this: APIThisType, {id}: acceptProps) : Promise<void>
 		]);
 	});
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		if (!listing.game)
 		{
-			const updatedListing:ListingType = await this.query('v1/trading_post/listing', {id: listing.id});
+			const updatedListing: ListingType = await this.query('v1/trading_post/listing', { id: listing.id });
 
 			if (updatedListing.address && updatedListing.offers.accepted?.address)
 			{
@@ -89,7 +89,7 @@ async function accept(this: APIThisType, {id}: acceptProps) : Promise<void>
 
 	await this.query('v1/notification/create', {
 		id: id,
-		type: constants.notification.types.listingOfferAccepted
+		type: constants.notification.types.listingOfferAccepted,
 	});
 }
 
@@ -98,10 +98,10 @@ accept.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type acceptProps = {
 	id: number
-}
+};
 
 export default accept;

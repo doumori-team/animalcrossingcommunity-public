@@ -9,7 +9,7 @@ import { APIThisType, SuccessType, ListingType, ACGameItemType, ResidentsType } 
 /*
  * Advanced Trading Post; able to do trade from start to end without doing it yourself
  */
-async function trading_post(this: APIThisType, {gameId, listingId, step}: tradingPostProps) : Promise<SuccessType>
+async function trading_post(this: APIThisType, { gameId, listingId, step }: tradingPostProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -24,11 +24,11 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 	// Check parameters
 
-	if (Number(gameId||0) === 0)
+	if (Number(gameId || 0) === 0)
 	{
 		if (gameId !== 'real-world')
 		{
-			throw new UserError('bad-format')
+			throw new UserError('bad-format');
 		}
 	}
 	else
@@ -47,11 +47,11 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 		}
 	}
 
-	let listing:ListingType|null = null;
+	let listing: ListingType | null = null;
 
 	if (listingId)
 	{
-		listing = await this.query('v1/trading_post/listing', {id: listingId});
+		listing = await this.query('v1/trading_post/listing', { id: listingId });
 	}
 
 	if (!listing && step !== 'create_trade')
@@ -67,7 +67,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 	if (step === 'create_trade')
 	{
-		await db.transaction(async (query:any) =>
+		await db.transaction(async (query: any) =>
 		{
 			const type = faker.helpers.arrayElement([listingTypes.sell, listingTypes.buy]);
 
@@ -75,7 +75,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 				INSERT INTO listing (creator_id, status, game_id, type)
 				VALUES ($1::int, $2, $3::int, $4)
 				RETURNING id
-			`, this.userId, listingStatuses.open, Number(gameId||0) > 0 ? gameId : null, type);
+			`, this.userId, listingStatuses.open, Number(gameId || 0) > 0 ? gameId : null, type);
 
 			const defaults = await getDefaultsForListing(gameId);
 
@@ -86,27 +86,29 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			`, this.userId, listing.id, defaults.bells, offerStatuses.accepted, defaults.comment);
 
 			await Promise.all([
-				defaults.items.map(async(item) => {
-					const quantity = gameId === constants.gameIds.ACGC ? 1 : faker.random.numeric(1, { bannedDigits: ['0'] });
+				defaults.items.map(async(item) =>
+				{
+					const quantity = gameId === constants.gameIds.ACGC ? 1 : faker.string.numeric({ length: 1, exclude: ['0'] });
 
 					await query(`
 						INSERT INTO listing_offer_catalog_item (listing_offer_id, catalog_item_id, quantity)
 						VALUES ($1::int, $2, $3::int)
 					`, listingOffer.id, item.id, quantity);
-				})
+				}),
 			]);
 
 			await Promise.all([
-				defaults.residents.map(async (resident) => {
+				defaults.residents.map(async (resident) =>
+				{
 					await query(`
 						INSERT INTO listing_offer_resident (listing_offer_id, resident_id)
 						VALUES ($1::int, $2)
 					`, listingOffer.id, resident.id);
-				})
+				}),
 			]);
 		});
 	}
-	else if (step === 'make_offers' && listing != null)
+	else if (step === 'make_offers' && listing)
 	{
 		if (listing.status !== listingStatuses.open)
 		{
@@ -127,14 +129,14 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			throw new UserError('bad-format');
 		}
 
-		const offersToMake = Math.min(Number(faker.random.numeric(1, { bannedDigits: ['0'] })), staffUserIds.length);
+		const offersToMake = Math.min(Number(faker.string.numeric({ length: 1, exclude: ['0'] })), staffUserIds.length);
 
-		await db.transaction(async (query:any) =>
+		await db.transaction(async (query: any) =>
 		{
 			for (let i = 0; i < offersToMake; i++)
 			{
 				const offerUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
-				staffUserIds = staffUserIds.filter((sui:any) => sui.id !== offerUserId);
+				staffUserIds = staffUserIds.filter((sui: any) => sui.id !== offerUserId);
 
 				const defaults = await getDefaultsForListing(listing.game?.id);
 
@@ -145,23 +147,25 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 				`, offerUserId, listing.id, defaults.bells, offerStatuses.pending, defaults.comment);
 
 				await Promise.all([
-					defaults.items.map(async(item) => {
-						const quantity = gameId === constants.gameIds.ACGC ? 1 : faker.random.numeric(1, { bannedDigits: ['0'] });
+					defaults.items.map(async(item) =>
+					{
+						const quantity = gameId === constants.gameIds.ACGC ? 1 : faker.string.numeric({ length: 1, exclude: ['0'] });
 
 						await query(`
 							INSERT INTO listing_offer_catalog_item (listing_offer_id, catalog_item_id, quantity)
 							VALUES ($1::int, $2, $3::int)
 						`, listingOffer.id, item.id, quantity);
-					})
+					}),
 				]);
 
 				await Promise.all([
-					defaults.residents.map(async (resident) => {
+					defaults.residents.map(async (resident) =>
+					{
 						await query(`
 							INSERT INTO listing_offer_resident (listing_offer_id, resident_id)
 							VALUES ($1::int, $2)
 						`, listingOffer.id, resident.id);
-					})
+					}),
 				]);
 
 				await query(`
@@ -177,7 +181,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			`, listing.id);
 		});
 	}
-	else if (step === 'accept_offer' && listing != null)
+	else if (step === 'accept_offer' && listing)
 	{
 		if (listing.offers.accepted ||
 			![listingStatuses.open, listingStatuses.offerAccepted, listingStatuses.inProgress].includes(listing.status))
@@ -197,7 +201,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			throw new UserError('bad-format');
 		}
 
-		await db.transaction(async (query:any) =>
+		await db.transaction(async (query: any) =>
 		{
 			await query(`
 				UPDATE listing_offer
@@ -219,7 +223,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 			if (!listing.game)
 			{
-				const updatedListing:ListingType = await this.query('v1/trading_post/listing', {id: listing.id});
+				const updatedListing: ListingType = await this.query('v1/trading_post/listing', { id: listing.id });
 
 				if (updatedListing.address && updatedListing.offers.accepted?.address)
 				{
@@ -232,7 +236,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			}
 		});
 	}
-	else if (step === 'share_info' && listing != null)
+	else if (step === 'share_info' && listing)
 	{
 		if (![listingStatuses.offerAccepted, listingStatuses.inProgress].includes(listing.status))
 		{
@@ -248,9 +252,10 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 		}
 		else if (listing.game.id === constants.gameIds.ACGC)
 		{
-			await db.transaction(async (query:any) =>
+			await db.transaction(async (query: any) =>
 			{
-				await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) => {
+				await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) =>
+				{
 					let [character] = await query(`
 						SELECT character.id
 						FROM character
@@ -260,7 +265,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 					if (!character)
 					{
-						await this.query('v1/automation/other/town', {gameId: listing.game?.id, userId: userId});
+						await this.query('v1/automation/other/town', { gameId: listing.game?.id, userId: userId });
 
 						[character] = await query(`
 							SELECT character.id
@@ -296,7 +301,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 					}
 					else if (listing.type === listingTypes.buy)
 					{
-						var itemOffer = userId === listing.creator.id ? listing.offers.accepted : null;
+						let itemOffer = userId === listing.creator.id ? listing.offers.accepted : null;
 
 						if (userId !== listing.creator.id)
 						{
@@ -319,8 +324,9 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 						}
 					}
 
-					items.map(async(item:any) => {
-						const secretCode = `${faker.random.alphaNumeric(14)} ${faker.random.alphaNumeric(14)}`;
+					items.map(async(item: any) =>
+					{
+						const secretCode = `${faker.string.alphanumeric(14)} ${faker.string.alphanumeric(14)}`;
 
 						await query(`
 							UPDATE listing_offer_catalog_item
@@ -339,7 +345,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 		}
 		else
 		{
-			await db.transaction(async (query:any) =>
+			await db.transaction(async (query: any) =>
 			{
 				let methods = ['friend_code', 'character'];
 
@@ -352,7 +358,8 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 				if (method === 'friend_code')
 				{
-					await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) => {
+					await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) =>
+					{
 						let [friendCode] = await query(`
 							SELECT
 								friend_code.friend_code
@@ -363,7 +370,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 						if (!friendCode)
 						{
-							await this.query('v1/automation/other/town', {gameId: listing.game?.id, userId: userId});
+							await this.query('v1/automation/other/town', { gameId: listing.game?.id, userId: userId });
 
 							[friendCode] = await query(`
 								SELECT
@@ -395,7 +402,8 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 				}
 				else if (method === 'character')
 				{
-					await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) => {
+					await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) =>
+					{
 						let [friendCode] = await query(`
 							SELECT
 								friend_code.friend_code,
@@ -408,7 +416,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 						if (!friendCode)
 						{
-							await this.query('v1/automation/other/town', {gameId: listing.game?.id, userId: userId});
+							await this.query('v1/automation/other/town', { gameId: listing.game?.id, userId: userId });
 
 							[friendCode] = await query(`
 								SELECT
@@ -456,7 +464,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 						`, listing.id, listing.creator.id);
 					}
 
-					const dodoCode = faker.random.alphaNumeric(5);
+					const dodoCode = faker.string.alphanumeric(5);
 
 					await query(`
 						UPDATE listing_offer
@@ -473,14 +481,14 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			});
 		}
 	}
-	else if (step === 'complete_trade' && listing != null)
+	else if (step === 'complete_trade' && listing)
 	{
 		if (![listingStatuses.inProgress].includes(listing.status))
 		{
 			throw new UserError('bad-format');
 		}
 
-		await db.transaction(async (query:any) =>
+		await db.transaction(async (query: any) =>
 		{
 			await query(`
 				UPDATE listing_offer
@@ -501,7 +509,7 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 			`, listing.id, offerStatuses.rejected, offerStatuses.onHold);
 		});
 	}
-	else if (step === 'submit_feedback' && listing != null)
+	else if (step === 'submit_feedback' && listing)
 	{
 		if (![listingStatuses.completed, listingStatuses.failed].includes(listing.status))
 		{
@@ -512,9 +520,10 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 
 		const ratingIds = [ratingConfig.positive.id, ratingConfig.neutral.id, ratingConfig.negative.id];
 
-		await db.transaction(async (query:any) =>
+		await db.transaction(async (query: any) =>
 		{
-			await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) => {
+			await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) =>
+			{
 				const ratingUserId = userId === listing.creator.id ?
 					listing.offers.accepted?.user.id : listing.creator.id;
 
@@ -540,26 +549,26 @@ async function trading_post(this: APIThisType, {gameId, listingId, step}: tradin
 	}
 
 	return {
-		_success: `Your trade has been created / updated!`
+		_success: `Your trade has been created / updated!`,
 	};
 }
 
 /*
  * Grabs trading elements for listing / offer.
  */
-async function getDefaultsForListing(gameId:number|string|null|undefined) : Promise<{bells: number|null, comment: string, items: ACGameItemType[number]['all']['items'], residents: ResidentsType[number]}>
+async function getDefaultsForListing(gameId: number | string | null | undefined): Promise<{ bells: number | null, comment: string, items: ACGameItemType[number]['all']['items'], residents: ResidentsType[number] }>
 {
-	let bells:number|null = null, comment = '', items:ACGameItemType[number]['all']['items'] = [], residents:ResidentsType[number] = [];
+	let bells: number | null = null, comment = '', items: ACGameItemType[number]['all']['items'] = [], residents: ResidentsType[number] = [];
 
 	if (gameId === 'real-world' || gameId === undefined)
 	{
-		const catalogItems:ACGameItemType[number]['all']['items'] = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
+		const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
 		items = faker.helpers.arrayElements(catalogItems, 10);
 	}
 	else if (gameId === constants.gameIds.ACGC)
 	{
-		const catalogItems:ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item:ACGameItemType[number]['all']['items'][number]) => item.tradeable);
+		const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable);
 
 		items = faker.helpers.arrayElements(catalogItems, 10);
 	}
@@ -569,20 +578,20 @@ async function getDefaultsForListing(gameId:number|string|null|undefined) : Prom
 
 		if (categories.includes('items'))
 		{
-			const catalogItems:ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item:ACGameItemType[number]['all']['items'][number]) => item.tradeable);
+			const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable);
 
 			items = faker.helpers.arrayElements(catalogItems, 10);
 		}
 
-		if (categories.includes('residents') && gameId != null)
+		if (categories.includes('residents') && gameId)
 		{
-			const sortedResidents:ResidentsType = await ACCCache.get(constants.cacheKeys.residents);
+			const sortedResidents: ResidentsType = await ACCCache.get(constants.cacheKeys.residents);
 			residents = faker.helpers.arrayElements(sortedResidents[Number(gameId)], 5);
 		}
 
 		if (categories.includes('bells'))
 		{
-			bells = Number(faker.random.numeric(5));
+			bells = Number(faker.number.int(99999));
 		}
 
 		if (categories.includes('comment'))
@@ -591,7 +600,7 @@ async function getDefaultsForListing(gameId:number|string|null|undefined) : Prom
 		}
 	}
 
-	return {bells, comment, items, residents};
+	return { bells, comment, items, residents };
 }
 
 trading_post.apiTypes = {
@@ -608,13 +617,13 @@ trading_post.apiTypes = {
 		default: '',
 		includes: ['create_trade', 'make_offers', 'accept_offer', 'share_info', 'complete_trade', 'submit_feedback'],
 		required: true,
-	}
-}
+	},
+};
 
 type tradingPostProps = {
-	gameId: string|null|number
-	listingId: string|null
+	gameId: string | null | number
+	listingId: string | null
 	step: 'create_trade' | 'make_offers' | 'accept_offer' | 'share_info' | 'complete_trade' | 'submit_feedback'
-}
+};
 
 export default trading_post;

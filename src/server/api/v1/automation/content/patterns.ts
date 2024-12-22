@@ -10,7 +10,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Add X Patterns
  */
-async function patterns(this: APIThisType, {amount}: patternsProps) : Promise<SuccessType>
+async function patterns(this: APIThisType, { amount }: patternsProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -40,7 +40,7 @@ async function patterns(this: APIThisType, {amount}: patternsProps) : Promise<Su
 	for (let i = 0; i < amount; i++)
 	{
 		const patternUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
-		const patternName = faker.random.words();
+		const patternName = faker.lorem.words();
 
 		await db.query(`
 			INSERT INTO pattern (name, creator_id, published, design_id, data, data_url, game_id, palette_id, qr_code_url)
@@ -51,7 +51,7 @@ async function patterns(this: APIThisType, {amount}: patternsProps) : Promise<Su
 	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 
 	return {
-		_success: `Your pattern(s) have been created!`
+		_success: `Your pattern(s) have been created!`,
 	};
 }
 
@@ -62,10 +62,10 @@ patterns.apiTypes = {
 		max: 100,
 		min: 1,
 	},
-}
+};
 
 type patternsProps = {
 	amount: number
-}
+};
 
 export default patterns;

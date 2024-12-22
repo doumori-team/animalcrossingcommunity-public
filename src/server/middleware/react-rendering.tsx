@@ -25,7 +25,7 @@ const handler = createStaticHandler(routes);
  * If data is fetched from the database, it is also serialized and passed to
  * the client-side as window.__initialData.
  */
-app.get('*', async (request:any, response:any) =>
+app.get('*', async (request: any, response: any) =>
 {
 	let log = utils.startLog(request, 'reactrendering');
 
@@ -39,17 +39,17 @@ app.get('*', async (request:any, response:any) =>
 
 		return response.redirect(
 			302,
-			'https://www.animalcrossingcommunity.com'
+			'https://www.animalcrossingcommunity.com',
 		);
 	}
 
-	let clientRequest:any = createFetchRequest(request);
+	let clientRequest: any = createFetchRequest(request);
 
 	// when rendering server-side, send authenticated user to routing's loader functions
 	clientRequest.session = {};
 	clientRequest.session.user = request.session.user;
 
-	let context:StaticHandlerContext|Response;
+	let context: StaticHandlerContext | Response;
 
 	try
 	{
@@ -82,7 +82,7 @@ app.get('*', async (request:any, response:any) =>
 
 		return response.redirect(
 			context.status,
-			context.headers.get('Location')
+			context.headers.get('Location'),
 		);
 	}
 
@@ -99,7 +99,7 @@ app.get('*', async (request:any, response:any) =>
 
 		response.status(status);
 
-		if (status != 404)
+		if (status !== 404)
 		{
 			console.error('Logging error response:');
 			console.error(error);
@@ -114,18 +114,24 @@ app.get('*', async (request:any, response:any) =>
 
 		if (error.data && (error.data.name === 'ProfanityError' || error.data.name === 'UserError'))
 		{
-			let details:any;
+			let details: any;
 
 			if (error.data.name === 'UserError')
 			{
 				details = error.data.identifiers.map(
-					(id:any) => { return { id, message: (errors.ERROR_MESSAGES as any)[id].message } }
+					(id: any) =>
+					{
+						return { id, message: (errors.ERROR_MESSAGES as any)[id].message };
+					},
 				);
 			}
 			else if (error.data.name === 'ProfanityError')
 			{
 				details = error.data.identifier.map(
-					(id:any) => { return { id, message: `${(errors.ERROR_MESSAGES as any)[id].message} ${error.data.words}` } }
+					(id: any) =>
+					{
+						return { id, message: `${(errors.ERROR_MESSAGES as any)[id].message} ${error.data.words}` };
+					},
 				);
 			}
 
@@ -139,15 +145,15 @@ app.get('*', async (request:any, response:any) =>
 		<StaticRouterProvider
 			router={createStaticRouter(
 				handler.dataRoutes,
-				staticHandlerContext
+				staticHandlerContext,
 			)}
 			context={staticHandlerContext}
-		/>
+		/>,
 	);
 
 	const searchParams = new URLSearchParams(staticHandlerContext.location.search);
 
-	let query:any = {};
+	let query: any = {};
 
 	for (const [key, value] of searchParams.entries())
 	{
@@ -162,7 +168,7 @@ app.get('*', async (request:any, response:any) =>
 		(iso as any).query(request.session.user, 'v1/session/update', {
 			url: staticHandlerContext.location.pathname,
 			params: params,
-			query: query
+			query: query,
 		});
 
 		const sessionId = request.cookies['connect.sid'];
@@ -193,7 +199,7 @@ app.get('*', async (request:any, response:any) =>
 
 	if (constants.LIVE_SITE || query.debug)
 	{
-		const {season} = getSeason(constants.LIVE_SITE ? null: query.debug);
+		const { season } = getSeason(constants.LIVE_SITE ? null : query.debug);
 
 		icon += `gyroid-${season}.ico`;
 	}
@@ -202,8 +208,8 @@ app.get('*', async (request:any, response:any) =>
 		icon += 'gyroid-test.ico';
 	}
 
-	const title:string = await (iso as any).query(request.session.user, 'v1/title', {
-		pathname: staticHandlerContext.location.pathname
+	const title: string = await (iso as any).query(request.session.user, 'v1/title', {
+		pathname: staticHandlerContext.location.pathname,
 	});
 
 	log += ` status=200`;
@@ -216,21 +222,21 @@ app.get('*', async (request:any, response:any) =>
 		icon,
 		version: constants.version,
 		vendor_version: constants.vendorVersion,
-		title
+		title,
 	});
 });
 
 // From React-Router 6 docs
-function createFetchRequest(req:any) : Request
+function createFetchRequest(req: any): Request
 {
-	let origin = `${req.protocol}://${req.get("host")}`;
+	let origin = `${req.protocol}://${req.get('host')}`;
 	let url;
 
 	try
 	{
 		url = new URL(req.originalUrl || req.url, origin);
 	}
-	catch (e)
+	catch (_: any)
 	{
 		url = new URL('', origin);
 	}
@@ -238,7 +244,7 @@ function createFetchRequest(req:any) : Request
 	let controller = new AbortController();
 	req.on('close', () => controller.abort());
 
-	let headers:any = new Headers();
+	let headers: any = new Headers();
 
 	for (let [key, values] of Object.entries(req.headers))
 	{
@@ -258,13 +264,13 @@ function createFetchRequest(req:any) : Request
 		}
 	}
 
-	let init:any = {
+	let init: any = {
 		method: req.method,
 		headers,
 		signal: controller.signal,
 	};
 
-	if (req.method !== "GET" && req.method !== "HEAD")
+	if (req.method !== 'GET' && req.method !== 'HEAD')
 	{
 		init.body = req.body;
 	}

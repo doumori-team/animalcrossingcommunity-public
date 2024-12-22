@@ -536,6 +536,10 @@
 		span {
 			display: block;
 		}
+
+		img {
+			max-width: 100%;
+		}
 	}
 
 	.Check_input:checked+label {

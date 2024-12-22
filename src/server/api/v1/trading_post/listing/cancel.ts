@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function cancel(this: APIThisType, {id}: cancelProps) : Promise<void>
+async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -14,7 +14,7 @@ async function cancel(this: APIThisType, {id}: cancelProps) : Promise<void>
 	}
 
 	// Check parameters
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
@@ -28,7 +28,7 @@ async function cancel(this: APIThisType, {id}: cancelProps) : Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		const offerStatuses = constants.tradingPost.offerStatuses;
 
@@ -45,7 +45,7 @@ async function cancel(this: APIThisType, {id}: cancelProps) : Promise<void>
 			`, id, listingStatuses.cancelled),
 			this.query('v1/notification/create', {
 				id: id,
-				type: constants.notification.types.listingCancelled
+				type: constants.notification.types.listingCancelled,
 			}),
 		]);
 	});
@@ -56,10 +56,10 @@ cancel.apiTypes = {
 		type: APITypes.listingId,
 		required: true,
 	},
-}
+};
 
 type cancelProps = {
 	id: number
-}
+};
 
 export default cancel;

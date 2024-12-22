@@ -7,7 +7,7 @@ class Cache
 	// All keys - except version - are prefixed with version, so each 'release'
 	// will have a clear cache.
 	// Works with environments with no redis.
-	constructor(client: Redis|null)
+	constructor(client: Redis | null)
 	{
 		(this as any).cache = client;
 
@@ -23,7 +23,7 @@ class Cache
 		}
 	}
 
-	async get(key:string, callback?:any, ttl = 86400) : Promise<any>
+	async get(key: string, callback?: any, ttl = 86400): Promise<any>
 	{
 		const useKey = `${constants.version}_${key}`;
 
@@ -35,7 +35,7 @@ class Cache
 			{
 				exists = await (this as any).cache.exists(useKey);
 			}
-			catch (error)
+			catch (error: any)
 			{
 				console.error(`error: [Cache] Redis exists ${useKey}: ${error}`);
 			}
@@ -49,7 +49,7 @@ class Cache
 			{
 				value = await (this as any).cache.get(useKey);
 			}
-			catch (error)
+			catch (error: any)
 			{
 				console.error(`error: [Cache] Redis get ${useKey}: ${error}`);
 			}
@@ -67,7 +67,7 @@ class Cache
 				// calls) the whole thing to a variable, just the game's category
 				// that reduces memory usage as more users hit the same call
 				// could still run out of memory, but it reduces the threshold
-				let switchKey = key, keys:string[] = [];
+				let switchKey = key, keys: string[] = [];
 
 				if (key.includes('_'))
 				{
@@ -173,13 +173,13 @@ class Cache
 		{
 			return JSON.parse(value);
 		}
-		catch (error)
+		catch (_: any)
 		{
 			return value;
 		}
 	}
 
-	async set(key:string, value:any, ttl = 86400) : Promise<void>
+	async set(key: string, value: any, ttl = 86400): Promise<void>
 	{
 		if ((this as any).cache)
 		{
@@ -193,7 +193,7 @@ class Cache
 			{
 				storeValue = JSON.stringify(value);
 			}
-			catch (error)
+			catch (_: any)
 			{
 				storeValue = value;
 			}
@@ -209,14 +209,14 @@ class Cache
 					await (this as any).cache.set(useKey, storeValue, 'EX', ttl);
 				}
 			}
-			catch (error)
+			catch (error: any)
 			{
 				console.error(`error: [Cache] Redis set ${useKey}: ${error}`);
 			}
 		}
 	}
 
-	pipelineSet(pipeline:any, key:string, value:any, ttl = 86400) : void
+	pipelineSet(pipeline: any, key: string, value: any, ttl = 86400): void
 	{
 		const useKey = `${constants.version}_${key}`;
 
@@ -228,7 +228,7 @@ class Cache
 		{
 			storeValue = JSON.stringify(value);
 		}
-		catch (error)
+		catch (_: any)
 		{
 			storeValue = value;
 		}
@@ -244,13 +244,13 @@ class Cache
 				pipeline.set(useKey, storeValue, 'EX', ttl);
 			}
 		}
-		catch (error)
+		catch (error: any)
 		{
 			console.error(`error: [Cache] Redis pipelineSet ${useKey}: ${error}`);
 		}
 	}
 
-	async deleteMatch(match: string) : Promise<void>
+	async deleteMatch(match: string): Promise<void>
 	{
 		if ((this as any).cache)
 		{
@@ -265,14 +265,14 @@ class Cache
 					await (this as any).cache.del(keys);
 				}
 			}
-			catch (error)
+			catch (error: any)
 			{
 				console.error(`error: [Cache] Redis deleteMatch ${match}: ${error}`);
 			}
 		}
 	}
 
-	async flush() : Promise<void>
+	async flush(): Promise<void>
 	{
 		if ((this as any).cache)
 		{
@@ -282,14 +282,14 @@ class Cache
 			{
 				await (this as any).cache.flushall();
 			}
-			catch (error)
+			catch (error: any)
 			{
 				console.error(`error: [Cache] Redis flushall: ${error}`);
 			}
 		}
 	}
 
-	async checkVersion() : Promise<void>
+	async checkVersion(): Promise<void>
 	{
 		if ((this as any).cache)
 		{
@@ -303,7 +303,7 @@ class Cache
 			{
 				exists = await (this as any).cache.exists(cacheKey);
 			}
-			catch (error)
+			catch (error: any)
 			{
 				console.error(`error: [Cache] Redis checkVersion exists ${cacheKey}: ${error}`);
 			}
@@ -314,7 +314,7 @@ class Cache
 				{
 					version = await (this as any).cache.get(cacheKey);
 				}
-				catch (error)
+				catch (error: any)
 				{
 					console.error(`error: [Cache] Redis checkVersion get ${cacheKey}: ${error}`);
 				}
@@ -335,7 +335,7 @@ class Cache
 						await (this as any).cache.del(keys);
 					}
 				}
-				catch (error)
+				catch (error: any)
 				{
 					console.error(`error: [Cache] Redis checkVersion delete ${version}: ${error}`);
 				}
@@ -353,13 +353,13 @@ class Cache
 						await (this as any).cache.del(keys);
 					}
 				}
-				catch (error)
+				catch (error: any)
 				{
 					console.error(`error: [Cache] Redis checkVersion delete (again) ${version}: ${error}`);
 				}
 			}
 
-			if (version === null || (version !== null && version != constants.version))
+			if (version === null || version !== null && version != constants.version)
 			{
 				try
 				{
@@ -367,7 +367,7 @@ class Cache
 
 					await (this as any).cache.set(cacheKey, constants.version);
 				}
-				catch (error)
+				catch (error: any)
 				{
 					console.error(`error: [Cache] Redis checkVersion set ${cacheKey}: ${error}`);
 				}
@@ -381,11 +381,11 @@ class Cache
 
 				(this as any).pipelineSet(pipeline, constants.cacheKeys.sortedCategories, acData.sortedCategories, null);
 
-				for (var gameId in acData.sortedAcGameCategories)
+				for (let gameId in acData.sortedAcGameCategories)
 				{
-					for (var categoryName in acData.sortedAcGameCategories[gameId])
+					for (let categoryName in acData.sortedAcGameCategories[gameId])
 					{
-						for (var sortBy in acData.sortedAcGameCategories[gameId][categoryName])
+						for (let sortBy in acData.sortedAcGameCategories[gameId][categoryName])
 						{
 							(this as any).pipelineSet(pipeline, `${constants.cacheKeys.sortedAcGameCategories}_${gameId}_${categoryName}_${sortBy}`, (acData.sortedAcGameCategories as any)[gameId][categoryName][sortBy], null);
 						}
@@ -403,5 +403,5 @@ const ACCCache = new Cache(
 );
 
 export {
-	ACCCache
+	ACCCache,
 };

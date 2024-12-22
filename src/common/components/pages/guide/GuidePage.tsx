@@ -8,7 +8,7 @@ import { APIThisType, GuideType } from '@types';
 
 const GuidePage = () =>
 {
-	const {guide} = useLoaderData() as GuidePageProps;
+	const { guide } = useLoaderData() as GuidePageProps;
 
 	const encodedId = encodeURIComponent(guide.id);
 	const encodedGameId = encodeURIComponent(guide.game.id);
@@ -19,13 +19,13 @@ const GuidePage = () =>
 				<Header
 					name={
 						<>
-						{guide.updatedName ? guide.updatedName : guide.name}
-						{' '}
-						<small className='GuidePage_gameName'><cite>
-							<Link to={`/guides/${encodedGameId}`}>
-								{guide.game.shortname}
-							</Link>
-						</cite></small>
+							{guide.updatedName ? guide.updatedName : guide.name}
+							{' '}
+							<small className='GuidePage_gameName'><cite>
+								<Link to={`/guides/${encodedGameId}`}>
+									{guide.game.shortname}
+								</Link>
+							</cite></small>
 						</>
 					}
 					links={
@@ -84,19 +84,19 @@ const GuidePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<GuidePageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<GuidePageProps>
 {
 	const [guide] = await Promise.all([
-		this.query('v1/guide', {id: id}),
+		this.query('v1/guide', { id: id }),
 	]);
 
-	return {guide};
+	return { guide };
 }
 
 type GuidePageProps = {
 	guide: GuideType
-}
+};
 
 export default GuidePage;

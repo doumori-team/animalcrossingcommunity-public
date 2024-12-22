@@ -5,9 +5,9 @@ import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, ACGameItemType } from '@types';
 
-async function save(this: APIThisType, {characterId, inventory, wishlist, museum, remove}: saveProps) : Promise<void>
+async function save(this: APIThisType, { characterId, inventory, wishlist, museum, remove }: saveProps): Promise<void>
 {
-	const permissionGranted = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -27,7 +27,7 @@ async function save(this: APIThisType, {characterId, inventory, wishlist, museum
 	}
 
 	// all items in game
-	const catalogItems:ACGameItemType[number]['all']['items'] = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${character.game_id}_all_items`);
+	const catalogItems: ACGameItemType[number]['all']['items'] = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${character.game_id}_all_items`);
 
 	// Check inventory
 	inventory = await Promise.all(inventory.map(async (id) =>
@@ -84,7 +84,7 @@ async function save(this: APIThisType, {characterId, inventory, wishlist, museum
 	}
 }
 
-async function updateItems(characterId:number, inventory:any[], wishlist:any[], museum:any[]) : Promise<void>
+async function updateItems(characterId: number, inventory: any[], wishlist: any[], museum: any[]): Promise<void>
 {
 	if (inventory.length > 0 || wishlist.length > 0 || museum.length > 0)
 	{
@@ -141,7 +141,7 @@ async function updateItems(characterId:number, inventory:any[], wishlist:any[], 
 			db.query(`
 				INSERT INTO catalog_item (character_id, catalog_item_id, is_inventory, is_wishlist)
 				SELECT $1::int, unnest($2::text[]), $3, $4
-			`, characterId, wishlist.filter(item => !inventory.includes(item)), false, true)
+			`, characterId, wishlist.filter(item => !inventory.includes(item)), false, true),
 		]);
 	}
 	else if (wishlist.length > 0 && museum.length > 0)
@@ -158,7 +158,7 @@ async function updateItems(characterId:number, inventory:any[], wishlist:any[], 
 			db.query(`
 				INSERT INTO catalog_item (character_id, catalog_item_id, in_museum, is_wishlist)
 				SELECT $1::int, unnest($2::text[]), $3, $4
-			`, characterId, museum.filter(item => !wishlist.includes(item)), true, false)
+			`, characterId, museum.filter(item => !wishlist.includes(item)), true, false),
 		]);
 	}
 	else if (museum.length > 0 && inventory.length > 0)
@@ -175,7 +175,7 @@ async function updateItems(characterId:number, inventory:any[], wishlist:any[], 
 			db.query(`
 				INSERT INTO catalog_item (character_id, catalog_item_id, is_inventory, in_museum)
 				SELECT $1::int, unnest($2::text[]), $3, $4
-			`, characterId, museum.filter(item => !inventory.includes(item)), false, true)
+			`, characterId, museum.filter(item => !inventory.includes(item)), false, true),
 		]);
 	}
 	else if (inventory.length > 0)
@@ -201,7 +201,7 @@ async function updateItems(characterId:number, inventory:any[], wishlist:any[], 
 	}
 }
 
-async function removeInventory(characterId:number, remove:any[]) : Promise<void>
+async function removeInventory(characterId: number, remove: any[]): Promise<void>
 {
 	if (remove.length <= 0)
 	{
@@ -231,7 +231,7 @@ save.apiTypes = {
 	remove: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	characterId: number
@@ -239,6 +239,6 @@ type saveProps = {
 	wishlist: any[]
 	museum: any[]
 	remove: any[]
-}
+};
 
 export default save;

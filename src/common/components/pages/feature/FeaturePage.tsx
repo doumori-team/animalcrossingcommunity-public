@@ -10,12 +10,12 @@ import { APIThisType, FeatureType, EmojiSettingType } from '@types';
 
 const FeaturePage = () =>
 {
-	const {feature, currentUserEmojiSettings, userEmojiSettings} = useLoaderData() as FeaturePageProps;
+	const { feature, currentUserEmojiSettings, userEmojiSettings } = useLoaderData() as FeaturePageProps;
 	const [staffOnly, setStaffOnly] = useState<boolean>(true);
 
 	const encodedId = encodeURIComponent(feature.id);
 
-	const getMessagesSection = (type: string) : React.ReactNode =>
+	const getMessagesSection = (type: string): React.ReactNode =>
 	{
 		const messages = feature.messages.filter(m => type === 'staff' ? m.staffOnly : !m.staffOnly);
 
@@ -24,18 +24,18 @@ const FeaturePage = () =>
 				<h3>Messages: </h3>
 
 				<div className='FeaturePage_messages'>
-					{messages.length > 0 ? (
+					{messages.length > 0 ?
 						messages.map(message =>
 							<div key={message.id} className={`FeaturePage_message ${message.staffOnly && 'staff'}`}>
 								<div className='FeaturePage_messageHeader'>
 									<div className='FeaturePage_messageBy'>
-										{message.user ? (
+										{message.user ?
 											<>
-											Message By: <Link to={`/profile/${encodeURIComponent(message.user.id)}`}>
-												{message.user.username}
-											</Link>
+												Message By: <Link to={`/profile/${encodeURIComponent(message.user.id)}`}>
+													{message.user.username}
+												</Link>
 											</>
-										) : 'Staff Response'} on {message.formattedDate}
+											: 'Staff Response'} on {message.formattedDate}
 									</div>
 								</div>
 
@@ -53,15 +53,15 @@ const FeaturePage = () =>
 											'markdown'}
 									/>}
 								</div>
-							</div>
+							</div>,
 						)
-					) : (
+						:
 						'No messages have been posted.'
-					)}
+					}
 				</div>
 			</div>
 		);
-	}
+	};
 
 	const postMessageSection = () =>
 	{
@@ -98,7 +98,7 @@ const FeaturePage = () =>
 				</Form>
 			</Section>
 		);
-	}
+	};
 
 	return (
 		<div className='FeaturePage'>
@@ -108,21 +108,21 @@ const FeaturePage = () =>
 					link='/features'
 					links={
 						<>
-						<Link to={`/features/add`}>
-							Suggest Feature / Report Bug
-						</Link>
-						<RequirePermission permission='claim-features' silent>
-							<Link to={`/feature/${feature.id}/edit`}>
-								Edit
+							<Link to={`/features/add`}>
+								Suggest Feature / Report Bug
 							</Link>
-						</RequirePermission>
-						<Form action='v1/feature/follow'>
-							<input type='hidden' name='id' value={feature.id} />
-							<Button
-								type='submit'
-								label={feature.followed ? 'Following' : 'Follow'}
-							/>
-						</Form>
+							<RequirePermission permission='claim-features' silent>
+								<Link to={`/feature/${feature.id}/edit`}>
+									Edit
+								</Link>
+							</RequirePermission>
+							<Form action='v1/feature/follow'>
+								<input type='hidden' name='id' value={feature.id} />
+								<Button
+									type='submit'
+									label={feature.followed ? 'Following' : 'Follow'}
+								/>
+							</Form>
 						</>
 					}
 				/>
@@ -136,7 +136,7 @@ const FeaturePage = () =>
 						/>
 					</div>
 
-					{feature.staffDescription && (
+					{feature.staffDescription &&
 						<RequirePermission permission='advanced-features' silent>
 							<Markup
 								text={feature.staffDescription}
@@ -144,7 +144,7 @@ const FeaturePage = () =>
 								emojiSettings={userEmojiSettings.filter(s => s.userId === feature.user.id)}
 							/>
 						</RequirePermission>
-					)}
+					}
 
 					<div className='FeaturePage_infoLine'>
 						Created By: <Link to={`/profile/${feature.user.id}`}>
@@ -153,17 +153,17 @@ const FeaturePage = () =>
 					</div>
 
 					<RequirePermission permission='advanced-features' silent>
-						{feature.assignedUsers.length > 0 && (
+						{feature.assignedUsers.length > 0 &&
 							<div className='FeaturePage_infoLine'>
 								<b>Assigned User(s):</b>
 
 								<ul className='FeaturePage_userList'>
 									{feature.assignedUsers.map(user =>
-										<li key={user.id}>{user.username}</li>
+										<li key={user.id}>{user.username}</li>,
 									)}
 								</ul>
 							</div>
-						)}
+						}
 					</RequirePermission>
 
 					<div className='FeaturePage_infoLine'>
@@ -179,7 +179,8 @@ const FeaturePage = () =>
 					</div>
 
 					<PermissionsContext.Consumer>
-						{permissions => {
+						{permissions =>
+						{
 							let actions = [];
 
 							// Basic stuff
@@ -256,15 +257,15 @@ const FeaturePage = () =>
 													name='id'
 													value={feature.id}
 												/>
-												{action.form !== 'claim' && (
+												{action.form !== 'claim' &&
 													<input
 														type='hidden'
 														name='newStatus'
 														value={action.newStatus}
 													/>
-												)}
+												}
 											</Form>
-										</li>
+										</li>,
 									)}
 								</ul>
 							);
@@ -274,51 +275,51 @@ const FeaturePage = () =>
 
 				<PermissionsContext.Consumer>
 					{permissions => permissions && (
-						permissions.indexOf('advanced-features') !== -1 ? (
+						permissions.indexOf('advanced-features') !== -1 ?
 							<>
-							<Tabs defaultActiveKey={feature.staffOnly ? 'staff' : 'community'} variant='light' onSelect={(eventKey) => setStaffOnly(eventKey === 'staff')}>
-								<Tabs.Tab eventKey='staff' title='Staff Messages'>
-									{getMessagesSection('staff')}
-								</Tabs.Tab>
-								<Tabs.Tab eventKey='community' title='Community Messages'>
-									{getMessagesSection('community')}
-								</Tabs.Tab>
-							</Tabs>
-							{postMessageSection()}
+								<Tabs defaultActiveKey={feature.staffOnly ? 'staff' : 'community'} variant='light' onSelect={(eventKey) => setStaffOnly(eventKey === 'staff')}>
+									<Tabs.Tab eventKey='staff' title='Staff Messages'>
+										{getMessagesSection('staff')}
+									</Tabs.Tab>
+									<Tabs.Tab eventKey='community' title='Community Messages'>
+										{getMessagesSection('community')}
+									</Tabs.Tab>
+								</Tabs>
+								{postMessageSection()}
 							</>
-						) : (
+							:
 							<>
-							{getMessagesSection('community')}
-							{!feature.readOnly && (
-								postMessageSection()
-							)}
+								{getMessagesSection('community')}
+								{!feature.readOnly &&
+									postMessageSection()
+								}
 							</>
-						)
+
 					)}
 				</PermissionsContext.Consumer>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<FeaturePageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<FeaturePageProps>
 {
 	const [feature, currentUserEmojiSettings] = await Promise.all([
-		this.query('v1/feature', {id: id}),
+		this.query('v1/feature', { id: id }),
 		this.query('v1/settings/emoji'),
 	]);
 
 	const [userEmojiSettings] = await Promise.all([
-		feature.messages.length > 0 ? this.query('v1/settings/emoji', {userIds: feature.messages.map((m:any) => m.user?.id)}) : [],
+		feature.messages.length > 0 ? this.query('v1/settings/emoji', { userIds: feature.messages.map((m: any) => m.user?.id) }) : [],
 	]);
 
-	return {feature, currentUserEmojiSettings, userEmojiSettings};
+	return { feature, currentUserEmojiSettings, userEmojiSettings };
 }
 
 type FeaturePageProps = {
 	feature: FeatureType
 	currentUserEmojiSettings: EmojiSettingType[]
 	userEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default FeaturePage;

@@ -11,7 +11,7 @@ import { APIThisType, RatingsReceivedType, UserRatingType } from '@types';
 
 const EmployeeRatingsPage = () =>
 {
-	const {ratings, page, pageSize, totalCount, user} = useLoaderData() as EmployeeRatingsPageProps;
+	const { ratings, page, pageSize, totalCount, user } = useLoaderData() as EmployeeRatingsPageProps;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -19,58 +19,58 @@ const EmployeeRatingsPage = () =>
 		<div className='EmployeeRatingsPage'>
 			<RequireUser silent>
 				<UserContext.Consumer>
-					{scout => scout && (
+					{scout => scout &&
 						<>
-						<Header
-							name='Employee Ratings'
-							links={
-								<>
-								<Link to='/shops'>Shops</Link>
-								</>
-							}
-						>
-							<TotalRatings
-								positiveRatingsTotal={user.positiveShopRatingsTotal}
-								neutralRatingsTotal={user.neutralShopRatingsTotal}
-								negativeRatingsTotal={user.negativeShopRatingsTotal}
-								type={constants.rating.types.shop}
-							/>
-						</Header>
+							<Header
+								name='Employee Ratings'
+								links={
+									<>
+										<Link to='/shops'>Shops</Link>
+									</>
+								}
+							>
+								<TotalRatings
+									positiveRatingsTotal={user.positiveShopRatingsTotal}
+									neutralRatingsTotal={user.neutralShopRatingsTotal}
+									negativeRatingsTotal={user.negativeShopRatingsTotal}
+									type={constants.rating.types.shop}
+								/>
+							</Header>
 
-						<Section>
-							<Grid options={ratings} message='This user has no ratings.'>
-								{ratings.map(rating =>
-									<Rating
-										key={rating.id}
-										rating={rating}
-									/>
-								)}
-							</Grid>
+							<Section>
+								<Grid options={ratings} message='This user has no ratings.'>
+									{ratings.map(rating =>
+										<Rating
+											key={rating.id}
+											rating={rating}
+										/>,
+									)}
+								</Grid>
 
-							<Pagination
-								page={page}
-								pageSize={pageSize}
-								totalCount={totalCount}
-								startLink={`/shop/ratings/${encodedId}`}
-							/>
-						</Section>
+								<Pagination
+									page={page}
+									pageSize={pageSize}
+									totalCount={totalCount}
+									startLink={`/shop/ratings/${encodedId}`}
+								/>
+							</Section>
 						</>
-					)}
-					</UserContext.Consumer>
+					}
+				</UserContext.Consumer>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {page}: {page?: string}) : Promise<EmployeeRatingsPageProps>
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string }): Promise<EmployeeRatingsPageProps>
 {
 	const [ratings, user] = await Promise.all([
 		this.query('v1/users/ratings_received', {
 			id: userId,
 			page: page ? page : 1,
-			type: constants.rating.types.shop
+			type: constants.rating.types.shop,
 		}),
-		this.query('v1/users/ratings', {id: userId}),
+		this.query('v1/users/ratings', { id: userId }),
 	]);
 
 	return {
@@ -88,6 +88,6 @@ type EmployeeRatingsPageProps = {
 	page: RatingsReceivedType['page']
 	pageSize: RatingsReceivedType['pageSize']
 	user: UserRatingType
-}
+};
 
 export default EmployeeRatingsPage;

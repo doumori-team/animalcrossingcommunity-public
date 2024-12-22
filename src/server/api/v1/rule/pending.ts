@@ -2,15 +2,15 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, PendingRuleType } from '@types';
 
-export default async function pending(this: APIThisType) : Promise<PendingRuleType[]>
+export default async function pending(this: APIThisType): Promise<PendingRuleType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-rules-admin' });
 
 	if (!permissionGranted)
 	{
 		throw new UserError('permission');
 	}
-	
+
 	const [currentNewRules, currentViolations] = await Promise.all([
 		db.query(`
 			SELECT
@@ -39,10 +39,11 @@ export default async function pending(this: APIThisType) : Promise<PendingRuleTy
 			JOIN rule ON (rule.id = rule_violation.rule_id)
 			WHERE rule.expiration_date IS NULL AND rule_violation.expiration_date IS NULL AND rule_violation.start_date IS NOT NULL
 			ORDER BY rule_violation.severity_id ASC, rule_violation.number ASC
-		`)
+		`),
 	]);
 
-	return await Promise.all(currentNewRules.map(async (rule:any) => {
+	return await Promise.all(currentNewRules.map(async (rule: any) =>
+	{
 		const [[pendingRule], pendingNewExpiredViolations] = await Promise.all([
 			db.query(`
 				SELECT
@@ -72,15 +73,16 @@ export default async function pending(this: APIThisType) : Promise<PendingRuleTy
 			`, rule.id),
 		]);
 
-		const violations = currentViolations.filter((v:any) => v.rule_id === rule.id);
+		const violations = currentViolations.filter((v: any) => v.rule_id === rule.id);
 
 		let pendingViolationsList = [];
 
 		if (pendingNewExpiredViolations.length > 0)
 		{
-			pendingViolationsList = violations.map((violation:any) => {
-				const pendingViolation = pendingNewExpiredViolations.find((v:any) => v.original_violation_id === violation.id || v.id === violation.id);
-				
+			pendingViolationsList = violations.map((violation: any) =>
+			{
+				const pendingViolation = pendingNewExpiredViolations.find((v: any) => v.original_violation_id === violation.id || v.id === violation.id);
+
 				return {
 					id: violation.id,
 					number: violation.number,
@@ -96,7 +98,8 @@ export default async function pending(this: APIThisType) : Promise<PendingRuleTy
 				};
 			});
 
-			pendingViolationsList = pendingViolationsList.concat(pendingNewExpiredViolations.filter((v:any) => v.original_violation_id == null && v.pending_expiration != true).map((violation:any) => {
+			pendingViolationsList = pendingViolationsList.concat(pendingNewExpiredViolations.filter((v: any) => v.original_violation_id == null && v.pending_expiration != true).map((violation: any) =>
+			{
 				return {
 					id: violation.id,
 					number: violation.number,
@@ -108,7 +111,7 @@ export default async function pending(this: APIThisType) : Promise<PendingRuleTy
 				};
 			}));
 
-			pendingViolationsList.sort((a:any, b:any) => a.severityId - b.severityId || a.number - b.number);
+			pendingViolationsList.sort((a: any, b: any) => a.severityId - b.severityId || a.number - b.number);
 		}
 
 		return {
@@ -117,7 +120,8 @@ export default async function pending(this: APIThisType) : Promise<PendingRuleTy
 			name: rule.name,
 			startDate: rule.start_date,
 			description: rule.description,
-			violations: violations.map((violation:any) => {
+			violations: violations.map((violation: any) =>
+			{
 				return {
 					id: violation.id,
 					severityId: violation.severity_id,

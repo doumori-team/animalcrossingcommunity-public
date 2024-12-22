@@ -10,15 +10,15 @@ import { APIThisType, NodeBoardType, ElementTextAreaType } from '@types';
 
 const AdminBoardPage = () =>
 {
-	const {boards} = useLoaderData() as AdminBoardPageProps;
-	const [board, setBoard] = useState<NodeBoardType|null>(null);
-	const [parentBoardId, setParentBoardId] = useState<NodeBoardType['parentId']|null>(null);
+	const { boards } = useLoaderData() as AdminBoardPageProps;
+	const [, setBoard] = useState<NodeBoardType | null>(null);
+	const [parentBoardId, setParentBoardId] = useState<NodeBoardType['parentId'] | null>(null);
 	const [title, setTitle] = useState<NodeBoardType['title']>('');
 	const [description, setDescription] = useState<NodeBoardType['content']['text']>('');
 	const [parentKey, setParentKey] = useState<number>(Math.random());
 	const [type, setType] = useState<NodeBoardType['boardType']>('public');
 
-	const changeBoard = (value: NodeBoardType['id']) : void =>
+	const changeBoard = (value: NodeBoardType['id']): void =>
 	{
 		if (value === null)
 		{
@@ -43,7 +43,7 @@ const AdminBoardPage = () =>
 			setType(foundBoard.boardType);
 			setParentKey(Math.random());
 		}
-	}
+	};
 
 	// Need to update during off hours (maintenance mode) as needed:
 	// - Materialized View: archived_threads (if any boards were archived)
@@ -63,14 +63,15 @@ const AdminBoardPage = () =>
 				<Section>
 					<RequireClientJS fallback={
 						<ErrorMessage identifier='javascript-required' />
-					}>
+					}
+					>
 						<Form action='v1/admin/board/save' showButton>
 							<Form.Group>
 								<Select
 									name='boardId'
 									label='Board'
-									options={[{id: null, title: 'New Board'} as any].concat(boards)}
-									optionsMapping={{value: 'id', label: 'title'}}
+									options={[{ id: null, title: 'New Board' } as any].concat(boards)}
+									optionsMapping={{ value: 'id', label: 'title' }}
 									changeHandler={changeBoard}
 									useReactSelect
 								/>
@@ -80,9 +81,9 @@ const AdminBoardPage = () =>
 									name='parentId'
 									label='Parent Board'
 									options={boards}
-									optionsMapping={{value: 'id', label: 'title'}}
+									optionsMapping={{ value: 'id', label: 'title' }}
 									value={parentBoardId}
-									changeHandler={(value:NodeBoardType['parentId']) => setParentBoardId(Number(value))}
+									changeHandler={(value: NodeBoardType['parentId']) => setParentBoardId(Number(value))}
 									useReactSelect
 									key={parentKey}
 								/>
@@ -109,10 +110,11 @@ const AdminBoardPage = () =>
 							</Form.Group>
 							<Form.Group>
 								<Check
-									options={[{id: '', name: 'None'}].concat(constants.boardTypeOptions.map(t => {
+									options={[{ id: '', name: 'None' }].concat(constants.boardTypeOptions.map(t =>
+									{
 										return {
 											id: t,
-											name: t
+											name: t,
 										};
 									}))}
 									name='type'
@@ -127,19 +129,19 @@ const AdminBoardPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AdminBoardPageProps>
+export async function loadData(this: APIThisType): Promise<AdminBoardPageProps>
 {
 	const [boards] = await Promise.all([
 		this.query('v1/node/boards'),
 	]);
 
-	return {boards};
+	return { boards };
 }
 
 type AdminBoardPageProps = {
 	boards: NodeBoardType[]
-}
+};
 
 export default AdminBoardPage;

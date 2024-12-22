@@ -4,9 +4,9 @@ import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { APIThisType, SuccessType } from '@types';
 
-async function claim(this: APIThisType, {id}: claimProps) : Promise<SuccessType>
+async function claim(this: APIThisType, { id }: claimProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'collect-bells'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'collect-bells' });
 
 	if (!permissionGranted)
 	{
@@ -54,7 +54,7 @@ async function claim(this: APIThisType, {id}: claimProps) : Promise<SuccessType>
 	let bells = 0;
 	let showBells = treasure.bells;
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		if (treasure.type === 'jackpot')
 		{
@@ -115,14 +115,14 @@ async function claim(this: APIThisType, {id}: claimProps) : Promise<SuccessType>
 		}
 	});
 
-	await db.regenerateTopBells({userId: this.userId});
+	await db.regenerateTopBells({ userId: this.userId });
 
 	const [user] = await Promise.all([
-		this.query('v1/user', {id: this.userId}),
+		this.query('v1/user', { id: this.userId }),
 	]);
 
 	return {
-		_success: `Congratulations! You have redeemed your ${showBells.toLocaleString()} Bells, bringing your total to ${user.bells} Bells!`
+		_success: `Congratulations! You have redeemed your ${showBells.toLocaleString()} Bells, bringing your total to ${user.bells} Bells!`,
 	};
 }
 
@@ -131,10 +131,10 @@ claim.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type claimProps = {
 	id: number
-}
+};
 
 export default claim;

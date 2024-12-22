@@ -7,7 +7,7 @@ import { APIThisType, UserType } from '@types';
 /*
  * Get all users in a specific user group.
  */
-async function users(this: APIThisType, {group}: usersProps) : Promise<UserType[]>
+async function users(this: APIThisType, { group }: usersProps): Promise<UserType[]>
 {
 	if ([constants.groupIdentifiers.user, constants.staffIdentifiers.exStaff].includes(group))
 	{
@@ -26,8 +26,9 @@ async function users(this: APIThisType, {group}: usersProps) : Promise<UserType[
 		return [];
 	}
 
-	const users = await Promise.all(userIds.map(async(user:any) => {
-		return this.query('v1/user', {id: user.id})
+	const users = await Promise.all(userIds.map(async(user: any) =>
+	{
+		return this.query('v1/user', { id: user.id });
 	}));
 
 	return users.sort((a, b) => a.username.localeCompare(b.username));
@@ -39,10 +40,10 @@ users.apiTypes = {
 		default: '',
 		required: true,
 	},
-}
+};
 
 type usersProps = {
 	group: string
-}
+};
 
 export default users;

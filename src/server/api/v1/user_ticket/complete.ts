@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
 import { APIThisType, UserTicketActionType, BanLengthType } from '@types';
 
-async function complete(this: APIThisType, {id, ruleId, violationId, actionId, updatedContent, boardId, banLengthId}: completeProps) : Promise<void>
+async function complete(this: APIThisType, { id, ruleId, violationId, actionId, updatedContent, boardId, banLengthId }: completeProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -34,7 +34,7 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 		WHERE user_ticket.id = $1::int
 	`, id);
 
-	const actions:UserTicketActionType[] = await this.query('v1/user_ticket/actions');
+	const actions: UserTicketActionType[] = await this.query('v1/user_ticket/actions');
 
 	const checkAction = actions.find(a => a.id === actionId);
 
@@ -51,7 +51,7 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 
 	let banEndDate = null;
 
-	const currentBan:BanLengthType|null = await this.query('v1/users/ban_length', {id: userTicket.violator_id});
+	const currentBan: BanLengthType | null = await this.query('v1/users/ban_length', { id: userTicket.violator_id });
 
 	if (banLengthId > 0)
 	{
@@ -136,7 +136,7 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 					await db.query(`
 						DELETE FROM pattern
 						WHERE id = $1::int
-					`, userTicket.reference_id)
+					`, userTicket.reference_id);
 
 					break;
 				case types.townFlag:
@@ -148,7 +148,7 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 
 					break;
 				case types.tune:
-					await this.query('v1/tune/destroy', {id: userTicket.reference_id});
+					await this.query('v1/tune/destroy', { id: userTicket.reference_id });
 
 					// usually tune/destroy wouldn't delete the town data using these tunes
 					// we do want to do that here
@@ -175,12 +175,13 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 
 					break;
 				case types.town:
-					await this.query('v1/town/destroy', {id: userTicket.reference_id});
+					await this.query('v1/town/destroy', { id: userTicket.reference_id });
 					break;
 				case types.character:
-					await this.query('v1/character/destroy', {id: userTicket.reference_id});
+					await this.query('v1/character/destroy', { id: userTicket.reference_id });
 					break;
 				case types.rating:
+				{
 					const [rating] = await db.query(`
 						SELECT listing_id, adoption_node_id
 						FROM rating
@@ -194,15 +195,16 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 						`, userTicket.reference_id),
 						rating.listing_id ? this.query('v1/notification/destroy', {
 							id: rating.listing_id,
-							type: notificationTypes.listingFeedback
+							type: notificationTypes.listingFeedback,
 						}) : null,
 						rating.adoption_node_id ? this.query('v1/notification/destroy', {
 							id: rating.adoption_node_id,
-							type: notificationTypes.scoutFeedback
+							type: notificationTypes.scoutFeedback,
 						}) : null,
 					]);
 
 					break;
+				}
 				case types.listing:
 					await Promise.all([
 						await db.query(`
@@ -211,12 +213,13 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 						`, userTicket.reference_id),
 						this.query('v1/notification/destroy', {
 							id: userTicket.reference_id,
-							type: 'listing'
+							type: 'listing',
 						}),
 					]);
 
 					break;
 				case types.offer:
+				{
 					const [offer] = await db.query(`
 						SELECT listing_id
 						FROM listing_offer
@@ -230,11 +233,12 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 						`, userTicket.reference_id),
 						this.query('v1/notification/destroy', {
 							id: offer.listing_id,
-							type: 'listing'
+							type: 'listing',
 						}),
 					]);
 
 					break;
+				}
 				case types.profileLocation:
 					await db.query(`
 						UPDATE users
@@ -275,7 +279,7 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 					break;
 			}
 		}
-		catch (error)
+		catch (_: any)
 		{
 			// do nothing
 		}
@@ -360,7 +364,7 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 
 					throw new UserError('username-taken');
 				}
-				catch (error:any)
+				catch (error: any)
 				{
 					if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
 					{
@@ -374,11 +378,11 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 				}
 
 				await accounts.pushData(
-				{
-					user_id: userTicket.reference_id,
-					username: updatedContent,
-					ignore_history: true,
-				});
+					{
+						user_id: userTicket.reference_id,
+						username: updatedContent,
+						ignore_history: true,
+					});
 
 				break;
 			case types.shopName:
@@ -503,10 +507,10 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 			UPDATE user_ticket
 			SET status_id = $2::int, rule_violation_id = $3, updated_text = $4, action_id = $5::int, last_updated = now(), closed = now(), rule_id = $6
 			WHERE id = $1::int
-		`, id, status.id, Number(violationId||0) > 0 ? violationId : null, checkAction.identifier === 'modify' ? updatedContent : null, actionId, ruleId),
+		`, id, status.id, Number(violationId || 0) > 0 ? violationId : null, checkAction.identifier === 'modify' ? updatedContent : null, actionId, ruleId),
 		this.query('v1/notification/create', {
 			id: id,
-			type: notificationTypes.ticketProcessed
+			type: notificationTypes.ticketProcessed,
 		}),
 	]);
 
@@ -528,10 +532,10 @@ async function complete(this: APIThisType, {id, ruleId, violationId, actionId, u
 	}
 }
 
-async function getEmailText(this: APIThisType, userTicketId:number, banLengthId:number) : Promise<string>
+async function getEmailText(this: APIThisType, userTicketId: number, banLengthId: number): Promise<string>
 {
 	const [userTicket, [rule], [banLength]] = await Promise.all([
-		this.query('v1/user_ticket', {id: userTicketId}),
+		this.query('v1/user_ticket', { id: userTicketId }),
 		db.query(`
 			SELECT
 				rule.description,
@@ -564,7 +568,7 @@ async function getEmailText(this: APIThisType, userTicketId:number, banLengthId:
 		}
 		else if (userTicket.reference.url)
 		{
-			content = `<img src='${userTicket.reference.url}' />`
+			content = `<img src='${userTicket.reference.url}' />`;
 		}
 
 		memberNotes += `This notice is a result of the following content:<blockquote><strong>${userTicket.type.description}</strong>${vbnewline}<table cellpadding="0" cellspacing="0"><tr><td style="font-size: 10px;">${content}</td></tr></table></blockquote>`;
@@ -595,7 +599,7 @@ async function getEmailText(this: APIThisType, userTicketId:number, banLengthId:
 
 	memberNotes += `${vbnewline}${vbnewline}ACC Staff`;
 
-	return '<span style="font-family: Verdana; font-size: 11px;">'+memberNotes+'</span>';
+	return '<span style="font-family: Verdana; font-size: 11px;">' + memberNotes + '</span>';
 }
 
 complete.apiTypes = {
@@ -629,16 +633,16 @@ complete.apiTypes = {
 		type: APITypes.number,
 		default: 0,
 	},
-}
+};
 
 type completeProps = {
 	id: number
 	ruleId: number
-	violationId: number|null
+	violationId: number | null
 	actionId: number
 	updatedContent: string
-	boardId: number|null
+	boardId: number | null
 	banLengthId: number
-}
+};
 
 export default complete;

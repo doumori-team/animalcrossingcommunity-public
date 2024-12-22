@@ -10,6 +10,6 @@ const SitemapPage = () =>
 	return (
 		<SiteMenu />
 	);
-}
+};
 
 export default SitemapPage;

@@ -7,7 +7,7 @@ import { APIThisType, NodeLiteType, EmojiSettingType, NodeHistoryType } from '@t
 
 const NodeHistoryPage = () =>
 {
-	const {parentNode, nodes, nodeEmojiSettings} = useLoaderData() as NodeHistoryPageProps;
+	const { parentNode, nodes, nodeEmojiSettings } = useLoaderData() as NodeHistoryPageProps;
 
 	return (
 		<div className='NodeHistoryPage'>
@@ -35,13 +35,13 @@ const NodeHistoryPage = () =>
 									</Link>
 								</div>
 
-								{node.title && (
+								{node.title &&
 									<div className='NodeHistoryPage_title'>
 										Title: {node.title}
 									</div>
-								)}
+								}
 
-								{(node.content && node.content.text) && (
+								{node.content && node.content.text &&
 									<div className='NodeHistoryPage_content'>
 										Content:
 										<Markup
@@ -52,41 +52,41 @@ const NodeHistoryPage = () =>
 											emojiSettings={nodeEmojiSettings}
 										/>
 									</div>
-								)}
+								}
 
-								{node.files && (
+								{node.files &&
 									<PhotoGallery
 										userId={node.user.id}
 										files={node.files}
 									/>
-								)}
-							</div>
+								}
+							</div>,
 						)}
 					</Grid>
 				</Section>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<NodeHistoryPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<NodeHistoryPageProps>
 {
 	const [parentNode, nodes] = await Promise.all([
-		this.query('v1/node/lite', {id: id}),
-		this.query('v1/node/history', {id: id}),
+		this.query('v1/node/lite', { id: id }),
+		this.query('v1/node/history', { id: id }),
 	]);
 
 	const [nodeEmojiSettings] = await Promise.all([
-		this.query('v1/settings/emoji', {userIds: [nodes[0].user.id]}),
+		this.query('v1/settings/emoji', { userIds: [nodes[0].user.id] }),
 	]);
 
-	return {parentNode, nodes, nodeEmojiSettings};
+	return { parentNode, nodes, nodeEmojiSettings };
 }
 
 type NodeHistoryPageProps = {
 	parentNode: NodeLiteType
 	nodes: NodeHistoryType[]
 	nodeEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default NodeHistoryPage;

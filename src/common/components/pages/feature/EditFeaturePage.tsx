@@ -8,7 +8,7 @@ import { APIThisType, FeatureType, FeatureCategoryType, FeatureStatusType, Emoji
 
 const EditFeaturePage = () =>
 {
-	const {feature, categories, statuses, userEmojiSettings} = useLoaderData() as EditFeaturePageProps;
+	const { feature, categories, statuses, userEmojiSettings } = useLoaderData() as EditFeaturePageProps;
 
 	return (
 		<RequirePermission permission='claim-features'>
@@ -34,21 +34,21 @@ const EditFeaturePage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<EditFeaturePageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditFeaturePageProps>
 {
 	const [feature, categories, statuses] = await Promise.all([
-		this.query('v1/feature', {id: id}),
+		this.query('v1/feature', { id: id }),
 		this.query('v1/feature/categories'),
 		this.query('v1/feature/statuses'),
 	]);
 
 	const [userEmojiSettings] = await Promise.all([
-		this.query('v1/settings/emoji', {userIds: [feature.user.id]}),
+		this.query('v1/settings/emoji', { userIds: [feature.user.id] }),
 	]);
 
-	return {feature, categories, statuses, userEmojiSettings};
+	return { feature, categories, statuses, userEmojiSettings };
 }
 
 type EditFeaturePageProps = {
@@ -56,6 +56,6 @@ type EditFeaturePageProps = {
 	categories: FeatureCategoryType[]
 	statuses: FeatureStatusType[]
 	userEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default EditFeaturePage;

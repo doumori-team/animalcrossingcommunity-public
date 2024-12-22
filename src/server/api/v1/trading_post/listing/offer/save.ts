@@ -6,9 +6,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, ListingType, ACGameItemType } from '@types';
 
-async function save(this: APIThisType, {id, bells, items, quantities, residents, comment}: saveProps) : Promise<{id: number}>
+async function save(this: APIThisType, { id, bells, items, quantities, residents, comment }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -21,7 +21,7 @@ async function save(this: APIThisType, {id, bells, items, quantities, residents,
 	}
 
 	// Check parameters
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 	const offerStatuses = constants.tradingPost.offerStatuses;
@@ -44,8 +44,8 @@ async function save(this: APIThisType, {id, bells, items, quantities, residents,
 		}
 	}
 
-	const catalogItems:ACGameItemType[number]['all']['items'] = listing.game ?
-		(await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${listing.game.id}_all_items`)).filter((item:any) => item.tradeable) :
+	const catalogItems: ACGameItemType[number]['all']['items'] = listing.game ?
+		(await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${listing.game.id}_all_items`)).filter((item: any) => item.tradeable) :
 		(await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
 	items = items.map((id) =>
@@ -84,9 +84,9 @@ async function save(this: APIThisType, {id, bells, items, quantities, residents,
 	});
 
 	// AC:GC / real must only have items, all others must have at least bells OR items OR residents OR a comment
-	if ((gameId === constants.gameIds.ACGC && ((Number(bells||0) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0) || items.length <= 0)) ||
-		(gameId > constants.gameIds.ACGC && (Number(bells||0) <= 0 && residents.length <= 0 && utils.realStringLength(comment) <= 0 && items.length <= 0)) ||
-		(gameId === 0 && ((Number(bells||0) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0) || items.length <= 0)))
+	if (gameId === constants.gameIds.ACGC && (Number(bells || 0) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0 || items.length <= 0) ||
+		gameId > constants.gameIds.ACGC && (Number(bells || 0) <= 0 && residents.length <= 0 && utils.realStringLength(comment) <= 0 && items.length <= 0) ||
+		gameId === 0 && (Number(bells || 0) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0 || items.length <= 0))
 	{
 		throw new UserError('bad-format');
 	}
@@ -108,7 +108,7 @@ async function save(this: APIThisType, {id, bells, items, quantities, residents,
 	}
 
 	// Perform queries
-	const listingOfferId = await db.transaction(async (query:any) =>
+	const listingOfferId = await db.transaction(async (query: any) =>
 	{
 		const [listingOffer] = await query(`
 			INSERT INTO listing_offer (user_id, listing_id, bells, status, comment)
@@ -128,7 +128,7 @@ async function save(this: APIThisType, {id, bells, items, quantities, residents,
 			`, id),
 			this.query('v1/notification/create', {
 				id: id,
-				type: constants.notification.types.listingOffer
+				type: constants.notification.types.listingOffer,
 			}),
 		]);
 
@@ -136,11 +136,11 @@ async function save(this: APIThisType, {id, bells, items, quantities, residents,
 	});
 
 	return {
-		id: listingOfferId
+		id: listingOfferId,
 	};
 }
 
-async function updateItems(listingOfferId:number, gameId:number, items:any[], quantities:any[], query:any) : Promise<void>
+async function updateItems(listingOfferId: number, gameId: number, items: any[], quantities: any[], query: any): Promise<void>
 {
 	if (items.length <= 0)
 	{
@@ -148,7 +148,8 @@ async function updateItems(listingOfferId:number, gameId:number, items:any[], qu
 	}
 
 	await Promise.all([
-		items.map(async(itemId, index) => {
+		items.map(async(itemId, index) =>
+		{
 			const quantity = gameId === constants.gameIds.ACGC ? 1 : quantities[index];
 
 			if (quantity > 0)
@@ -158,11 +159,11 @@ async function updateItems(listingOfferId:number, gameId:number, items:any[], qu
 					VALUES ($1::int, $2, $3::int)
 				`, listingOfferId, itemId, quantity);
 			}
-		})
+		}),
 	]);
 }
 
-async function updateResidents(listingOfferId:number, residents:any[], query:any) : Promise<void>
+async function updateResidents(listingOfferId: number, residents: any[], query: any): Promise<void>
 {
 	if (residents.length <= 0)
 	{
@@ -170,12 +171,13 @@ async function updateResidents(listingOfferId:number, residents:any[], query:any
 	}
 
 	await Promise.all([
-		residents.map(async (residentId) => {
+		residents.map(async (residentId) =>
+		{
 			await query(`
 				INSERT INTO listing_offer_resident (listing_offer_id, resident_id)
 				VALUES ($1::int, $2)
 			`, listingOfferId, residentId);
-		})
+		}),
 	]);
 }
 
@@ -203,15 +205,15 @@ save.apiTypes = {
 		length: constants.max.additionalInfo,
 		profanity: true,
 	},
-}
+};
 
 type saveProps = {
 	id: number
-	bells: number|null
+	bells: number | null
 	items: any[]
 	quantities: any[]
 	residents: any[]
 	comment: string
-}
+};
 
 export default save;

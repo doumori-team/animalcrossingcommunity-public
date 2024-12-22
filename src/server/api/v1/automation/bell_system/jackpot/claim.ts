@@ -6,7 +6,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Claim jackpot for yourself.
  */
-export default async function claim(this: APIThisType) : Promise<SuccessType>
+export default async function claim(this: APIThisType): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -21,7 +21,7 @@ export default async function claim(this: APIThisType) : Promise<SuccessType>
 
 	// Perform queries
 
-	const bells:number = await this.query('v1/treasure/jackpot');
+	const bells: number = await this.query('v1/treasure/jackpot');
 
 	await db.query(`
 		INSERT INTO treasure_offer (user_id, bells, type, redeemed_user_id)
@@ -44,10 +44,10 @@ export default async function claim(this: APIThisType) : Promise<SuccessType>
 		REFRESH MATERIALIZED VIEW top_bell_last_jackpot
 	`);
 
-	await db.regenerateTopBells({userId: this.userId});
+	await db.regenerateTopBells({ userId: this.userId });
 
 	const [user] = await Promise.all([
-		this.query('v1/user', {id: this.userId}),
+		this.query('v1/user', { id: this.userId }),
 	]);
 
 	return {

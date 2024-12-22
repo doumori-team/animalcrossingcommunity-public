@@ -8,7 +8,7 @@ import { APIThisType, GameConsoleType, GameType } from '@types';
 
 const AdminGamesPage = () =>
 {
-	const {gameConsole, games} = useLoaderData() as AdminGamesPageProps;
+	const { gameConsole, games } = useLoaderData() as AdminGamesPageProps;
 
 	return (
 		<div className='AdminGamesPage'>
@@ -41,28 +41,28 @@ const AdminGamesPage = () =>
 									/>
 								</div>
 								{game.name}
-							</div>
+							</div>,
 						)}
 					</Grid>
 				</Section>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<AdminGamesPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminGamesPageProps>
 {
 	const [gameConsole, games] = await Promise.all([
-		this.query('v1/admin/game_console/game_console', {id}),
-		this.query('v1/admin/game_console/games', {id})
+		this.query('v1/admin/game_console/game_console', { id }),
+		this.query('v1/admin/game_console/games', { id }),
 	]);
 
-	return {gameConsole, games};
+	return { gameConsole, games };
 }
 
 type AdminGamesPageProps = {
 	gameConsole: GameConsoleType
 	games: GameType[]
-}
+};
 
 export default AdminGamesPage;

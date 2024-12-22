@@ -9,7 +9,7 @@ import { APIThisType, AdoptionTotalsType, UserType } from '@types';
 
 const ReassignPage = () =>
 {
-	const {adoptionTotals, adoptee} = useLoaderData() as ReassignPageProps;
+	const { adoptionTotals, adoptee } = useLoaderData() as ReassignPageProps;
 
 	return (
 		<div className='ReassignPage'>
@@ -18,16 +18,16 @@ const ReassignPage = () =>
 					name='Scout Hub'
 					links={
 						<>
-						<Link to={`/scout-hub`}>Scout Hub</Link>
-						<Link to={`/scout-hub/new-members`}>New Members</Link>
-						<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
-							Adoptee BT
-						</Link>
-						<RequirePermission permission='adoption-bt-settings' silent>
-							<Link to={`/scout-hub/adoption/settings`}>
-								Adoptee BT Settings
+							<Link to={`/scout-hub`}>Scout Hub</Link>
+							<Link to={`/scout-hub/new-members`}>New Members</Link>
+							<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
+								Adoptee BT
 							</Link>
-						</RequirePermission>
+							<RequirePermission permission='adoption-bt-settings' silent>
+								<Link to={`/scout-hub/adoption/settings`}>
+									Adoptee BT Settings
+								</Link>
+							</RequirePermission>
 						</>
 					}
 				/>
@@ -39,7 +39,7 @@ const ReassignPage = () =>
 					</p>
 
 					<div className='Grid'>
-						{adoptionTotals.map(({scout, total}, index) =>
+						{adoptionTotals.map(({ scout, total }, index) =>
 							<div key={index} className='ReassignPage_scout'>
 								<div className='ReassignPage_user'>
 									Scout: <Link to={`/profile/${encodeURIComponent(scout.id)}`}>
@@ -52,11 +52,11 @@ const ReassignPage = () =>
 								</div>
 
 								<div className='ReassignPage_away'>
-									{(scout.awayStartDate && scout.awayEndDate) && (
+									{scout.awayStartDate && scout.awayEndDate &&
 										<>
-										Away from {dateUtils.formatDate(scout.awayStartDate)} to {dateUtils.formatDate(scout.awayEndDate)}
+											Away from {dateUtils.formatDate(scout.awayStartDate)} to {dateUtils.formatDate(scout.awayEndDate)}
 										</>
-									)}
+									}
 								</div>
 
 								<div className='ReassignPage_actions'>
@@ -70,28 +70,28 @@ const ReassignPage = () =>
 										<input type='hidden' name='scoutId' value={scout.id} />
 									</Form>
 								</div>
-							</div>
+							</div>,
 						)}
 					</div>
 				</Section>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {adopteeId}: {adopteeId: string}) : Promise<ReassignPageProps>
+export async function loadData(this: APIThisType, { adopteeId }: { adopteeId: string }): Promise<ReassignPageProps>
 {
 	const [adoptionTotals, adoptee] = await Promise.all([
 		this.query('v1/scout_hub/adoption/totals'),
-		this.query('v1/user', {id: adopteeId}),
+		this.query('v1/user', { id: adopteeId }),
 	]);
 
-	return {adoptionTotals, adoptee};
+	return { adoptionTotals, adoptee };
 }
 
 type ReassignPageProps = {
 	adoptionTotals: AdoptionTotalsType[]
 	adoptee: UserType
-}
+};
 
 export default ReassignPage;

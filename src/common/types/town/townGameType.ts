@@ -6,6 +6,7 @@ import { StoreType } from '../acgame/storeType.ts';
 import { PWPsType } from '../data/pwpsType.ts';
 import { ResidentsType } from '../data/residentsType.ts';
 import { HemisphereType } from '../acgame/hemisphereType.ts';
+import { PaintType } from '../acgame/paintType.ts';
 
 type TownGameType = {
 	info: ACGameType
@@ -16,6 +17,7 @@ type TownGameType = {
 	pwps: PWPsType[number]
 	residents: ResidentsType[number]
 	hemispheres: HemisphereType[]
+	paintColors: PaintType[]
 };
 
 export type { TownGameType };

@@ -10,7 +10,7 @@ import { APIThisType, RatingsReceivedType, UserLiteType, UserRatingType } from '
 
 const UserReceivedRatingsPage = () =>
 {
-	const {user, ratings, page, pageSize, totalCount, type, userRatings} = useLoaderData() as UserReceivedRatingsPageProps;
+	const { user, ratings, page, pageSize, totalCount, type, userRatings } = useLoaderData() as UserReceivedRatingsPageProps;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -40,7 +40,7 @@ const UserReceivedRatingsPage = () =>
 							<Rating
 								key={rating.id}
 								rating={rating}
-							/>
+							/>,
 						)}
 					</Grid>
 
@@ -54,18 +54,18 @@ const UserReceivedRatingsPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId, type}: {userId: string, type: string}, {page}: {page?: string}) : Promise<UserReceivedRatingsPageProps>
+export async function loadData(this: APIThisType, { userId, type }: { userId: string, type: string }, { page }: { page?: string }): Promise<UserReceivedRatingsPageProps>
 {
 	const [ratings, user, userRatings] = await Promise.all([
 		this.query('v1/users/ratings_received', {
 			id: userId,
 			page: page ? page : 1,
-			type: type
+			type: type,
 		}),
-		this.query('v1/user_lite', {id: userId}),
-		this.query('v1/users/ratings', {id: userId}),
+		this.query('v1/user_lite', { id: userId }),
+		this.query('v1/users/ratings', { id: userId }),
 	]);
 
 	return {
@@ -87,6 +87,6 @@ type UserReceivedRatingsPageProps = {
 	pageSize: RatingsReceivedType['pageSize']
 	type: RatingsReceivedType['type']
 	userRatings: UserRatingType
-}
+};
 
 export default UserReceivedRatingsPage;

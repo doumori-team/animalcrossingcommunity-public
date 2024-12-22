@@ -15,12 +15,12 @@ const Poll = ({
 	isMultipleChoice,
 	isEnabled,
 	userHasVoted,
-	options
+	options,
 }: PollProps) =>
 {
 	if (!isEnabled)
 	{
-		return ('');
+		return '';
 	}
 
 	const permissions = useContext(PermissionsContext);
@@ -32,7 +32,10 @@ const Poll = ({
 		&& dateUtils.isAfterCurrentDateTimezone(endDate)
 	);
 
-	const totalVotes = options.reduce((acc, cur) => {return acc + cur.votes}, 0);
+	const totalVotes = options.reduce((acc, cur) =>
+	{
+		return acc + cur.votes;
+	}, 0);
 
 	return (
 		<div className='Poll'>
@@ -47,7 +50,7 @@ const Poll = ({
 				/>
 			}
 
-			{!userHasVoted && allowVotes && permissions.includes('vote-poll') ? (
+			{!userHasVoted && allowVotes && permissions.includes('vote-poll') ?
 				<Form action='v1/poll/vote' showButton buttonText='Vote!'>
 					<input type='hidden' name='pollId' value={id} />
 
@@ -65,14 +68,15 @@ const Poll = ({
 								<span className='PollOptionDescription'>
 									{option.description}
 								</span>
-							</div>
+							</div>,
 						)}
 					</div>
 				</Form>
-			) : (
+				:
 				<div className='PollOptions'>
-					{options.map(option => {
-						const proportion = (totalVotes > 0) ? option.votes/totalVotes : 0;
+					{options.map(option =>
+					{
+						const proportion = totalVotes > 0 ? option.votes / totalVotes : 0;
 						const amount = option.votes + ' vote' + (option.votes === 1 ? '' : 's');
 
 						return (
@@ -92,10 +96,10 @@ const Poll = ({
 						);
 					})}
 				</div>
-			)}
+			}
 		</div>
 	);
-}
+};
 
 type PollProps = PollType;
 

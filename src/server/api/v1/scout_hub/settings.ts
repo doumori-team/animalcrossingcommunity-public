@@ -7,14 +7,14 @@ import { APIThisType, ScoutSettingsType, UserType } from '@types';
 /*
  * Settings a scout has.
  */
-async function settings(this: APIThisType, {id}: settingsProps) : Promise<ScoutSettingsType>
+async function settings(this: APIThisType, { id }: settingsProps): Promise<ScoutSettingsType>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	const user:UserType = await this.query('v1/user', {id: id});
+	const user: UserType = await this.query('v1/user', { id: id });
 
 	if (user.group.identifier !== constants.staffIdentifiers.scout)
 	{
@@ -44,10 +44,10 @@ settings.apiTypes = {
 		type: APITypes.userId,
 		default: true,
 	},
-}
+};
 
 type settingsProps = {
 	id: number
-}
+};
 
 export default settings;

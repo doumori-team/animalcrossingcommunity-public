@@ -9,7 +9,7 @@ import { APIThisType, ShopType, ACGameType, ServiceType } from '@types';
 
 const ServicesPage = () =>
 {
-	const {shop, services, shopServices, acgames} = useLoaderData() as ServicesPageProps;
+	const { shop, services, shopServices, acgames } = useLoaderData() as ServicesPageProps;
 
 	const encodedId = encodeURIComponent(shop.id);
 
@@ -46,7 +46,7 @@ const ServicesPage = () =>
 						name='games'
 						multiple
 						options={acgames.filter(g => g.hasTown === true)}
-						optionsMapping={{value: 'id', label: 'name'}}
+						optionsMapping={{ value: 'id', label: 'name' }}
 						placeholder='Choose Animal Crossing game(s)...'
 						size={5}
 						required
@@ -55,13 +55,13 @@ const ServicesPage = () =>
 				</Form.Group>
 			</Form>
 		);
-	}
+	};
 
 	const setActiveServices = () =>
 	{
 		return (
 			<Section>
-				{services.length > 0 ? (
+				{services.length > 0 ?
 					<Form action='v1/shop/services/save' callback={`/shop/${encodedId}/services`} showButton>
 						<input type='hidden' name='shopId' value={shop.id} />
 
@@ -73,17 +73,17 @@ const ServicesPage = () =>
 								multiple
 								value={shopServices}
 								options={services}
-								optionsMapping={{value: 'id', label: 'name'}}
+								optionsMapping={{ value: 'id', label: 'name' }}
 								placeholder='Choose service(s)...'
 							/>
 						</Form.Group>
 					</Form>
-				) : (
+					:
 					'No services found.'
-				)}
+				}
 			</Section>
 		);
-	}
+	};
 
 	const editCustomServices = () =>
 	{
@@ -103,10 +103,10 @@ const ServicesPage = () =>
 				<Section key={service.id}>
 					<h2>Edit Existing Service:</h2>
 					{editService(service)}
-				</Section>
+				</Section>,
 			)
 		);
-	}
+	};
 
 	return (
 		<RequireUser ids={shop.owners.map(o => o.id)} permission='modify-shops'>
@@ -116,12 +116,12 @@ const ServicesPage = () =>
 					link={`/shop/${encodedId}`}
 					links={
 						<>
-						<Link to={`/shop/${encodedId}/employees`}>
-							Manage Employees & Roles
-						</Link>
-						<Link to={`/shop/${encodedId}/edit`}>
-							Edit
-						</Link>
+							<Link to={`/shop/${encodedId}/employees`}>
+								Manage Employees & Roles
+							</Link>
+							<Link to={`/shop/${encodedId}/edit`}>
+								Edit
+							</Link>
 						</>
 					}
 				/>
@@ -130,12 +130,12 @@ const ServicesPage = () =>
 					defaultActiveKey='active'
 					fallback={
 						<>
-						{setActiveServices()}
-						{editCustomServices()}
-						<Section>
-							<h2>Add New Service:</h2>
-							{editService()}
-						</Section>
+							{setActiveServices()}
+							{editCustomServices()}
+							<Section>
+								<h2>Add New Service:</h2>
+								{editService()}
+							</Section>
 						</>
 					}
 				>
@@ -155,15 +155,15 @@ const ServicesPage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ServicesPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ServicesPageProps>
 {
 	const [shop, acgames, shopServices, services] = await Promise.all([
-		this.query('v1/shop', {id: id}),
+		this.query('v1/shop', { id: id }),
 		this.query('v1/acgames'),
-		this.query('v1/shop/services', {id: id}),
-		this.query('v1/shop/services', {id: id, inactive: true}),
+		this.query('v1/shop/services', { id: id }),
+		this.query('v1/shop/services', { id: id, inactive: true }),
 	]);
 
 	return {
@@ -179,6 +179,6 @@ type ServicesPageProps = {
 	acgames: ACGameType[]
 	shopServices: ServiceType[]
 	services: ServiceType[]
-}
+};
 
 export default ServicesPage;

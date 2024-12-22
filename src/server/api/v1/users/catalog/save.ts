@@ -5,9 +5,9 @@ import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, ACGameItemType } from '@types';
 
-async function save(this: APIThisType, {inventory, wishlist, remove}: saveProps) : Promise<void>
+async function save(this: APIThisType, { inventory, wishlist, remove }: saveProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-user-catalog'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-user-catalog' });
 
 	if (!permissionGranted)
 	{
@@ -21,7 +21,7 @@ async function save(this: APIThisType, {inventory, wishlist, remove}: saveProps)
 
 	// Check parameters
 	// all items
-	const catalogItems:ACGameItemType[number]['all']['items'] = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
+	const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
 	// Check inventory
 	inventory = await Promise.all(inventory.map(async (id) =>
@@ -67,7 +67,7 @@ async function save(this: APIThisType, {inventory, wishlist, remove}: saveProps)
 	}
 }
 
-async function updateItems(this: APIThisType, inventory:any[], wishlist:any[]) : Promise<void>
+async function updateItems(this: APIThisType, inventory: any[], wishlist: any[]): Promise<void>
 {
 	if (inventory.length > 0 || wishlist.length > 0)
 	{
@@ -91,7 +91,7 @@ async function updateItems(this: APIThisType, inventory:any[], wishlist:any[]) :
 			db.query(`
 				INSERT INTO user_ac_item (user_id, item_id, is_inventory, is_wishlist)
 				SELECT $1::int, unnest($2::int[]), $3, $4
-			`, this.userId, wishlist.filter(item => !inventory.includes(item)), false, true)
+			`, this.userId, wishlist.filter(item => !inventory.includes(item)), false, true),
 		]);
 	}
 	else if (inventory.length > 0)
@@ -110,7 +110,7 @@ async function updateItems(this: APIThisType, inventory:any[], wishlist:any[]) :
 	}
 }
 
-async function removeInventory(this: APIThisType, remove:any[]) : Promise<void>
+async function removeInventory(this: APIThisType, remove: any[]): Promise<void>
 {
 	if (remove.length <= 0)
 	{
@@ -133,12 +133,12 @@ save.apiTypes = {
 	remove: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	inventory: any[]
 	wishlist: any[]
 	remove: any[]
-}
+};
 
 export default save;

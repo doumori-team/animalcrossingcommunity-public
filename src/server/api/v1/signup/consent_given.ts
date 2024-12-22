@@ -3,9 +3,9 @@ import * as accounts from '@accounts';
 import { UserError } from '@errors';
 import * as db from '@db';
 import { utils, constants, dateUtils } from '@utils';
-import { APIThisType,  } from '@types';
+import { APIThisType } from '@types';
 
-async function consent_given(this: APIThisType, {id, email}: consentGivenProps) : Promise<void>
+async function consent_given(this: APIThisType, { id, email }: consentGivenProps): Promise<void>
 {
 	if (this.userId)
 	{
@@ -40,7 +40,7 @@ async function consent_given(this: APIThisType, {id, email}: consentGivenProps) 
 
 		throw new UserError('email-taken');
 	}
-	catch (error:any)
+	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
 		{
@@ -54,11 +54,11 @@ async function consent_given(this: APIThisType, {id, email}: consentGivenProps) 
 	}
 
 	await accounts.pushData(
-	{
-		user_id: user.user_id,
-		email: email,
-		consent_given: true,
-	});
+		{
+			user_id: user.user_id,
+			email: email,
+			consent_given: true,
+		});
 
 	const link = await accounts.resetPassword(user.user_id);
 
@@ -92,11 +92,11 @@ consent_given.apiTypes = {
 		profanity: true,
 		required: true,
 	},
-}
+};
 
 type consentGivenProps = {
 	id: string
 	email: string
-}
+};
 
 export default consent_given;

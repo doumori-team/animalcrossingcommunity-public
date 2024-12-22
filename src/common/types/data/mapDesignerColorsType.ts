@@ -1,5 +1,5 @@
 type MapDesignerColorsType = {
-    [id: string]: string
+	[id: string]: string
 };
 
 export type { MapDesignerColorsType };

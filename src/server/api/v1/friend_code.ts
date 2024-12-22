@@ -3,11 +3,11 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, FriendCodeType, UserLiteType } from '@types';
 
-async function friend_code(this: APIThisType, {id}: friendCodeProps) : Promise<FriendCodeType|null>
+async function friend_code(this: APIThisType, { id }: friendCodeProps): Promise<FriendCodeType | null>
 {
 	const [useFriendCodesPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'use-friend-codes'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'use-friend-codes' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(useFriendCodesPerm || useTradingPostPerm))
@@ -87,10 +87,10 @@ async function friend_code(this: APIThisType, {id}: friendCodeProps) : Promise<F
 		}
 	}
 
-	const user:UserLiteType = await this.query('v1/user_lite', {id: friendCode.user_id});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: friendCode.user_id });
 
 	// Create return object
-	let character:any = null;
+	let character: any = null;
 
 	if (friendCode.character_id > 0)
 	{
@@ -128,10 +128,10 @@ friend_code.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type friendCodeProps = {
 	id: number
-}
+};
 
 export default friend_code;

@@ -6,9 +6,9 @@ import { APIThisType, AdoptionBTSettingsType } from '@types';
 /*
  * Adoptee BT Settings
  */
-export default async function settings(this: APIThisType) : Promise<AdoptionBTSettingsType>
+export default async function settings(this: APIThisType): Promise<AdoptionBTSettingsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'adoption-bt-settings'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-bt-settings' });
 
 	if (!permissionGranted)
 	{

@@ -4,12 +4,12 @@ import * as APITypes from '@apiTypes';
 import { dateUtils } from '@utils';
 import { APIThisType, TuneType } from '@types';
 
-async function tune(this: APIThisType, {id}: tuneProps) : Promise<TuneType>
+async function tune(this: APIThisType, { id }: tuneProps): Promise<TuneType>
 {
 	const [viewTownsPerm, useTradingPostPerm, viewTunesPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'view-towns'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
-		this.query('v1/permission', {permission: 'view-tunes'}),
+		this.query('v1/permission', { permission: 'view-towns' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
+		this.query('v1/permission', { permission: 'view-tunes' }),
 	]);
 
 	if (!(viewTownsPerm || useTradingPostPerm || viewTunesPerm))
@@ -36,8 +36,8 @@ async function tune(this: APIThisType, {id}: tuneProps) : Promise<TuneType>
 	return <TuneType>{
 		id: tune.id,
 		name: tune.name,
-		creator: await this.query('v1/user_lite', {id: tune.creator_id}),
-		notes: tune.notes.match(/.{4}/g).map((hex:any) => parseInt(hex, 16)),
+		creator: await this.query('v1/user_lite', { id: tune.creator_id }),
+		notes: tune.notes.match(/.{4}/g).map((hex: any) => parseInt(hex, 16)),
 		formattedDate: dateUtils.formatDateTimezone(tune.created),
 	};
 }
@@ -47,10 +47,10 @@ tune.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type tuneProps = {
 	id: number
-}
+};
 
 export default tune;

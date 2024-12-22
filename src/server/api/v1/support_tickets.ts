@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SupportTicketsType } from '@types';
 
-async function support_tickets(this: APIThisType, {page, username, userTicketId, status}: supportTicketsProps) : Promise<SupportTicketsType>
+async function support_tickets(this: APIThisType, { page, username, userTicketId, status }: supportTicketsProps): Promise<SupportTicketsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-support-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-support-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -23,8 +23,8 @@ async function support_tickets(this: APIThisType, {page, username, userTicketId,
 		utils.realStringLength(status) > 0
 	)
 	{
-		const offset = (page * pageSize) - pageSize;
-		let params:any = [pageSize, offset];
+		const offset = page * pageSize - pageSize;
+		let params: any = [pageSize, offset];
 		let paramIndex = params.length;
 
 		let query = `
@@ -50,7 +50,7 @@ async function support_tickets(this: APIThisType, {page, username, userTicketId,
 		}
 
 		// Add wheres
-		let wheres:string[] = [];
+		let wheres: string[] = [];
 
 		if (utils.realStringLength(username) > 0)
 		{
@@ -107,8 +107,9 @@ async function support_tickets(this: APIThisType, {page, username, userTicketId,
 
 		if (supportTickets.length > 0)
 		{
-			results = await Promise.all(supportTickets.map(async (supportTicket:any) => {
-				return this.query('v1/support_ticket', {id: supportTicket.id});
+			results = await Promise.all(supportTickets.map(async (supportTicket: any) =>
+			{
+				return this.query('v1/support_ticket', { id: supportTicket.id });
 			}));
 
 			count = Number(supportTickets[0].count);
@@ -145,13 +146,13 @@ support_tickets.apiTypes = {
 		type: APITypes.string,
 		includes: constants.supportTicket.statuses,
 	},
-}
+};
 
 type supportTicketsProps = {
 	page: number
 	username: string
-	userTicketId: number|null
+	userTicketId: number | null
 	status: string
-}
+};
 
 export default support_tickets;

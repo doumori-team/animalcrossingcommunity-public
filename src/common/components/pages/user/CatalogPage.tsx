@@ -9,7 +9,7 @@ import { APIThisType, UserLiteType, CharacterType } from '@types';
 
 const CatalogPage = () =>
 {
-	const {user, characters} = useLoaderData() as CatalogPageProps;
+	const { user, characters } = useLoaderData() as CatalogPageProps;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -55,14 +55,14 @@ const CatalogPage = () =>
 									className={`ACGameButtons_game ACGameButtons_game_modify ACGameButtons_game_${character.game.identifier}`}
 									aria-label={ReactDomServer.renderToString(
 										<>
-										<Keyboard
-											name={character.name}
-											gameId={character.game.id}
-										/> ({character.game.shortname}) (<Keyboard
-											name={character.town.name}
-											gameId={character.game.id}
-										/>)
-										</>
+											<Keyboard
+												name={character.name}
+												gameId={character.game.id}
+											/> ({character.game.shortname}) (<Keyboard
+												name={character.town.name}
+												gameId={character.game.id}
+											/>)
+										</>,
 									)}
 								>
 									<p>
@@ -74,7 +74,7 @@ const CatalogPage = () =>
 											gameId={character.game.id}
 										/>)
 									</p>
-								</Link>
+								</Link>,
 							)}
 						</RequirePermission>
 					</div>
@@ -84,13 +84,13 @@ const CatalogPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string})
+export async function loadData(this: APIThisType, { userId }: { userId: string })
 {
 	const [user, characters] = await Promise.all([
-		this.query('v1/user_lite', {id: userId}),
-		this.query('v1/users/characters', {id: userId}),
+		this.query('v1/user_lite', { id: userId }),
+		this.query('v1/users/characters', { id: userId }),
 	]);
 
 	return {
@@ -102,6 +102,6 @@ export async function loadData(this: APIThisType, {userId}: {userId: string})
 type CatalogPageProps = {
 	user: UserLiteType
 	characters: CharacterType[]
-}
+};
 
 export default CatalogPage;

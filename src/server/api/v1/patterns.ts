@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, PatternsType } from '@types';
 
-async function patterns(this: APIThisType, {page, name, creator, published, favorite, games}: patternsProps) : Promise<PatternsType>
+async function patterns(this: APIThisType, { page, name, creator, published, favorite, games }: patternsProps): Promise<PatternsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-patterns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-patterns' });
 
 	if (!permissionGranted)
 	{
@@ -42,8 +42,8 @@ async function patterns(this: APIThisType, {page, name, creator, published, favo
 
 	// Do actual search
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -68,7 +68,7 @@ async function patterns(this: APIThisType, {page, name, creator, published, favo
 
 		if (favorite === 'no')
 		{
-			leftjoin = 'LEFT '
+			leftjoin = 'LEFT ';
 		}
 
 		query += `
@@ -158,8 +158,9 @@ async function patterns(this: APIThisType, {page, name, creator, published, favo
 
 	if (patterns.length > 0)
 	{
-		results = await Promise.all(patterns.map(async (pattern:any) => {
-			return this.query('v1/pattern', {id: pattern.id})
+		results = await Promise.all(patterns.map(async (pattern: any) =>
+		{
+			return this.query('v1/pattern', { id: pattern.id });
 		}));
 
 		count = Number(patterns[0].count);
@@ -211,7 +212,7 @@ patterns.apiTypes = {
 	games: {
 		type: APITypes.array,
 	},
-}
+};
 
 type patternsProps = {
 	page: number
@@ -220,6 +221,6 @@ type patternsProps = {
 	published: string
 	favorite: string
 	games: any[]
-}
+};
 
 export default patterns;

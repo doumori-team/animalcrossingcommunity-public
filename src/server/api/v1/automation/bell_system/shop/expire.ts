@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function expire(this: APIThisType, {username}: expireProps) : Promise<SuccessType>
+async function expire(this: APIThisType, { username }: expireProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -39,7 +39,7 @@ async function expire(this: APIThisType, {username}: expireProps) : Promise<Succ
 	`, user.id);
 
 	return {
-		_success: `The user's purchases have been expired.`
+		_success: `The user's purchases have been expired.`,
 	};
 }
 
@@ -48,10 +48,10 @@ expire.apiTypes = {
 		type: APITypes.string,
 		required: true,
 	},
-}
+};
 
 type expireProps = {
 	username: string
-}
+};
 
 export default expire;

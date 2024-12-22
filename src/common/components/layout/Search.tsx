@@ -6,7 +6,7 @@ import { RequireUser } from '@behavior';
 
 const Search = ({
 	callback,
-	children
+	children,
 }: SearchProps) =>
 {
 	return (
@@ -27,7 +27,7 @@ const Search = ({
 			</div>
 		</RequireUser>
 	);
-}
+};
 
 type SearchProps = {
 	children: React.ReactNode | string

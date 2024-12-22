@@ -1,9 +1,9 @@
 import * as db from '@db';
 import { APIThisType, UserTicketBanLengthType } from '@types';
 
-export default async function ban_lengths(this: APIThisType) : Promise<UserTicketBanLengthType[]>
+export default async function ban_lengths(this: APIThisType): Promise<UserTicketBanLengthType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{

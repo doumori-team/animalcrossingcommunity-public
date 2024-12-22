@@ -2,9 +2,9 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, UserTicketTypeType } from '@types';
 
-export default async function types(this: APIThisType) : Promise<UserTicketTypeType[]>
+export default async function types(this: APIThisType): Promise<UserTicketTypeType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{

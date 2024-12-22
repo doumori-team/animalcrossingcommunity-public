@@ -12,6 +12,7 @@ type FruitType = {
 type StoreType = {
 	id: number
 	name: string
+	filename?: string
 };
 
 // based on v1/town
@@ -31,10 +32,10 @@ type TownType = {
 		id: number
 		name: string
 	}
-	dreamAddress: string|null
+	dreamAddress: string | null
 	ordinance: {
-		id: number|null
-		name: string|null
+		id: number | null
+		name: string | null
 	}
 	fruit: {
 		id: number
@@ -47,9 +48,9 @@ type TownType = {
 		island1: FruitType[]
 		island2: FruitType[]
 		special: FruitType[]
-		nativeFruitId: number|null
-		islandFruitId1: number|null
-		islandFruitId2: number|null
+		nativeFruitId: number | null
+		islandFruitId1: number | null
+		islandFruitId2: number | null
 	}
 	stores: {
 		nook: StoreType[]
@@ -79,6 +80,10 @@ type TownType = {
 		count: number
 		total: number
 		name: string
+		items: {
+			name: string
+			owned: boolean
+		}[]
 	}[]
 	mapDesignData: {
 		dataUrl: string
@@ -88,7 +93,7 @@ type TownType = {
 		imageData: string[]
 	} | null
 	flag: {
-		id: number|null
+		id: number | null
 		name: string
 		creator: UserLiteType
 		published: boolean
@@ -98,6 +103,12 @@ type TownType = {
 		formattedDate: null
 		isFavorite: null
 		designId: null
+	} | null
+	stationShape?: number
+	paint: {
+		id: number
+		name: string
+		hex: string
 	} | null
 };
 

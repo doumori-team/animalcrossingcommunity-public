@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ThreadsType, ShopType } from '@types';
 
-async function threads(this: APIThisType, {page, shopId, category, type, status, waitlisted, locked}: threadsType) : Promise<ThreadsType>
+async function threads(this: APIThisType, { page, shopId, category, type, status, waitlisted, locked }: threadsType): Promise<ThreadsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	const [shops, markupStyle] = await Promise.all([
 		db.query(`
@@ -82,14 +82,14 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 
 	if (shopId > 0)
 	{
-		const shop:ShopType = await this.query('v1/shop', {id: shopId});
+		const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 		if (!shop)
 		{
 			throw new UserError('no-such-shop');
 		}
 
-		if (!shops.find((s:any) => s.id === shopId))
+		if (!shops.find((s: any) => s.id === shopId))
 		{
 			throw new UserError('permission');
 		}
@@ -101,8 +101,8 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 	if (shops.length > 0)
 	{
 		// Do actual search
-		const offset = (page * pageSize) - pageSize;
-		let params:any = [pageSize, offset];
+		const offset = page * pageSize - pageSize;
+		let params: any = [pageSize, offset];
 		let paramIndex = params.length;
 
 		let query = ``;
@@ -128,7 +128,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 			}
 			else
 			{
-				params[paramIndex] = shops.map((s:any) => s.id);
+				params[paramIndex] = shops.map((s: any) => s.id);
 
 				paramIndex++;
 
@@ -137,7 +137,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 
 			if (type === 'employee')
 			{
-				params[paramIndex] = shops.filter((s:any) => s.employee).map((s:any) => s.id);
+				params[paramIndex] = shops.filter((s: any) => s.employee).map((s: any) => s.id);
 
 				paramIndex++;
 
@@ -157,11 +157,11 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 
 				paramIndex++;
 
-				params[paramIndex] = shops.filter((s:any) => s.employee).map((s:any) => s.id);
+				params[paramIndex] = shops.filter((s: any) => s.employee).map((s: any) => s.id);
 
 				paramIndex++;
 
-				wheres.push(`(shop_order.shop_id = ANY($` + paramIndex + `) OR shop_order.customer_id = $` + (paramIndex-1) + `)`);
+				wheres.push(`(shop_order.shop_id = ANY($` + paramIndex + `) OR shop_order.customer_id = $` + (paramIndex - 1) + `)`);
 			}
 
 			if (status === 'unclaimed')
@@ -186,7 +186,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 				JOIN shop_role ON (shop_role.id = shop_user_role.shop_role_id)
 				WHERE shop_user.user_id = $1 AND shop_user.active = true AND shop_user.shop_id = ANY($2) AND shop_role.applications = true
 				GROUP BY shop_user.shop_id
-			`, this.userId, shops.map((s:any) => s.id).concat([shopId]))).map((a:any) => a.shop_id);
+			`, this.userId, shops.map((s: any) => s.id).concat([shopId]))).map((a: any) => a.shop_id);
 
 			query = `
 				SELECT
@@ -206,7 +206,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 
 				paramIndex++;
 
-				wheres.push(`(shop_application.shop_id = $` + paramIndex + ` OR shop_application.user_id = $` + (paramIndex-1) + `)`);
+				wheres.push(`(shop_application.shop_id = $` + paramIndex + ` OR shop_application.user_id = $` + (paramIndex - 1) + `)`);
 			}
 			else
 			{
@@ -214,7 +214,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 
 				paramIndex++;
 
-				wheres.push(`(shop_application.shop_id = ANY($` + paramIndex + `) OR shop_application.user_id = $` + (paramIndex-1) + `)`);
+				wheres.push(`(shop_application.shop_id = ANY($` + paramIndex + `) OR shop_application.user_id = $` + (paramIndex - 1) + `)`);
 			}
 
 			if (['yes', 'no'].includes(waitlisted))
@@ -257,7 +257,7 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 			}
 			else
 			{
-				params[paramIndex] = shops.map((s:any) => s.id);
+				params[paramIndex] = shops.map((s: any) => s.id);
 
 				paramIndex++;
 
@@ -320,8 +320,9 @@ async function threads(this: APIThisType, {page, shopId, category, type, status,
 
 		if (threads.length > 0)
 		{
-			results = await Promise.all(threads.map(async (thread:any) => {
-				return this.query('v1/shop/thread', {id: thread.id, category: category});
+			results = await Promise.all(threads.map(async (thread: any) =>
+			{
+				return this.query('v1/shop/thread', { id: thread.id, category: category });
 			}));
 
 			count = Number(threads[0].count);
@@ -380,7 +381,7 @@ threads.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type threadsType = {
 	page: number
@@ -390,6 +391,6 @@ type threadsType = {
 	status: string
 	waitlisted: string
 	locked: boolean
-}
+};
 
 export default threads;

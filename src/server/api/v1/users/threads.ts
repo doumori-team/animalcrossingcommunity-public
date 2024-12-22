@@ -4,14 +4,14 @@ import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
 import { APIThisType, UserThreadsType } from '@types';
 
-async function threads(this: APIThisType, {id, page}: threadsProps) : Promise<UserThreadsType>
+async function threads(this: APIThisType, { id, page }: threadsProps): Promise<UserThreadsType>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	const offset = (page * constants.threadPageSize) - constants.threadPageSize;
+	const offset = page * constants.threadPageSize - constants.threadPageSize;
 
 	// check permissions: users are granted node read access through user or group level
 	// so check user level for thread and parent and check group for all of this user's
@@ -138,11 +138,11 @@ threads.apiTypes = {
 		required: true,
 		min: 1,
 	},
-}
+};
 
 type threadsProps = {
 	id: number
 	page: number
-}
+};
 
 export default threads;

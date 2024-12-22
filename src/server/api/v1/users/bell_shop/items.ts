@@ -8,7 +8,7 @@ import { APIThisType, BellShopItemsType, UserBellShopItemType } from '@types';
 /*
  * Items the user has redeemed from the bell shop.
  */
-async function items(this: APIThisType, {id, ignoreExpired = true}: itemsProps) : Promise<UserBellShopItemType[]>
+async function items(this: APIThisType, { id, ignoreExpired = true }: itemsProps): Promise<UserBellShopItemType[]>
 {
 	if (id != this.userId)
 	{
@@ -32,12 +32,13 @@ async function items(this: APIThisType, {id, ignoreExpired = true}: itemsProps) 
 
 	this.query('v1/notification/destroy', {
 		id: id,
-		type: constants.notification.types.giftBellShop
+		type: constants.notification.types.giftBellShop,
 	});
 
-	const sortedBellShopItems:BellShopItemsType['all'] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['all'];
+	const sortedBellShopItems: BellShopItemsType['all'] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['all'];
 
-	return userItems.map((userItem:any) => {
+	return userItems.map((userItem: any) =>
+	{
 		const item = sortedBellShopItems[userItem.item_id];
 
 		return {
@@ -60,11 +61,11 @@ items.apiTypes = {
 		default: true,
 	},
 	// ignoreExpired not included on purpose
-}
+};
 
 type itemsProps = {
 	id: number
 	ignoreExpired: boolean
-}
+};
 
 export default items;

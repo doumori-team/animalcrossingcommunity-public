@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, ThreadOrderType, ThreadApplicationType, ThreadType, ACGameItemType } from '@types';
 
-async function thread(this: APIThisType, {id, category, getItems = false}: threadProps) : Promise<ThreadOrderType | ThreadApplicationType | ThreadType>
+async function thread(this: APIThisType, { id, category, getItems = false }: threadProps): Promise<ThreadOrderType | ThreadApplicationType | ThreadType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function thread(this: APIThisType, {id, category, getItems = false}: threa
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	if (category === constants.shops.categories.orders)
 	{
@@ -83,9 +83,9 @@ async function thread(this: APIThisType, {id, category, getItems = false}: threa
 			throw new UserError('permission');
 		}
 
-		const catalogItems:ACGameItemType[number]['all']['items'] = getItems && items.length > 0 ? (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${thread.game_id}_all_items`)).filter((ci:any) => items.some((i:any) => ci.id === i.catalog_item_id)) : [];
+		const catalogItems: ACGameItemType[number]['all']['items'] = getItems && items.length > 0 ? (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${thread.game_id}_all_items`)).filter((ci: any) => items.some((i: any) => ci.id === i.catalog_item_id)) : [];
 
-		this.query('v1/notification/destroy', {id: thread.id, type: constants.notification.types.shopOrder});
+		this.query('v1/notification/destroy', { id: thread.id, type: constants.notification.types.shopOrder });
 
 		return <ThreadOrderType>{
 			id: thread.id,
@@ -104,13 +104,14 @@ async function thread(this: APIThisType, {id, category, getItems = false}: threa
 			},
 			formattedDate: dateUtils.formatDateTime(thread.ordered),
 			service: thread.service,
-			status: thread.completed ? 'Completed' : (thread.employee_id ? 'In Progress' : 'Unclaimed'),
+			status: thread.completed ? 'Completed' : thread.employee_id ? 'In Progress' : 'Unclaimed',
 			comment: thread.comment,
-			items: getItems && items.length > 0 ? items.map((item:any) => {
+			items: getItems && items.length > 0 ? items.map((item: any) =>
+			{
 				return {
 					id: item.catalog_item_id,
 					quantity: item.quantity,
-					name: catalogItems.find((ci:any) => ci.id === item.catalog_item_id)?.name,
+					name: catalogItems.find((ci: any) => ci.id === item.catalog_item_id)?.name,
 				};
 			}) : [],
 			claim: !thread.employee_id && claim.length > 0,
@@ -199,9 +200,9 @@ async function thread(this: APIThisType, {id, category, getItems = false}: threa
 				JOIN shop_role ON (shop_role.id = shop_user_role.shop_role_id)
 				WHERE shop_user.user_id = $1 AND shop_user.active = true AND shop_user.shop_id = $2 AND shop_role.applications = true
 			`, this.userId, thread.shop_id),
-			this.query('v1/user', {id: thread.user_id}),
-			this.query('v1/users/ratings', {id: thread.user_id}),
-			this.query('v1/notification/destroy', {id: thread.id, type: constants.notification.types.shopApplication}),
+			this.query('v1/user', { id: thread.user_id }),
+			this.query('v1/users/ratings', { id: thread.user_id }),
+			this.query('v1/notification/destroy', { id: thread.id, type: constants.notification.types.shopApplication }),
 		]);
 
 		if (!employeeApplications && thread.user_id != this.userId)
@@ -235,7 +236,8 @@ async function thread(this: APIThisType, {id, category, getItems = false}: threa
 			role: thread.role,
 			waitlisted: thread.waitlisted,
 			contact: !thread.node_id && (owners.length > 0 || contacts.length > 0),
-			games: shopGames.map((sg:any) => {
+			games: shopGames.map((sg: any) =>
+			{
 				return {
 					id: sg.game_id,
 					shortname: sg.shortname,
@@ -297,12 +299,12 @@ thread.apiTypes = {
 		includes: [constants.shops.categories.orders, constants.shops.categories.applications, constants.shops.categories.threads],
 		required: true,
 	},
-}
+};
 
 type threadProps = {
 	id: number
 	category: string
 	getItems: boolean
-}
+};
 
 export default thread;

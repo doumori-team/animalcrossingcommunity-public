@@ -9,9 +9,9 @@ type UserTicketType = {
 	assignee: UserLiteType
 	status: string
 	formattedLastUpdated: string
-	rule: string|null
-	violation: string|null
-	formattedClosed: string|null
+	rule: string | null
+	violation: string | null
+	formattedClosed: string | null
 	formattedCreated: string
 	reportedUsers?: {
 		id: number
@@ -32,7 +32,7 @@ type UserTicketType = {
 		text: string
 		format: MarkupStyleType
 		parentId: number
-		boardId: number|null
+		boardId: number | null
 	}
 	updatedContent: string
 	action: {

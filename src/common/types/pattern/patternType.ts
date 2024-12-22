@@ -8,13 +8,13 @@ type PatternType = {
 	formattedDate: string
 	published: boolean
 	isFavorite: boolean
-	designId: string|null
+	designId: string | null
 	data: string[]
 	dataUrl: string
 	gameId: number
 	paletteId: number
 	gameShortName: string
-	qrCodeUrl: string|null
+	qrCodeUrl: string | null
 };
 
 export type { PatternType };

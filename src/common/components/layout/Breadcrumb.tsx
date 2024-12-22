@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Breadcrumb = ({
-	segments
+	segments,
 }: BreadcrumbProps) =>
 {
 	if (!segments || segments.length <= 0)
@@ -14,13 +14,13 @@ const Breadcrumb = ({
 		<small className='Breadcrumb'>
 			{segments.map((segment, index) =>
 				<span key={segment.id || index}>
-					<Link to={segment.url || `/forums/${encodeURIComponent(Number(segment?.id||0))}`}>
+					<Link to={segment.url || `/forums/${encodeURIComponent(Number(segment?.id || 0))}`}>
 						{segment.title}
-					</Link> » </span>
+					</Link> » </span>,
 			)}
 		</small>
 	);
-}
+};
 
 type BreadcrumbProps = {
 	segments: {

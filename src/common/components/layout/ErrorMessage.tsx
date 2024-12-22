@@ -13,26 +13,26 @@ import HTMLPurify from '@/components/layout/HTMLPurify.tsx';
  */
 const ErrorMessage = ({
 	identifier,
-	message
+	message,
 }: ErrorMessageProps) =>
 {
 	return (
 		<Alert type='error'>
-			{message ? (
+			{message ?
 				<HTMLPurify className='error_message' html={message} />
-			) : (
+				:
 				<>
-				<strong>{'Sorry!'}</strong>{' '}
-				{
-					identifier != null && (ERROR_MESSAGES as any)[identifier]
-						? <HTMLPurify className='error_message' html={(ERROR_MESSAGES as any)[identifier].message} />
-						: 'While trying to display an error message, another error occurred. Please let us know about this on the Site Support board and we’ll look into it. Sorry for the inconvenience.'
-				}
+					<strong>{'Sorry!'}</strong>{' '}
+					{
+						identifier && (ERROR_MESSAGES as any)[identifier]
+							? <HTMLPurify className='error_message' html={(ERROR_MESSAGES as any)[identifier].message} />
+							: 'While trying to display an error message, another error occurred. Please let us know about this on the Site Support board and we’ll look into it. Sorry for the inconvenience.'
+					}
 				</>
-			)}
+			}
 		</Alert>
 	);
-}
+};
 
 type ErrorMessageProps = {
 	identifier?: string

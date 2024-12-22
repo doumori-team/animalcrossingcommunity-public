@@ -8,7 +8,7 @@ import { APIThisType, TuneType } from '@types';
 
 const EditTunePage = () =>
 {
-	const {tune} = useLoaderData() as EditTunePageProps;
+	const { tune } = useLoaderData() as EditTunePageProps;
 
 	return (
 		<div className='EditTunePage'>
@@ -21,19 +21,19 @@ const EditTunePage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<EditTunePageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditTunePageProps>
 {
 	const [tune] = await Promise.all([
-		this.query('v1/tune', {id: id}),
+		this.query('v1/tune', { id: id }),
 	]);
 
-	return {tune};
+	return { tune };
 }
 
 type EditTunePageProps = {
 	tune: TuneType
-}
+};
 
 export default EditTunePage;

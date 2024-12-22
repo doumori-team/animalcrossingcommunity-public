@@ -15,6 +15,6 @@ const LoginButton = () =>
 			/>
 		</form>
 	);
-}
+};
 
-export default LoginButton
+export default LoginButton;

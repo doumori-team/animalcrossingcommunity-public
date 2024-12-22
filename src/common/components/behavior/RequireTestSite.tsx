@@ -8,18 +8,18 @@ import { constants } from '@utils';
  * Include the optional "silent" prop to suppress the error message.
  */
 const RequireTestSite = ({
-	children
+	children,
 }: RequireTestSiteProps) =>
 {
-    if (constants.LIVE_SITE)
-    {
-        return null;
-    }
-    else
-    {
-        return children;
-    }
-}
+	if (constants.LIVE_SITE)
+	{
+		return null;
+	}
+	else
+	{
+		return children;
+	}
+};
 
 type RequireTestSiteProps = {
 	children: React.ReactNode

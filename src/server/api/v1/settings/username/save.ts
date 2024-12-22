@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {username}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { username }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'change-username'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'change-username' });
 
 	if (!permissionGranted)
 	{
@@ -45,7 +45,7 @@ async function save(this: APIThisType, {username}: saveProps) : Promise<SuccessT
 
 		throw new UserError('username-taken');
 	}
-	catch (error:any)
+	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
 		{
@@ -59,10 +59,10 @@ async function save(this: APIThisType, {username}: saveProps) : Promise<SuccessT
 	}
 
 	await accounts.pushData(
-	{
-		user_id: userData.id,
-		username: username,
-	});
+		{
+			user_id: userData.id,
+			username: username,
+		});
 
 	ACCCache.deleteMatch(constants.cacheKeys.userLite);
 
@@ -78,10 +78,10 @@ save.apiTypes = {
 		length: constants.max.username,
 		min: constants.min.username,
 	},
-}
+};
 
 type saveProps = {
 	username: string
-}
+};
 
 export default save;

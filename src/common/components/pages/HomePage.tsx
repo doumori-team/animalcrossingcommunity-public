@@ -10,7 +10,7 @@ import { APIThisType, HomePollsType, CalendarType, AnnouncementsType, BirthdaysT
 
 const HomePage = () =>
 {
-	const {polls, game, month, announcements, birthdays} = useLoaderData() as HomePageProps;
+	const { polls, game, month, announcements, birthdays } = useLoaderData() as HomePageProps;
 
 	return (
 		<div className='HomePage'>
@@ -20,13 +20,13 @@ const HomePage = () =>
 						<UserContext.Consumer>
 							{user => user ?
 								<>
-								<p>Welcome to <strong>Animal Crossing Community</strong> (or just ACC), your one-stop fan site for everything Animal Crossing. <Link to={`/forums/${encodeURIComponent(constants.boardIds.accForums)}`}>Discuss the games with fellow members</Link>, <Link to='/trading-post'>trade in-game items</Link>, show off your town, create <Link to='/patterns'>patterns</Link> and <Link to='/town-tunes'>town tunes</Link>, and so much more. You can also find <Link to='/guides'>comprehensive guides</Link> covering all of the games. No matter what you do, be sure to keep an eye out for Bells that you can redeem for prizes in <Link to='/bell-shop'>the Bell Shop</Link>.</p>
-								<p>Once again, welcome to the community. We hope you enjoy everything we have to offer and that you make some great friends here!</p>
+									<p>Welcome to <strong>Animal Crossing Community</strong> (or just ACC), your one-stop fan site for everything Animal Crossing. <Link to={`/forums/${encodeURIComponent(constants.boardIds.accForums)}`}>Discuss the games with fellow members</Link>, <Link to='/trading-post'>trade in-game items</Link>, show off your town, create <Link to='/patterns'>patterns</Link> and <Link to='/town-tunes'>town tunes</Link>, and so much more. You can also find <Link to='/guides'>comprehensive guides</Link> covering all of the games. No matter what you do, be sure to keep an eye out for Bells that you can redeem for prizes in <Link to='/bell-shop'>the Bell Shop</Link>.</p>
+									<p>Once again, welcome to the community. We hope you enjoy everything we have to offer and that you make some great friends here!</p>
 								</>
 								:
 								<>
-								<p>Welcome to <strong>Animal Crossing Community</strong> (or just ACC), your one-stop fan site for everything Animal Crossing. <Link to={`/forums/${encodeURIComponent(constants.boardIds.accForums)}`}>Discuss the games with fellow members</Link>, <Link to='/trading-post'>trade in-game items</Link>, show off your town, create <Link to='/patterns'>patterns</Link> and <Link to='/town-tunes'>town tunes</Link>, and so much more. You can also find <Link to='/guides'>comprehensive guides</Link> covering all of the games. No matter what you do, be sure to keep an eye out for Bells that you can redeem for prizes in the Bell Shop.</p>
-								<p>Once again, welcome to the community. We hope you enjoy everything we have to offer and that you make some great friends here!</p>
+									<p>Welcome to <strong>Animal Crossing Community</strong> (or just ACC), your one-stop fan site for everything Animal Crossing. <Link to={`/forums/${encodeURIComponent(constants.boardIds.accForums)}`}>Discuss the games with fellow members</Link>, <Link to='/trading-post'>trade in-game items</Link>, show off your town, create <Link to='/patterns'>patterns</Link> and <Link to='/town-tunes'>town tunes</Link>, and so much more. You can also find <Link to='/guides'>comprehensive guides</Link> covering all of the games. No matter what you do, be sure to keep an eye out for Bells that you can redeem for prizes in the Bell Shop.</p>
+									<p>Once again, welcome to the community. We hope you enjoy everything we have to offer and that you make some great friends here!</p>
 								</>
 							}
 						</UserContext.Consumer>
@@ -60,7 +60,7 @@ const HomePage = () =>
 					<div className='HomePage_announcementSection'>
 						<h2>Announcements</h2>
 						<div className='HomePage_announcements'>
-							{announcements.length > 0 ? (
+							{announcements.length > 0 ?
 								announcements.map((announcement, index) =>
 									<div className='HomePage_announcement' key={index}>
 										<div className='HomePage_created'>
@@ -77,19 +77,19 @@ const HomePage = () =>
 												format={announcement.content.format}
 											/>
 
-											{announcement.files.length > 0 && (
+											{announcement.files.length > 0 &&
 												<PhotoGallery
 													userId={announcement.userId}
 													files={announcement.files}
 													reportType={constants.userTicket.types.postImage}
 												/>
-											)}
+											}
 										</div>
-									</div>
+									</div>,
 								)
-							) : (
+								:
 								'No announcements found.'
-							)}
+							}
 						</div>
 					</div>
 				</ContentBox>
@@ -102,9 +102,9 @@ const HomePage = () =>
 								alt='Candle'
 							/> Birthdays</div>
 							<div className='HomePage_birthdays'>
-								{birthdays.length > 0 ? (
+								{birthdays.length > 0 ?
 									birthdays.map((birthday, index) =>
-										<UserContext.Consumer>
+										<UserContext.Consumer key={index}>
 											{user => user ?
 												<div className='HomePage_birthday' key={index}>
 													<div className='HomePage_birthdayUser'>
@@ -129,11 +129,11 @@ const HomePage = () =>
 													</div>
 												</div>
 											}
-										</UserContext.Consumer>
+										</UserContext.Consumer>,
 									)
-								) : (
+									:
 									'No current birthdays.'
-								)}
+								}
 							</div>
 						</div>
 					</ContentBox>
@@ -141,18 +141,18 @@ const HomePage = () =>
 						<ContentBox>
 							<div className='HomePage_pollSection'>
 								<div className='HomePage_title'>Weekly Poll</div>
-								{polls.currentPoll ? (
+								{polls.currentPoll ?
 									<Poll {...polls.currentPoll} />
-								) : (
+									:
 									<ErrorMessage identifier='poll-not-set-up' />
-								)}
+								}
 								<hr className='HomePage_hr' />
 								<div className='HomePage_title'>Last Week's Poll</div>
-								{polls.previousPoll ? (
+								{polls.previousPoll ?
 									<Poll {...polls.previousPoll} />
-								) : (
+									:
 									<ErrorMessage identifier='poll-not-set-up' />
-								)}
+								}
 							</div>
 						</ContentBox>
 					</RequirePermission>
@@ -170,22 +170,24 @@ const HomePage = () =>
 									</div>
 
 									<div className='HomePage_categorySections'>
-										{month.categories.map((category:CalendarType['months']['categories'], index:number) =>
+										{month.categories.map((category: CalendarType['months']['categories'], index: number) =>
 											<div className='HomePage_categorySection' key={index}>
 												<div className='HomePage_categoryName'>
 													{category.name}
 												</div>
 
-												{category.events.length > 0 ? (
+												{category.events.length > 0 ?
 													<div className={`HomePage_eventSections ${category.identifier === constants.calendarCategories.birthdays && 'grid'}`}>
-														{category.events.map((event:CalendarType['months']['categories']['events'], index:number) => {
-															if (event.hasOwnProperty('img'))
+														{category.events.map((event: CalendarType['months']['categories']['events'], index: number) =>
+														{
+															if (Object.prototype.hasOwnProperty.call(event, 'img'))
 															{
 																return (
 																	<img
 																		src={event.img}
 																		title={`${utils.capitalize(event.name)}: ${event.timing}`}
 																		alt={`${utils.capitalize(event.name)}: ${event.timing}`}
+																		key={index}
 																	/>
 																);
 															}
@@ -203,10 +205,10 @@ const HomePage = () =>
 															);
 														})}
 													</div>
-												) : (
+													:
 													'Nothing found.'
-												)}
-											</div>
+												}
+											</div>,
 										)}
 									</div>
 								</div>
@@ -217,13 +219,13 @@ const HomePage = () =>
 			</div>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {debug}: {debug?: string}) : Promise<HomePageProps>
+export async function loadData(this: APIThisType, _: any, { debug }: { debug?: string }): Promise<HomePageProps>
 {
 	const [polls, returnValue, announcements, birthdays] = await Promise.all([
 		this.query('v1/home_polls'),
-		this.query('v1/acgame/calendar', {requester: 'homepage', debug: debug}),
+		this.query('v1/acgame/calendar', { requester: 'homepage', debug: debug }),
 		this.query('v1/node/announcements'),
 		this.query('v1/birthdays'),
 	]);
@@ -243,6 +245,6 @@ type HomePageProps = {
 	month: CalendarType['months']
 	announcements: AnnouncementsType[]
 	birthdays: BirthdaysType[]
-}
+};
 
 export default HomePage;

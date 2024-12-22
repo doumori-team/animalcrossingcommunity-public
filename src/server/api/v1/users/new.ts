@@ -7,9 +7,9 @@ import { APIThisType, UsersNewType } from '@types';
 /*
  * All new users, with info.
  */
-async function users_new(this: APIThisType, {page}: usersNewProps) : Promise<UsersNewType>
+async function users_new(this: APIThisType, { page }: usersNewProps): Promise<UsersNewType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'scout-pages'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'scout-pages' });
 
 	if (!permissionGranted)
 	{
@@ -18,7 +18,7 @@ async function users_new(this: APIThisType, {page}: usersNewProps) : Promise<Use
 
 	// Perform queries
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
 	const newUsers = await db.query(`
 		SELECT
@@ -40,7 +40,8 @@ async function users_new(this: APIThisType, {page}: usersNewProps) : Promise<Use
 	`, pageSize, offset, constants.scoutHub.newMemberEligibility);
 
 	return <UsersNewType>{
-		newUsers: newUsers.map((user:any) => {
+		newUsers: newUsers.map((user: any) =>
+		{
 			return {
 				id: user.id,
 				username: user.username,
@@ -63,10 +64,10 @@ users_new.apiTypes = {
 		required: true,
 		min: 1,
 	},
-}
+};
 
 type usersNewProps = {
 	page: number
-}
+};
 
 export default users_new;

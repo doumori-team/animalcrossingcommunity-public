@@ -21,6 +21,6 @@ const CookiePolicyPage = () =>
 			</ContentBox>
 		</div>
 	);
-}
+};
 
 export default CookiePolicyPage;

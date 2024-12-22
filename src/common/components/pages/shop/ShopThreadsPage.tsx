@@ -14,13 +14,13 @@ import {
 	ElementClickType,
 	ThreadOrderType,
 	ThreadApplicationType,
-	ThreadType
+	ThreadType,
 } from '@types';
 
 const ShopThreadsPage = () =>
 {
-	const {totalCount, threads, page, pageSize, shopId, category, shops, type,
-		status, waitlisted, locked, userEmojiSettings, markupStyle} = useLoaderData() as ShopThreadsPageProps;
+	const { totalCount, threads, page, pageSize, shopId, category, shops, type,
+		status, waitlisted, locked, userEmojiSettings, markupStyle } = useLoaderData() as ShopThreadsPageProps;
 
 	const [selectedCategory, setSelectedCategory] = useState<ThreadsType['category']>(category);
 	const [selectedShopId, setSelectedShopId] = useState<ThreadsType['shopId']>(shopId);
@@ -33,15 +33,15 @@ const ShopThreadsPage = () =>
 		&locked=${encodeURIComponent(locked)}
 	`;
 
-	const changeCategory = (e: ElementClickType) : void =>
+	const changeCategory = (e: ElementClickType): void =>
 	{
 		setSelectedCategory(e.currentTarget.value);
-	}
+	};
 
-	const changeShop = (e: ElementSelectType) : void =>
+	const changeShop = (e: ElementSelectType): void =>
 	{
 		setSelectedShopId(Number(e.target.value));
-	}
+	};
 
 	return (
 		<div className='ShopThreadsPage'>
@@ -50,128 +50,129 @@ const ShopThreadsPage = () =>
 					name='Orders, Applications & Other Threads'
 					links={
 						<>
-						<RequireUser permission='modify-shops' silent>
-							<Link to='/shops/add'>
-								Create a Shop
+							<RequireUser permission='modify-shops' silent>
+								<Link to='/shops/add'>
+									Create a Shop
+								</Link>
+							</RequireUser>
+							<Link to='/shops'>
+								Shops
 							</Link>
-						</RequireUser>
-						<Link to='/shops'>
-							Shops
-						</Link>
 						</>
 					}
 				/>
 
-				{shops.length > 0 && (
+				{shops.length > 0 &&
 					<>
-					{selectedCategory == constants.shops.categories.orders && (
-						<UserContext.Consumer>
-							{user => user && (
-								(user.awayStartDate && user.awayEndDate) && (
-									<Alert>
-										You are currently away and cannot claim orders.
-									</Alert>
-								)
-							)}
-						</UserContext.Consumer>
-					)}
+						{selectedCategory === constants.shops.categories.orders &&
+							<UserContext.Consumer>
+								{user => user && (
+									user.awayStartDate && user.awayEndDate &&
+										<Alert>
+											You are currently away and cannot claim orders.
+										</Alert>
 
-					<Search callback='/shops/threads'>
-						<Form.Group>
-							<Select
-								label='Shop'
-								name='shopId'
-								value={selectedShopId}
-								options={shops}
-								optionsMapping={{value: 'id', label: 'name'}}
-								placeholder='Choose a shop...'
-								changeHandler={changeShop}
-							/>
-						</Form.Group>
+								)}
+							</UserContext.Consumer>
+						}
 
-						<Form.Group>
-							<Check
-								label='Category'
-								options={[
-									{ id: constants.shops.categories.orders, name: 'Orders' },
-									{ id: constants.shops.categories.applications, name: 'Applications' },
-									{ id: constants.shops.categories.threads, name: 'Other Threads' },
-								]}
-								name='category'
-								defaultValue={utils.realStringLength(selectedCategory) > 0 ?
-									[selectedCategory] : [constants.shops.categories.orders]}
-								onChangeHandler={changeCategory}
-							/>
-						</Form.Group>
+						<Search callback='/shops/threads'>
+							<Form.Group>
+								<Select
+									label='Shop'
+									name='shopId'
+									value={selectedShopId}
+									options={shops}
+									optionsMapping={{ value: 'id', label: 'name' }}
+									placeholder='Choose a shop...'
+									changeHandler={changeShop}
+								/>
+							</Form.Group>
 
-						{selectedShopId > 0 && (
-							<>
-							{selectedCategory === constants.shops.categories.orders && (
+							<Form.Group>
+								<Check
+									label='Category'
+									options={[
+										{ id: constants.shops.categories.orders, name: 'Orders' },
+										{ id: constants.shops.categories.applications, name: 'Applications' },
+										{ id: constants.shops.categories.threads, name: 'Other Threads' },
+									]}
+									name='category'
+									defaultValue={utils.realStringLength(selectedCategory) > 0 ?
+										[selectedCategory] : [constants.shops.categories.orders]}
+									onChangeHandler={changeCategory}
+								/>
+							</Form.Group>
+
+							{selectedShopId > 0 &&
 								<>
-								<Form.Group>
-									<Check
-										label='Type'
-										options={[
-											{ id: 'employee', name: 'Employee' },
-											{ id: 'customer', name: 'Customer' },
-											{ id: 'both', name: 'Both' },
-										]}
-										name='type'
-										defaultValue={utils.realStringLength(type) > 0 ?
-											[type] : ['both']}
-									/>
-								</Form.Group>
-								<Form.Group>
-									<Check
-										label='Status'
-										options={[
-											{ id: 'unclaimed', name: 'Unclaimed' },
-											{ id: 'in_progress', name: 'In Progress' },
-											{ id: 'completed', name: 'Completed' },
-											{ id: 'all', name: 'All' },
-										]}
-										name='status'
-										defaultValue={utils.realStringLength(status) > 0 ?
-											[status] : ['all']}
-									/>
-								</Form.Group>
-								</>
-							)}
+									{selectedCategory === constants.shops.categories.orders &&
+										<>
+											<Form.Group>
+												<Check
+													label='Type'
+													options={[
+														{ id: 'employee', name: 'Employee' },
+														{ id: 'customer', name: 'Customer' },
+														{ id: 'both', name: 'Both' },
+													]}
+													name='type'
+													defaultValue={utils.realStringLength(type) > 0 ?
+														[type] : ['both']}
+												/>
+											</Form.Group>
+											<Form.Group>
+												<Check
+													label='Status'
+													options={[
+														{ id: 'unclaimed', name: 'Unclaimed' },
+														{ id: 'in_progress', name: 'In Progress' },
+														{ id: 'completed', name: 'Completed' },
+														{ id: 'all', name: 'All' },
+													]}
+													name='status'
+													defaultValue={utils.realStringLength(status) > 0 ?
+														[status] : ['all']}
+												/>
+											</Form.Group>
+										</>
+									}
 
-							{selectedCategory === constants.shops.categories.applications && (
-								<>
-								<Form.Group>
-									<Check
-										label='Waitlisted'
-										options={constants.boolOptions}
-										name='waitlisted'
-										defaultValue={utils.realStringLength(waitlisted) > 0 ?
-											[waitlisted] : ['both']}
-									/>
-								</Form.Group>
-								</>
-							)}
+									{selectedCategory === constants.shops.categories.applications &&
+										<>
+											<Form.Group>
+												<Check
+													label='Waitlisted'
+													options={constants.boolOptions}
+													name='waitlisted'
+													defaultValue={utils.realStringLength(waitlisted) > 0 ?
+														[waitlisted] : ['both']}
+												/>
+											</Form.Group>
+										</>
+									}
 
-							{selectedCategory === constants.shops.categories.threads && (
-								<>
-								<Form.Group>
-									<Switch
-										name='locked'
-										label='Show Locked'
-										value={locked}
-									/>
-								</Form.Group>
+									{selectedCategory === constants.shops.categories.threads &&
+										<>
+											<Form.Group>
+												<Switch
+													name='locked'
+													label='Show Locked'
+													value={locked}
+												/>
+											</Form.Group>
+										</>
+									}
 								</>
-							)}
-							</>
-						)}
-					</Search>
+							}
+						</Search>
 					</>
-				)}
+				}
 
 				<Section>
 					<Grid options={threads} message={`No threads found.`}>
-						{threads.map((thread, index) => {
+						{threads.map((thread, index) =>
+						{
 							if (category === constants.shops.categories.orders)
 							{
 								const order = thread as ThreadOrderType;
@@ -179,25 +180,25 @@ const ShopThreadsPage = () =>
 								return (
 									<section className='ShopThreadsPage_order' key={index}>
 										<div className='ShopThreadsPage_links'>
-											{order.claim && (
+											{order.claim &&
 												<Link to={`/shop/order/${encodeURIComponent(thread.id)}`}>
 													Claim
 												</Link>
-											)}
+											}
 										</div>
 										<div>
-											{order.nodeId ? (
+											{order.nodeId ?
 												<>Order #: <Link to={`/shops/threads/${encodeURIComponent(order.nodeId)}`}>{order.id}</Link></>
-											) : (
+												:
 												<>Order #: {order.id}</>
-											)}
+											}
 										</div>
 
-										{order.employee && (
+										{order.employee &&
 											<div>
 												Employee: <Link to={`/profile/${encodeURIComponent(order.employee.id)}`}>{order.employee.username}</Link>
 											</div>
-										)}
+										}
 
 										<div>
 											Customer: <Link to={`/profile/${encodeURIComponent(order.customer.id)}`}>{order.customer.username}</Link>
@@ -228,18 +229,18 @@ const ShopThreadsPage = () =>
 								return (
 									<section className='ShopThreadsPage_application' key={index}>
 										<div className='ShopThreadsPage_links'>
-											{application.contact && (
+											{application.contact &&
 												<Link to={`/shop/application/${encodeURIComponent(application.id)}`}>
 													Contact User
 												</Link>
-											)}
+											}
 										</div>
 										<div>
-											{application.nodeId ? (
+											{application.nodeId ?
 												<>Application #: <Link to={`/shops/threads/${encodeURIComponent(application.nodeId)}`}>{application.id}</Link></>
-											) : (
+												:
 												<>Application #: {application.id}</>
-											)}
+											}
 										</div>
 
 										<div>
@@ -261,7 +262,7 @@ const ShopThreadsPage = () =>
 												{application.games.map(game =>
 													<li key={game.id}>
 														{game.shortname}
-													</li>
+													</li>,
 												)}
 											</ul>
 										</div>
@@ -320,7 +321,7 @@ const ShopThreadsPage = () =>
 					/>
 				</Section>
 
-				{shops.some(s => s.employee) && (
+				{shops.some(s => s.employee) &&
 					<fieldset className='NodeWritingInterface'>
 						<Form action='v1/shop/node/create' callback='/shops/threads/:id' showButton>
 							<div role='group'>
@@ -350,7 +351,7 @@ const ShopThreadsPage = () =>
 								label='Shop'
 								name='shopId'
 								options={shops.filter(s => s.employee)}
-								optionsMapping={{value: 'id', label: 'name'}}
+								optionsMapping={{ value: 'id', label: 'name' }}
 								placeholder='Choose a shop...'
 								required
 							/>
@@ -367,13 +368,13 @@ const ShopThreadsPage = () =>
 							/>
 						</Form>
 					</fieldset>
-				)}
+				}
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, shopId, category, type, status, waitlisted, locked}: {page?: string, shopId?: string, category?: string, type?: string, status?: string, waitlisted?: string, locked?: string}) : Promise<ShopThreadsPageProps>
+export async function loadData(this: APIThisType, _: any, { page, shopId, category, type, status, waitlisted, locked }: { page?: string, shopId?: string, category?: string, type?: string, status?: string, waitlisted?: string, locked?: string }): Promise<ShopThreadsPageProps>
 {
 	const [returnValue, userEmojiSettings] = await Promise.all([
 		this.query('v1/shop/threads', {
@@ -419,6 +420,6 @@ type ShopThreadsPageProps = {
 	userEmojiSettings: EmojiSettingType[]
 	shopId: ThreadsType['shopId']
 	markupStyle: ThreadsType['markupStyle']
-}
+};
 
 export default ShopThreadsPage;

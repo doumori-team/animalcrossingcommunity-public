@@ -9,7 +9,7 @@ import { APIThisType, CalendarType, ACGameYearsType, ACGameType, ElementSelectTy
 
 const CalendarPage = () =>
 {
-	const {acgames, months, game, initialYears} = useLoaderData() as CalendarPageProps;
+	const { acgames, months, game, initialYears } = useLoaderData() as CalendarPageProps;
 
 	const [selectedGameId, setSelectedGameId] = useState<CalendarType['game']>(game.id);
 	const [years, setYears] = useState<number[]>(initialYears[game.id]);
@@ -20,13 +20,13 @@ const CalendarPage = () =>
 		year: months.length > 1 ? months[0].year : '',
 	} : months[0];
 
-	const changeGame = (e: ElementSelectType) : void =>
+	const changeGame = (e: ElementSelectType): void =>
 	{
 		const gameId = Number(e.target.value);
 
 		setSelectedGameId(gameId);
 		setYears(initialYears[game.id]);
-	}
+	};
 
 	return (
 		<RequirePermission permission='view-calendar'>
@@ -42,7 +42,7 @@ const CalendarPage = () =>
 							name='gameId'
 							value={selectedGameId}
 							options={acgames.filter(g => g.hasTown === true)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							changeHandler={changeGame}
 						/>
 					</Form.Group>
@@ -53,9 +53,9 @@ const CalendarPage = () =>
 							value={monthValue.id}
 							options={[{
 								id: 0,
-								name: 'All Months'
+								name: 'All Months',
 							}].concat(constants.months)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -64,13 +64,13 @@ const CalendarPage = () =>
 							name='year'
 							value={monthValue.year}
 							options={years
-								.map(year => ({value: year, label: year}))
+								.map(year => ({ value: year, label: year }))
 							}
 						/>
 					</Form.Group>
 				</Search>
 
-				{months.map((month:CalendarType['months']) =>
+				{months.map((month: CalendarType['months']) =>
 					<Section key={month.id}>
 						<div className='CalendarPage_monthSection'>
 							<div className='CalendarPage_monthName'>
@@ -78,24 +78,24 @@ const CalendarPage = () =>
 							</div>
 
 							<div className='CalendarPage_categorySections'>
-								{month.categories.map((category:CalendarType['months']['categories'], index:number) =>
-									category.events.length > 0 && (
+								{month.categories.map((category: CalendarType['months']['categories'], index: number) =>
+									category.events.length > 0 &&
 										<div className='CalendarPage_categorySection' key={index}>
 											<div className='CalendarPage_categoryName'>
 												{category.name}
 											</div>
 
 											<div className='CalendarPage_eventSections'>
-												{category.events.map((event:CalendarType['months']['categories']['events'], index:number) =>
+												{category.events.map((event: CalendarType['months']['categories']['events'], index: number) =>
 													<div className='CalendarPage_eventSection' key={index}>
-														{event.hasOwnProperty('img') && (
+														{Object.prototype.hasOwnProperty.call(event, 'img') &&
 															<div className='CalendarPage_eventImg'>
 																<img
 																	alt={event.name}
 																	src={event.img}
 																/>
 															</div>
-														)}
+														}
 
 														<div className='CalendarPage_eventText'>
 															<div className='CalendarPage_eventName'>
@@ -106,22 +106,22 @@ const CalendarPage = () =>
 																{event.timing}
 															</div>
 														</div>
-													</div>
+													</div>,
 												)}
 											</div>
 										</div>
-									)
+									,
 								)}
 							</div>
 						</div>
-					</Section>
+					</Section>,
 				)}
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {gameId, month, year}: {gameId?: string, month?: string, year?: string}) : Promise<CalendarPageProps>
+export async function loadData(this: APIThisType, _: any, { gameId, month, year }: { gameId?: string, month?: string, year?: string }): Promise<CalendarPageProps>
 {
 	const [returnValue, acgames, years] = await Promise.all([
 		this.query('v1/acgame/calendar', {
@@ -147,6 +147,6 @@ type CalendarPageProps = {
 	acgames: ACGameType[]
 	months: CalendarType['months']
 	initialYears: ACGameYearsType
-}
+};
 
 export default CalendarPage;

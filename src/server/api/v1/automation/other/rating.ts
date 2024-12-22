@@ -8,7 +8,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Add WiFi Rating
  */
-async function rating(this: APIThisType, {username}: ratingProps) : Promise<SuccessType>
+async function rating(this: APIThisType, { username }: ratingProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -77,7 +77,7 @@ async function rating(this: APIThisType, {username}: ratingProps) : Promise<Succ
 	`, whitelistUser.id, this.userId, faker.helpers.arrayElement(ratingIds), faker.lorem.sentence());
 
 	return {
-		_success: `The ratings have been given!`
+		_success: `The ratings have been given!`,
 	};
 }
 
@@ -87,10 +87,10 @@ rating.apiTypes = {
 		required: true,
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type ratingProps = {
 	username: string
-}
+};
 
 export default rating;

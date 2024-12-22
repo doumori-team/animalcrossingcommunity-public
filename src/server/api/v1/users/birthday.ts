@@ -9,9 +9,9 @@ import { APIThisType, BirthdayType } from '@types';
  * Get user's birthday / age, if allowed.
  * return type: birthday (string or null) and age (string or null)
  */
-async function birthday(this: APIThisType, {id}: birthdayProps) : Promise<BirthdayType>
+async function birthday(this: APIThisType, { id }: birthdayProps): Promise<BirthdayType>
 {
-	const permission:boolean = await this.query('v1/permission', {permission: 'view-profiles'});
+	const permission: boolean = await this.query('v1/permission', { permission: 'view-profiles' });
 
 	if (!permission)
 	{
@@ -34,7 +34,7 @@ async function birthday(this: APIThisType, {id}: birthdayProps) : Promise<Birthd
 	}
 
 	return <BirthdayType>{
-		birthday: profileInfo.show_birthday && birthDate != null ? (profileInfo.show_age ? dateUtils.formatDate(birthDate) : dateUtils.formatDateWithoutYear(birthDate)) : null,
+		birthday: profileInfo.show_birthday && birthDate != null ? profileInfo.show_age ? dateUtils.formatDate(birthDate) : dateUtils.formatDateWithoutYear(birthDate) : null,
 		age: profileInfo.show_age && birthDate != null ? dateUtils.getAge(birthDate) : null,
 	};
 }
@@ -44,10 +44,10 @@ birthday.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type birthdayProps = {
 	id: number
-}
+};
 
 export default birthday;

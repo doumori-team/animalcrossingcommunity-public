@@ -9,7 +9,7 @@ import { APIThisType, UserMatchingType } from '@types';
 
 const UserMatchingPage = () =>
 {
-	const {username, matches, match} = useLoaderData() as UserMatchingPageProps;
+	const { username, matches, match } = useLoaderData() as UserMatchingPageProps;
 
 	return (
 		<div className='UserMatchingPage'>
@@ -31,7 +31,8 @@ const UserMatchingPage = () =>
 							label='Match'
 							name='match'
 							value={match}
-							options={Object.keys(constants.matching).map(key => {
+							options={Object.keys(constants.matching).map(key =>
+							{
 								return {
 									label: (constants.matching as any)[key],
 									value: (constants.matching as any)[key],
@@ -50,16 +51,16 @@ const UserMatchingPage = () =>
 										{match.user.username}
 									</Link> ({dateUtils.formatDate(match.user.signupDate)})
 								</div>
-							</InnerSection>
+							</InnerSection>,
 						)}
 					</Grid>
 				</Section>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, username, match}: {page?: string, username?: string, match?: string}) : Promise<UserMatchingPageProps>
+export async function loadData(this: APIThisType, _: any, { page, username, match }: { page?: string, username?: string, match?: string }): Promise<UserMatchingPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/matching', {
@@ -80,6 +81,6 @@ type UserMatchingPageProps = {
 	matches: UserMatchingType['results']
 	username: UserMatchingType['username']
 	match: UserMatchingType['match']
-}
+};
 
 export default UserMatchingPage;

@@ -5,9 +5,9 @@ import { MarkupStyleType } from '../markupFormatType.ts';
 // based on v1/users/ticket
 type TicketType = {
 	id: number
-	rule: string|null
-	violation: string|null
-	formattedClosed: string|null
+	rule: string | null
+	violation: string | null
+	formattedClosed: string | null
 	violator: UserType
 	type: {
 		identifier: string
@@ -15,22 +15,22 @@ type TicketType = {
 	},
 	reference: {
 		id: string
-		url: string|null
-		text: string|null
-		format: MarkupStyleType|null
-		parentId: number|null
+		url: string | null
+		text: string | null
+		format: MarkupStyleType | null
+		parentId: number | null
 	},
-	updatedContent: string|null
+	updatedContent: string | null
 	action: {
 		name: string
 		identifier: string
 	},
 	messages: {
-        id: number
-        user: UserLiteType|null
-        formattedDate: string
-        message: string
-        format: MarkupStyleType
+		id: number
+		user: UserLiteType | null
+		formattedDate: string
+		message: string
+		format: MarkupStyleType
 	}[]
 	banLength: string
 };

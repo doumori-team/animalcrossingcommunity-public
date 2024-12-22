@@ -26,4 +26,4 @@ export {
 	Switch,
 	Text,
 	TextArea,
-}
+};

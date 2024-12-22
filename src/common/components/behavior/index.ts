@@ -10,4 +10,4 @@ export {
 	RequirePermission,
 	RequireTestSite,
 	RequireUser,
-}
+};

@@ -1,9 +1,9 @@
 import * as db from '@db';
 import { APIThisType, HomePollsType } from '@types';
 
-export default async function home_polls(this: APIThisType) : Promise<HomePollsType>
+export default async function home_polls(this: APIThisType): Promise<HomePollsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-polls'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-polls' });
 
 	if (!permissionGranted)
 	{

@@ -8,8 +8,8 @@ import { APIThisType, PermissionType, UserGroupType } from '@types';
 
 const AdminPermissionsPage = () =>
 {
-	const {permissions, userGroups} = useLoaderData() as AdminPermissionsPageProps;
-	const {id} = useParams() as {id: string};
+	const { permissions, userGroups } = useLoaderData() as AdminPermissionsPageProps;
+	const { id } = useParams() as { id: string };
 
 	const selectedUserGroupId = Number(id || -1);
 
@@ -42,11 +42,11 @@ const AdminPermissionsPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-function renderGroups(userGroups: UserGroupType[]|undefined, indent:number, selectedUserGroupId:number) : React.ReactNode
+function renderGroups(userGroups: UserGroupType[] | undefined, indent: number, selectedUserGroupId: number): React.ReactNode
 {
-	if (userGroups == null)
+	if (!userGroups)
 	{
 		return;
 	}
@@ -57,33 +57,34 @@ function renderGroups(userGroups: UserGroupType[]|undefined, indent:number, sele
 				<Link to={`/admin/permissions/${encodeURIComponent(userGroup.id)}`}
 					key={userGroup.id}
 					className={selectedUserGroupId === userGroup.id ?
-						`selected` : ``}>
+						`selected` : ``}
+				>
 					{userGroup.name}
 				</Link>
 			</li>
 
-			{renderGroups(userGroup.groups, indent+1, selectedUserGroupId)}
-		</React.Fragment>
+			{renderGroups(userGroup.groups, indent + 1, selectedUserGroupId)}
+		</React.Fragment>,
 	);
 }
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<AdminPermissionsPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminPermissionsPageProps>
 {
 	const selectedUserGroupId = Number(id || -1);
 
 	const [permissions, userGroups] = await Promise.all([
 		selectedUserGroupId >= 0 ?
-			this.query('v1/admin/user_group/permissions', {id: selectedUserGroupId}) :
+			this.query('v1/admin/user_group/permissions', { id: selectedUserGroupId }) :
 			null,
-		this.query('v1/user_groups', {display: 'recursive'}),
+		this.query('v1/user_groups', { display: 'recursive' }),
 	]);
 
-	return {permissions, userGroups};
+	return { permissions, userGroups };
 }
 
 type AdminPermissionsPageProps = {
 	permissions: PermissionType
 	userGroups: UserGroupType[]
-}
+};
 
 export default AdminPermissionsPage;

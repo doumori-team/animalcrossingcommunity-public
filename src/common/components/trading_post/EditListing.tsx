@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { constants } from '@utils';
-import { ACGameItemType, GroupItemType, ElementInputType, ResidentsType } from '@types';
+import { ACGameItemType, ElementInputType, ResidentsType } from '@types';
 import { RequireClientJS, RequireTestSite } from '@behavior';
 import { Form, Check, Select, Text } from '@form';
 import { ErrorMessage } from '@layout';
@@ -11,18 +11,19 @@ const EditListing = ({
 	acgameCatalog,
 	residents,
 	type,
-	acItemsCatalog
+	acItemsCatalog,
 }: EditListingProps) =>
 {
 	const [items, setItems] = useState<number[]>([]);
 	const [quantities, setQuantities] = useState<number[]>([]);
 
-	const changeItems = (newItems: number[]) : void =>
+	const changeItems = (newItems: number[]): void =>
 	{
 		// map old quantities to new quantity indexes
-		let newQuantities:number[] = [];
+		let newQuantities: number[] = [];
 
-		newItems.map((itemId: number, index:number) => {
+		newItems.map((itemId: number, index: number) =>
+		{
 			let itemIndex = items.findIndex(id => id === itemId);
 
 			if (itemIndex >= 0)
@@ -37,23 +38,23 @@ const EditListing = ({
 
 		setItems(newItems);
 		setQuantities(newQuantities);
-	}
+	};
 
-	const changeQuantity = (index: number, event: ElementInputType) : void =>
+	const changeQuantity = (index: number, event: ElementInputType): void =>
 	{
 		let newQuantities = [...quantities];
 		newQuantities[index] = Number(event.target.value);
 
 		setQuantities(newQuantities);
-	}
+	};
 
-	let catalogItems:ACGameItemType[number]['all']['items'] = [];
+	let catalogItems: ACGameItemType[number]['all']['items'] = [];
 
-	if (gameId > 0 && acgameCatalog != null)
+	if (gameId && acgameCatalog)
 	{
 		catalogItems = acgameCatalog.filter(item => item.tradeable);
 	}
-	else if (acItemsCatalog != null)
+	else if (acItemsCatalog)
 	{
 		catalogItems = acItemsCatalog;
 	}
@@ -63,11 +64,11 @@ const EditListing = ({
 
 	return (
 		<div className='EditListing'>
-			{type === constants.tradingPost.tradeTypes.real && (
+			{type === constants.tradingPost.tradeTypes.real &&
 				<RequireTestSite>
 					<ErrorMessage identifier='test-account-required' />
 				</RequireTestSite>
-			)}
+			}
 
 			<Form
 				action='v1/trading_post/listing/save'
@@ -87,7 +88,8 @@ const EditListing = ({
 
 				<RequireClientJS fallback={
 					<ErrorMessage identifier='javascript-required' />
-				}>
+				}
+				>
 					<Form.Group>
 						<Select
 							name='items'
@@ -95,7 +97,7 @@ const EditListing = ({
 							multiple
 							async
 							options={catalogItems}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							value={items}
 							placeholder='Select item(s)...'
 							changeHandler={changeItems}
@@ -105,13 +107,13 @@ const EditListing = ({
 						/>
 					</Form.Group>
 
-					{((gameId > constants.gameIds.ACGC || type === tradeTypes.real) && items.length > 0) && (
+					{(gameId > constants.gameIds.ACGC || type === tradeTypes.real) && items.length > 0 &&
 						<div className='EditListing_option'>
 							{items.map((itemId, index) =>
 								<Form.Group key={index}>
 									<Text
 										type='number'
-										label={`${catalogItems.find((item:any) => item.id === itemId)?.name} Quantity`}
+										label={`${catalogItems.find((item: any) => item.id === itemId)?.name} Quantity`}
 										name='quantities'
 										value={quantities[index]}
 										changeHandler={(e) => changeQuantity(index, e)}
@@ -119,13 +121,13 @@ const EditListing = ({
 										max={constants.max.number}
 										min={constants.min.number}
 									/>
-								</Form.Group>
+								</Form.Group>,
 							)}
 						</div>
-					)}
+					}
 				</RequireClientJS>
 
-				{gameId > constants.gameIds.ACGC && (
+				{gameId > constants.gameIds.ACGC &&
 					<>
 						<Form.Group>
 							<Text
@@ -142,8 +144,8 @@ const EditListing = ({
 								label='Villager(s)'
 								multiple
 								placeholder='Select villager(s)...'
-								options={gameId <= 0 ? [] : residents.filter((r:any) => r.isTown === true)}
-								optionsMapping={{value: 'id', label: 'name'}}
+								options={gameId <= 0 ? [] : residents.filter((r: any) => r.isTown === true)}
+								optionsMapping={{ value: 'id', label: 'name' }}
 								size={15}
 							/>
 						</Form.Group>
@@ -156,18 +158,18 @@ const EditListing = ({
 							/>
 						</Form.Group>
 					</>
-				)}
+				}
 			</Form>
 		</div>
 	);
-}
+};
 
 type EditListingProps = {
 	gameId: number
-	acgameCatalog: ACGameItemType[number]['all']['items']|null
+	acgameCatalog: ACGameItemType[number]['all']['items'] | null
 	residents: ResidentsType[number]
 	type: string
-	acItemsCatalog: ACGameItemType[number]['all']['items']|null
+	acItemsCatalog: ACGameItemType[number]['all']['items'] | null
 };
 
 export default EditListing;

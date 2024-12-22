@@ -8,29 +8,32 @@ const MarkupButton = ({
 	clickHandler,
 	name,
 	keyHint,
-	icon
+	icon,
 }: MarkupButtonProps) =>
 {
-    const tooltip = keyHint ? `${name} (${keyHint})` : name;
+	const tooltip = keyHint ? `${name} (${keyHint})` : name;
 
-    const interactivityAttributes =
+	const interactivityAttributes =
         tag ?
-            { onClick: (event:ElementClickButtonType) => {event.preventDefault(); clickHandler(tag);} }
-        :
-            { disabled: true }
+        	{ onClick: (event: ElementClickButtonType) =>
+        	{
+        		event.preventDefault(); clickHandler(tag);
+        	} }
+        	:
+        	{ disabled: true }
     ;
 
-    return (
-        <button
-            className='MarkupButton'
-            title={tooltip}
-            {...interactivityAttributes}
-            aria-label={name}
-        >
-            <FontAwesomeIcon name={icon} alt={name} />
-        </button>
-    );
-}
+	return (
+		<button
+			className='MarkupButton'
+			title={tooltip}
+			{...interactivityAttributes}
+			aria-label={name}
+		>
+			<FontAwesomeIcon name={icon} alt={name} />
+		</button>
+	);
+};
 
 type MarkupButtonProps = {
 	tag: object

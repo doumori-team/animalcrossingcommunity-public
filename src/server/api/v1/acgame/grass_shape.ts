@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, GrassShapeType } from '@types';
 
-export default async function grass_shape(this: APIThisType) : Promise<GrassShapeType[]>
+export default async function grass_shape(this: APIThisType): Promise<GrassShapeType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{

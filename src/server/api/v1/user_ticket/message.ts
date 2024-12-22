@@ -4,11 +4,11 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function message(this: APIThisType, {id, message, staffOnly, format}: messageProps) : Promise<void>
+async function message(this: APIThisType, { id, message, staffOnly, format }: messageProps): Promise<void>
 {
 	const [processUserTickets, reportContent] = await Promise.all([
-		this.query('v1/permission', {permission: 'process-user-tickets'}),
-		this.query('v1/permission', {permission: 'report-content'}),
+		this.query('v1/permission', { permission: 'process-user-tickets' }),
+		this.query('v1/permission', { permission: 'report-content' }),
 	]);
 
 	if (!(processUserTickets || reportContent))
@@ -41,11 +41,11 @@ async function message(this: APIThisType, {id, message, staffOnly, format}: mess
 
 	if (!staffOnly)
 	{
-		await this.query('v1/profanity/check', {text: message});
+		await this.query('v1/profanity/check', { text: message });
 	}
 
 	// Perform queries
-	const userTicketMessageId = await db.transaction(async (query:any) =>
+	const userTicketMessageId = await db.transaction(async (query: any) =>
 	{
 		const [userTicketMessage] = await query(`
 			INSERT INTO user_ticket_message (user_id, user_ticket_id, message, staff_only, message_format) VALUES
@@ -89,7 +89,7 @@ async function message(this: APIThisType, {id, message, staffOnly, format}: mess
 
 	await this.query('v1/notification/create', {
 		id: userTicketMessageId,
-		type: constants.notification.types.modminUTPost
+		type: constants.notification.types.modminUTPost,
 	});
 }
 
@@ -113,13 +113,13 @@ message.apiTypes = {
 		includes: constants.formatOptions,
 		required: true,
 	},
-}
+};
 
 type messageProps = {
 	id: number
 	message: string
 	staffOnly: boolean
 	format: string
-}
+};
 
 export default message;

@@ -1,9 +1,9 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
 import { APIThisType, EmojiSettingType, SuccessType } from '@types';
 
-export default async function save(this: APIThisType, emojiSettings: EmojiSettingType[]) : Promise<SuccessType>
+export default async function save(this: APIThisType, emojiSettings: EmojiSettingType[]): Promise<SuccessType>
 {
 	// Check Params
 	if (!this.userId)
@@ -40,7 +40,7 @@ export default async function save(this: APIThisType, emojiSettings: EmojiSettin
 
 	// Perform queries
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await query(`
 			DELETE FROM emoji_setting
@@ -52,7 +52,8 @@ export default async function save(this: APIThisType, emojiSettings: EmojiSettin
 			return { _success: 'Your emoji settings have been updated.' };
 		}
 
-		settings.map(async (setting) => {
+		settings.map(async (setting) =>
+		{
 			await query(`
 				INSERT INTO emoji_setting (user_id, type, category) VALUES
 				($1::int, $2, $3)

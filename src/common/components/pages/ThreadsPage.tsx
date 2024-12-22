@@ -9,7 +9,7 @@ import { APIThisType, UserLiteType, UserThreadsType } from '@types';
 
 const ThreadsPage = () =>
 {
-	const {user, threads, page, pageSize, totalCount} = useLoaderData() as ThreadsPageProps;
+	const { user, threads, page, pageSize, totalCount } = useLoaderData() as ThreadsPageProps;
 
 	return (
 		<RequireUser>
@@ -21,7 +21,7 @@ const ThreadsPage = () =>
 
 				<Grid name='thread' options={threads}>
 					{threads.map(node =>
-						<Node {...node} key={node.id} followNode={true} />
+						<Node {...node} key={node.id} followNode={true} />,
 					)}
 				</Grid>
 
@@ -34,13 +34,13 @@ const ThreadsPage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {page}: {page?: string}) : Promise<ThreadsPageProps>
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string }): Promise<ThreadsPageProps>
 {
 	const [returnValue, user] = await Promise.all([
-		this.query('v1/users/threads', {id: userId, page: page ? page : 1}),
-		this.query('v1/user_lite', {id: userId}),
+		this.query('v1/users/threads', { id: userId, page: page ? page : 1 }),
+		this.query('v1/user_lite', { id: userId }),
 	]);
 
 	return {
@@ -58,6 +58,6 @@ type ThreadsPageProps = {
 	page: UserThreadsType['page']
 	totalCount: UserThreadsType['totalCount']
 	pageSize: UserThreadsType['pageSize']
-}
+};
 
 export default ThreadsPage;

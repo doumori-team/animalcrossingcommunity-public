@@ -5,10 +5,10 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, UserType } from '@types';
 
-async function save(this: APIThisType, {userId, groupId}: saveProps) : Promise<void>
+async function save(this: APIThisType, { userId, groupId }: saveProps): Promise<void>
 {
 	// Confirm perms
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'permission-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
 
 	if (!permissionGranted)
 	{
@@ -16,7 +16,7 @@ async function save(this: APIThisType, {userId, groupId}: saveProps) : Promise<v
 	}
 
 	// Confirm params
-	const user:UserType = await this.query('v1/user', {id: userId});
+	const user: UserType = await this.query('v1/user', { id: userId });
 
 	const [checkId] = await db.query(`
 		SELECT
@@ -33,7 +33,7 @@ async function save(this: APIThisType, {userId, groupId}: saveProps) : Promise<v
 	// Only owner can change owner perms
 	if ([user.group.identifier, checkId.identifier].includes(constants.staffIdentifiers.owner))
 	{
-		const currentUser:UserType = await this.query('v1/user', {id: this.userId});
+		const currentUser: UserType = await this.query('v1/user', { id: this.userId });
 
 		if (currentUser.group.identifier !== 'owner')
 		{
@@ -71,11 +71,11 @@ save.apiTypes = {
 		type: APITypes.number,
 		default: 0,
 	},
-}
+};
 
 type saveProps = {
 	userId: number
 	groupId: number
-}
+};
 
 export default save;

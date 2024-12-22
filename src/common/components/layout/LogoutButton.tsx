@@ -7,7 +7,7 @@ import { Button } from '@form';
  */
 
 const LogoutButton = ({
-	buttonText = 'Log Out'
+	buttonText = 'Log Out',
 }: LogoutButtonProps) =>
 {
 	return (
@@ -19,7 +19,7 @@ const LogoutButton = ({
 			/>
 		</form>
 	);
-}
+};
 
 type LogoutButtonProps = {
 	buttonText?: string

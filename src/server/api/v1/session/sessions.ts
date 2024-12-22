@@ -4,9 +4,9 @@ import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SessionsType } from '@types';
 
-async function sessions(this: APIThisType, {page, username, startDate, endDate, url}: sessionsProps) : Promise<SessionsType>
+async function sessions(this: APIThisType, { page, username, startDate, endDate, url }: sessionsProps): Promise<SessionsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -39,8 +39,8 @@ async function sessions(this: APIThisType, {page, username, startDate, endDate, 
 		utils.realStringLength(username) > 0
 	)
 	{
-		const offset = (page * pageSize) - pageSize;
-		let params:any = [pageSize, offset];
+		const offset = page * pageSize - pageSize;
+		let params: any = [pageSize, offset];
 		let paramIndex = params.length;
 
 		let query = `
@@ -97,7 +97,7 @@ async function sessions(this: APIThisType, {page, username, startDate, endDate, 
 					user_session_url.user_session_id
 				FROM user_session_url
 				WHERE user_session_url.url_id = $1::int
-			`, urlId)).map((usu:any) => usu.user_session_id);
+			`, urlId)).map((usu: any) => usu.user_session_id);
 
 			params[paramIndex] = sessionIds;
 
@@ -134,12 +134,13 @@ async function sessions(this: APIThisType, {page, username, startDate, endDate, 
 
 		if (userSessions.length > 0)
 		{
-			results = userSessions.map((userSession:any) => {
+			results = userSessions.map((userSession: any) =>
+			{
 				return {
 					id: userSession.id,
 					formattedStartDate: dateUtils.formatDateTime(userSession.start_date),
 					formattedEndDate: userSession.end_date ? dateUtils.formatDateTime(userSession.end_date) : null,
-				}
+				};
 			});
 
 			count = Number(userSessions[0].count);
@@ -182,7 +183,7 @@ sessions.apiTypes = {
 		default: '',
 		maxLength: constants.max.url,
 	},
-}
+};
 
 type sessionsProps = {
 	page: number
@@ -190,6 +191,6 @@ type sessionsProps = {
 	startDate: string
 	endDate: string
 	url: string
-}
+};
 
 export default sessions;

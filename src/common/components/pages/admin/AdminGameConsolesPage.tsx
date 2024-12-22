@@ -8,7 +8,7 @@ import { APIThisType, GameConsoleType } from '@types';
 
 const AdminGameConsolesPage = () =>
 {
-	const {gameConsoles} = useLoaderData() as AdminGameConsolesPageProps;
+	const { gameConsoles } = useLoaderData() as AdminGameConsolesPageProps;
 
 	return (
 		<div className='AdminGameConsolesPage'>
@@ -24,7 +24,8 @@ const AdminGameConsolesPage = () =>
 
 				<Section>
 					<Grid name='game console' options={gameConsoles}>
-						{gameConsoles.map(gameConsole => {
+						{gameConsoles.map(gameConsole =>
+						{
 							const gameConsoleId = encodeURIComponent(gameConsole.id);
 
 							return (
@@ -53,19 +54,19 @@ const AdminGameConsolesPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AdminGameConsolesPageProps>
+export async function loadData(this: APIThisType): Promise<AdminGameConsolesPageProps>
 {
 	const [gameConsoles] = await Promise.all([
-		this.query('v1/admin/game_consoles')
+		this.query('v1/admin/game_consoles'),
 	]);
 
-	return {gameConsoles};
+	return { gameConsoles };
 }
 
 type AdminGameConsolesPageProps = {
 	gameConsoles: GameConsoleType[]
-}
+};
 
 export default AdminGameConsolesPage;

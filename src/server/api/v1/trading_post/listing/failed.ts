@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function failed(this: APIThisType, {id}: failedProps) : Promise<void>
+async function failed(this: APIThisType, { id }: failedProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function failed(this: APIThisType, {id}: failedProps) : Promise<void>
 	}
 
 	// Check parameters
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 	const offerStatuses = constants.tradingPost.offerStatuses;
@@ -33,7 +33,7 @@ async function failed(this: APIThisType, {id}: failedProps) : Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -53,7 +53,7 @@ async function failed(this: APIThisType, {id}: failedProps) : Promise<void>
 			`, id, offerStatuses.rejected, offerStatuses.onHold),
 			this.query('v1/notification/create', {
 				id: id,
-				type: constants.notification.types.listingFailed
+				type: constants.notification.types.listingFailed,
 			}),
 		]);
 	});
@@ -64,10 +64,10 @@ failed.apiTypes = {
 		type: APITypes.listingId,
 		required: true,
 	},
-}
+};
 
 type failedProps = {
 	id: number
-}
+};
 
 export default failed;

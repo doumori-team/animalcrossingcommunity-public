@@ -11,7 +11,7 @@ import { Confirm } from '@form';
 import { ReportProblem } from '@layout';
 
 const Listing = ({
-	listing
+	listing,
 }: ListingProps) =>
 {
 	const encodedId = encodeURIComponent(listing.id);
@@ -20,19 +20,19 @@ const Listing = ({
 		<div className='Listing'>
 			<div className='Listing_links'>
 				<UserContext.Consumer>
-					{currentUser => (currentUser &&
+					{currentUser => currentUser &&
 						currentUser.id !== listing.creator.id &&
-						listing.status === constants.tradingPost.listingStatuses.open) && (
+						listing.status === constants.tradingPost.listingStatuses.open &&
 						<Link to={`/trading-post/${encodedId}/offer`} reloadDocument>
 							Make an Offer
 						</Link>
-					)}
+					}
 				</UserContext.Consumer>
 				<RequireUser id={listing.creator.id} silent>
 					{[
 						constants.tradingPost.listingStatuses.open,
-						constants.tradingPost.listingStatuses.offerAccepted
-					].includes(listing.status) && (
+						constants.tradingPost.listingStatuses.offerAccepted,
+					].includes(listing.status) &&
 						<Confirm
 							action='v1/trading_post/listing/cancel'
 							callback={'/trading-post'}
@@ -40,7 +40,7 @@ const Listing = ({
 							label='Cancel'
 							message='Are you sure you want to cancel this listing?'
 						/>
-					)}
+					}
 				</RequireUser>
 			</div>
 
@@ -51,86 +51,86 @@ const Listing = ({
 				</Link>
 			</h1>
 
-			{(listing.items.length > 0 || listing.bells > 0 || listing.residents.length > 0 || listing.comment) ? (
+			{listing.items.length > 0 || listing.bells > 0 || listing.residents.length > 0 || listing.comment ?
 				<>
-				<div className='Listing_create'>
-					<UserContext.Consumer>
-						{currentUser => (
-							currentUser ? (
-								<Link to={`/profile/${encodeURIComponent(listing.creator.id)}`}>
-									{listing.creator.username}
-								</Link>
-							) : (
-								listing.creator.username
-							)
-						)}
-					</UserContext.Consumer>
-					{listing.type === constants.tradingPost.listingTypes.buy ? (
-						` is Looking For...`
-					) : (
-						` is Selling...`
-					)}
-				</div>
+					<div className='Listing_create'>
+						<UserContext.Consumer>
+							{currentUser =>
+								currentUser ?
+									<Link to={`/profile/${encodeURIComponent(listing.creator.id)}`}>
+										{listing.creator.username}
+									</Link>
+									:
+									listing.creator.username
 
-				<div className='Listing_offer'>
-					{listing.items.length > 0 && (
-						<div className='Listing_items'>
-							Item(s):
-							<ul>
-								{listing.items.map(item =>
-									<li key={item.id}>
-										{item.name}, Qty: {item.quantity}
-									</li>
-								)}
-							</ul>
-						</div>
-					)}
+							}
+						</UserContext.Consumer>
+						{listing.type === constants.tradingPost.listingTypes.buy ?
+							` is Looking For...`
+							:
+							` is Selling...`
+						}
+					</div>
 
-					{listing.bells > 0 && (
-						<div className='Listing_bells'>
-							Bells: {listing.bells.toLocaleString()}
-						</div>
-					)}
+					<div className='Listing_offer'>
+						{listing.items.length > 0 &&
+							<div className='Listing_items'>
+								Item(s):
+								<ul>
+									{listing.items.map(item =>
+										<li key={item.id}>
+											{item.name}, Qty: {item.quantity}
+										</li>,
+									)}
+								</ul>
+							</div>
+						}
 
-					{listing.residents.length > 0 && (
-						<div className='Listing_villagers'>
-							Villager(s):
-							<ul>
-								{listing.residents.map(resident =>
-									<li key={resident.id}>
-										{resident.name}
-									</li>
-								)}
-							</ul>
-						</div>
-					)}
+						{listing.bells > 0 &&
+							<div className='Listing_bells'>
+								Bells: {listing.bells.toLocaleString()}
+							</div>
+						}
 
-					{listing.comment && (
-						<div className='Listing_additionalComments'>
-							Additional Comment(s): {listing.comment}
-						</div>
-					)}
-				</div>
+						{listing.residents.length > 0 &&
+							<div className='Listing_villagers'>
+								Villager(s):
+								<ul>
+									{listing.residents.map(resident =>
+										<li key={resident.id}>
+											{resident.name}
+										</li>,
+									)}
+								</ul>
+							</div>
+						}
+
+						{listing.comment &&
+							<div className='Listing_additionalComments'>
+								Additional Comment(s): {listing.comment}
+							</div>
+						}
+					</div>
 				</>
-			) : (
+				:
 				<div className='Listing_create'>
 					<UserContext.Consumer>
-						{currentUser => (
-							currentUser ? (
+						{currentUser =>
+							currentUser ?
 								<>
-								User: <Link to={`/profile/${encodeURIComponent(listing.creator.id)}`}>
-									{listing.creator.username}
-								</Link>
+									User: <Link to={`/profile/${encodeURIComponent(listing.creator.id)}`}>
+										{listing.creator.username}
+									</Link>
 								</>
-							) : (
+								:
 								<>
-								User: {listing.creator.username}
+									User: {listing.creator.username}
 								</>
-							)
-						)}
+
+						}
 					</UserContext.Consumer>
 				</div>
-			)}
+			}
 
 			<div className='Listing_lastActive'>
 				Last Active: <StatusIndicator
@@ -143,17 +143,17 @@ const Listing = ({
 				Last Updated: {listing.formattedLastUpdated}
 			</div>
 
-			{listing.game ? (
+			{listing.game ?
 				<div className='Listing_game'>
 					Game: {listing.game.shortname}
 				</div>
-			) : (
+				:
 				<RequireUser silent>
 					<div className='Listing_location'>
 						Location: {listing.bioLocation ? listing.bioLocation : 'Not Available'}
 					</div>
 				</RequireUser>
-			)}
+			}
 
 			<div className='Listing_status'>
 				Listing Status: {listing.status}
@@ -171,7 +171,7 @@ const Listing = ({
 			</div>
 		</div>
 	);
-}
+};
 
 type ListingProps = {
 	listing: ListingType

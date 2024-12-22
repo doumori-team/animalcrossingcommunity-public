@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, number, name, description, categoryId, reportable}: saveProps) : Promise<void>
+async function save(this: APIThisType, { id, number, name, description, categoryId, reportable }: saveProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -63,7 +63,7 @@ async function save(this: APIThisType, {id, number, name, description, categoryI
 
 			if (!nodeId)
 			{
-				nodeId = await this.query('v1/admin/rule/node/create', {ruleId: id, number: rule.number, name: rule.name, description: rule.description});
+				nodeId = await this.query('v1/admin/rule/node/create', { ruleId: id, number: rule.number, name: rule.name, description: rule.description });
 			}
 
 			await db.query(`
@@ -86,12 +86,12 @@ async function save(this: APIThisType, {id, number, name, description, categoryI
 			VALUES ($1::int, $2::int, $3::text)
 		`, nodeId, this.userId, `${number} - ${name ? name : description}`);
 
-		await this.query('v1/admin/rule/node/update', {nodeId: nodeId, content: `The rule has been updated with the following description: ${description}`});
+		await this.query('v1/admin/rule/node/update', { nodeId: nodeId, content: `The rule has been updated with the following description: ${description}` });
 	}
 	else
 	{
 		// create thread
-		const nodeId:number = await this.query('v1/admin/rule/node/create', {number: number, name: name, description: description, content: `A rule has been made with the following description: ${description}`});
+		const nodeId: number = await this.query('v1/admin/rule/node/create', { number: number, name: name, description: description, content: `A rule has been made with the following description: ${description}` });
 
 		// add rule
 		await db.query(`
@@ -135,15 +135,15 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	number: number
 	name: string
 	description: string
 	categoryId: number
 	reportable: boolean
-}
+};
 
 export default save;

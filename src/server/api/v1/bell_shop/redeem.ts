@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, UserBellShopItemType, BellShopItemsType } from '@types';
 
-async function redeem(this: APIThisType, {id, itemId, userId, debug}: redeemProps) : Promise<UserBellShopItemType[]>
+async function redeem(this: APIThisType, { id, itemId, userId, debug }: redeemProps): Promise<UserBellShopItemType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'purchase-bell-shop'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'purchase-bell-shop' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function redeem(this: APIThisType, {id, itemId, userId, debug}: redeemProp
 		throw new UserError('login-needed');
 	}
 
-	const itemPrice:BellShopItemsType['price'][number][number] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['price'][id][itemId];
+	const itemPrice: BellShopItemsType['price'][number][number] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['price'][id][itemId];
 
 	if (!constants.LIVE_SITE && utils.realStringLength(debug) > 0)
 	{
@@ -54,8 +54,8 @@ async function redeem(this: APIThisType, {id, itemId, userId, debug}: redeemProp
 
 	// Confirm user can afford
 	const [user, userDonations] = await Promise.all([
-		this.query('v1/user', {id: this.userId}),
-		this.query('v1/users/donations', {id: this.userId})
+		this.query('v1/user', { id: this.userId }),
+		this.query('v1/users/donations', { id: this.userId }),
 	]);
 
 	let price = itemPrice.price.nonFormattedPrice;
@@ -71,7 +71,7 @@ async function redeem(this: APIThisType, {id, itemId, userId, debug}: redeemProp
 
 	if (itemPrice.price.currency === constants.bellShop.currencies.bells)
 	{
-		if ((user.nonFormattedTotalBells - price) < 0)
+		if (user.nonFormattedTotalBells - price < 0)
 		{
 			throw new UserError('bell-shop-not-enough-bells');
 		}
@@ -104,11 +104,11 @@ async function redeem(this: APIThisType, {id, itemId, userId, debug}: redeemProp
 
 	if (userId && this.userId !== userId)
 	{
-		await this.query('v1/notification/create', {id: redeemed.id, type: constants.notification.types.giftBellShop});
+		await this.query('v1/notification/create', { id: redeemed.id, type: constants.notification.types.giftBellShop });
 	}
 
 	return await this.query('v1/users/bell_shop/items', {
-		ignoreExpired: false
+		ignoreExpired: false,
 	});
 }
 
@@ -129,13 +129,13 @@ redeem.apiTypes = {
 		type: APITypes.string,
 		default: '',
 	},
-}
+};
 
 type redeemProps = {
 	id: number
 	itemId: number
 	userId: number
 	debug: string
-}
+};
 
 export default redeem;

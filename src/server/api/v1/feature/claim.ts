@@ -4,14 +4,14 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, FeatureType } from '@types';
 
-async function claim(this: APIThisType, {id}: claimProps) : Promise<void>
+async function claim(this: APIThisType, { id }: claimProps): Promise<void>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	const feature:FeatureType = await this.query('v1/feature', {id: id});
+	const feature: FeatureType = await this.query('v1/feature', { id: id });
 
 	const currStatus = feature.statusId;
 
@@ -22,11 +22,11 @@ async function claim(this: APIThisType, {id}: claimProps) : Promise<void>
 
 	if (currStatus === constants.featureStatuses.workList)
 	{
-		await this.query('v1/feature/update_status', {id: id, newStatus: constants.featureStatuses.inProgress});
+		await this.query('v1/feature/update_status', { id: id, newStatus: constants.featureStatuses.inProgress });
 	}
 	else
 	{
-		const permission:boolean = await this.query('v1/permission', {permission: 'claim-features'});
+		const permission: boolean = await this.query('v1/permission', { permission: 'claim-features' });
 
 		if (!permission)
 		{
@@ -50,10 +50,10 @@ claim.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type claimProps = {
 	id: number
-}
+};
 
 export default claim;

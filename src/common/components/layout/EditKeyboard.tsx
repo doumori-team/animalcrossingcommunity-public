@@ -8,23 +8,23 @@ const EditKeyboard = ({
 	name,
 	defaultValue,
 	required,
-	label
+	label,
 }: EditKeyboardProps) =>
 {
 	const textInput = useRef<HTMLInputElement>(null);
 
-	const doSpecialCharacter = (e: React.ChangeEvent<HTMLInputElement>, tag: string) : void =>
+	const doSpecialCharacter = (e: React.ChangeEvent<HTMLInputElement>, tag: string): void =>
 	{
 		e.preventDefault();
 
-		if (textInput.current == null)
+		if (!textInput.current)
 		{
 			return;
 		}
 
 		textInput.current.value += '[' + tag + ']';
 		textInput.current.focus();
-	}
+	};
 
 	return (
 		<div className='EditKeyboard'>
@@ -41,7 +41,7 @@ const EditKeyboard = ({
 								src={`${constants.AWS_URL}/images/keyboard/${k.filename}.png`}
 								alt={k.character}
 							/>
-						</Button>
+						</Button>,
 					)}
 				</div>
 			</RequireClientJS>
@@ -59,7 +59,7 @@ const EditKeyboard = ({
 			/>
 		</div>
 	);
-}
+};
 
 type EditKeyboardProps = {
 	name: string

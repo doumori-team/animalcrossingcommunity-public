@@ -29,6 +29,6 @@ const RouteError = () =>
 			</Alert>
 		</div>
 	);
-}
+};
 
 export default RouteError;

@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, RatingsGivenType } from '@types';
 
-async function ratings_given(this: APIThisType, {id, page, type}: ratingsGivenProps) : Promise<RatingsGivenType>
+async function ratings_given(this: APIThisType, { id, page, type }: ratingsGivenProps): Promise<RatingsGivenType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-ratings'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-ratings' });
 
 	if (!permissionGranted)
 	{
@@ -21,9 +21,9 @@ async function ratings_given(this: APIThisType, {id, page, type}: ratingsGivenPr
 
 	// Perform queries
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
-	var query = `
+	let query = `
 		SELECT
 			rating.id,
 			count(*) over() AS count
@@ -63,8 +63,9 @@ async function ratings_given(this: APIThisType, {id, page, type}: ratingsGivenPr
 	const ratings = await db.query(query, pageSize, offset, id);
 
 	return {
-		results: await Promise.all(ratings.map(async (rating:any) => {
-			return this.query('v1/rating', {id: rating.id})
+		results: await Promise.all(ratings.map(async (rating: any) =>
+		{
+			return this.query('v1/rating', { id: rating.id });
 		})),
 		count: ratings.length > 0 ? Number(ratings[0].count) : 0,
 		page: page,
@@ -89,12 +90,12 @@ ratings_given.apiTypes = {
 		includes: [constants.rating.types.wifi, constants.rating.types.trade, constants.rating.types.scout, constants.rating.types.shop],
 		required: true,
 	},
-}
+};
 
 type ratingsGivenProps = {
 	id: number
 	page: number
 	type: string
-}
+};
 
 export default ratings_given;

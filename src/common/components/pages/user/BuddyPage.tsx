@@ -10,7 +10,7 @@ import { APIThisType, BuddiesType } from '@types';
 
 const BuddyPage = () =>
 {
-	const {buddies, staff} = useLoaderData() as BuddyPageProps;
+	const { buddies, staff } = useLoaderData() as BuddyPageProps;
 
 	return (
 		<div className='BuddyPage'>
@@ -48,66 +48,66 @@ const BuddyPage = () =>
 				</Section>
 
 				<Section>
-					{buddies.length > 0 ? (
+					{buddies.length > 0 ?
 						<>
-						<SelectAllCheckbox
-							name='toggle_buddyUsers'
-							label='Check All Users'
-							select='.BuddyPage_buddies input[name="buddyUsers"]'
-						/>
+							<SelectAllCheckbox
+								name='toggle_buddyUsers'
+								label='Check All Users'
+								select='.BuddyPage_buddies input[name="buddyUsers"]'
+							/>
 
-						<Form
-							action='v1/users/buddy/save'
-							showButton
-							buttonText='Remove Selected Buddies'
-						>
-							<input type='hidden' name='action' value='remove' />
+							<Form
+								action='v1/users/buddy/save'
+								showButton
+								buttonText='Remove Selected Buddies'
+							>
+								<input type='hidden' name='action' value='remove' />
 
-							<div className='BuddyPage_buddies'>
-								{buddies.map((buddy: BuddiesType['buddies'][number]) =>
-									<div key={buddy.id} className='BuddyPage_buddy'>
-										<Form.Group>
-											<Checkbox
-												name='buddyUsers'
-												label='Remove Buddy'
-												value={buddy.username}
-												hideLabel
-											/>
-										</Form.Group>
-
-										<div className='BuddyPage_name'>
-											<Link to={`/profile/${encodeURIComponent(buddy.id)}`}>
-												{buddy.username}
-											</Link>
-										</div>
-
-										<div className='BuddyPage_lastActive'>
-											<StatusIndicator
-												lastActiveTime={buddy.lastActiveTime}
-												showDate={true}
-											/>
-										</div>
-
-										<div className='BuddyPage_actions'>
-											<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}#TextBox`}>
-												<img
-													src={`${constants.AWS_URL}/images/icons/pt.png`}
-													className='BuddyPage_icon'
-													alt={`PT ${buddy.username}`}
+								<div className='BuddyPage_buddies'>
+									{buddies.map((buddy: BuddiesType['buddies'][number]) =>
+										<div key={buddy.id} className='BuddyPage_buddy'>
+											<Form.Group>
+												<Checkbox
+													name='buddyUsers'
+													label='Remove Buddy'
+													value={buddy.username}
+													hideLabel
 												/>
-											</Link>
-										</div>
-									</div>
-								)}
-							</div>
-						</Form>
+											</Form.Group>
+
+											<div className='BuddyPage_name'>
+												<Link to={`/profile/${encodeURIComponent(buddy.id)}`}>
+													{buddy.username}
+												</Link>
+											</div>
+
+											<div className='BuddyPage_lastActive'>
+												<StatusIndicator
+													lastActiveTime={buddy.lastActiveTime}
+													showDate={true}
+												/>
+											</div>
+
+											<div className='BuddyPage_actions'>
+												<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}#TextBox`}>
+													<img
+														src={`${constants.AWS_URL}/images/icons/pt.png`}
+														className='BuddyPage_icon'
+														alt={`PT ${buddy.username}`}
+													/>
+												</Link>
+											</div>
+										</div>,
+									)}
+								</div>
+							</Form>
 						</>
-					) : (
+						:
 						'You have no buddies in your buddy list.'
-					)}
+					}
 				</Section>
 
-				{staff.length > 0 && (
+				{staff.length > 0 &&
 					<Section>
 						<div className='BuddyPage_buddies'>
 							{staff.map(buddy =>
@@ -134,17 +134,17 @@ const BuddyPage = () =>
 											/>
 										</Link>
 									</div>
-								</div>
+								</div>,
 							)}
 						</div>
 					</Section>
-				)}
+				}
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<BuddyPageProps>
+export async function loadData(this: APIThisType): Promise<BuddyPageProps>
 {
 	const [results] = await Promise.all([
 		this.query('v1/users/buddies'),
@@ -159,6 +159,6 @@ export async function loadData(this: APIThisType) : Promise<BuddyPageProps>
 type BuddyPageProps = {
 	buddies: BuddiesType['buddies']
 	staff: BuddiesType['staff']
-}
+};
 
 export default BuddyPage;

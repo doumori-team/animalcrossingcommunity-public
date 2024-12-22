@@ -7,11 +7,11 @@ import { APIThisType, ACGameItemType, GroupItemType } from '@types';
 /*
  * Fetches information about 'real-world' items.
  */
-async function catalog(this: APIThisType, {categoryName, sortBy, name}: catalogProps) : Promise<GroupItemType[]|ACGameItemType[number]['all']['items']>
+async function catalog(this: APIThisType, { categoryName, sortBy, name }: catalogProps): Promise<GroupItemType[] | ACGameItemType[number]['all']['items']>
 {
 	const [viewUserCatalogPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'view-user-catalog'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'view-user-catalog' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(viewUserCatalogPerm || useTradingPostPerm))
@@ -22,7 +22,7 @@ async function catalog(this: APIThisType, {categoryName, sortBy, name}: catalogP
 	// Check parameters
 	categoryName = utils.convertForUrl(categoryName);
 
-	const sortedCategory:any = (await ACCCache.get(constants.cacheKeys.sortedCategories))[categoryName];
+	const sortedCategory: any = (await ACCCache.get(constants.cacheKeys.sortedCategories))[categoryName];
 
 	if (categoryName !== 'all' && !sortedCategory)
 	{
@@ -30,22 +30,22 @@ async function catalog(this: APIThisType, {categoryName, sortBy, name}: catalogP
 	}
 
 	// Run calculations
-	const categories:GroupItemType[]|ACGameItemType[number]['all']['items'] = sortedCategory[sortBy];
+	const categories: GroupItemType[] | ACGameItemType[number]['all']['items'] = sortedCategory[sortBy];
 
 	if (utils.realStringLength(name) > 0)
 	{
-		const doesItemMatch = (item:any) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
-		const doesGroupMatch = (group:any) => group.items.some(doesItemMatch);
+		const doesItemMatch = (item: any) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
+		const doesGroupMatch = (group: any) => group.items.some(doesItemMatch);
 
-		return (categories as GroupItemType[]).filter((catalog:any) => catalog.groups.some(doesGroupMatch))
-			.map((catalog:any) => ({
+		return (categories as GroupItemType[]).filter((catalog: any) => catalog.groups.some(doesGroupMatch))
+			.map((catalog: any) => ({
 				...catalog,
 				groups: catalog.groups.filter(doesGroupMatch)
-					.map((group:any) => ({
+					.map((group: any) => ({
 						...group,
-						items: group.items.filter(doesItemMatch)
-					}))
-			}))
+						items: group.items.filter(doesItemMatch),
+					})),
+			}));
 	}
 
 	return categories;
@@ -67,12 +67,12 @@ catalog.apiTypes = {
 		type: APITypes.string,
 		default: '',
 	},
-}
+};
 
 type catalogProps = {
 	categoryName: string
 	sortBy: string
 	name: string
-}
+};
 
 export default catalog;

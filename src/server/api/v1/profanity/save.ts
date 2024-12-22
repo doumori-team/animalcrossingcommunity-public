@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {id, word, activate}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { id, word, activate }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'profanity-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'profanity-admin' });
 
 	if (!permissionGranted)
 	{
@@ -51,7 +51,7 @@ async function save(this: APIThisType, {id, word, activate}: saveProps) : Promis
 	{
 		if (activate !== filteredWord.active)
 		{
-			const permissionGranted:boolean = await this.query('v1/permission', {permission: 'activate-profanity-words'});
+			const permissionGranted: boolean = await this.query('v1/permission', { permission: 'activate-profanity-words' });
 
 			if (!permissionGranted)
 			{
@@ -62,7 +62,7 @@ async function save(this: APIThisType, {id, word, activate}: saveProps) : Promis
 		let nodeId = filteredWord.node_id;
 		let content = '';
 
-		if (word != filteredWord.word)
+		if (word !== filteredWord.word)
 		{
 			content += `**${filteredWord.word}** updated to **${word}**.`;
 		}
@@ -102,7 +102,7 @@ async function save(this: APIThisType, {id, word, activate}: saveProps) : Promis
 					VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
 				`, message.id, this.userId, content, 'markdown');
 
-				await this.query('v1/notification/create', {id: message.id, type: constants.notification.types.FT});
+				await this.query('v1/notification/create', { id: message.id, type: constants.notification.types.FT });
 			}
 
 			await db.query(`
@@ -117,7 +117,7 @@ async function save(this: APIThisType, {id, word, activate}: saveProps) : Promis
 		const nodeId = await createThread.bind(this)(
 			word,
 			`Suggestion for new filtered word: **${word}**.`,
-			false
+			false,
 		);
 
 		await db.query(`
@@ -135,7 +135,7 @@ async function save(this: APIThisType, {id, word, activate}: saveProps) : Promis
 /*
  * Create thread for the profanity word.
  */
-async function createThread(this: APIThisType, word:string, content:string, active:boolean) : Promise<number>
+async function createThread(this: APIThisType, word: string, content: string, active: boolean): Promise<number>
 {
 	const [thread] = await db.query(`
 		INSERT INTO node (parent_node_id, user_id, type)
@@ -159,7 +159,7 @@ async function createThread(this: APIThisType, word:string, content:string, acti
 		VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
 	`, message.id, this.userId, content, 'markdown');
 
-	await this.query('v1/notification/create', {id: thread.id, type: constants.notification.types.FB});
+	await this.query('v1/notification/create', { id: thread.id, type: constants.notification.types.FB });
 
 	await db.updateThreadStats(thread.id);
 
@@ -180,13 +180,13 @@ save.apiTypes = {
 	activate: {
 		type: APITypes.boolean,
 		default: 'false',
-	}
-}
+	},
+};
 
 type saveProps = {
 	id: number
 	word: string
 	activate: boolean
-}
+};
 
 export default save;

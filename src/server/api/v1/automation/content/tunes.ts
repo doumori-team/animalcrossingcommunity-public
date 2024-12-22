@@ -9,7 +9,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Add X Town Tunes
  */
-async function tunes(this: APIThisType, {amount}: tunesProps) : Promise<SuccessType>
+async function tunes(this: APIThisType, { amount }: tunesProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -31,7 +31,7 @@ async function tunes(this: APIThisType, {amount}: tunesProps) : Promise<SuccessT
 		WHERE staff_group.identifier = 'staff'
 	`);
 
-	let notes:number[]|string[] = [9, 14, 1, 9, 8, 13, 1, 11, 12, 0, 15, 0, 5, 1, 0, 0];
+	let notes: number[] | string[] = [9, 14, 1, 9, 8, 13, 1, 11, 12, 0, 15, 0, 5, 1, 0, 0];
 
 	notes = notes.map((id) =>
 	{
@@ -41,7 +41,7 @@ async function tunes(this: APIThisType, {amount}: tunesProps) : Promise<SuccessT
 	for (let i = 0; i < amount; i++)
 	{
 		const tuneUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
-		const tuneName = faker.random.words();
+		const tuneName = faker.lorem.words();
 
 		await db.query(`
 			INSERT INTO town_tune (name, creator_id, notes)
@@ -52,7 +52,7 @@ async function tunes(this: APIThisType, {amount}: tunesProps) : Promise<SuccessT
 	ACCCache.deleteMatch(constants.cacheKeys.userLite);
 
 	return {
-		_success: `Your tunes(s) have been created!`
+		_success: `Your tunes(s) have been created!`,
 	};
 }
 
@@ -63,10 +63,10 @@ tunes.apiTypes = {
 		max: 100,
 		min: 1,
 	},
-}
+};
 
 type tunesProps = {
 	amount: number
-}
+};
 
 export default tunes;

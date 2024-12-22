@@ -2,11 +2,11 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
-import { APIThisType,  } from '@types';
+import { APIThisType } from '@types';
 
-async function claim(this: APIThisType, {id}: claimProps) : Promise<void>
+async function claim(this: APIThisType, { id }: claimProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -28,14 +28,14 @@ async function claim(this: APIThisType, {id}: claimProps) : Promise<void>
 	`, id);
 
 	// only can claim it if unassigned to you, Open and an admin if mod violator
-	const processModTicket:boolean = await this.query('v1/permission', {permission: 'process-mod-tickets'});
+	const processModTicket: boolean = await this.query('v1/permission', { permission: 'process-mod-tickets' });
 	const staffIdentifiers = constants.staffIdentifiers;
 
-	if (userTicket.assignee_id !== null || userTicket.status !== 'Open' || ([
+	if (userTicket.assignee_id !== null || userTicket.status !== 'Open' || [
 		staffIdentifiers.mod,
 		staffIdentifiers.admin,
-		staffIdentifiers.owner
-	].includes(userTicket.identifier) && !processModTicket))
+		staffIdentifiers.owner,
+	].includes(userTicket.identifier) && !processModTicket)
 	{
 		throw new UserError('permission');
 	}
@@ -48,11 +48,11 @@ async function claim(this: APIThisType, {id}: claimProps) : Promise<void>
 		`, id, this.userId),
 		this.query('v1/notification/destroy', {
 			id: id,
-			type: constants.notification.types.modminUT
+			type: constants.notification.types.modminUT,
 		}),
 		this.query('v1/notification/destroy', {
 			id: id,
-			type: constants.notification.types.modminUTMany
+			type: constants.notification.types.modminUTMany,
 		}),
 	]);
 }
@@ -62,10 +62,10 @@ claim.apiTypes = {
 		type: APITypes.userTicketId,
 		required: true,
 	},
-}
+};
 
 type claimProps = {
 	id: number
-}
+};
 
 export default claim;

@@ -7,7 +7,7 @@ import { APIThisType, CurrentRuleType } from '@types';
 
 const SiteRulesPage = () =>
 {
-	const {rules, lastUpdated} = useLoaderData() as SiteRulesPageProps;
+	const { rules, lastUpdated } = useLoaderData() as SiteRulesPageProps;
 
 	return (
 		<div className='SiteRulesPage'>
@@ -23,48 +23,48 @@ const SiteRulesPage = () =>
 				{rules.map((category, index) =>
 					<ContentBox key={category.id}>
 						<div className='SiteRulesPage_category'>
-							{index+1}. {category.name}
+							{index + 1}. {category.name}
 						</div>
 						{category.rules.map(rule =>
 							<div key={rule.id} className='SiteRulesPage_rule'>
-								{rule.name ? (
+								{rule.name ?
 									<>
-									<div className='SiteRulesPage_ruleTitle'>
-										<strong>{rule.number}{rule.name}</strong>{' - '}
-									</div>
-									<HTMLPurify
-										className='SiteRulesPage_ruleDescription'
-										html={`${rule.description}` + `<span class=${dateUtils.isSame(lastUpdated, rule.startDate) ? (rule.originalRuleId ? 'SiteRulesPage_ruleDate SiteRulesPage_ruleUpdated' : 'SiteRulesPage_ruleDate SiteRulesPage_ruleNew') : 'SiteRulesPage_ruleDate'}> (${dateUtils.formatDateTime5(rule.startDate)})</span>`}
-									/>
+										<div className='SiteRulesPage_ruleTitle'>
+											<strong>{rule.number}{rule.name}</strong>{' - '}
+										</div>
+										<HTMLPurify
+											className='SiteRulesPage_ruleDescription'
+											html={`${rule.description}` + `<span class=${dateUtils.isSame(lastUpdated, rule.startDate) ? rule.originalRuleId ? 'SiteRulesPage_ruleDate SiteRulesPage_ruleUpdated' : 'SiteRulesPage_ruleDate SiteRulesPage_ruleNew' : 'SiteRulesPage_ruleDate'}> (${dateUtils.formatDateTime5(rule.startDate)})</span>`}
+										/>
 									</>
-								) : (
+									:
 									<>
-									<HTMLPurify
-										className='SiteRulesPage_ruleDescription'
-										html={`<span class='SiteRulesPage_ruleTitle'><strong>${rule.number}</strong> - </span>` + `${rule.description}` + `<span class=${dateUtils.isSame(lastUpdated, rule.startDate) ? (rule.originalRuleId ? 'SiteRulesPage_ruleDate SiteRulesPage_ruleUpdated' : 'SiteRulesPage_ruleDate SiteRulesPage_ruleNew') : 'SiteRulesPage_ruleDate'}> (${dateUtils.formatDateTime5(rule.startDate)})</span>`}
-									/>
+										<HTMLPurify
+											className='SiteRulesPage_ruleDescription'
+											html={`<span class='SiteRulesPage_ruleTitle'><strong>${rule.number}</strong> - </span>` + `${rule.description}` + `<span class=${dateUtils.isSame(lastUpdated, rule.startDate) ? rule.originalRuleId ? 'SiteRulesPage_ruleDate SiteRulesPage_ruleUpdated' : 'SiteRulesPage_ruleDate SiteRulesPage_ruleNew' : 'SiteRulesPage_ruleDate'}> (${dateUtils.formatDateTime5(rule.startDate)})</span>`}
+										/>
 									</>
-								)}
+								}
 
-								{rule.violations.length > 0 && (
+								{rule.violations.length > 0 &&
 									<div className='SiteRulesPage_ruleViolations'>
 										{rule.violations.map(violation =>
 											<div key={violation.id} className={`SiteRulesPage_violation severity_${violation.severityId}`}>
-												<strong>{violation.severityId ? violation.severityId : String.fromCharCode(96+violation.number)}</strong> {violation.violation}
-											</div>
+												<strong>{violation.severityId ? violation.severityId : String.fromCharCode(96 + violation.number)}</strong> {violation.violation}
+											</div>,
 										)}
 									</div>
-								)}
-							</div>
+								}
+							</div>,
 						)}
-					</ContentBox>
+					</ContentBox>,
 				)}
 			</div>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<SiteRulesPageProps>
+export async function loadData(this: APIThisType): Promise<SiteRulesPageProps>
 {
 	const [rules] = await Promise.all([
 		this.query('v1/rule/current'),
@@ -79,6 +79,6 @@ export async function loadData(this: APIThisType) : Promise<SiteRulesPageProps>
 type SiteRulesPageProps = {
 	rules: CurrentRuleType['currentRules']
 	lastUpdated: CurrentRuleType['lastUpdated']
-}
+};
 
 export default SiteRulesPage;

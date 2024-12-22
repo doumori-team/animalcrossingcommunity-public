@@ -7,7 +7,7 @@ import { APIThisType, NodesType, NodeChildNodesType, NodeBoardType } from '@type
  * NodePage calls. Moved here for George.
  * No APITypes on purpose.
  */
-async function nodes(this: APIThisType, {id, page, editId, locked, order, reverse}: nodesProps) : Promise<NodesType>
+async function nodes(this: APIThisType, { id, page, editId, locked, order, reverse }: nodesProps): Promise<NodesType>
 {
 	const [archivedBoards, listBoardsArr] = await Promise.all([
 		db.query(`
@@ -27,26 +27,26 @@ async function nodes(this: APIThisType, {id, page, editId, locked, order, revers
 		`, id) : [],
 	]);
 
-	const archivedBoardIds:number[] = archivedBoards.map((x: {id: string})=> Number(x.id));
+	const archivedBoardIds: number[] = archivedBoards.map((x: { id: string }) => Number(x.id));
 
 	if (archivedBoardIds.includes(id))
 	{
 		locked = true;
 	}
 
-	const listBoardIds:number[] = listBoardsArr.map((x: {id: string}) => Number(x.id));
+	const listBoardIds: number[] = listBoardsArr.map((x: { id: string }) => Number(x.id));
 	const listBoards = listBoardIds.includes(id);
 
 	const [node, canMoveThread, editNode, currentUserEmojiSettings, subBoards, returnValue, staffBoards] = await Promise.all([
-		this.query('v1/node/full', {id, loadingNode: true}),
+		this.query('v1/node/full', { id, loadingNode: true }),
 		this.userId ? this.query('v1/node/permission', {
 			permission: 'move',
-			nodeId: id
+			nodeId: id,
 		}) : false,
-		editId ? this.query('v1/node/full', {id: editId}) : null,
+		editId ? this.query('v1/node/full', { id: editId }) : null,
 		id !== constants.boardIds.accForums ? this.query('v1/settings/emoji') : [],
-		this.query('v1/node/boards', {nodeIds: [id]}),
-		!listBoards ? this.query('v1/node/children', {id: id, order: order ? order : 'latest_reply_time', reverse: reverse ? reverse : true, page: page ? page : 1, showLocked: locked}) : null,
+		this.query('v1/node/boards', { nodeIds: [id] }),
+		!listBoards ? this.query('v1/node/children', { id: id, order: order ? order : 'latest_reply_time', reverse: reverse ? reverse : true, page: page ? page : 1, showLocked: locked }) : null,
 		db.query(`
 			SELECT id
 			FROM node
@@ -54,10 +54,10 @@ async function nodes(this: APIThisType, {id, page, editId, locked, order, revers
 		`),
 	]);
 
-	const userIds:number[] = node.type === 'thread' ? returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((userId?: number) => userId != undefined) : [];
+	const userIds: number[] = node.type === 'thread' ? returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((userId?: number) => !!userId) : [];
 
 	const [userEmojiSettings, breadcrumb, allBoards, subSubBoards, userDonations] = await Promise.all([
-		userIds.length > 0 ? this.query('v1/settings/emoji', {userIds: returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((id?: number) => id)}) : [],
+		userIds.length > 0 ? this.query('v1/settings/emoji', { userIds: returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((id?: number) => id) }) : [],
 		id !== constants.boardIds.accForums ? db.query(`
 			WITH RECURSIVE tree(id, parent_node_id, title, level) AS (
 				SELECT n.id, n.parent_node_id, (
@@ -85,7 +85,7 @@ async function nodes(this: APIThisType, {id, page, editId, locked, order, revers
 			ORDER BY level DESC;
 		`, node.parentId) : [],
 		canMoveThread && node.type === 'thread' ? this.query('v1/node/boards') : [],
-		listBoards ? this.query('v1/node/boards', {nodeIds: subBoards.map((b: NodeBoardType) => b.id)}) : [],
+		listBoards ? this.query('v1/node/boards', { nodeIds: subBoards.map((b: NodeBoardType) => b.id) }) : [],
 		this.userId ? this.query('v1/users/donations') : null,
 	]);
 
@@ -95,7 +95,7 @@ async function nodes(this: APIThisType, {id, page, editId, locked, order, revers
 		childNodes: listBoards ? subBoards : returnValue.childNodes,
 		page: listBoards ? page : returnValue.page,
 		totalCount: listBoards ? 0 : returnValue.count,
-		pageSize: listBoards ? (node.type === 'board' ? 50 : constants.threadPageSize) : returnValue.pageSize,
+		pageSize: listBoards ? node.type === 'board' ? 50 : constants.threadPageSize : returnValue.pageSize,
 		reverse: listBoards ? reverse : returnValue.reverse,
 		order: listBoards ? order : returnValue.order,
 		locked: listBoards ? locked : returnValue.showLocked,
@@ -104,7 +104,7 @@ async function nodes(this: APIThisType, {id, page, editId, locked, order, revers
 		nodeUsersEmojiSettings: userEmojiSettings,
 		boards: allBoards,
 		subBoards: listBoards ? subSubBoards : subBoards,
-		staffBoards: staffBoards.map((x: {id: string}) => Number(x.id)),
+		staffBoards: staffBoards.map((x: { id: string }) => Number(x.id)),
 		archivedBoards: archivedBoardIds,
 		listBoards: listBoardIds,
 		userDonations: userDonations,
@@ -117,16 +117,16 @@ nodes.apiTypes = {
 		required: true,
 	},
 	// others not checked on purpose
-}
+};
 
-const orderOptions = constants.orderOptions.node.map(x => x.id);
+const _orderOptions = constants.orderOptions.node.map(x => x.id);
 
 type nodesProps = {
 	id: number,
 	page: string
 	editId: string
 	locked: string | boolean
-	order: typeof orderOptions[number]
+	order: typeof _orderOptions[number]
 	reverse: string
 };
 

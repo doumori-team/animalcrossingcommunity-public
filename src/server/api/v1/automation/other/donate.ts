@@ -8,7 +8,7 @@ import { APIThisType, SuccessType, UserDonationsType } from '@types';
 /*
  * Add / Remove donations to yourself.
  */
-async function donate(this: APIThisType, {donateAction, amount}: donateProps) : Promise<SuccessType>
+async function donate(this: APIThisType, { donateAction, amount }: donateProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -28,7 +28,7 @@ async function donate(this: APIThisType, {donateAction, amount}: donateProps) : 
 			UPDATE user_donation SET donated = now() - interval '2 year' WHERE user_id = $1
 		`, this.userId);
 	}
-    else if (amount > 0)
+	else if (amount > 0)
 	{
 		await db.query(`
 			INSERT INTO user_donation (user_id, donation)
@@ -40,7 +40,7 @@ async function donate(this: APIThisType, {donateAction, amount}: donateProps) : 
 
 	if (donateAction === 'add')
 	{
-        const updatedUser:UserDonationsType = await this.query('v1/users/donations', {id: this.userId});
+		const updatedUser: UserDonationsType = await this.query('v1/users/donations', { id: this.userId });
 
 		return {
 			_success: `You have donated ${amount.toLocaleString()}, bringing your total to ${updatedUser.donations}!`,
@@ -66,11 +66,11 @@ donate.apiTypes = {
 		max: 10000000,
 		min: 1,
 	},
-}
+};
 
 type donateProps = {
 	donateAction: 'add' | 'remove'
 	amount: number
-}
+};
 
 export default donate;

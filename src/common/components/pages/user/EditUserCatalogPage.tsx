@@ -8,8 +8,8 @@ import { APIThisType, GroupItemType, CatalogItemsType, UserCatalogCategoryType }
 
 const EditUserCatalogPage = () =>
 {
-	const {catalogItems, catalog, by, category, userId, catalogCategories,
-		name} = useLoaderData() as EditUserCatalogPageProps;
+	const { catalogItems, catalog, by, category, userId, catalogCategories,
+		name } = useLoaderData() as EditUserCatalogPageProps;
 
 	return (
 		<RequirePermission permission='modify-user-catalog'>
@@ -28,9 +28,9 @@ const EditUserCatalogPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {by, name, category}: {by?: string, name?: string, category?: string}) : Promise<EditUserCatalogPageProps>
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditUserCatalogPageProps>
 {
 	const selectedUserId = Number(userId);
 
@@ -39,12 +39,12 @@ export async function loadData(this: APIThisType, {userId}: {userId: string}, {b
 	category = category ? utils.convertForUrl(category) : '';
 
 	const [catalogCategories, catalogItems, catalog] = await Promise.all([
-		this.query('v1/users/catalog/category', {id: selectedUserId}),
-		this.query('v1/users/catalog', {id: selectedUserId}),
-		this.query('v1/catalog', {categoryName: category, sortBy: by, name: name}),
+		this.query('v1/users/catalog/category', { id: selectedUserId }),
+		this.query('v1/users/catalog', { id: selectedUserId }),
+		this.query('v1/catalog', { categoryName: category, sortBy: by, name: name }),
 	]);
 
-	return {catalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name};
+	return { catalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
 
 type EditUserCatalogPageProps = {
@@ -55,6 +55,6 @@ type EditUserCatalogPageProps = {
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
 	name: string
-}
+};
 
 export default EditUserCatalogPage;

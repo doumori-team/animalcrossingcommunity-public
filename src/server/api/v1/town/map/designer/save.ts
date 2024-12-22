@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipData, imageData}: saveProps) : Promise<{userId: number, townId: number}>
+async function save(this: APIThisType, { townId, data, dataUrl, cursorData, flipData, imageData }: saveProps): Promise<{ userId: number, townId: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -36,7 +36,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 	{
 		let id = colors.indexOf(rgb);
 
-		if (isNaN(id) || id < 0 || id > (colors.length)-1)
+		if (isNaN(id) || id < 0 || id > colors.length - 1)
 		{
 			throw new UserError('bad-format');
 		}
@@ -45,7 +45,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 	});
 
 	const mapInfo = utils.getMapInfo(town.game_id);
-	const total = (mapInfo.gridLength*mapInfo.width)*(mapInfo.gridLength*mapInfo.height);
+	const total = mapInfo.gridLength * mapInfo.width * (mapInfo.gridLength * mapInfo.height);
 
 	if (data.length !== total)
 	{
@@ -58,7 +58,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 	{
 		let id = 0;
 
-		for (var i = 1; i <= Object.keys(rectTypes).length; i++)
+		for (let i = 1; i <= Object.keys(rectTypes).length; i++)
 		{
 			if (pos == (rectTypes as any)[i].value)
 			{
@@ -85,7 +85,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 	{
 		let id = colors.indexOf(rgb);
 
-		if (isNaN(id) || id < 0 || id > (colors.length)-1)
+		if (isNaN(id) || id < 0 || id > colors.length - 1)
 		{
 			throw new UserError('bad-format');
 		}
@@ -102,7 +102,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 
 	imageData = imageData.map(imageName =>
 	{
-		let id:any = images.indexOf(imageName);
+		let id: any = images.indexOf(imageName);
 
 		if (imageName === constants.town.noImageId)
 		{
@@ -110,7 +110,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 		}
 		else
 		{
-			if (isNaN(id) || id < 0 || id > (images.length)-1)
+			if (isNaN(id) || id < 0 || id > images.length - 1)
 			{
 				throw new UserError('bad-format');
 			}
@@ -125,7 +125,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await query(`
 			DELETE FROM map_design
@@ -141,7 +141,7 @@ async function save(this: APIThisType, {townId, data, dataUrl, cursorData, flipD
 	return {
 		townId: townId,
 		userId: town.user_id,
-	}
+	};
 }
 
 save.apiTypes = {
@@ -170,7 +170,7 @@ save.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type saveProps = {
 	townId: number
@@ -179,6 +179,6 @@ type saveProps = {
 	cursorData: any[]
 	flipData: any[]
 	imageData: any[]
-}
+};
 
 export default save;

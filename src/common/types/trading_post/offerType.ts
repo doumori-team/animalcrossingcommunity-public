@@ -14,11 +14,11 @@ type OfferType = {
 	items: {
 		id: string
 		quantity: number
-		secretCode: string|null
+		secretCode: string | null
 		name: string
 	}[]
 	residents: ResidentsType[number]
-	comment: string|null
+	comment: string | null
 	rating: RatingType | null
 	character: {
 		id: number
@@ -33,7 +33,7 @@ type OfferType = {
 	completed: boolean
 	failed: boolean
 	address: string
-	bioLocation: string|null
+	bioLocation: string | null
 };
 
 export type { OfferType };

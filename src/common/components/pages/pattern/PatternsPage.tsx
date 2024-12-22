@@ -10,8 +10,8 @@ import { APIThisType, PatternsType, ACGameType } from '@types';
 
 const PatternsPage = () =>
 {
-	const {totalCount, patterns, page, name, creator, pageSize, published,
-		favorite, acgames, games} = useLoaderData() as PatternsPageProps;
+	const { totalCount, patterns, page, name, creator, pageSize, published,
+		favorite, acgames, games } = useLoaderData() as PatternsPageProps;
 
 	const link = `&creator=${encodeURIComponent(creator)}
 		&name=${encodeURIComponent(name)}
@@ -77,7 +77,7 @@ const PatternsPage = () =>
 							multiple
 							value={games.length > 0 ? games : []}
 							options={acgames.filter(g => g.hasTown === true)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							placeholder='Choose an Animal Crossing game...'
 							size={5}
 						/>
@@ -86,8 +86,8 @@ const PatternsPage = () =>
 
 				<Section>
 					<Grid name='pattern' options={patterns}>
-						{patterns.map((pattern:any, index:any) =>
-							<Pattern key={index} pattern={pattern} />
+						{patterns.map((pattern: any, index: any) =>
+							<Pattern key={index} pattern={pattern} />,
 						)}
 					</Grid>
 
@@ -102,9 +102,9 @@ const PatternsPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, name, creator, published, favorite, games}: {page?: string, name?: string, creator?: string, published?: string, favorite?: string, games?: string}) : Promise<PatternsPageProps>
+export async function loadData(this: APIThisType, _: any, { page, name, creator, published, favorite, games }: { page?: string, name?: string, creator?: string, published?: string, favorite?: string, games?: string }): Promise<PatternsPageProps>
 {
 	const [acgames, returnValue] = await Promise.all([
 		this.query('v1/acgames'),
@@ -143,6 +143,6 @@ type PatternsPageProps = {
 	favorite: PatternsType['favorite']
 	acgames: ACGameType[]
 	games: PatternsType['games']
-}
+};
 
 export default PatternsPage;

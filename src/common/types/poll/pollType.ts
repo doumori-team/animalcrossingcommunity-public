@@ -14,6 +14,6 @@ type PollType = {
 		sequence: number
 		votes: number
 	}[]
-}
+};
 
 export type { PollType };

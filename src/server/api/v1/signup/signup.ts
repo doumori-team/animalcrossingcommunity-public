@@ -5,7 +5,7 @@ import * as accounts from '@accounts';
 import * as db from '@db';
 import { APIThisType, SuccessType } from '@types';
 
-async function signup(this: APIThisType, {username, email, birthday, ipAddresses}: signupProps) : Promise<SuccessType>
+async function signup(this: APIThisType, { username, email, birthday, ipAddresses }: signupProps): Promise<SuccessType>
 {
 	if (this.userId)
 	{
@@ -25,7 +25,7 @@ async function signup(this: APIThisType, {username, email, birthday, ipAddresses
 
 		throw new UserError('username-taken');
 	}
-	catch (error:any)
+	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
 		{
@@ -46,7 +46,7 @@ async function signup(this: APIThisType, {username, email, birthday, ipAddresses
 
 		throw new UserError('email-taken');
 	}
-	catch (error:any)
+	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
 		{
@@ -64,10 +64,10 @@ async function signup(this: APIThisType, {username, email, birthday, ipAddresses
 	const age = dateUtils.getAge(birthdate);
 	const consentNeeded = age < 16;
 
-	let request:any = {
+	let request: any = {
 		username: username,
 		birth_date_day: birthdate.getDate(),
-		birth_date_month: birthdate.getMonth()+1,
+		birth_date_month: birthdate.getMonth() + 1,
 		birth_date_year: birthdate.getFullYear(),
 		consent_given: consentNeeded ? false : true,
 	};
@@ -111,7 +111,7 @@ async function signup(this: APIThisType, {username, email, birthday, ipAddresses
 	{
 		// see api-requests
 		ipAddresses = ipAddresses.split(',')
-			.map((item:any) => item.trim());
+			.map((item: any) => item.trim());
 
 		if (ipAddresses.length > 1)
 		{
@@ -122,13 +122,14 @@ async function signup(this: APIThisType, {username, email, birthday, ipAddresses
 		if (ipAddresses.length > 0)
 		{
 			await Promise.all([
-				ipAddresses.map(async (ip:any) => {
+				ipAddresses.map(async (ip: any) =>
+				{
 					await db.query(`
 						INSERT INTO user_ip_address (user_id, ip_address)
 						VALUES ($1::int, $2)
 						ON CONFLICT (user_id, ip_address) DO NOTHING
 					`, user.id, ip);
-				})
+				}),
 			]);
 		}
 	}
@@ -163,13 +164,13 @@ signup.apiTypes = {
 		default: '',
 		nullable: true,
 	},
-}
+};
 
 type signupProps = {
 	username: string
 	email: string
 	birthday: string
 	ipAddresses: any
-}
+};
 
 export default signup;

@@ -11,9 +11,9 @@ import { APIThisType, NodesType, LocationType } from '@types';
 
 const NodePage = () =>
 {
-	const {node, childNodes, page, pageSize, totalCount, addUsers, order, reverse,
+	const { node, childNodes, page, pageSize, totalCount, addUsers, order, reverse,
 		locked, editNode, currentUserEmojiSettings, breadcrumb, nodeUsersEmojiSettings,
-		boards, subBoards, staffBoards, archivedBoards, listBoards, userDonations} = useLoaderData() as NodePageProps;
+		boards, subBoards, staffBoards, archivedBoards, listBoards, userDonations } = useLoaderData() as NodePageProps;
 
 	const location = useLocation() as LocationType;
 
@@ -35,7 +35,7 @@ const NodePage = () =>
 
 	return (
 		<>
-			{(node.type === 'board' && !listBoards.includes(node.id) && node.id != constants.boardIds.publicThreads) && (
+			{node.type === 'board' && !listBoards.includes(node.id) && node.id !== constants.boardIds.publicThreads &&
 				<div className='NodePage_filter' key={node.id}>
 					<Search callback={`/forums/${encodeURIComponent(node.id)}`}>
 						<Form.Group>
@@ -55,7 +55,7 @@ const NodePage = () =>
 							/>
 						</Form.Group>
 
-						{!archivedBoards.includes(node.id) && (
+						{!archivedBoards.includes(node.id) &&
 							<Form.Group>
 								<Switch
 									name='locked'
@@ -63,93 +63,93 @@ const NodePage = () =>
 									value={locked}
 								/>
 							</Form.Group>
-						)}
+						}
 					</Search>
 				</div>
-			)}
+			}
 
-			{node.id === constants.boardIds.privateThreads && (
+			{node.id === constants.boardIds.privateThreads &&
 				<Form action='v1/node/remove' id='removeFromPTs' />
-			)}
+			}
 
 			<UserContext.Consumer>
 				{currentUser =>
 					<>
-					<Node
-						key={`${node.id}-${node.followed}`}
-						{...node}
-						breadcrumb={breadcrumb}
-						childLength={childNodes.length}
-						page={page}
-						emojiSettings={node.user ?
-							nodeUsersEmojiSettings.filter(s => s.userId === node.user?.id) :
-							[]}
-						currentUser={currentUser}
-						subBoards={subBoards.filter(b => b.parentId === node.id)}
-						parentPermissions={node.permissions}
-						listBoards={listBoards}
-					/>
+						<Node
+							key={`${node.id}-${node.followed}`}
+							{...node}
+							breadcrumb={breadcrumb}
+							childLength={childNodes.length}
+							page={page}
+							emojiSettings={node.user ?
+								nodeUsersEmojiSettings.filter(s => s.userId === node.user?.id) :
+								[]}
+							currentUser={currentUser}
+							subBoards={subBoards.filter(b => b.parentId === node.id)}
+							parentPermissions={node.permissions}
+							listBoards={listBoards}
+						/>
 
-					{(node.parentId === constants.boardIds.privateThreads && node.users.length > 0) && (
-						<div className='Node_invitedUsers'>
-							<Accordion
-								data={[
-									{
-										title: 'Invited Users',
-										description: <ul>
-											{node.users.map(({username, granted, id, viewed}, index) =>
-												<li key={index} className={granted ? `` : `removed`}>
-													<Link to={`/profile/${encodeURIComponent(id)}`}>
-														{username}
-													</Link>{viewed ? ` (${formatDate(viewed)})` : ''}
-												</li>
-											)}
-										</ul>,
-										fallback: <div className='AccordionFallback'>
-											<span>Invited Users: </span>
-											<ul>
-												{node.users.map(({username, granted, id, viewed}, index) =>
+						{node.parentId === constants.boardIds.privateThreads && node.users.length > 0 &&
+							<div className='Node_invitedUsers'>
+								<Accordion
+									data={[
+										{
+											title: 'Invited Users',
+											description: <ul>
+												{node.users.map(({ username, granted, id, viewed }, index) =>
 													<li key={index} className={granted ? `` : `removed`}>
 														<Link to={`/profile/${encodeURIComponent(id)}`}>
 															{username}
 														</Link>{viewed ? ` (${formatDate(viewed)})` : ''}
-													</li>
+													</li>,
 												)}
-											</ul>
-										</div>,
-									}
-								]}
-							/>
-						</div>
-					)}
+											</ul>,
+											fallback: <div className='AccordionFallback'>
+												<span>Invited Users: </span>
+												<ul>
+													{node.users.map(({ username, granted, id, viewed }, index) =>
+														<li key={index} className={granted ? `` : `removed`}>
+															<Link to={`/profile/${encodeURIComponent(id)}`}>
+																{username}
+															</Link>{viewed ? ` (${formatDate(viewed)})` : ''}
+														</li>,
+													)}
+												</ul>
+											</div>,
+										},
+									]}
+								/>
+							</div>
+						}
 
-					<Pagination
-						page={page}
-						pageSize={pageSize}
-						totalCount={totalCount}
-						startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
-						queryParam={false}
-						endLink={link}
-					/>
-
-					{childNodes.map((child, index) =>
-						<Node
-							{...child}
-							index={page > 1 ? index+1+(pageSize*(page-1)) : index+1}
-							key={child.revisionId}
+						<Pagination
 							page={page}
-							emojiSettings={child.user != null ?
-								nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
-								[]}
-							currentUser={currentUser}
-							followNode={node.id === constants.boardIds.publicThreads}
-							subBoards={subBoards.filter(b => b.parentId === child.id)}
-							parentPermissions={node.permissions}
-							nodeParentId={node.id}
-							pageLink={pageLink}
-							listBoards={listBoards}
+							pageSize={pageSize}
+							totalCount={totalCount}
+							startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
+							queryParam={false}
+							endLink={link}
 						/>
-					)}
+
+						{childNodes.map((child, index) =>
+							<Node
+								{...child}
+								index={page > 1 ? index + 1 + pageSize * (page - 1) : index + 1}
+								key={child.revisionId}
+								page={page}
+								emojiSettings={child.user !== null ?
+									nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
+									[]}
+								currentUser={currentUser}
+								followNode={node.id === constants.boardIds.publicThreads}
+								subBoards={subBoards.filter(b => b.parentId === child.id)}
+								parentPermissions={node.permissions}
+								nodeParentId={node.id}
+								pageLink={pageLink}
+								listBoards={listBoards}
+							/>,
+						)}
 					</>
 				}
 			</UserContext.Consumer>
@@ -163,15 +163,15 @@ const NodePage = () =>
 				endLink={link}
 			/>
 
-			{(childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && !listBoards.includes(node.id)) && (
+			{childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && !listBoards.includes(node.id) &&
 				<div className='Node_boardActions'>
 					<Form action='v1/node/lock' id='lockThreads' showButton buttonText='Lock' />
 				</div>
-			)}
+			}
 
-			{editNode ? (
-					<>
-					{(editNode.permissions.indexOf('edit') > -1 && !node.locked) &&
+			{editNode ?
+				<>
+					{editNode.permissions.indexOf('edit') > -1 && !node.locked &&
 						<NodeWritingInterface
 							parentId={editNode.id}
 							parentType={editNode.type}
@@ -190,18 +190,18 @@ const NodePage = () =>
 							markupStyle={node.markupStyle}
 						/>
 					}
-					</>
-			) : (
+				</>
+				:
 				<>
-				{/* Only show the "new post/thread" form if the user has
+					{/* Only show the "new post/thread" form if the user has
 					* permission to reply
 					*/}
-				{(node.permissions.indexOf('reply') > -1 && node.type !== 'post') &&
+					{node.permissions.indexOf('reply') > -1 && node.type !== 'post' &&
 					<NodeWritingInterface
 						parentId={node.id}
 						parentType={node.type}
 						permissions={node.permissions}
-						lastPage={Math.ceil((totalCount+1) / pageSize)}
+						lastPage={Math.ceil((totalCount + 1) / pageSize)}
 						addUsers={addUsers}
 						nodeParentId={node.parentId}
 						threadType={node.id === constants.boardIds.announcements ? 'admin' : node.threadType}
@@ -214,14 +214,14 @@ const NodePage = () =>
 						staffBoards={staffBoards}
 						userDonations={userDonations}
 					/>
-				}
+					}
 				</>
-			)}
+			}
 		</>
 	);
-}
+};
 
-function formatDate(date:string) : string
+function formatDate(date: string): string
 {
 	if (dateUtils.formatYear(date) === dateUtils.getCurrentYear())
 	{
@@ -233,7 +233,7 @@ function formatDate(date:string) : string
 	}
 }
 
-export async function loadData(this: APIThisType, {id, page, editId}: {id: string, page?: string, editId?: string}, {addUsers, locked, order, reverse}: {addUsers?: string, locked?: string, order?: string, reverse?: string}) : Promise<NodePageProps>
+export async function loadData(this: APIThisType, { id, page, editId }: { id: string, page?: string, editId?: string }, { addUsers, locked, order, reverse }: { addUsers?: string, locked?: string, order?: string, reverse?: string }): Promise<NodePageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/nodes', {
@@ -271,6 +271,6 @@ export async function loadData(this: APIThisType, {id, page, editId}: {id: strin
 
 type NodePageProps = NodesType & {
 	addUsers?: string
-}
+};
 
 export default NodePage;

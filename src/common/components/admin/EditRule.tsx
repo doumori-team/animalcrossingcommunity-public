@@ -6,7 +6,7 @@ import { RuleType, RuleCategoryType } from '@types';
 
 const EditRule = ({
 	rule,
-	categories
+	categories,
 }: EditRuleProps) =>
 {
 	return (
@@ -20,7 +20,7 @@ const EditRule = ({
 						name='categoryId'
 						value={rule ? rule.categoryId : 0}
 						options={categories}
-						optionsMapping={{value: 'id', label: 'name'}}
+						optionsMapping={{ value: 'id', label: 'name' }}
 						placeholder='Choose a category...'
 						size={6}
 						required
@@ -68,7 +68,7 @@ const EditRule = ({
 			</Form>
 		</div>
 	);
-}
+};
 
 type EditRuleProps = {
 	rule?: RuleType

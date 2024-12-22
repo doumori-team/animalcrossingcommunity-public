@@ -14,33 +14,33 @@ const Checkbox = ({
 	disabled = false,
 	required = false,
 	labelClassName = '',
-	form
+	form,
 }: CheckboxProps) =>
 {
 	const id = htmlFor ? htmlFor : name;
 
 	return (
 		<>
-		<input
-			name={name}
-			id={id}
-			type={type}
-			onClick={clickHandler}
-			defaultChecked={checked}
-			value={value}
-			disabled={disabled}
-			aria-label={label}
-			required={required}
-			form={form}
-		/>
-		{!hideLabel && (
-			<label htmlFor={id} className={labelClassName}>
-				{label}
-			</label>
-		)}
+			<input
+				name={name}
+				id={id}
+				type={type}
+				onClick={clickHandler}
+				defaultChecked={checked}
+				value={value}
+				disabled={disabled}
+				aria-label={label}
+				required={required}
+				form={form}
+			/>
+			{!hideLabel &&
+				<label htmlFor={id} className={labelClassName}>
+					{label}
+				</label>
+			}
 		</>
 	);
-}
+};
 
 type CheckboxProps = {
 	hideLabel?: boolean
@@ -50,7 +50,7 @@ type CheckboxProps = {
 	clickHandler?: ClickHandlerType
 	checked?: boolean
 	value?: any
-	type?: "checkbox" | "radio"
+	type?: 'checkbox' | 'radio'
 	disabled?: boolean
 	required?: boolean
 	labelClassName?: string

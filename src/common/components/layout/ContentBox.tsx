@@ -1,7 +1,7 @@
 import React from 'react';
 
 const ContentBox = ({
-	children
+	children,
 }: ContentBoxProps) =>
 {
 	return (
@@ -9,7 +9,7 @@ const ContentBox = ({
 			{children}
 		</div>
 	);
-}
+};
 
 type ContentBoxProps = {
 	children: React.ReactNode | string

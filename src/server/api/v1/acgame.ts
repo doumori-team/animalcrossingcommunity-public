@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ACGameType } from '@types';
 
-async function acgame(this: APIThisType, {id}: acgameProps) : Promise<ACGameType>
+async function acgame(this: APIThisType, { id }: acgameProps): Promise<ACGameType>
 {
 	// Used in lots of places; doesn't seem worth locking down
 
@@ -38,10 +38,10 @@ acgame.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type acgameProps = {
 	id: number
-}
+};
 
 export default acgame;

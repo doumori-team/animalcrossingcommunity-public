@@ -1,10 +1,31 @@
 .Character {
+	@extend .GenericInnerSection;
 	background: white;
+
+	.Character_dataFlexContainer {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+
+		.Character_roofColorThumbnail {
+			width: px2rem(20px);
+			height: px2rem(20px);
+			border: 1px solid black;
+		}
+	}
+
+	.Character_doorPatternContainer {
+		margin-top: px2rem(24px);
+	}
 }
 
 .Character_face, .EditCharacter_name {
 	font-size: px2rem(24px);
 	text-align: center;
+
+	.Character_fullbody {
+		height: 110px;
+	}
 }
 
 .Character_name {
@@ -53,5 +74,9 @@
 	.FormGroup {
 		margin-top: px2rem(20px);
 		margin-bottom: px2rem(20px);
+	}
+
+	label[for^="faceId"] img {
+		height: 110px;
 	}
 }

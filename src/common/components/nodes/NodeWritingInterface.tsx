@@ -20,7 +20,7 @@ const NodeWritingInterface = ({
 	markupStyle,
 	files = [],
 	staffBoards = [],
-	userDonations
+	userDonations,
 }: NodeWritingInterfaceProps) =>
 {
 	let callback, title, callbackPrefix = 'forums';
@@ -31,7 +31,7 @@ const NodeWritingInterface = ({
 	}
 	else if (constants.boardIds.shopThread === parentId || nodeParentId === constants.boardIds.shopThread)
 	{
-		callbackPrefix = 'shops/threads'
+		callbackPrefix = 'shops/threads';
 	}
 
 	// If we're currently on a board:
@@ -57,16 +57,16 @@ const NodeWritingInterface = ({
 		callback += `?reload=`;
 	}
 
-	let threadTypes = [{value: 'normal', label: 'Normal'}];
+	let threadTypes = [{ value: 'normal', label: 'Normal' }];
 
 	if (permissions.includes('sticky'))
 	{
-		threadTypes.push({value: 'sticky', label: 'Sticky'});
+		threadTypes.push({ value: 'sticky', label: 'Sticky' });
 	}
 
 	if (permissions.includes('admin-lock'))
 	{
-		threadTypes.push({value: 'admin', label: 'Lock'});
+		threadTypes.push({ value: 'admin', label: 'Lock' });
 	}
 
 	return (
@@ -77,7 +77,7 @@ const NodeWritingInterface = ({
 						{title}
 					</h1>
 
-					{(permissions.includes('lock') && parentType === 'thread') && (
+					{permissions.includes('lock') && parentType === 'thread' &&
 						<div className='NodeWritingInterface_lock'>
 							<Switch
 								name='lock'
@@ -85,9 +85,9 @@ const NodeWritingInterface = ({
 								variant='light'
 							/>
 						</div>
-					)}
+					}
 
-					{threadTypes.length > 1 && (
+					{threadTypes.length > 1 &&
 						<Select
 							hideLabel
 							name='type'
@@ -95,12 +95,12 @@ const NodeWritingInterface = ({
 							label='Select thread type'
 							value={threadType}
 						/>
-					)}
+					}
 				</div>
 
 				<input name='parentId' type='hidden' value={parentId} />
 
-				{(parentType === 'board' || permissions.includes('edit')) && (
+				{(parentType === 'board' || permissions.includes('edit')) &&
 					<Text
 						hideLabel
 						className='NodeWritingInterface_title'
@@ -110,20 +110,20 @@ const NodeWritingInterface = ({
 						required
 						value={parentType === 'board' ? '' : parentTitle}
 					/>
-				)}
+				}
 
-				{(boards.length > 0 && permissions.includes('move') && parentType === 'thread') && (
+				{boards.length > 0 && permissions.includes('move') && parentType === 'thread' &&
 					<Select
 						label='Move Thread'
 						name='boardId'
 						options={boards}
-						optionsMapping={{value: 'id', label: 'title'}}
+						optionsMapping={{ value: 'id', label: 'title' }}
 						required
 						value={nodeParentId}
 					/>
-				)}
+				}
 
-				{permissions.includes('add-users') && (
+				{permissions.includes('add-users') &&
 					<div className='NodeWritingInterface_usernames'>
 						<Text
 							name='addUsers'
@@ -133,9 +133,9 @@ const NodeWritingInterface = ({
 							information='Use to add users to the thread. You may add multiple users by separating their usernames with a comma. For example: jader201,aldericon'
 						/>
 					</div>
-				)}
+				}
 
-				{permissions.includes('remove-users') && (
+				{permissions.includes('remove-users') &&
 					<div className='NodeWritingInterface_usernames'>
 						<Text
 							name='removeUsers'
@@ -143,7 +143,7 @@ const NodeWritingInterface = ({
 							maxLength={constants.max.addMultipleUsers}
 						/>
 					</div>
-				)}
+				}
 
 				<RichTextArea
 					textName='text'
@@ -151,9 +151,9 @@ const NodeWritingInterface = ({
 					key={Math.random()}
 					label={title}
 					textValue={parentContent?.text}
-					formatValue={parentContent != null ? parentContent.format : markupStyle}
+					formatValue={parentContent ? parentContent.format : markupStyle}
 					emojiSettings={emojiSettings}
-					maxLength={[nodeParentId, parentId].some((pid:number|undefined) => staffBoards.includes(Number(pid || 0))) ? constants.max.staffPost : (userDonations != null && userDonations.monthlyPerks >= 5 ? (userDonations.monthlyPerks < 10 ? constants.max.post2 : constants.max.post3) : constants.max.post1)}
+					maxLength={[nodeParentId, parentId].some((pid: number | undefined) => staffBoards.includes(Number(pid || 0))) ? constants.max.staffPost : userDonations && userDonations.monthlyPerks >= 5 ? userDonations.monthlyPerks < 10 ? constants.max.post2 : constants.max.post3 : constants.max.post1}
 					upload
 					files={files}
 					previewSignature
@@ -161,7 +161,7 @@ const NodeWritingInterface = ({
 			</Form>
 		</fieldset>
 	);
-}
+};
 
 type NodeWritingInterfaceProps = {
 	parentId: number

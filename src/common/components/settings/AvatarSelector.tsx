@@ -10,7 +10,7 @@ import {
 	ClickHandlerType,
 	ElementClickType,
 	ElementSelectType,
-	ChangeHandlerSelectType
+	ChangeHandlerSelectType,
 } from '@types';
 import { Pagination } from '@layout';
 import { Select, Checkbox, Check } from '@form';
@@ -39,7 +39,7 @@ const AvatarSelector = ({
 	currAccentPosition,
 	onElementChange,
 	onColorationChange,
-	onAccentPositionChange
+	onAccentPositionChange,
 }: AvatarSelectorProps) =>
 {
 	const [currPage, setCurrPage] = useState<number>(1);
@@ -49,39 +49,39 @@ const AvatarSelector = ({
 	let nextIndex = 1;
 	const pageSize = 40;
 
-	const handlePageChange = (pageNumber:number) : void =>
+	const handlePageChange = (pageNumber: number): void =>
 	{
 		setCurrPage(pageNumber);
 
 		ref.current?.scroll({
 			top: 0,
-			behavior: 'smooth'
+			behavior: 'smooth',
 		});
-	}
+	};
 
-	const handleFilterChange = (newFilters:string[]) : void =>
+	const handleFilterChange = (newFilters: string[]): void =>
 	{
 		setFilters(newFilters);
 		setCurrPage(1);
-	}
+	};
 
-	const handleColorationChange = (event: ElementSelectType) : void =>
+	const handleColorationChange = (event: ElementSelectType): void =>
 	{
-		if (onColorationChange != null)
+		if (onColorationChange)
 		{
 			onColorationChange(event);
 		}
-	}
+	};
 
-	const handleAccentPositionChange = (event: ElementClickType) : void =>
+	const handleAccentPositionChange = (event: ElementClickType): void =>
 	{
-		if (onAccentPositionChange != null)
+		if (onAccentPositionChange)
 		{
 			onAccentPositionChange(event);
 		}
-	}
+	};
 
-	const matchesFilters = (element:AvatarCharacterType | AvatarAccentType | AvatarBackgroundType) : boolean =>
+	const matchesFilters = (element: AvatarCharacterType | AvatarAccentType | AvatarBackgroundType): boolean =>
 	{
 		for (let i = 0; i < filters.length; i++)
 		{
@@ -92,7 +92,7 @@ const AvatarSelector = ({
 		}
 
 		return true;
-	}
+	};
 
 	return (
 		<div className='AvatarSelector'>
@@ -102,26 +102,26 @@ const AvatarSelector = ({
 				hideLabel
 				multiple
 				options={tags}
-				optionsMapping={{value: 'id', label: 'name'}}
+				optionsMapping={{ value: 'id', label: 'name' }}
 				placeholder='Choose filters...'
-				changeHandler={(options:any) => handleFilterChange(options)}
-				isOptionDisabled={(option) => filters.length >= 3}
+				changeHandler={(options: any) => handleFilterChange(options)}
+				isOptionDisabled={(_: any) => filters.length >= 3}
 			/>
 
-			{(elementType === 'background' && colorations != null) && (
+			{elementType === 'background' && !!colorations &&
 				<div className='AvatarSelector_colorationContainer'>
 					<Select
 						name='colorationId'
 						label='Coloration'
 						changeHandler={handleColorationChange}
 						value={currColoration ? currColoration.id : ''}
-						options={[{id: 0, name: 'None'}].concat(colorations)}
-						optionsMapping={{value: 'id', label: 'name'}}
+						options={[{ id: 0, name: 'None' }].concat(colorations)}
+						optionsMapping={{ value: 'id', label: 'name' }}
 					/>
 				</div>
-			)}
+			}
 
-			{elementType === 'accent' && (
+			{elementType === 'accent' &&
 				<div className='AvatarSelector_accentOptionContainer'>
 					<div className='AvatarSelector_noAccent'>
 						<label htmlFor='a_none' data-selected={!currElement}>
@@ -146,10 +146,11 @@ const AvatarSelector = ({
 						onChangeHandler={(e) => handleAccentPositionChange(e)}
 					/>
 				</div>
-			)}
+			}
 
 			<div className='AvatarSelector_optionContainer' ref={ref}>
-				{elements.map(element => {
+				{elements.map(element =>
+				{
 					let displayID = null;
 
 					if (matchesFilters(element))
@@ -176,19 +177,19 @@ const AvatarSelector = ({
 				})}
 			</div>
 
-			{nextIndex === 1 ? (
+			{nextIndex === 1 ?
 				<div>No matching avatars found.</div>
-			) : (
+				:
 				<Pagination
 					page={currPage}
 					pageSize={pageSize}
 					totalCount={nextIndex - 1}
 					onPageChange={handlePageChange}
 				/>
-			)}
+			}
 		</div>
 	);
-}
+};
 
 type AvatarSelectorProps = {
 	elements: AvatarCharacterType[] | AvatarAccentType[] | AvatarBackgroundType[]
@@ -197,11 +198,11 @@ type AvatarSelectorProps = {
 	colorations?: AvatarColorationType[]
 	currColoration?: AvatarColorationType | null
 	currAccentPosition?: number
-	onElementChange: (element: AvatarCharacterType|AvatarAccentType|AvatarBackgroundType|null) => void
+	onElementChange: (element: AvatarCharacterType | AvatarAccentType | AvatarBackgroundType | null) => void
 	onColorationChange?: ChangeHandlerSelectType
 	onAccentPositionChange?: ClickHandlerType
 	tags: AvatarTagType[]
-}
+};
 
 /* Displays individual element options in AvatarSelector.
  *
@@ -221,7 +222,7 @@ const AvatarSelectorOption = ({
 	currAccentPosition,
 	displayed,
 	selected,
-	onChange
+	onChange,
 }: AvatarSelectorOptionProps) =>
 {
 	let className = 'AvatarSelectorOption';
@@ -249,10 +250,10 @@ const AvatarSelectorOption = ({
 
 	const avatarComponents = {
 		background: elementType === 'background' ? (element as AvatarBackgroundType) : null,
-		coloration: (elementType === 'background' && (element as AvatarBackgroundType).colorable) ? currColoration : null,
+		coloration: elementType === 'background' && (element as AvatarBackgroundType).colorable ? currColoration : null,
 		character: elementType === 'character' ? (element as AvatarCharacterType) : null,
 		accent: elementType === 'accent' ? (element as AvatarAccentType) : null,
-		accentPosition: (elementType === 'accent' && (element as AvatarAccentType).positionable) ? currAccentPosition : null
+		accentPosition: elementType === 'accent' && (element as AvatarAccentType).positionable ? currAccentPosition : null,
 	};
 
 	return (
@@ -277,7 +278,7 @@ const AvatarSelectorOption = ({
 			</label>
 		</div>
 	);
-}
+};
 
 type AvatarSelectorOptionProps = {
 	element: AvatarBackgroundType | AvatarAccentType | AvatarCharacterType
@@ -287,6 +288,6 @@ type AvatarSelectorOptionProps = {
 	displayed: boolean
 	selected: boolean
 	onChange: ClickHandlerType
-}
+};
 
 export default AvatarSelector;

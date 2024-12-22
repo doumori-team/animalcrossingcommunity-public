@@ -4,9 +4,9 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserTicketsType } from '@types';
 
-async function user_tickets(this: APIThisType, {page, statusId, assignee, ruleId, typeId, denyReasonId, violator}: userTicketsProps) : Promise<UserTicketsType>
+async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleId, typeId, denyReasonId, violator }: userTicketsProps): Promise<UserTicketsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -74,8 +74,8 @@ async function user_tickets(this: APIThisType, {page, statusId, assignee, ruleId
 
 	// Do actual search
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -194,8 +194,9 @@ async function user_tickets(this: APIThisType, {page, statusId, assignee, ruleId
 
 	if (userTickets.length > 0)
 	{
-		results = await Promise.all(userTickets.map(async (userTicket:any) => {
-			return this.query('v1/user_ticket', {id: userTicket.id})
+		results = await Promise.all(userTickets.map(async (userTicket: any) =>
+		{
+			return this.query('v1/user_ticket', { id: userTicket.id });
 		}));
 
 		count = Number(userTickets[0].count);
@@ -247,7 +248,7 @@ user_tickets.apiTypes = {
 		type: APITypes.number,
 		default: 0,
 	},
-}
+};
 
 type userTicketsProps = {
 	page: number
@@ -257,6 +258,6 @@ type userTicketsProps = {
 	typeId: number
 	violator: string
 	denyReasonId: number
-}
+};
 
 export default user_tickets;

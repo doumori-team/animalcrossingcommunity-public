@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function reject(this: APIThisType, {id}: rejectProps) : Promise<void>
+async function reject(this: APIThisType, { id }: rejectProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -28,7 +28,7 @@ async function reject(this: APIThisType, {id}: rejectProps) : Promise<void>
 		throw new UserError('no-such-offer');
 	}
 
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: offer.listing_id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: offer.listing_id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 	const offerStatuses = constants.tradingPost.offerStatuses;
@@ -41,7 +41,7 @@ async function reject(this: APIThisType, {id}: rejectProps) : Promise<void>
 	// listing isn't in right status
 	if (listing.creator.id !== this.userId ||
 		offer.user_id === listing.creator.id ||
-		(listing.offers.accepted && listing.offers.accepted.id !== id) ||
+		listing.offers.accepted && listing.offers.accepted.id !== id ||
 		[offerStatuses.rejected, offerStatuses.cancelled].includes(offer.status) ||
 		![listingStatuses.open, listingStatuses.offerAccepted].includes(listing.status))
 	{
@@ -49,7 +49,7 @@ async function reject(this: APIThisType, {id}: rejectProps) : Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -69,7 +69,7 @@ async function reject(this: APIThisType, {id}: rejectProps) : Promise<void>
 			`, listing.id, listingStatuses.open) : null,
 			this.query('v1/notification/create', {
 				id: id,
-				type: constants.notification.types.listingOfferRejected
+				type: constants.notification.types.listingOfferRejected,
 			}),
 		]);
 	});
@@ -80,10 +80,10 @@ reject.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type rejectProps = {
 	id: number
-}
+};
 
 export default reject;

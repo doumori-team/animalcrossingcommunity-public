@@ -4,9 +4,9 @@ import { utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {townId, acres}: saveProps) : Promise<{townId: number, userId: number}>
+async function save(this: APIThisType, { townId, acres }: saveProps): Promise<{ townId: number, userId: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -64,11 +64,11 @@ save.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type saveProps = {
 	townId: number
 	acres: any[]
-}
+};
 
 export default save;

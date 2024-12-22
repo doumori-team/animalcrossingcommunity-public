@@ -11,15 +11,15 @@ import {
 	EventsType,
 	ResidentsType,
 	CreaturesType,
-	CreatureType
+	CreatureType,
 } from '@types';
 
 /*
  * Get monthly calendar information.
  */
-async function calendar(this: APIThisType, {requester, gameId, month, year, debug}: calendarProps) : Promise<CalendarType>
+async function calendar(this: APIThisType, { requester, gameId, month, year, debug }: calendarProps): Promise<CalendarType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-calendar'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-calendar' });
 
 	if (!permissionGranted)
 	{
@@ -40,14 +40,14 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 		throw new UserError('bad-format');
 	}
 
-	let user:UserLiteType|null = null;
+	let user: UserLiteType | null = null;
 
 	if (this.userId)
 	{
-		user = await this.query('v1/user_lite', {id: this.userId});
+		user = await this.query('v1/user_lite', { id: this.userId });
 	}
 
-	let currentDate:Date|number = dateUtils.getCurrentDate();
+	let currentDate: Date | number = dateUtils.getCurrentDate();
 
 	if (requester === 'homepage' && !constants.LIVE_SITE && utils.realStringLength(debug) > 0)
 	{
@@ -66,15 +66,15 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 	let categoryIdentifiers = [
 		constants.calendarCategories.creatures,
 		constants.calendarCategories.birthdays,
-		constants.calendarCategories.events
+		constants.calendarCategories.events,
 	];
 
-	let hemisphere:string|null = null;
+	let hemisphere: string | null = null;
 
 	// if no game, or homepage, use settings to get current game if possible
 	if (!gameId || requester === 'homepage')
 	{
-		let setting:any = null;
+		let setting: any = null;
 
 		if (user)
 		{
@@ -112,7 +112,7 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 					FROM calendar_setting_category
 					JOIN calendar_category ON (calendar_category.id = calendar_setting_category.category_id)
 					WHERE calendar_setting_category.calendar_setting_id = $1::int
-				`, setting.id)).map((uc:any) => uc.identifier);
+				`, setting.id)).map((uc: any) => uc.identifier);
 
 				hemisphere = setting.hemisphere_name?.toLowerCase();
 			}
@@ -120,7 +120,7 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 			{
 				// if not set, just grab events
 				categoryIdentifiers = [
-					constants.calendarCategories.events
+					constants.calendarCategories.events,
 				];
 
 				hemisphere = 'north';
@@ -128,7 +128,7 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 		}
 	}
 
-	const acGameYears:ACGameYearsType = await ACCCache.get(constants.cacheKeys.years);
+	const acGameYears: ACGameYearsType = await ACCCache.get(constants.cacheKeys.years);
 
 	if (!acGameYears[gameId])
 	{
@@ -154,24 +154,25 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 		`),
 	]);
 
-	const gameDir:string = acGame.game_name.toLowerCase().replace('ac:', '');
+	const gameDir: string = acGame.game_name.toLowerCase().replace('ac:', '');
 
-	const creaturesName:string = calendarCategories.find((c:any) => c.identifier === constants.calendarCategories.creatures).name;
-	const eventsName:string = calendarCategories.find((c:any) => c.identifier === constants.calendarCategories.events).name;
-	const birthdaysName:string = calendarCategories.find((c:any) => c.identifier === constants.calendarCategories.birthdays).name;
-	const yesterdayDate:Date = dateUtils.subtractFromCurrentDate(1, 'days');
+	const creaturesName: string = calendarCategories.find((c: any) => c.identifier === constants.calendarCategories.creatures).name;
+	const eventsName: string = calendarCategories.find((c: any) => c.identifier === constants.calendarCategories.events).name;
+	const birthdaysName: string = calendarCategories.find((c: any) => c.identifier === constants.calendarCategories.birthdays).name;
+	const yesterdayDate: Date = dateUtils.subtractFromCurrentDate(1, 'days');
 
-	const allMonths:boolean = month === 0 && requester === 'calendar';
+	const allMonths: boolean = month === 0 && requester === 'calendar';
 
-	const events:EventsType = await ACCCache.get(constants.cacheKeys.events);
-	const residents:ResidentsType = await ACCCache.get(constants.cacheKeys.residents);
-	const creatures:CreaturesType = await ACCCache.get(constants.cacheKeys.creatures);
+	const events: EventsType = await ACCCache.get(constants.cacheKeys.events);
+	const residents: ResidentsType = await ACCCache.get(constants.cacheKeys.residents);
+	const creatures: CreaturesType = await ACCCache.get(constants.cacheKeys.creatures);
 
 	let months;
 
 	if (allMonths)
 	{
-		months = constants.months.map(month => {
+		months = constants.months.map(month =>
+		{
 			const monthId = Number(month.id);
 
 			return {
@@ -193,10 +194,10 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 					yesterdayDate,
 					events,
 					residents,
-					creatures
+					creatures,
 				),
 			};
-		})
+		});
 	}
 	else
 	{
@@ -219,7 +220,7 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 				yesterdayDate,
 				events,
 				residents,
-				creatures
+				creatures,
 			),
 		}];
 	}
@@ -233,7 +234,7 @@ async function calendar(this: APIThisType, {requester, gameId, month, year, debu
 	};
 }
 
-function getCategoriesForMonth(month:number, year:number, requester:string, gameId:number, currentDate:Date|number, hemisphere:string|null, categoryIdentifiers:string[], gameDir:string, creaturesName:string, eventsName:string, birthdaysName:string, yesterdayDate:Date, events:EventsType, residents:ResidentsType, creatures:CreaturesType) : CalendarType['months']['categories']
+function getCategoriesForMonth(month: number, year: number, requester: string, gameId: number, currentDate: Date | number, hemisphere: string | null, categoryIdentifiers: string[], gameDir: string, creaturesName: string, eventsName: string, birthdaysName: string, yesterdayDate: Date, events: EventsType, residents: ResidentsType, creatures: CreaturesType): CalendarType['months']['categories']
 {
 	let categories = [];
 	const currentMonth = dateUtils.parse(`${month}/${year}`, 'M/yyyy');
@@ -241,34 +242,36 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 	// get all events for month (Calendar) OR from yesterday to +30 days (Homepage)
 	if (categoryIdentifiers.includes(constants.calendarCategories.events))
 	{
-		let eventsList:CalendarType['months']['categories']['events'] = requester === 'homepage' ?
+		let eventsList: CalendarType['months']['categories']['events'] = requester === 'homepage' ?
 			calculateEventsHomepage(gameId, hemisphere, currentDate, events) : [];
 
 		if (requester === 'calendar')
 		{
-			events[gameId].map((event:any) => {
-				let name = event.displayName === 'Fireworks Show' ? `${event.name}` : `${event.displayName}`;
+			events[gameId].map((event: any) =>
+			{
+				let name = event.displayName === 'Fireworks Show' && event.name ? `${event.name}` : `${event.displayName}`;
 
-				if (event.hasOwnProperty('type'))
+				if (Object.prototype.hasOwnProperty.call(event, 'type'))
 				{
 					name += ` (${event.type})`;
 				}
 
 				if (gameId === constants.gameIds.ACNH)
 				{
-					['north', 'south'].map(hem => {
+					['north', 'south'].map(hem =>
+					{
 						const dates = getStartEndDatesForYear(gameId, event, year, hem);
 
 						if (dates !== null &&
 							(dateUtils.isSame(dates.startDate, currentMonth, 'month') ||
-							(dates.endDate !== null && (dateUtils.isBetween(currentMonth, dates.startDate, dates.endDate, 'month') || dateUtils.isSame(dates.endDate, currentMonth, 'month'))))
+							dates.endDate !== null && (dateUtils.isBetween(currentMonth, dates.startDate, dates.endDate, 'month') || dateUtils.isSame(dates.endDate, currentMonth, 'month')))
 						)
 						{
 							// if event is already in list, combine hemispheres
 							// different then creatures; we want to combine Fishing
 							// Tourney events for example but they're listed as different
 							// events in the file
-							let foundEvent = eventsList.find((e:any) => e.name === name);
+							let foundEvent = eventsList.find((e: any) => e.name === name);
 
 							if (foundEvent)
 							{
@@ -291,7 +294,7 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 
 					if (dates !== null &&
 						(dateUtils.isSame(dates.startDate, currentMonth, 'month') ||
-						(dates.endDate !== null && (dateUtils.isBetween(currentMonth, dates.startDate, dates.endDate, 'month') || dateUtils.isSame(dates.endDate, currentMonth, 'month'))))
+						dates.endDate !== null && (dateUtils.isBetween(currentMonth, dates.startDate, dates.endDate, 'month') || dateUtils.isSame(dates.endDate, currentMonth, 'month')))
 					)
 					{
 						eventsList.push({
@@ -314,15 +317,16 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 	// get all birthdays for month (Calendar) OR from yesterday to +30 days (Homepage)
 	if (categoryIdentifiers.includes(constants.calendarCategories.birthdays))
 	{
-		let birthdayEvents:CalendarType['months']['categories']['events'] = [];
+		let birthdayEvents: CalendarType['months']['categories']['events'] = [];
 
-		residents[gameId].map((resident) => {
+		residents[gameId].map((resident) =>
+		{
 			const birthday = dateUtils.startOfDay(dateUtils.parse(`${resident.birthday}/${year}`, 'MM/dd/yyyy'));
 
 			const birthdayDiff = dateUtils.diff(currentDate, birthday, 'day');
 
-			if ((requester === 'homepage' && (dateUtils.isSame(birthday, yesterdayDate, 'day') || (birthdayDiff > -30 && birthdayDiff < 0))) ||
-				(requester === 'calendar' && dateUtils.isSame(birthday, currentMonth, 'month'))
+			if (requester === 'homepage' && (dateUtils.isSame(birthday, yesterdayDate, 'day') || birthdayDiff > -30 && birthdayDiff < 0) ||
+				requester === 'calendar' && dateUtils.isSame(birthday, currentMonth, 'month')
 			)
 			{
 				birthdayEvents.push({
@@ -343,19 +347,21 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 	// get all creatures for the month
 	if (categoryIdentifiers.includes(constants.calendarCategories.creatures))
 	{
-		let creatureEvents:CalendarType['months']['categories']['events'] = [];
+		let creatureEvents: CalendarType['months']['categories']['events'] = [];
 
-		creatures[gameId].map((creature:CreatureType) => {
+		creatures[gameId].map((creature: CreatureType) =>
+		{
 			const name = `${creature.name} (${creature.type})`;
 			const img = `${constants.AWS_URL}/images/icons/creatures/${gameDir}/${creature.imgName}.png`;
 
-			if (creature.hasOwnProperty('hemispheres') && creature.hemispheres != undefined)
+			if (Object.prototype.hasOwnProperty.call(creature, 'hemispheres') && creature.hemispheres)
 			{
-				let knownHemispheres:string[] = [];
+				let knownHemispheres: string[] = [];
 				let timing = '';
 
-				Object.keys(creature.hemispheres).map((hem:any) => {
-					if (creature.hemispheres != undefined)
+				Object.keys(creature.hemispheres).map((hem: any) =>
+				{
+					if (creature.hemispheres)
 					{
 						const hemInfo = creature.hemispheres[hem];
 
@@ -380,7 +386,7 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 			}
 			else
 			{
-				if (creature.hasOwnProperty('monthsArray'))
+				if (Object.prototype.hasOwnProperty.call(creature, 'monthsArray'))
 				{
 					if (Array.isArray(creature.monthsArray) && creature.monthsArray.includes(month))
 					{
@@ -391,7 +397,7 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 						});
 					}
 				}
-				else if (creature.hasOwnProperty('monthsTimesArray') && Array.isArray(creature.monthsTimesArray))
+				else if (Object.prototype.hasOwnProperty.call(creature, 'monthsTimesArray') && Array.isArray(creature.monthsTimesArray))
 				{
 					for (let key in creature.monthsTimesArray)
 					{
@@ -420,13 +426,13 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 	// sort everything
 
 	// sort creatures alphabetically
-	categories.find(c => c.name === creaturesName)?.events.sort((a:any, b:any) => a.name.localeCompare(b.name));
+	categories.find(c => c.name === creaturesName)?.events.sort((a: any, b: any) => a.name.localeCompare(b.name));
 
 	// sort events by their start date
-	categories.find(c => c.name === eventsName)?.events.sort((a:any, b:any) => dateUtils.diff(a.sortDate, b.sortDate));
+	categories.find(c => c.name === eventsName)?.events.sort((a: any, b: any) => dateUtils.diff(a.sortDate, b.sortDate));
 
 	// sort birthdays by their birthdate
-	categories.find(c => c.name === birthdaysName)?.events.sort((a:any, b:any) => dateUtils.diff(a.sortDate, b.sortDate));
+	categories.find(c => c.name === birthdaysName)?.events.sort((a: any, b: any) => dateUtils.diff(a.sortDate, b.sortDate));
 
 	return categories;
 }
@@ -434,15 +440,16 @@ function getCategoriesForMonth(month:number, year:number, requester:string, game
 /*
  * Takes events and figures out which are between yesterday and +30 days.
  */
-function calculateEventsHomepage(gameId:number, hemisphere:string|null, currentDate:Date|number, events:EventsType) : CalendarType['months']['categories']['events']
+function calculateEventsHomepage(gameId: number, hemisphere: string | null, currentDate: Date | number, events: EventsType): CalendarType['months']['categories']['events']
 {
-	let resultEvents:CalendarType['months']['categories']['events'] = [];
+	let resultEvents: CalendarType['months']['categories']['events'] = [];
 	const currentYear = dateUtils.formatYear(currentDate);
 	const yesterdayDate = dateUtils.subtract(currentDate, 1, 'days');
 	const yesterday = dateUtils.formatYear(yesterdayDate);
 	const thirtyDays = dateUtils.formatYear(dateUtils.add(currentDate, 30, 'days'));
 
-	events[gameId].map((event:any) => {
+	events[gameId].map((event: any) =>
+	{
 		let startDate = null;
 		let endDate = null;
 		let thirtyDates = null;
@@ -522,7 +529,7 @@ function calculateEventsHomepage(gameId:number, hemisphere:string|null, currentD
 		{
 			let name = event.displayName;
 
-			if (event.hasOwnProperty('type'))
+			if (Object.prototype.hasOwnProperty.call(event, 'type'))
 			{
 				name += ` (${event.type})`;
 			}
@@ -541,7 +548,7 @@ function calculateEventsHomepage(gameId:number, hemisphere:string|null, currentD
 /*
  * Figures out which dates to use from the event based on game, hemisphere and year.
  */
-function getStartEndDatesForYear(gameId:number, event:any, year:string|number, hemisphere?:string|null) : {startDate: Date, endDate: Date|null}|null
+function getStartEndDatesForYear(gameId: number, event: any, year: string | number, hemisphere?: string | null): { startDate: Date, endDate: Date | null } | null
 {
 	if (gameId === constants.gameIds.ACNH)
 	{
@@ -567,7 +574,7 @@ function getStartEndDatesForYear(gameId:number, event:any, year:string|number, h
 	{
 		if (event.dateVariesByYear)
 		{
-			if (!event.hasOwnProperty(year))
+			if (!Object.prototype.hasOwnProperty.call(event, year))
 			{
 				return null;
 			}
@@ -577,7 +584,7 @@ function getStartEndDatesForYear(gameId:number, event:any, year:string|number, h
 		else
 		{
 			const startDate = dateUtils.parse(event.startDate + ` ${year}`, 'MMM d yyyy');
-			const endDate = event.hasOwnProperty('endDate') ? dateUtils.parse(event.endDate + ` ${year}`, 'MMM d yyyy') : null;
+			const endDate = Object.prototype.hasOwnProperty.call(event, 'endDate') ? dateUtils.parse(event.endDate + ` ${year}`, 'MMM d yyyy') : null;
 
 			return {
 				startDate: startDate,
@@ -590,7 +597,7 @@ function getStartEndDatesForYear(gameId:number, event:any, year:string|number, h
 /*
  * Convert string to date.
  */
-function datesToObject(gameId:number, dates:string, year:number|string) : {startDate: Date, endDate: Date|null}
+function datesToObject(gameId: number, dates: string, year: number | string): { startDate: Date, endDate: Date | null }
 {
 	let dash = ' - ';
 
@@ -602,7 +609,7 @@ function datesToObject(gameId:number, dates:string, year:number|string) : {start
 	if (dates.includes(dash))
 	{
 		const start = dateUtils.startOfDay(dateUtils.parse(dates.substring(0, dates.indexOf(dash)) + ` ${year}`, 'MMM d yyyy'));
-		const end = dateUtils.startOfDay(dateUtils.parse(dates.substring(dates.indexOf(dash)+dash.length) + ` ${year}`, 'MMM d yyyy'));
+		const end = dateUtils.startOfDay(dateUtils.parse(dates.substring(dates.indexOf(dash) + dash.length) + ` ${year}`, 'MMM d yyyy'));
 
 		return {
 			startDate: start,
@@ -623,11 +630,11 @@ function datesToObject(gameId:number, dates:string, year:number|string) : {start
 /*
  * Figure out user-facing timing for event.
  */
-function calculateEventTiming(event:any, startDate:Date, endDate:Date|null, hemisphere:string|null = null)
+function calculateEventTiming(event: any, startDate: Date, endDate: Date | null, hemisphere: string | null = null)
 {
 	let timing = hemisphere !== null ? `${hemisphere}, ` : '';
 
-	if (event.hasOwnProperty('region'))
+	if (Object.prototype.hasOwnProperty.call(event, 'region'))
 	{
 		timing += `${event.region}, `;
 	}
@@ -639,12 +646,12 @@ function calculateEventTiming(event:any, startDate:Date, endDate:Date|null, hemi
 		timing += ` - ${dateUtils.formatDate2(endDate)}`;
 	}
 
-	if (event.hasOwnProperty('startTime') && event.startTime !== event.endTime)
+	if (Object.prototype.hasOwnProperty.call(event, 'startTime') && event.startTime !== event.endTime)
 	{
 		timing += `, ${event.startTime} - ${event.endTime}`;
 	}
 
-	if (event.hasOwnProperty('notes'))
+	if (Object.prototype.hasOwnProperty.call(event, 'notes'))
 	{
 		timing += ` (${event.notes})`;
 	}
@@ -675,14 +682,14 @@ calendar.apiTypes = {
 		type: APITypes.string,
 		default: '',
 	},
-}
+};
 
 type calendarProps = {
 	requester: 'homepage' | 'calendar'
-	gameId: number|null
+	gameId: number | null
 	month: number
 	year: number
 	debug: string
-}
+};
 
 export default calendar;

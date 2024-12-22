@@ -7,11 +7,11 @@ import { PermissionType } from '@types';
 const Permission = ({
 	permissions,
 	id,
-	action
+	action,
 }: PermissionProps) =>
 {
 	return (
-		permissions && (
+		permissions &&
 			<Form className='Permission_permissions' action={action} showButton key={id}>
 				<input type='hidden' name='id' value={id} />
 
@@ -21,16 +21,16 @@ const Permission = ({
 						.sort((a, b) => a.id - b.id)
 						.map((permission, index) =>
 
-						<div className='Permission_sitePermission' key={index}>
-							<Checkbox
-								type='checkbox'
-								name='sitePermissionIds'
-								checked={permission.granted}
-								value={permission.id}
-								label={permission.description}
-							/>
-						</div>
-					)}
+							<div className='Permission_sitePermission' key={index}>
+								<Checkbox
+									type='checkbox'
+									name='sitePermissionIds'
+									checked={permission.granted}
+									value={permission.id}
+									label={permission.description}
+								/>
+							</div>,
+						)}
 				</div>
 
 				<h3>Forum Permissions</h3>
@@ -41,7 +41,7 @@ const Permission = ({
 							{permissions.forum.types.map((type, index) =>
 								<div className='Permission_forumPermissionType' key={index}>
 									{type.description}
-								</div>
+								</div>,
 							)}
 						</div>
 
@@ -49,11 +49,11 @@ const Permission = ({
 					</div>
 				</RequireLargeScreen>
 			</Form>
-		)
-	);
-}
 
-function renderBoards(boards:PermissionType['forum']['boards'], indent:number) : React.ReactNode
+	);
+};
+
+function renderBoards(boards: PermissionType['forum']['boards'], indent: number): React.ReactNode
 {
 	return boards.map(board =>
 		<React.Fragment key={board.id}>
@@ -66,21 +66,21 @@ function renderBoards(boards:PermissionType['forum']['boards'], indent:number) :
 					.sort((a, b) => a.id - b.id)
 					.map(typePerm =>
 
-					<div className='Permission_forumPermissionGranted' key={`${board.id}_${typePerm.id}`}>
-						<Checkbox
-							type='checkbox'
-							name='forumPermissions'
-							checked={typePerm.granted}
-							value={`${board.id}_${typePerm.id}`}
-							label={typePerm.identifier}
-							hideLabel
-						/>
-					</div>
-				)}
+						<div className='Permission_forumPermissionGranted' key={`${board.id}_${typePerm.id}`}>
+							<Checkbox
+								type='checkbox'
+								name='forumPermissions'
+								checked={typePerm.granted}
+								value={`${board.id}_${typePerm.id}`}
+								label={typePerm.identifier}
+								hideLabel
+							/>
+						</div>,
+					)}
 			</div>
 
-			{renderBoards(board.boards, indent+1)}
-		</React.Fragment>
+			{renderBoards(board.boards, indent + 1)}
+		</React.Fragment>,
 	);
 }
 

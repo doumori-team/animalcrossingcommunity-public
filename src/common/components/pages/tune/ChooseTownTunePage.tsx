@@ -8,7 +8,7 @@ import { APIThisType, TownType } from '@types';
 
 const ChooseTownTunePage = () =>
 {
-	const {towns, tuneId} = useLoaderData() as ChooseTownTunePageProps;
+	const { towns, tuneId } = useLoaderData() as ChooseTownTunePageProps;
 
 	return (
 		<div className='ChooseTownTunePage'>
@@ -33,7 +33,7 @@ const ChooseTownTunePage = () =>
 									label='Select town that will use this tune'
 									optionsMapping={{
 										id: 'id',
-										name: (town:any) => <Keyboard name={town.name} gameId={town.game.id} />,
+										name: (town: any) => <Keyboard name={town.name} gameId={town.game.id} />,
 									}}
 								/>
 							</Form.Group>
@@ -43,9 +43,9 @@ const ChooseTownTunePage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ChooseTownTunePageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownTunePageProps>
 {
 	const tuneId = Number(id);
 
@@ -53,12 +53,12 @@ export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<
 		this.query('v1/users/towns'),
 	]);
 
-	return {towns, tuneId};
+	return { towns, tuneId };
 }
 
 type ChooseTownTunePageProps = {
 	towns: TownType[]
 	tuneId: number
-}
+};
 
 export default ChooseTownTunePage;

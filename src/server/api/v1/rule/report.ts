@@ -7,9 +7,9 @@ import { APIThisType, SuccessType, UserLiteType } from '@types';
 /*
  * Reports content as a rule violation to the modmins.
  */
-async function report(this: APIThisType, {referenceId, type}: reportProps) : Promise<SuccessType>
+async function report(this: APIThisType, { referenceId, type }: reportProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'report-content'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'report-content' });
 
 	if (!permissionGranted)
 	{
@@ -22,7 +22,7 @@ async function report(this: APIThisType, {referenceId, type}: reportProps) : Pro
 	}
 
 	// Parameter Validation
-	const user:UserLiteType = await this.query('v1/user_lite', {id: this.userId});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
 	const [typeId] = await db.query(`
 		SELECT id
@@ -506,9 +506,9 @@ async function report(this: APIThisType, {referenceId, type}: reportProps) : Pro
 	if (!currentUserTicket)
 	{
 		const [processUserTickets, processModTickets, violator] = await Promise.all([
-			this.query('v1/permission', {permission: 'process-user-tickets', user: user.id}),
-			this.query('v1/permission', {permission: 'process-mod-tickets', user: user.id}),
-			this.query('v1/user', {id: violatorId}),
+			this.query('v1/permission', { permission: 'process-user-tickets', user: user.id }),
+			this.query('v1/permission', { permission: 'process-mod-tickets', user: user.id }),
+			this.query('v1/user', { id: violatorId }),
 		]);
 
 		const staffIdentifiers = constants.staffIdentifiers;
@@ -517,12 +517,12 @@ async function report(this: APIThisType, {referenceId, type}: reportProps) : Pro
 			processUserTickets && (![
 				staffIdentifiers.mod,
 				staffIdentifiers.admin,
-				staffIdentifiers.owner
-			].includes(violator.group.identifier) || ([
+				staffIdentifiers.owner,
+			].includes(violator.group.identifier) || [
 				staffIdentifiers.mod,
 				staffIdentifiers.admin,
-				staffIdentifiers.owner
-			].includes(violator.group.identifier) && processModTickets))
+				staffIdentifiers.owner,
+			].includes(violator.group.identifier) && processModTickets)
 		)
 		{
 			assigneeId = user.id;
@@ -563,14 +563,14 @@ async function report(this: APIThisType, {referenceId, type}: reportProps) : Pro
 		{
 			await this.query('v1/notification/create', {
 				id: currentUserTicket.id,
-				type: notificationTypes.modminUT
+				type: notificationTypes.modminUT,
 			});
 		}
 		else
 		{
 			await this.query('v1/notification/create', {
 				id: currentUserTicket.id,
-				type: notificationTypes.modminUTMany
+				type: notificationTypes.modminUTMany,
 			});
 		}
 	}
@@ -589,12 +589,12 @@ report.apiTypes = {
 	type: {
 		type: APITypes.string,
 		default: '',
-	}
-}
+	},
+};
 
 type reportProps = {
 	referenceId: number
 	type: string
-}
+};
 
 export default report;

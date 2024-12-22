@@ -10,8 +10,8 @@ import { APIThisType, AdoptionThreadsType } from '@types';
 
 const ScoutHubPage = () =>
 {
-	const {threads, page, pageSize, totalCount, scouts, scoutIds, adoptee,
-		newMembers, locked} = useLoaderData() as ScoutHubPageProps;
+	const { threads, page, pageSize, totalCount, scouts, scoutIds, adoptee,
+		newMembers, locked } = useLoaderData() as ScoutHubPageProps;
 
 	const link = `&scoutIds=${encodeURIComponent(scoutIds.join(','))}
 		&adoptee=${encodeURIComponent(adoptee)}
@@ -26,25 +26,25 @@ const ScoutHubPage = () =>
 					name='Scout Hub'
 					links={
 						<>
-						<Link to={`/scout-hub/new-members`}>New Members</Link>
-						<RequireGroup group={constants.staffIdentifiers.scout} silent>
-							<Link to={`/scout-hub/settings`}>Settings</Link>
-							<UserContext.Consumer>
-								{scout => scout && (
-									<Link to={`/scout-hub/ratings/${encodeURIComponent(scout.id)}`}>
-										Feedback
-									</Link>
-								)}
-							</UserContext.Consumer>
-						</RequireGroup>
-						<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
-							Adoptee BT
-						</Link>
-						<RequirePermission permission='adoption-bt-settings' silent>
-							<Link to={`/scout-hub/adoption/settings`}>
-								Adoptee BT Settings
+							<Link to={`/scout-hub/new-members`}>New Members</Link>
+							<RequireGroup group={constants.staffIdentifiers.scout} silent>
+								<Link to={`/scout-hub/settings`}>Settings</Link>
+								<UserContext.Consumer>
+									{scout => scout &&
+										<Link to={`/scout-hub/ratings/${encodeURIComponent(scout.id)}`}>
+											Feedback
+										</Link>
+									}
+								</UserContext.Consumer>
+							</RequireGroup>
+							<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
+								Adoptee BT
 							</Link>
-						</RequirePermission>
+							<RequirePermission permission='adoption-bt-settings' silent>
+								<Link to={`/scout-hub/adoption/settings`}>
+									Adoptee BT Settings
+								</Link>
+							</RequirePermission>
 						</>
 					}
 				/>
@@ -64,7 +64,7 @@ const ScoutHubPage = () =>
 							multiple
 							value={scoutIds}
 							options={scouts}
-							optionsMapping={{value: 'id', label: 'username'}}
+							optionsMapping={{ value: 'id', label: 'username' }}
 							placeholder='Choose Scout(s)...'
 							size={5}
 							label='Scout(s)'
@@ -94,13 +94,13 @@ const ScoutHubPage = () =>
 					<Grid name='thread' options={threads}>
 						{threads.map((thread, index) =>
 							<div key={index} className='ScoutHubPage_thread'>
-								{(thread.id && thread.hasPermission) && (
+								{thread.id && thread.hasPermission &&
 									<div className='ScoutHubPage_threadId'>
 										<Link to={`/scout-hub/adoption/${thread.id}`}>
 											#{thread.id}
 										</Link>
 									</div>
-								)}
+								}
 
 								<div className='ScoutHubPage_scout'>
 									Scout: <Link to={`/profile/${encodeURIComponent(thread.scoutId)}`}>
@@ -118,12 +118,12 @@ const ScoutHubPage = () =>
 									Adopted: {thread.adopted}
 								</div>
 
-								{thread.lastUpdated && (
+								{thread.lastUpdated &&
 									<div className='ScoutHubPage_lastUpdated'>
 										Last Updated: {thread.lastUpdated}
 									</div>
-								)}
-							</div>
+								}
+							</div>,
 						)}
 					</Grid>
 
@@ -138,9 +138,9 @@ const ScoutHubPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {page, scoutIds, adoptee, newMembers, locked}: {page?: string, scoutIds?: string, adoptee?: string, newMembers?: string, locked?: string}) : Promise<ScoutHubPageProps>
+export async function loadData(this: APIThisType, _: any, { page, scoutIds, adoptee, newMembers, locked }: { page?: string, scoutIds?: string, adoptee?: string, newMembers?: string, locked?: string }): Promise<ScoutHubPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/scout_hub/threads', {
@@ -175,6 +175,6 @@ type ScoutHubPageProps = {
 	adoptee: AdoptionThreadsType['adoptee']
 	newMembers: AdoptionThreadsType['newMembers']
 	locked: AdoptionThreadsType['locked']
-}
+};
 
 export default ScoutHubPage;

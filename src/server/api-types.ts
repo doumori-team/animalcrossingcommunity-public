@@ -29,11 +29,12 @@ export const characterId = 'characterId';
 export const userId = 'userId';
 export const listingId = 'listingId';
 
-export async function parse(this: APIThisType, apiTypes:any, params:any)
+export async function parse(this: APIThisType, apiTypes: any, params: any)
 {
-	let newParams = {...params};
+	let newParams = { ...params };
 
-	await Promise.all(Object.keys(apiTypes).map(async paramType => {
+	await Promise.all(Object.keys(apiTypes).map(async paramType =>
+	{
 		const apiType = apiTypes[paramType];
 		const param = params[paramType];
 		let newParam = param;
@@ -42,11 +43,11 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 		{
 			// Common
 			case string:
-				newParam = utils.trimString(apiType.hasOwnProperty('default') ?
+				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 					String(newParam || apiType.default) :
 					String(newParam));
 
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null)
 					{
@@ -60,7 +61,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				if (apiType.hasOwnProperty('length'))
+				if (Object.prototype.hasOwnProperty.call(apiType, 'length'))
 				{
 					if (utils.realStringLength(newParam) > apiType.length)
 					{
@@ -68,7 +69,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				if (apiType.hasOwnProperty('min'))
+				if (Object.prototype.hasOwnProperty.call(apiType, 'min'))
 				{
 					if (utils.realStringLength(newParam) < apiType.min)
 					{
@@ -76,7 +77,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				if (apiType.hasOwnProperty('regex'))
+				if (Object.prototype.hasOwnProperty.call(apiType, 'regex'))
 				{
 					if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(apiType.regex)))
 					{
@@ -84,16 +85,16 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				if (utils.realStringLength(newParam) > 0 && apiType.hasOwnProperty('includes'))
+				if (utils.realStringLength(newParam) > 0 && Object.prototype.hasOwnProperty.call(apiType, 'includes'))
 				{
 					if (!apiType.includes.includes(newParam))
 					{
 						throw new UserError('bad-format');
 					}
 				}
-				else if (apiType.hasOwnProperty('profanity') && apiType.profanity)
+				else if (Object.prototype.hasOwnProperty.call(apiType, 'profanity') && apiType.profanity)
 				{
-					await this.query('v1/profanity/check', {text: newParam});
+					await this.query('v1/profanity/check', { text: newParam });
 				}
 
 				break;
@@ -102,7 +103,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 
 				if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(constants.regexes.uuid)))
 				{
-					const error = apiType.hasOwnProperty('error') ? apiType.error : 'bad-format';
+					const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
 
 					throw new UserError(error);
 				}
@@ -111,7 +112,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 			case regex:
 				newParam = utils.trimString(String(newParam || ''));
 
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null)
 					{
@@ -127,14 +128,14 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 
 				if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(apiType.regex)))
 				{
-					const error = apiType.hasOwnProperty('error') ? apiType.error : 'bad-format';
+					const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
 
 					throw new UserError(error);
 				}
 
 				break;
 			case number:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null)
 					{
@@ -148,11 +149,11 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				newParam = apiType.hasOwnProperty('default') ?
+				newParam = Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 					Number(newParam || apiType.default) :
 					Number(newParam);
 
-				if (apiType.hasOwnProperty('min'))
+				if (Object.prototype.hasOwnProperty.call(apiType, 'min'))
 				{
 					if (newParam < apiType.min)
 					{
@@ -160,7 +161,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				if (apiType.hasOwnProperty('max'))
+				if (Object.prototype.hasOwnProperty.call(apiType, 'max'))
 				{
 					if (newParam > apiType.max)
 					{
@@ -170,16 +171,16 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 
 				break;
 			case wholeNumber:
-				newParam = (apiType.hasOwnProperty('default') ?
+				newParam = Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 					Number(newParam || apiType.default) :
-					Number(newParam));
+					Number(newParam);
 
 				if (!RegExp(constants.regexes.wholeNumber).test(newParam))
 				{
 					throw new UserError('bad-format');
 				}
 
-				if (apiType.hasOwnProperty('max'))
+				if (Object.prototype.hasOwnProperty.call(apiType, 'max'))
 				{
 					if (newParam > apiType.max)
 					{
@@ -189,7 +190,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 
 				break;
 			case boolean:
-				newParam = utils.trimString(apiType.hasOwnProperty('default') ?
+				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 					String(newParam || apiType.default) :
 					String(newParam)).toLowerCase();
 
@@ -230,7 +231,8 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 					}
 				}
 
-				newParam = newParam.map((np:any) => {
+				newParam = newParam.map((np: any) =>
+				{
 					if (!Array.isArray(np))
 					{
 						if (np)
@@ -248,7 +250,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 
 				break;
 			case date:
-				newParam = utils.trimString(apiType.hasOwnProperty('default') ?
+				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 					String(newParam || apiType.default) :
 					String(newParam));
 
@@ -256,7 +258,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				{
 					newParam = dateUtils.formatYearMonthDay(newParam);
 				}
-				else if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+				else if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					newParam = null;
 				}
@@ -264,12 +266,13 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				break;
 			// ACC Unique
 			case patternId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -278,7 +281,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -299,14 +302,16 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case acgameId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					// some searches, like TP and Shops, use -1 for 'all'
 					if (newParam === null || newParam === undefined || newParam == 0 || newParam == -1)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -315,7 +320,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -336,13 +341,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case gameId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -351,7 +358,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -372,13 +379,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case gameConsoleId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -387,7 +396,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -409,13 +418,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case pollId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -424,7 +435,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -446,13 +457,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case userTicketId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -461,7 +474,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -483,13 +496,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case ruleId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -498,7 +513,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -520,13 +535,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case ruleViolationId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -535,7 +552,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -557,13 +574,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case nodeId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -572,7 +591,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -594,13 +613,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case townId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -609,7 +630,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -631,13 +652,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case characterId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -646,7 +669,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -668,14 +691,15 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 			case userId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
-								(apiType.default === true ? this.userId : apiType.default) :
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
+								apiType.default === true ? this.userId : apiType.default :
 								0));
 
 						if (isNaN(newParam) || newParam === null || newParam === undefined || newParam == 0)
@@ -688,20 +712,21 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
-						(apiType.default === true ? this.userId : apiType.default) :
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
+						apiType.default === true ? this.userId : apiType.default :
 						0));
 
-				await this.query('v1/user_lite', {id: newParam});
+				await this.query('v1/user_lite', { id: newParam });
 
 				break;
 			case listingId:
-				if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+			{
+				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(apiType.hasOwnProperty('default') ?
+							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 								apiType.default :
 								0));
 
@@ -710,7 +735,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				newParam = Number(newParam ||
-					(apiType.hasOwnProperty('default') ?
+					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
 						apiType.default :
 						0));
 
@@ -732,11 +757,12 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 				}
 
 				break;
+			}
 		}
 
-		if (apiType.hasOwnProperty('required') && apiType.required)
+		if (Object.prototype.hasOwnProperty.call(apiType, 'required') && apiType.required)
 		{
-			const error = apiType.hasOwnProperty('error') ? apiType.error : 'bad-format';
+			const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
 
 			switch (apiType.type)
 			{
@@ -755,7 +781,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 
 					break;
 				case number:
-					if (apiType.hasOwnProperty('nullable') && apiType.nullable)
+					if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 					{
 						if (newParam === null || newParam === undefined)
 						{
@@ -768,7 +794,7 @@ export async function parse(this: APIThisType, apiTypes:any, params:any)
 						throw new UserError(error);
 					}
 
-					if (apiType.hasOwnProperty('min'))
+					if (Object.prototype.hasOwnProperty.call(apiType, 'min'))
 					{
 						if (newParam < apiType.min)
 						{

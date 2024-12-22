@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserType } from '@types';
 
-async function save(this: APIThisType, {id, sitePermissionIds, forumPermissions}: saveProps) : Promise<void>
+async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions }: saveProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'permission-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
 
 	if (!permissionGranted)
 	{
@@ -14,7 +14,7 @@ async function save(this: APIThisType, {id, sitePermissionIds, forumPermissions}
 	}
 
 	// Confirm params
-	const user:UserType = await this.query('v1/user', {id: id});
+	const user: UserType = await this.query('v1/user', { id: id });
 
 	sitePermissionIds = await Promise.all(sitePermissionIds.map(async (sitePermissionId) =>
 	{
@@ -67,7 +67,7 @@ async function save(this: APIThisType, {id, sitePermissionIds, forumPermissions}
 	// Only owner can change owner perms
 	if ([constants.staffIdentifiers.admin, constants.staffIdentifiers.owner].includes(user.group.identifier))
 	{
-		const currentUser:UserType = await this.query('v1/user', {id: this.userId});
+		const currentUser: UserType = await this.query('v1/user', { id: this.userId });
 
 		// Only owner can change owner group
 		if (user.group.identifier === constants.staffIdentifiers.owner && currentUser.group.identifier !== constants.staffIdentifiers.owner)
@@ -95,7 +95,7 @@ async function save(this: APIThisType, {id, sitePermissionIds, forumPermissions}
 
 	const groupIds = await db.getUserGroups(user.id);
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		const [sitePermissions, boardPermissions] = await Promise.all([
 			query(`
@@ -214,7 +214,8 @@ async function save(this: APIThisType, {id, sitePermissionIds, forumPermissions}
 		// for each permission, check if value matches given value
 		// sitePermissionIds contains granted values, assume anything not in it is not granted
 
-		await Promise.all(sitePermissions.map(async (permission:any) => {
+		await Promise.all(sitePermissions.map(async (permission: any) =>
+		{
 			const newGranted = sitePermissionIds.includes(permission.id);
 
 			if (permission.granted !== newGranted)
@@ -229,7 +230,8 @@ async function save(this: APIThisType, {id, sitePermissionIds, forumPermissions}
 
 		// Do forum permissions
 
-		await Promise.all(boardPermissions.map(async (board:any) => {
+		await Promise.all(boardPermissions.map(async (board: any) =>
+		{
 			const newGranted = forumPermissions.some(fp => fp.nodeId === board.node_id && fp.typeId === board.node_permission_id);
 
 			if (board.granted !== newGranted)
@@ -255,12 +257,12 @@ save.apiTypes = {
 	forumPermissions: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	id: number
 	sitePermissionIds: any[]
 	forumPermissions: any[]
-}
+};
 
 export default save;

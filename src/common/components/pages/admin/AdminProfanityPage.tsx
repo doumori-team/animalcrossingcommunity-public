@@ -9,7 +9,7 @@ import { APIThisType, ProfanityWordType } from '@types';
 
 const AdminProfanityPage = () =>
 {
-	const {words} = useLoaderData() as AdminProfanityPageProps;
+	const { words } = useLoaderData() as AdminProfanityPageProps;
 
 	return (
 		<RequirePermission permission='profanity-admin'>
@@ -29,16 +29,16 @@ const AdminProfanityPage = () =>
 							/>
 						</Form.Group>
 					</Form>
-					{words.length > 0 ? (
+					{words.length > 0 ?
 						<div className='AdminProfanityPage_words'>
 							{words.map((word, index) =>
 								<div key={index} className='AdminProfanityPage_word'>
 									<div className='AdminProfanityPage_wordLinks'>
-										{word.nodeId && (
+										{word.nodeId &&
 											<Link to={`/forums/${encodeURIComponent(word.nodeId)}`}>
 												Thread
 											</Link>
-										)}
+										}
 									</div>
 									<div className='AdminProfanityPage_wordUpdate'>
 										<Form
@@ -70,29 +70,29 @@ const AdminProfanityPage = () =>
 											</RequirePermission>
 										</Form>
 									</div>
-								</div>
+								</div>,
 							)}
 						</div>
-					) : (
+						:
 						'No words found.'
-					)}
+					}
 				</Section>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AdminProfanityPageProps>
+export async function loadData(this: APIThisType): Promise<AdminProfanityPageProps>
 {
 	const [words] = await Promise.all([
 		this.query('v1/profanity/word'),
 	]);
 
-	return {words};
+	return { words };
 }
 
 type AdminProfanityPageProps = {
 	words: ProfanityWordType[]
-}
+};
 
 export default AdminProfanityPage;

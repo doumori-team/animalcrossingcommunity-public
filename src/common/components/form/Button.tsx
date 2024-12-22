@@ -12,11 +12,11 @@ const Button = ({
 	title,
 	image,
 	form,
-	disabled = false
+	disabled = false,
 }: ButtonProps) =>
 {
 	return (
-		image ? (
+		image ?
 			<input
 				type='image'
 				src={image}
@@ -24,7 +24,7 @@ const Button = ({
 				title={title}
 				onClick={clickHandler}
 			/>
-		) : (
+			:
 			<button
 				type={type}
 				onClick={clickHandler}
@@ -35,15 +35,15 @@ const Button = ({
 				disabled={loading || disabled}
 				form={form}
 			>
-				{loading ? (
+				{loading ?
 					<Spinner />
-				) : (
+					:
 					children ? children : label
-				)}
+				}
 			</button>
-		)
+
 	);
-}
+};
 
 type ButtonProps = {
 	label?: string

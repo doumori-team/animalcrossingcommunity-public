@@ -83,9 +83,12 @@ import ProfileAdminPage, { loadData as loadProfileAdminPageData } from '@/pages/
 import EditProfileBioPage, { loadData as loadEditProfileBioPageData } from '@/pages/profile/EditProfileBioPage.tsx';
 
 import UserTownsPage, { loadData as loadUserTownsPageData } from '@/pages/town/UserTownsPage.tsx';
+import UserTownPage, { loadData as loadUserTownPageData } from '@/pages/town/UserTownPage.tsx';
 import EditTownPage, { loadData as loadEditTownPageData } from '@/pages/town/EditTownPage.tsx';
 import AddTownPage, { loadData as loadAddTownPageData } from '@/pages/town/AddTownPage.tsx';
+import AddTownFlagPage, { loadData as loadAddTownFlagPageData } from '@/pages/town/AddTownFlagPage.tsx';
 import EditCharacterPage, { loadData as loadEditCharacterPageData } from '@/pages/character/EditCharacterPage.tsx';
+import AddCharacterDoorPage, { loadData as loadAddCharacterDoorPageData } from '@/components/pages/character/AddCharacterDoorPage.tsx';
 import AddCharacterPage, { loadData as loadAddCharacterPageData } from '@/pages/character/AddCharacterPage.tsx';
 import MapMakerPage, { loadData as loadMapMakerPageData } from '@/pages/town/MapMakerPage.tsx';
 
@@ -108,6 +111,7 @@ import PatternPage, { loadData as loadPatternPageData } from '@/pages/pattern/Pa
 import EditPatternPage, { loadData as loadEditPatternPageData } from '@/pages/pattern/EditPatternPage.tsx';
 import AddPatternPage, { loadData as loadAddPatternPageData } from '@/pages/pattern/AddPatternPage.tsx';
 import ChooseTownFlagPage, { loadData as loadChooseTownFlagPageData } from '@/pages/pattern/ChooseTownFlagPage.tsx';
+import ChooseDoorPatternPage, { loadData as loadChooseDoorPatternPageData } from '@/pages/pattern/ChooseDoorPatternPage.tsx';
 
 import FriendCodesPage, { loadData as loadFriendCodesPageData } from '@/pages/friend_code/FriendCodesPage.tsx';
 import UserFriendCodesPage, { loadData as loadUserFriendCodesPageData } from '@/pages/friend_code/UserFriendCodesPage.tsx';
@@ -169,18 +173,19 @@ import OrderPage, { loadData as loadOrderPageData } from '@/pages/shop/OrderPage
 import EmployeeRatingsPage, { loadData as loadEmployeeRatingsPageData } from '@/pages/shop/EmployeeRatingsPage.tsx';
 import ShopThreadBanner, { loadData as loadShopThreadBannerData } from '@/pages/headers/ShopThreadBanner.tsx';
 
-function _getLoaderFunction(loader:any, params:any, request:any)
+function _getLoaderFunction(loader: any, params: any, request: any)
 {
 	const searchParams = new URL(request.url).searchParams;
 
 	return loader.bind({
 		query: (iso as any).query.bind(null, request.session?.user),
-		userId: null // impossible to tell frontend
+		userId: null, // impossible to tell frontend
 	})(params, Object.fromEntries(searchParams.entries()))
-	.then((data:any) => {
+	.then((data: any) =>
+	{
 		return data;
 	})
-	.catch((error:any) =>
+	.catch((error: any) =>
 	{
 		console.error('Logging route error:');
 		console.error(error);
@@ -194,7 +199,7 @@ function _getLoaderFunction(loader:any, params:any, request:any)
 			{
 				throw json(
 					error,
-					{ status: 400 }
+					{ status: 400 },
 				);
 			}
 
@@ -218,20 +223,20 @@ function _getLoaderFunction(loader:any, params:any, request:any)
 		// Something went wrong fetching data, or possibly within React
 		throw json(
 			error,
-			{ status, statusText }
+			{ status, statusText },
 		);
 	});
 }
 
 // Used For: Catalog pages. Fast on prod, slow on test sites with no Redis.
-async function deferLoaderFunction(loader:any, params:any, request:any)
+async function deferLoaderFunction(loader: any, params: any, request: any)
 {
 	// Don't defer if we're loading from the server
 	// Server will handle 'loading spinner' and this allows
 	// the client side to have the data
 	let shouldDefer = true;
 
-	if (request.hasOwnProperty('session'))
+	if (Object.prototype.hasOwnProperty.call(request, 'session'))
 	{
 		shouldDefer = false;
 	}
@@ -239,10 +244,10 @@ async function deferLoaderFunction(loader:any, params:any, request:any)
 	const dataPromise = _getLoaderFunction(loader, params, request);
 	const data = shouldDefer ? dataPromise : await dataPromise;
 
-	return defer({data: data});
+	return defer({ data: data });
 }
 
-function LoadingFunction(WrappedComponent:any)
+function LoadingFunction(WrappedComponent: any)
 {
 	return <Loading><WrappedComponent /></Loading>;
 }
@@ -250,7 +255,7 @@ function LoadingFunction(WrappedComponent:any)
 type RouteProps = {
 	params: any
 	request: any
-}
+};
 
 const routes = [
 	{
@@ -263,168 +268,172 @@ const routes = [
 			{
 				path: '',
 				element: <HomePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadHomePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadHomePageData, params, request),
 			},
 			{
 				path: 'admin',
-				element: <AdminHomePage />
+				element: <AdminHomePage />,
 			},
 			{
 				path: 'admin/permissions',
 				element: <AdminPermissionsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminPermissionsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminPermissionsPageData, params, request),
 			},
 			{
 				path: 'admin/permissions/:id',
 				element: <AdminPermissionsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminPermissionsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminPermissionsPageData, params, request),
 			},
 			{
 				path: 'admin/game-consoles',
 				element: <AdminGameConsolesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminGameConsolesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminGameConsolesPageData, params, request),
 			},
 			{
 				path: 'admin/game-console/add',
 				element: <AddAdminGameConsolePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminGameConsolePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminGameConsolePageData, params, request),
 			},
 			{
 				path: 'admin/game-console/:id',
 				element: <AdminGamesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminGamesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminGamesPageData, params, request),
 			},
 			{
 				path: 'admin/game-console/:id/edit',
 				element: <EditAdminGameConsolePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminGameConsolePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminGameConsolePageData, params, request),
 			},
 			{
 				path: 'admin/game-console/:id/add-game',
 				element: <AddAdminGamePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminGamePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminGamePageData, params, request),
 			},
 			{
 				path: 'admin/game/:id/edit',
 				element: <EditAdminGamePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminGamePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminGamePageData, params, request),
 			},
 			{
 				path: 'admin/weekly-polls',
 				element: <AdminWeeklyPollsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminWeeklyPollsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminWeeklyPollsPageData, params, request),
 			},
 			{
 				path: 'admin/weekly-polls/:type',
 				element: <AdminWeeklyPollsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminWeeklyPollsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminWeeklyPollsPageData, params, request),
 			},
 			{
 				path: 'admin/weekly-poll/:id/edit',
 				element: <EditWeeklyPollPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditWeeklyPollPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditWeeklyPollPageData, params, request),
 			},
 			{
 				path: 'admin/weekly-poll/add',
-				element: <AddWeeklyPollPage />
+				element: <AddWeeklyPollPage />,
 			},
 			{
 				path: 'rules',
 				element: <AdminRulesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminRulesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminRulesPageData, params, request),
 			},
 			{
 				path: 'admin/rules/add',
 				element: <AddAdminRulePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminRulePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminRulePageData, params, request),
 			},
 			{
 				path: 'admin/rules/:ruleId',
 				element: <EditAdminRulePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminRulePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminRulePageData, params, request),
 			},
 			{
 				path: 'admin/rules/:ruleId/add',
 				element: <AddAdminRuleViolationPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminRuleViolationPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddAdminRuleViolationPageData, params, request),
 			},
 			{
 				path: 'admin/rules/:ruleId/:violationId',
 				element: <EditAdminRuleViolationPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminRuleViolationPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditAdminRuleViolationPageData, params, request),
 			},
 			{
 				path: 'profanity',
 				element: <AdminProfanityPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminProfanityPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminProfanityPageData, params, request),
 			},
 			{
 				path: 'admin/board',
 				element: <AdminBoardPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminBoardPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdminBoardPageData, params, request),
 			},
 			{
 				path: 'modmin',
-				element: <ModminHomePage />
+				element: <ModminHomePage />,
 			},
 			{
 				path: 'automation',
 				element: <AutomationPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAutomationPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAutomationPageData, params, request),
 			},
 			{
 				path: 'forums',
-				loader: async () => {
+				loader: async () =>
+				{
 					return redirect(`/forums/${encodeURIComponent(constants.boardIds.accForums)}`);
-				}
+				},
 			},
 			{
 				path: 'boards.asp',
-				loader: async () => {
+				loader: async () =>
+				{
 					return redirect(`/forums/${encodeURIComponent(constants.boardIds.accForums)}`);
-				}
+				},
 			},
 			{
 				path: 'forums/:id',
 				element: <NodePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 			},
 			{
 				path: 'forums/:id/history',
 				element: <NodeHistoryPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodeHistoryPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodeHistoryPageData, params, request),
 			},
 			{
 				path: 'forums/:id/:page',
 				element: <NodePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 			},
 			{
 				path: 'Topic/:id/:page',
-				loader: async ({ params, request }: RouteProps) => {
+				loader: async ({ params }: RouteProps) =>
+				{
 					return redirect(`/forums/${encodeURIComponent(params.id)}/${encodeURIComponent(params.page)}`);
-				}
+				},
 			},
 			{
 				path: 'Topic/:id/:page/:title',
-				loader: async ({ params, request }: RouteProps) => {
+				loader: async ({ params }: RouteProps) =>
+				{
 					return redirect(`/forums/${encodeURIComponent(params.id)}/${encodeURIComponent(params.page)}`);
-				}
+				},
 			},
 			{
 				path: 'forums/:id/:page/:editId',
 				element: <NodePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 			},
 			{
 				path: 'followed/:type',
 				element: <FollowedNodePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFollowedNodePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFollowedNodePageData, params, request),
 			},
 			{
 				path: 'threads/:userId',
 				element: <ThreadsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadThreadsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadThreadsPageData, params, request),
 			},
 			{
 				path: 'settings',
@@ -433,92 +442,93 @@ const routes = [
 					{
 						path: '',
 						element: <AccountSettingsPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAccountSettingsPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAccountSettingsPageData, params, request),
 					},
 					{
 						path: 'avatar',
 						element: <AvatarSettingsPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAvatarSettingsPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAvatarSettingsPageData, params, request),
 					},
 					{
 						path: 'forum',
 						element: <ForumSettingsPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadForumSettingsPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadForumSettingsPageData, params, request),
 					},
 					{
 						path: 'emoji',
 						element: <EmojiSettingsPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEmojiSettingsPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEmojiSettingsPageData, params, request),
 					},
-				]
+				],
 			},
 			// note these links hardcoded on SiteContent for accepting TOS
 			{
 				path: 'legal/coppa',
-				element: <COPPAPage />
+				element: <COPPAPage />,
 			},
 			{
 				path: 'legal/privacy',
-				element: <PrivacyPage />
+				element: <PrivacyPage />,
 			},
 			{
 				path: 'legal/terms',
-				element: <TOSPage />
+				element: <TOSPage />,
 			},
 			{
 				path: 'legal/policies',
-				element: <PoliciesPage />
+				element: <PoliciesPage />,
 			},
 			{
 				path: 'legal/cookies',
-				element: <CookiePolicyPage />
+				element: <CookiePolicyPage />,
 			},
 			{
 				path: 'faq',
-				element: <FAQPage />
+				element: <FAQPage />,
 			},
 			{
 				path: 'credits',
-				element: <CreditsPage />
+				element: <CreditsPage />,
 			},
 			{
 				path: 'menu',
-				element: <SitemapPage />
+				element: <SitemapPage />,
 			},
 			{
 				path: 'staff',
 				element: <StaffPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadStaffPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadStaffPageData, params, request),
 			},
 			{
 				path: 'staff-roles',
 				element: <StaffRolesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadStaffRolesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadStaffRolesPageData, params, request),
 			},
 			{
 				path: 'staff-roles/:id',
 				element: <StaffRolesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadStaffRolesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadStaffRolesPageData, params, request),
 			},
 			{
 				path: 'guidelines',
 				element: <SiteRulesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSiteRulesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSiteRulesPageData, params, request),
 			},
 			{
 				path: 'profile/:id',
 				element: <ProfilePage />,
-				loader: async ({ params, request }: RouteProps) => {
+				loader: async ({ params, request }: RouteProps) =>
+				{
 					// id can be id, or the username
 					// we need to redirect to the id url so links works
 					if (isNaN(params.id))
 					{
-						return await (iso as any).query(null, 'v1/user_lite', {username: params.id})
-							.then((data:UserLiteType) =>
+						return await (iso as any).query(null, 'v1/user_lite', { username: params.id })
+							.then((data: UserLiteType) =>
 							{
 								return redirect(`/profile/${encodeURIComponent(data.id)}`);
 							})
-							.catch((error:any) =>
+							.catch((error: any) =>
 							{
 								console.error('Throwing profile route error:');
 								console.error(error);
@@ -533,9 +543,9 @@ const routes = [
 
 								throw json(
 									error,
-									{ status: status }
+									{ status: status },
 								);
-							})
+							});
 					}
 					else
 					{
@@ -546,12 +556,12 @@ const routes = [
 					{
 						path: '',
 						element: <ProfileBioPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadProfileBioPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadProfileBioPageData, params, request),
 					},
 					{
 						path: 'edit',
 						element: <EditProfileBioPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditProfileBioPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditProfileBioPageData, params, request),
 					},
 					{
 						path: 'friend-codes',
@@ -561,9 +571,9 @@ const routes = [
 							{
 								path: '',
 								element: <UserFriendCodesPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserFriendCodesPageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserFriendCodesPageData, params, request),
+							},
+						],
 					},
 					{
 						path: 'friend-code/add',
@@ -573,9 +583,9 @@ const routes = [
 							{
 								path: '',
 								element: <AddFriendCodePage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddFriendCodePageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddFriendCodePageData, params, request),
+							},
+						],
 					},
 					{
 						path: 'friend-code/:friendCodeId/edit',
@@ -585,9 +595,9 @@ const routes = [
 							{
 								path: '',
 								element: <EditFriendCodePage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditFriendCodePageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditFriendCodePageData, params, request),
+							},
+						],
 					},
 					{
 						path: 'towns',
@@ -596,52 +606,50 @@ const routes = [
 							{
 								path: '',
 								element: LoadingFunction(UserTownsPage),
-								loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadUserTownsPageData, params, request)
+								loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadUserTownsPageData, params, request),
 							},
 							{
 								path: 'add',
 								element: <AddTownPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddTownPageData, params, request)
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddTownPageData, params, request),
 							},
 							{
 								path: 'add/:gameId',
 								element: <AddTownPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddTownPageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddTownPageData, params, request),
+							},
+						],
 					},
 					{
-						path: 'town/:townId/edit',
+						path: 'town/:townId',
 						element: <ProfileTownsPage />,
 						children: [
 							{
 								path: '',
+								element: <UserTownPage />,
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserTownPageData, params, request),
+							},
+							{
+								path: 'edit',
 								element: <EditTownPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditTownPageData, params, request)
-							}
-						]
-					},
-					{
-						path: 'town/:townId/map',
-						element: <ProfileTownsPage />,
-						children: [
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditTownPageData, params, request),
+							},
 							{
-								path: '',
+								path: 'map',
 								element: <MapMakerPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadMapMakerPageData, params, request)
-							}
-						]
-					},
-					{
-						path: 'town/:townId/tune',
-						element: <ProfileTownsPage />,
-						children: [
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadMapMakerPageData, params, request),
+							},
 							{
-								path: '',
+								path: 'tune',
 								element: <EditTownTunePage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditTownTunePageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditTownTunePageData, params, request),
+							},
+							{
+								path: 'pattern',
+								element: <AddTownFlagPage />,
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddTownFlagPageData, params, request),
+							},
+						],
 					},
 					{
 						path: 'characters/add',
@@ -650,14 +658,14 @@ const routes = [
 							{
 								path: '',
 								element: <AddCharacterPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddCharacterPageData, params, request)
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddCharacterPageData, params, request),
 							},
 							{
 								path: ':townId',
 								element: <AddCharacterPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddCharacterPageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddCharacterPageData, params, request),
+							},
+						],
 					},
 					{
 						path: 'character/:characterId/edit',
@@ -666,66 +674,77 @@ const routes = [
 							{
 								path: '',
 								element: <EditCharacterPage />,
-								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditCharacterPageData, params, request)
-							}
-						]
+								loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditCharacterPageData, params, request),
+							},
+						],
+					},
+					{
+						path: 'character/:characterId/pattern',
+						element: <AddCharacterDoorPage />,
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddCharacterDoorPageData, params, request),
 					},
 					{
 						path: 'security',
 						element: <ProfileAdminPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadProfileAdminPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadProfileAdminPageData, params, request),
 					},
-				]
+				],
 			},
 			{
 				path: 'town-tune/:id/edit',
 				element: <EditTunePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditTunePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditTunePageData, params, request),
 			},
 			{
 				path: 'town-tune/:id/choose',
 				element: <ChooseTownTunePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadChooseTownTunePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadChooseTownTunePageData, params, request),
 			},
 			{
 				path: 'town-tunes',
 				element: <TunesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTunesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTunesPageData, params, request),
 			},
 			{
 				path: 'town-tunes/add',
-				element: <AddTunePage />
+				element: <AddTunePage />,
 			},
 			{
 				path: 'pattern/:id',
 				element: <PatternPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadPatternPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadPatternPageData, params, request),
 			},
 			{
 				path: 'pattern/:id/edit',
 				element: <EditPatternPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditPatternPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditPatternPageData, params, request),
 			},
 			{
-				path: 'pattern/:id/choose',
+				path: 'pattern/:id/choose/town',
 				element: <ChooseTownFlagPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadChooseTownFlagPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadChooseTownFlagPageData, params, request),
+			},
+			{
+				path: 'pattern/:id/choose/door',
+				element: <ChooseDoorPatternPage />,
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadChooseDoorPatternPageData, params, request),
 			},
 			{
 				path: 'patterns',
 				element: <PatternsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadPatternsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadPatternsPageData, params, request),
 			},
 			{
 				path: 'patterns.asp',
-				loader: async () => {
+				loader: async () =>
+				{
 					return redirect(`/patterns`);
-				}
+				},
 			},
 			{
 				path: 'patterns/add',
 				element: <AddPatternPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddPatternPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddPatternPageData, params, request),
 			},
 			{
 				path: 'catalog/:userId',
@@ -735,189 +754,190 @@ const routes = [
 					{
 						path: 'user',
 						element: LoadingFunction(UserCatalogPage),
-						loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadUserCatalogPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadUserCatalogPageData, params, request),
 					},
 					{
 						path: 'user/edit',
 						element: <EditUserCatalogPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditUserCatalogPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditUserCatalogPageData, params, request),
 					},
 					{
 						path: 'pc',
 						element: LoadingFunction(PCCatalogPage),
-						loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadPCCatalogPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadPCCatalogPageData, params, request),
 					},
 					{
 						path: 'pc/edit',
 						element: <EditPCCatalogPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditPCCatalogPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditPCCatalogPageData, params, request),
 					},
 					{
 						path: 'character/:characterId',
 						element: <CharacterCatalogPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadCharacterCatalogPageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadCharacterCatalogPageData, params, request),
 					},
 					{
 						path: 'character/:characterId/edit',
 						element: <EditCharacterCatalogPage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditCharacterCatalogPageData, params, request)
-					}
-				]
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditCharacterCatalogPageData, params, request),
+					},
+				],
 			},
 			{
 				path: 'friend-codes',
 				element: <FriendCodesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFriendCodesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFriendCodesPageData, params, request),
 			},
 			{
 				path: 'ratings/:userId/:type',
 				element: <UserReceivedRatingsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserReceivedRatingsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserReceivedRatingsPageData, params, request),
 			},
 			{
 				path: 'ratings/:userId/:type/given',
 				element: <UserGivenRatingsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserGivenRatingsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserGivenRatingsPageData, params, request),
 			},
 			{
 				path: 'trading-post',
 				element: <TradingPostPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTradingPostPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTradingPostPageData, params, request),
 			},
 			{
 				path: 'tp_home.asp',
-				loader: async () => {
+				loader: async () =>
+				{
 					return redirect(`/trading-post`);
-				}
+				},
 			},
 			{
 				path: 'trading-post/:userId/all',
 				element: LoadingFunction(UserListingPage),
-				loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadUserListingPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadUserListingPageData, params, request),
 			},
 			{
 				path: 'trading-post/add',
 				element: <AddListingPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddListingPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddListingPageData, params, request),
 			},
 			{
 				path: 'trading-post/add/:type',
 				element: <AddListingPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddListingPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddListingPageData, params, request),
 			},
 			{
 				path: 'trading-post/add/:type/:gameId',
 				element: <AddListingPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddListingPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddListingPageData, params, request),
 			},
 			{
 				path: 'trading-post/:id',
 				element: <ListingPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadListingPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadListingPageData, params, request),
 			},
 			{
 				path: 'trading-post/:id/offer',
 				element: <AddOfferPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddOfferPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddOfferPageData, params, request),
 			},
 			{
 				path: 'features',
 				element: <FeaturesDashboardPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFeaturesDashboardPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFeaturesDashboardPageData, params, request),
 			},
 			{
 				path: 'feature/:id',
 				element: <FeaturePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFeaturePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadFeaturePageData, params, request),
 			},
 			{
 				path: 'feature/:id/edit',
 				element: <EditFeaturePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditFeaturePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditFeaturePageData, params, request),
 			},
 			{
 				path: 'features/add',
 				element: <AddFeaturePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddFeaturePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddFeaturePageData, params, request),
 			},
 			{
 				path: 'buddies',
 				element: <BuddyPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBuddyPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBuddyPageData, params, request),
 			},
 			{
 				path: 'guides',
 				element: <GuidesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadGuidesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadGuidesPageData, params, request),
 			},
 			{
 				path: 'guides/:gameId',
 				element: <GuidesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadGuidesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadGuidesPageData, params, request),
 			},
 			{
 				path: 'guides/:gameId/add',
 				element: <AddGuidePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddGuidePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddGuidePageData, params, request),
 			},
 			{
 				path: 'guide/:id',
 				element: <GuidePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadGuidePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadGuidePageData, params, request),
 			},
 			{
 				path: 'guide/:id/edit',
 				element: <EditGuidePage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditGuidePageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEditGuidePageData, params, request),
 			},
 			{
 				path: 'calendar',
 				element: <CalendarPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadCalendarPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadCalendarPageData, params, request),
 			},
 			{
 				path: 'user-tickets',
 				element: <UserTicketDashboardPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserTicketDashboardPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserTicketDashboardPageData, params, request),
 			},
 			{
 				path: 'user-ticket/:id',
 				element: <UserTicketPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserTicketPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserTicketPageData, params, request),
 			},
 			{
 				path: 'support-emails',
 				element: <SupportEmailDashboardPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportEmailDashboardPage, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportEmailDashboardPage, params, request),
 			},
 			{
 				path: 'support-emails/send',
-				element: <SendSupportEmailPage />
+				element: <SendSupportEmailPage />,
 			},
 			{
 				path: 'support-email/:id',
 				element: <SupportEmailPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportEmailPage, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportEmailPage, params, request),
 			},
 			{
 				path: 'tickets',
 				element: <TicketsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTicketsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTicketsPageData, params, request),
 			},
 			{
 				path: 'ticket/:id',
 				element: <TicketPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTicketPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTicketPageData, params, request),
 			},
 			{
 				path: 'scout-hub',
 				element: <ScoutHubPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadScoutHubPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadScoutHubPageData, params, request),
 			},
 			{
 				path: 'scout-hub/adoption/settings',
 				element: <AdoptionThreadSettingsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdoptionThreadSettingsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAdoptionThreadSettingsPageData, params, request),
 			},
 			{
 				path: 'scout-hub/adoption/:id',
@@ -927,147 +947,148 @@ const routes = [
 					{
 						path: '',
 						element: <NodePage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 					},
 					{
 						path: ':page',
 						element: <NodePage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 					},
 					{
 						path: ':page/:editId',
 						element: <NodePage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 					},
-				]
+				],
 			},
 			{
 				path: 'scout-hub/new-members',
 				element: <NewMembersPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNewMembersPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNewMembersPageData, params, request),
 			},
 			{
 				path: 'scout-hub/new-members/reassign/:adopteeId',
 				element: <ReassignPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadReassignPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadReassignPageData, params, request),
 			},
 			{
 				path: 'scout-hub/settings',
 				element: <ScoutSettingsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadScoutSettingsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadScoutSettingsPageData, params, request),
 			},
 			{
 				path: 'scout-hub/ratings/:userId',
 				element: <ScoutRatingsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadScoutRatingsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadScoutRatingsPageData, params, request),
 			},
 			{
 				path: 'new-member',
-				element: <NewMemberPage />
+				element: <NewMemberPage />,
 			},
 			{
 				path: 'user-matching',
 				element: <UserMatchingPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserMatchingPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserMatchingPageData, params, request),
 			},
 			{
 				path: 'notifications',
 				element: <NotificationsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNotificationsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNotificationsPageData, params, request),
 			},
 			{
 				path: 'honorary-citizens',
 				element: <HonoraryCitizensPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadHonoraryCitizensPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadHonoraryCitizensPageData, params, request),
 			},
 			{
 				path: 'donate',
-				element: <DonatePage />
+				element: <DonatePage />,
 			},
 			{
 				path: 'donated',
-				element: <DonatedPage />
+				element: <DonatedPage />,
 			},
 			{
 				path: 'top-bells',
 				element: <TopBellsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTopBellsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadTopBellsPageData, params, request),
 			},
 			{
 				path: 'bell-shop',
 				element: <BellShopPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopPageData, params, request),
 			},
 			{
 				path: 'bell-shop/:id/gift',
 				element: <BellShopGiftPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopGiftPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopGiftPageData, params, request),
 			},
 			{
 				path: 'bell-shop/redeemed',
 				element: <BellShopRedeemedPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopRedeemedPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopRedeemedPageData, params, request),
 			},
 			{
 				path: 'bell-shop/:categoryId',
 				element: <BellShopPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadBellShopPageData, params, request),
 			},
 			{
 				path: 'support-tickets',
 				element: <SupportTicketDashboardPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportTicketDashboardPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportTicketDashboardPageData, params, request),
 			},
 			{
 				path: 'support-tickets/add',
 				element: <AddSupportTicketPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddSupportTicketPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddSupportTicketPageData, params, request),
 			},
 			{
 				path: 'support-ticket/:id',
 				element: <SupportTicketPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportTicketPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSupportTicketPageData, params, request),
 			},
 			{
 				path: 'user-sessions',
 				element: <UserSessionsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserSessionsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserSessionsPageData, params, request),
 			},
 			{
 				path: 'user-session/:id',
 				element: <UserSessionPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserSessionPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadUserSessionPageData, params, request),
 			},
 			{
 				path: 'sign-up',
-				element: <SignupPage />
+				element: <SignupPage />,
 			},
 			{
 				path: 'congrats',
-				element: <CongratsPage />
+				element: <CongratsPage />,
 			},
 			{
 				path: 'consent-needed/:id',
-				element: <ConsentNeededPage />
+				element: <ConsentNeededPage />,
 			},
 			{
 				path: 'consent/:id',
 				element: <ConsentPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadConsentPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadConsentPageData, params, request),
 			},
 			{
 				path: 'email-needed/:id',
-				element: <EmailNeededPage />
+				element: <EmailNeededPage />,
 			},
 			{
 				path: 'site-statistics',
 				element: <SiteStatisticsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSiteStatisticsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadSiteStatisticsPageData, params, request),
 			},
 			{
 				path: 'leaving',
 				element: <LeavingSitePage />,
-				loader: async ({ params, request }: RouteProps) => {
+				loader: async ({ request }: RouteProps) =>
+				{
 					const searchParams = new URL(request.url).search;
 					const url = searchParams.substring(5);
 
@@ -1077,62 +1098,62 @@ const routes = [
 					}
 
 					return null;
-				}
+				},
 			},
 			{
 				path: 'avatars',
 				element: <AvatarPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAvatarPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAvatarPageData, params, request),
 			},
 			{
 				path: 'shops',
 				element: <ShopsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadShopsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadShopsPageData, params, request),
 			},
 			{
 				path: 'shop/:id',
 				element: LoadingFunction(ShopPage),
-				loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadShopPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadShopPageData, params, request),
 			},
 			{
 				path: 'shop/:id/edit',
 				element: LoadingFunction(EditShopPage),
-				loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadEditShopPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => deferLoaderFunction(loadEditShopPageData, params, request),
 			},
 			{
 				path: 'shops/add',
 				element: <AddShopPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddShopPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadAddShopPageData, params, request),
 			},
 			{
 				path: 'shop/:id/employees',
 				element: <EmployeesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEmployeesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEmployeesPageData, params, request),
 			},
 			{
 				path: 'shop/:id/services',
 				element: <ServicesPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadServicesPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadServicesPageData, params, request),
 			},
 			{
 				path: 'shops/threads',
 				element: <ShopThreadsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadShopThreadsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadShopThreadsPageData, params, request),
 			},
 			{
 				path: 'shop/application/:id',
 				element: <ApplicationPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadApplicationPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadApplicationPageData, params, request),
 			},
 			{
 				path: 'shop/order/:id',
 				element: <OrderPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadOrderPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadOrderPageData, params, request),
 			},
 			{
 				path: 'shops/ratings/:userId',
 				element: <EmployeeRatingsPage />,
-				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEmployeeRatingsPageData, params, request)
+				loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadEmployeeRatingsPageData, params, request),
 			},
 			{
 				path: 'shops/threads/:id',
@@ -1142,19 +1163,19 @@ const routes = [
 					{
 						path: '',
 						element: <NodePage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 					},
 					{
 						path: ':page',
 						element: <NodePage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 					},
 					{
 						path: ':page/:editId',
 						element: <NodePage />,
-						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request)
+						loader: async ({ params, request }: RouteProps) => _getLoaderFunction(loadNodePageData, params, request),
 					},
-				]
+				],
 			},
 		],
 	},

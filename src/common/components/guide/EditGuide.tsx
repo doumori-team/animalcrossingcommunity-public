@@ -6,7 +6,7 @@ import { constants } from '@utils';
 
 const EditGuide = ({
 	guide,
-	game
+	game,
 }: EditGuideProps) =>
 {
 	return (
@@ -20,7 +20,7 @@ const EditGuide = ({
 						<Text
 							name='name'
 							value={guide ?
-								(guide.updatedName ? guide.updatedName : guide.name)
+								guide.updatedName ? guide.updatedName : guide.name
 								: ''
 							}
 							required
@@ -43,7 +43,7 @@ const EditGuide = ({
 						label='Description'
 						required
 						value={guide ?
-							(guide.updatedDescription ? guide.updatedDescription : guide.description)
+							guide.updatedDescription ? guide.updatedDescription : guide.description
 							: ''
 						}
 						maxLength={constants.max.guideDescription}
@@ -54,7 +54,7 @@ const EditGuide = ({
 					<label htmlFor='content'>Content:</label>
 					<RichTextArea
 						textName='content'
-						textValue={guide ? (guide.updatedContent ? guide.updatedContent : guide.content) : ''}
+						textValue={guide ? guide.updatedContent ? guide.updatedContent : guide.content : ''}
 						formatValue='markdown+html'
 						maxLength={constants.max.guideContent}
 						label='Content'
@@ -65,10 +65,10 @@ const EditGuide = ({
 			</Form>
 		</section>
 	);
-}
+};
 
 type EditGuideProps = {
-	game: ACGameType|GuideType['game']
+	game: ACGameType | GuideType['game']
 	guide?: GuideType
 };
 

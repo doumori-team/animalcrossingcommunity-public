@@ -12,10 +12,11 @@ const PhotoSlideshow = ({
 	files,
 	reportType,
 	fileIndex,
-	setFileIndex
+	setFileIndex,
 }: PhotoSlideshowProps) =>
 {
-	const slides = files?.map(file => {
+	const slides = files?.map(file =>
+	{
 		return {
 			src: `${constants.USER_FILE_DIR}${userId}/${file.fileId}`,
 			alt: file.caption,
@@ -27,10 +28,11 @@ const PhotoSlideshow = ({
 		};
 	});
 
-	const ReportProblemButton = () : React.ReactNode | null => {
-		const {currentIndex} = useLightboxState();
+	const ReportProblemButton = (): React.ReactNode | null =>
+	{
+		const { currentIndex } = useLightboxState();
 
-		if (reportType == null)
+		if (!reportType)
 		{
 			return null;
 		}
@@ -41,7 +43,7 @@ const PhotoSlideshow = ({
 				id={Number(slides[currentIndex].id || 0)}
 			/>
 		);
-	}
+	};
 
 	return (
 		<RequireClientJS>
@@ -58,13 +60,13 @@ const PhotoSlideshow = ({
 					],
 				} : {
 					buttons: [
-					  'close',
+						'close',
 					],
 				}}
 			/>
 		</RequireClientJS>
 	);
-}
+};
 
 type PhotoSlideshowProps = {
 	userId: number

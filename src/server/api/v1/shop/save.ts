@@ -5,11 +5,11 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, ACGameItemType, ShopType, MarkupStyleType } from '@types';
 
-async function save(this: APIThisType, {id, name, shortDescription, description, format, fee, games,
+async function save(this: APIThisType, { id, name, shortDescription, description, format, fee, games,
 	perOrders, stackOrQuantities, completeOrders, items, vacationStartDate,
-	vacationEndDate, allowTransfer, active, fileId}: saveProps) : Promise<{id: number}>
+	vacationEndDate, allowTransfer, active, fileId }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -21,9 +21,9 @@ async function save(this: APIThisType, {id, name, shortDescription, description,
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	if (games.length != perOrders.length)
+	if (games.length !== perOrders.length)
 	{
 		throw new UserError('bad-format');
 	}
@@ -48,9 +48,9 @@ async function save(this: APIThisType, {id, name, shortDescription, description,
 
 		const gameId = Number(id);
 
-		const catalogItems:ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item:any) => item.tradeable);
+		const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable);
 
-		items[index].map((id:any) =>
+		items[index].map((id: any) =>
 		{
 			if (!catalogItems.find(item => item.id === id))
 			{
@@ -68,11 +68,11 @@ async function save(this: APIThisType, {id, name, shortDescription, description,
 		throw new UserError('shop-max-items');
 	}
 
-	const shopId = await db.transaction(async (query:any) =>
+	const shopId = await db.transaction(async (query: any) =>
 	{
 		if (id != null && id > 0)
 		{
-			const shop:ShopType = await this.query('v1/shop', {id: id});
+			const shop: ShopType = await this.query('v1/shop', { id: id });
 
 			if (!shop)
 			{
@@ -134,7 +134,7 @@ async function save(this: APIThisType, {id, name, shortDescription, description,
 					VALUES ($1, $2)
 					RETURNING id
 				`, id, this.userId),
-			])
+			]);
 
 			await query(`
 				INSERT INTO shop_user_role (shop_role_id, shop_user_id)
@@ -143,19 +143,21 @@ async function save(this: APIThisType, {id, name, shortDescription, description,
 		}
 
 		await Promise.all([
-			games.map(async (gameId, index) => {
+			games.map(async (gameId, index) =>
+			{
 				await query(`
 					INSERT INTO shop_ac_game (shop_id, game_id, per_order, stack_or_quantity, complete_order)
 					VALUES ($1, $2, $3, $4, $5)
 				`, id, gameId, perOrders[index], stackOrQuantities[index] ? stackOrQuantities[index] : false, completeOrders[index] ? completeOrders[index] : false);
 
 				await Promise.all([
-					items[index].map(async (itemId:any) => {
+					items[index].map(async (itemId: any) =>
+					{
 						await query(`
 							INSERT INTO shop_catalog_item (shop_id, catalog_item_id, game_id)
 							VALUES ($1, $2, $3)
 						`, id, itemId, gameId);
-					})
+					}),
 				]);
 			}),
 			query(`
@@ -185,7 +187,7 @@ async function save(this: APIThisType, {id, name, shortDescription, description,
 
 	return {
 		id: shopId,
-	}
+	};
 }
 
 save.apiTypes = {
@@ -262,10 +264,10 @@ save.apiTypes = {
 		default: '',
 		nullable: true,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	name: string
 	shortDescription: string
 	description: string
@@ -276,11 +278,11 @@ type saveProps = {
 	stackOrQuantities: any[]
 	completeOrders: any[]
 	items: any
-	vacationStartDate: string|null
-	vacationEndDate: string|null
+	vacationStartDate: string | null
+	vacationEndDate: string | null
 	allowTransfer: boolean
 	active: boolean
 	fileId: string
-}
+};
 
 export default save;

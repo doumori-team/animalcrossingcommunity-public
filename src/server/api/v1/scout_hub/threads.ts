@@ -7,9 +7,9 @@ import { APIThisType, AdoptionThreadsType, UserType } from '@types';
 /*
  * Gets adoption threads.
  */
-async function threads(this: APIThisType, {page, scoutIds, adoptee, newMembers, locked}: threadsProps) : Promise<AdoptionThreadsType>
+async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers, locked }: threadsProps): Promise<AdoptionThreadsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'scout-pages'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'scout-pages' });
 
 	if (!permissionGranted)
 	{
@@ -38,7 +38,7 @@ async function threads(this: APIThisType, {page, scoutIds, adoptee, newMembers, 
 		return Number(id);
 	}));
 
-	const user:UserType = await this.query('v1/user', {id: this.userId});
+	const user: UserType = await this.query('v1/user', { id: this.userId });
 
 	if (user.group.identifier === constants.staffIdentifiers.scout && scoutIds.length === 0 && this.userId != null)
 	{
@@ -47,8 +47,8 @@ async function threads(this: APIThisType, {page, scoutIds, adoptee, newMembers, 
 
 	// Do actual search
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -167,7 +167,8 @@ async function threads(this: APIThisType, {page, scoutIds, adoptee, newMembers, 
 
 	if (threads.length > 0)
 	{
-		results = await Promise.all(threads.map(async (thread:any) => {
+		results = await Promise.all(threads.map(async (thread: any) =>
+		{
 			return {
 				id: thread.node_id,
 				scoutId: thread.scout_id,
@@ -176,7 +177,7 @@ async function threads(this: APIThisType, {page, scoutIds, adoptee, newMembers, 
 				adopteeUsername: thread.adoptee_username,
 				adopted: dateUtils.formatDateTime(thread.adopted),
 				lastUpdated: thread.last_updated ? dateUtils.formatDateTime(thread.last_updated) : null,
-				hasPermission: thread.node_id ? await this.query('v1/node/permission', {permission: 'read', nodeId: thread.node_id}) : false,
+				hasPermission: thread.node_id ? await this.query('v1/node/permission', { permission: 'read', nodeId: thread.node_id }) : false,
 			};
 		}));
 
@@ -220,7 +221,7 @@ threads.apiTypes = {
 	scoutIds: {
 		type: APITypes.array,
 	},
-}
+};
 
 type threadsProps = {
 	page: number
@@ -228,6 +229,6 @@ type threadsProps = {
 	newMembers: string
 	locked: string
 	scoutIds: number[]
-}
+};
 
 export default threads;

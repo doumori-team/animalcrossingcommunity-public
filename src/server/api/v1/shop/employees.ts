@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, EmployeesType, ShopType } from '@types';
 
-async function employees(this: APIThisType, {id}: employeesProps) : Promise<EmployeesType>
+async function employees(this: APIThisType, { id }: employeesProps): Promise<EmployeesType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -17,9 +17,9 @@ async function employees(this: APIThisType, {id}: employeesProps) : Promise<Empl
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: id});
+	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
 	{
@@ -98,8 +98,9 @@ async function employees(this: APIThisType, {id}: employeesProps) : Promise<Empl
 
 	return {
 		list: employees,
-		roles: roles.map((role:any) => {
-			const filled = filledPositions.find((f:any) => f.id === role.id);
+		roles: roles.map((role: any) =>
+		{
+			const filled = filledPositions.find((f: any) => f.id === role.id);
 			const positions = Number(role.positions);
 
 			return {
@@ -112,18 +113,19 @@ async function employees(this: APIThisType, {id}: employeesProps) : Promise<Empl
 				apply: role.apply,
 				contact: role.contact,
 				active: role.active,
-				services: roleDefaultServices.filter((s:any) => s.shop_role_id === role.id).concat(roleServices.filter((s:any) => s.shop_role_id === role.id)).map((s:any) => {
+				services: roleDefaultServices.filter((s: any) => s.shop_role_id === role.id).concat(roleServices.filter((s: any) => s.shop_role_id === role.id)).map((s: any) =>
+				{
 					return {
 						id: s.id,
 						name: s.name,
 					};
 				}),
-				positionsAvailable: filled ? Math.max(0, positions-Number(filled.count)) : positions,
+				positionsAvailable: filled ? Math.max(0, positions - Number(filled.count)) : positions,
 				applications: role.applications,
 				stats: role.stats,
 			};
 		}),
-	}
+	};
 }
 
 employees.apiTypes = {
@@ -131,10 +133,10 @@ employees.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type employeesProps = {
 	id: number
-}
+};
 
 export default employees;

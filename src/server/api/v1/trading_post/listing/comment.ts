@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType, MarkupStyleType } from '@types';
 
-async function comment(this: APIThisType, {id, comment, format}: commentProps) : Promise<void>
+async function comment(this: APIThisType, { id, comment, format }: commentProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -18,15 +18,15 @@ async function comment(this: APIThisType, {id, comment, format}: commentProps) :
 		throw new UserError('login-needed');
 	}
 
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
 	// only users involved in trade can comment at a certain point
 	// only if listing in right status
 	if (![listingStatuses.open, listingStatuses.offerAccepted, listingStatuses.inProgress, listingStatuses.completed].includes(listing.status) ||
-		([listingStatuses.offerAccepted, listingStatuses.inProgress, listingStatuses.completed].includes(listing.status) &&
-		![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId)))
+		[listingStatuses.offerAccepted, listingStatuses.inProgress, listingStatuses.completed].includes(listing.status) &&
+		![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId))
 	{
 		throw new UserError('permission');
 	}
@@ -43,7 +43,7 @@ async function comment(this: APIThisType, {id, comment, format}: commentProps) :
 	}
 
 	// Perform queries
-	const listingCommentId = await db.transaction(async (query:any) =>
+	const listingCommentId = await db.transaction(async (query: any) =>
 	{
 		const [[listingComment]] = await Promise.all([
 			query(`
@@ -63,7 +63,7 @@ async function comment(this: APIThisType, {id, comment, format}: commentProps) :
 
 	await this.query('v1/notification/create', {
 		id: listingCommentId,
-		type: constants.notification.types.listingComment
+		type: constants.notification.types.listingComment,
 	});
 }
 
@@ -85,12 +85,12 @@ comment.apiTypes = {
 		includes: ['markdown', 'bbcode', 'plaintext'],
 		required: true,
 	},
-}
+};
 
 type commentProps = {
 	id: number
 	comment: string
 	format: MarkupStyleType
-}
+};
 
 export default comment;

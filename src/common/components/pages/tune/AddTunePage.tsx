@@ -17,6 +17,6 @@ const AddTunePage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
 export default AddTunePage;

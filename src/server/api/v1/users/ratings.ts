@@ -4,7 +4,7 @@ import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
 import { APIThisType, UserRatingType } from '@types';
 
-async function ratings(this: APIThisType, {id}: ratingsProps) : Promise<UserRatingType>
+async function ratings(this: APIThisType, { id }: ratingsProps): Promise<UserRatingType>
 {
 	const currentUser = this.userId === id;
 	let useTradingPostPerm = true, useFriendCodesPerm = true, scoutPagesPerm = true, viewShopsPerm = true;
@@ -12,10 +12,10 @@ async function ratings(this: APIThisType, {id}: ratingsProps) : Promise<UserRati
 	if (!currentUser)
 	{
 		[useTradingPostPerm, useFriendCodesPerm, scoutPagesPerm, viewShopsPerm] = await Promise.all([
-			this.query('v1/permission', {permission: 'use-trading-post'}),
-			this.query('v1/permission', {permission: 'use-friend-codes'}),
-			this.query('v1/permission', {permission: 'scout-pages'}),
-			this.query('v1/permission', {permission: 'view-shops'}),
+			this.query('v1/permission', { permission: 'use-trading-post' }),
+			this.query('v1/permission', { permission: 'use-friend-codes' }),
+			this.query('v1/permission', { permission: 'scout-pages' }),
+			this.query('v1/permission', { permission: 'view-shops' }),
 		]);
 
 		if (!(useTradingPostPerm || useFriendCodesPerm || scoutPagesPerm || viewShopsPerm))
@@ -30,7 +30,7 @@ async function ratings(this: APIThisType, {id}: ratingsProps) : Promise<UserRati
 		[positiveWifiRatings], [neutralWifiRatings], [negativeWifiRatings],
 		[positiveTradeRatings], [neutralTradeRatings], [negativeTradeRatings],
 		[positiveScoutRatings], [neutralScoutRatings], [negativeScoutRatings],
-		[positiveShopRatings], [neutralShopRatings], [negativeShopRatings]
+		[positiveShopRatings], [neutralShopRatings], [negativeShopRatings],
 	] = await Promise.all([
 		db.query(`
 			SELECT count(*) AS count
@@ -116,10 +116,10 @@ ratings.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type ratingsProps = {
 	id: number
-}
+};
 
 export default ratings;

@@ -11,7 +11,7 @@ const Confirm = ({
 	message,
 	defaultSubmitImage,
 	imageTitle,
-	updateFunction
+	updateFunction,
 }: ConfirmProps) =>
 {
 	return (
@@ -22,10 +22,10 @@ const Confirm = ({
 			submitButtonLabel={label}
 			submitButtonBody={
 				<>
-				{id && (
-					<input type='hidden' name='id' value={id} />
-				)}
-				{additionalBody && additionalBody}
+					{id &&
+						<input type='hidden' name='id' value={id} />
+					}
+					{additionalBody && additionalBody}
 				</>
 			}
 			openButtonLabel={label}
@@ -36,7 +36,7 @@ const Confirm = ({
 			{message}
 		</Modal>
 	);
-}
+};
 
 type ConfirmProps = {
 	action: string

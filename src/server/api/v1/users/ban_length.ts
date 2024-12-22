@@ -6,11 +6,11 @@ import { APIThisType, BanLengthType } from '@types';
 /*
  * Fetches information about current ban length.
  */
-async function ban_length(this: APIThisType, {id}: banLengthProps) : Promise<BanLengthType|null>
+async function ban_length(this: APIThisType, { id }: banLengthProps): Promise<BanLengthType | null>
 {
 	if (id !== this.userId)
 	{
-		const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+		const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 		if (!permissionGranted)
 		{
@@ -42,10 +42,10 @@ ban_length.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type banLengthProps = {
 	id: number
-}
+};
 
 export default ban_length;

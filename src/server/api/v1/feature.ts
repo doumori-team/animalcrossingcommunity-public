@@ -4,7 +4,7 @@ import * as APITypes from '@apiTypes';
 import { dateUtils, constants } from '@utils';
 import { APIThisType, FeatureType } from '@types';
 
-async function feature(this: APIThisType, {id}: featureProps) : Promise<FeatureType>
+async function feature(this: APIThisType, { id }: featureProps): Promise<FeatureType>
 {
 	if (!this.userId)
 	{
@@ -34,8 +34,8 @@ async function feature(this: APIThisType, {id}: featureProps) : Promise<FeatureT
 			LEFT JOIN feature_category ON feature.category_id = feature_category.id
 			WHERE feature.id = $1::int
 		`, id),
-		this.query('v1/permission', {permission: 'advanced-features'}),
-		this.query('v1/user_lite', {id: this.userId}),
+		this.query('v1/permission', { permission: 'advanced-features' }),
+		this.query('v1/user_lite', { id: this.userId }),
 	]);
 
 	if (!feature)
@@ -55,7 +55,7 @@ async function feature(this: APIThisType, {id}: featureProps) : Promise<FeatureT
 			WHERE feature_id = $1::int
 			ORDER BY created ASC
 		`, feature.id),
-		feature.created_user_id ? this.query('v1/user_lite', {id: feature.created_user_id}) : null,
+		feature.created_user_id ? this.query('v1/user_lite', { id: feature.created_user_id }) : null,
 		db.query(`
 			SELECT feature_id
 			FROM followed_feature
@@ -68,15 +68,15 @@ async function feature(this: APIThisType, {id}: featureProps) : Promise<FeatureT
 		`, feature.id),
 		this.query('v1/notification/destroy', {
 			id: feature.id,
-			type: constants.notification.types.followFeature
+			type: constants.notification.types.followFeature,
 		}),
 		this.query('v1/notification/destroy', {
 			id: feature.id,
-			type: constants.notification.types.feature
+			type: constants.notification.types.feature,
 		}),
 		this.query('v1/notification/destroy', {
 			id: feature.id,
-			type: constants.notification.types.featurePost
+			type: constants.notification.types.featurePost,
 		}),
 	]);
 
@@ -94,10 +94,11 @@ async function feature(this: APIThisType, {id}: featureProps) : Promise<FeatureT
 		readOnly: feature.read_only,
 		user: createdUser,
 		formattedCreated: dateUtils.formatDateTime(feature.created),
-		messages: await Promise.all(messages.filter((m:any) => advancedPermission || !m.staff_only).map(async (message:any) => {
+		messages: await Promise.all(messages.filter((m: any) => advancedPermission || !m.staff_only).map(async (message: any) =>
+		{
 			return {
 				id: message.id,
-				user: await this.query('v1/user_lite', {id: message.user_id}),
+				user: await this.query('v1/user_lite', { id: message.user_id }),
 				formattedDate: dateUtils.formatDateTime(message.created),
 				message: message.message,
 				staffOnly: message.staff_only,
@@ -108,9 +109,9 @@ async function feature(this: APIThisType, {id}: featureProps) : Promise<FeatureT
 		staffDescription: advancedPermission ? feature.staff_description : null,
 		staffDescriptionFormat: advancedPermission ? feature.staff_description_format : null,
 		assignedUsers: advancedPermission ? await Promise.all(
-			users.map(async (user:any) => await this.query('v1/user_lite', {id: user.user_id})),
+			users.map(async (user: any) => await this.query('v1/user_lite', { id: user.user_id })),
 		) : [],
-		claimed: users.some((u:any) => u.user_id === this.userId),
+		claimed: users.some((u: any) => u.user_id === this.userId),
 	};
 }
 
@@ -119,10 +120,10 @@ feature.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type featureProps = {
 	id: number
-}
+};
 
 export default feature;

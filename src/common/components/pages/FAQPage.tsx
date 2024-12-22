@@ -57,7 +57,7 @@ const FAQPage = () =>
 				</div>
 				<div id='banned-account'>
 					<h3>My account has been banned; what can I do?</h3>
-					<p>You should have received an email explaining why you were banned from our site. If the notification email was not detailed enough or you didn't receive it (often due to spam settings on your email account), you may email site support at <a href={"mailto:support@animalcrossingcommunity.com"}>support@animalcrossingcommunity.com</a> to inquire further. Do not create another account to ask on the boards or in PTs. A person's account status is not open for public discussion or debate.</p>
+					<p>You should have received an email explaining why you were banned from our site. If the notification email was not detailed enough or you didn't receive it (often due to spam settings on your email account), you may email site support at <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a> to inquire further. Do not create another account to ask on the boards or in PTs. A person's account status is not open for public discussion or debate.</p>
 				</div>
 				<div id='guessed-password'>
 					<h3>I suspect someone may have guessed my password; what should I do?</h3>
@@ -156,6 +156,6 @@ const FAQPage = () =>
 			</ContentBox>
 		</div>
 	);
-}
+};
 
 export default FAQPage;

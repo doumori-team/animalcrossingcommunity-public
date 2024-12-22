@@ -51,6 +51,6 @@ const AdminHomePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
 export default AdminHomePage;

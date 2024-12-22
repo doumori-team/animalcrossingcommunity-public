@@ -9,7 +9,7 @@ import { APIThisType, UserAvatarsType } from '@types';
 
 const AvatarPage = () =>
 {
-	const {totalCount, avatars, page, pageSize} = useLoaderData() as AvatarPageProps;
+	const { totalCount, avatars, page, pageSize } = useLoaderData() as AvatarPageProps;
 
 	return (
 		<div className='AvatarPage'>
@@ -49,7 +49,7 @@ const AvatarPage = () =>
 									background={avatar.background}
 									coloration={avatar.coloration}
 								/>
-							</div>
+							</div>,
 						)}
 					</Grid>
 
@@ -63,9 +63,9 @@ const AvatarPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page}: {page?: string}) : Promise<AvatarPageProps>
+export async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<AvatarPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/users/avatars', {
@@ -86,6 +86,6 @@ type AvatarPageProps = {
 	totalCount: UserAvatarsType['count']
 	page: UserAvatarsType['page']
 	pageSize: UserAvatarsType['pageSize']
-}
+};
 
 export default AvatarPage;

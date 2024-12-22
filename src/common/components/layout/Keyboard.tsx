@@ -4,20 +4,21 @@ import { utils, constants } from '@utils';
 
 const Keyboard = ({
 	name,
-	gameId
+	gameId,
 }: KeyboardProps) =>
 {
 	if (!name.includes('[') &&
-		((gameId === constants.gameIds.ACGC && !name.includes(' ')) || gameId !== constants.gameIds.ACGC))
+		(gameId === constants.gameIds.ACGC && !name.includes(' ') || gameId !== constants.gameIds.ACGC))
 	{
 		return (
 			name
 		);
 	}
 
-	let decodedName:string[] = [], decodedChar = '', middle = false;
+	let decodedName: string[] = [], decodedChar = '', middle = false;
 
-	name.split('').map(char => {
+	name.split('').map(char =>
+	{
 		if (char === ' ' && gameId === constants.gameIds.ACGC)
 		{
 			decodedName.push(decodeKeyboard('D0'));
@@ -40,10 +41,11 @@ const Keyboard = ({
 		{
 			decodedName.push(char);
 		}
-	})
+	});
 
 	return (
-		decodedName.map((char, index) => {
+		decodedName.map((char, index) =>
+		{
 			if (char.includes('.png'))
 			{
 				return <img key={index} src={`${constants.AWS_URL}/images/keyboard/` + char} alt='Icon' />;
@@ -54,9 +56,9 @@ const Keyboard = ({
 			}
 		})
 	);
-}
+};
 
-function decodeKeyboard(keyboard: string) : string
+function decodeKeyboard(keyboard: string): string
 {
 	let key = '';
 

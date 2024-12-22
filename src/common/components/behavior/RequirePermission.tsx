@@ -12,28 +12,28 @@ import { PermissionsContext } from '@contexts';
 const RequirePermission = ({
 	permission,
 	silent = false,
-	children
+	children,
 }: RequirePermissionProps) =>
 {
-    return (
-        <PermissionsContext.Consumer>
-            {permissions =>
-                {
-                    if (permissions.indexOf(permission) === -1)
-                    {
-                        return silent || (
-                            <ErrorMessage identifier='permission' />
-                        );
-                    }
-                    else
-                    {
-                        return children;
-                    }
-                }
-            }
-        </PermissionsContext.Consumer>
-    );
-}
+	return (
+		<PermissionsContext.Consumer>
+			{permissions =>
+			{
+				if (permissions.indexOf(permission) === -1)
+				{
+					return silent ||
+						<ErrorMessage identifier='permission' />
+					;
+				}
+				else
+				{
+					return children;
+				}
+			}
+			}
+		</PermissionsContext.Consumer>
+	);
+};
 
 type RequirePermissionProps = {
 	permission: string

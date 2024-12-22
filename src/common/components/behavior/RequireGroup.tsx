@@ -13,31 +13,32 @@ import { constants } from '@utils';
 const RequireGroup = ({
 	group,
 	silent = false,
-	children
+	children,
 }: RequireGroupProps) =>
 {
-    return (
-        <UserContext.Consumer>
-            {user => {
-                if (!user && group != constants.groupIdentifiers.anonymous)
-                {
-                    return silent || (
-                        <ErrorMessage identifier='permission' />
-                    );
-                }
+	return (
+		<UserContext.Consumer>
+			{user =>
+			{
+				if (!user && group !== constants.groupIdentifiers.anonymous)
+				{
+					return silent ||
+						<ErrorMessage identifier='permission' />
+					;
+				}
 
-                if (user?.group.identifier === group || (!user && group === constants.groupIdentifiers.anonymous))
-                {
-                    return children;
-                }
+				if (user?.group.identifier === group || !user && group === constants.groupIdentifiers.anonymous)
+				{
+					return children;
+				}
 
-                return silent || (
-                    <ErrorMessage identifier='permission' />
-                );
-            }}
-        </UserContext.Consumer>
-    );
-}
+				return silent ||
+					<ErrorMessage identifier='permission' />
+				;
+			}}
+		</UserContext.Consumer>
+	);
+};
 
 type RequireGroupProps = {
 	group: string

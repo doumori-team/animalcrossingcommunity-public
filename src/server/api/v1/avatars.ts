@@ -7,7 +7,7 @@ import { APIThisType, AvatarsType, DataBackgroundType, DataAccentType, DataChara
 /*
  * Gets available avatars for user.
  */
-export default async function avatars(this: APIThisType) : Promise<AvatarsType>
+export default async function avatars(this: APIThisType): Promise<AvatarsType>
 {
 	if (!this.userId)
 	{
@@ -79,12 +79,12 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 		`),
 	]);
 
-	const mappedPerms = grantedPerms.map((p:any) => p.identifier);
-	const mappedBellShopRedeemedItems = bellShopRedeemedItems.map((i:any) => i.item_id);
+	const mappedPerms = grantedPerms.map((p: any) => p.identifier);
+	const mappedBellShopRedeemedItems = bellShopRedeemedItems.map((i: any) => i.item_id);
 
-	const avatarBackgrounds:DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarBackgrounds);
-	const sortedBellShopItems:BellShopItemsType = await ACCCache.get(constants.cacheKeys.sortedBellShopItems);
-	const bellShopCategories:BellShopCategoryType[] = await ACCCache.get(constants.cacheKeys.bellShopCategories);
+	const avatarBackgrounds: DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarBackgrounds);
+	const sortedBellShopItems: BellShopItemsType = await ACCCache.get(constants.cacheKeys.sortedBellShopItems);
+	const bellShopCategories: BellShopCategoryType[] = await ACCCache.get(constants.cacheKeys.bellShopCategories);
 
 	const bellShopBackgroundCategory = bellShopCategories.find(c => c.name === constants.bellShop.categories.avatarBackgrounds);
 
@@ -92,20 +92,21 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.background_ids : [],
 		mappedBellShopRedeemedItems.length > 0 && bellShopBackgroundCategory != null ? sortedBellShopItems[bellShopBackgroundCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae:any) => ae.background_ids).flat() : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.background_ids).flat() : [],
 		avatarBackgrounds,
-		(bg:DataBackgroundType) => {
+		(bg: DataBackgroundType) =>
+		{
 			return {
 				id: bg.id,
 				name: bg.name,
 				image: bg.image,
 				colorable: bg.colorable,
-				tags: bg.tags
+				tags: bg.tags,
 			};
 		},
 	);
 
-	const avatarCharacters:DataCharacterType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarCharacters);
+	const avatarCharacters: DataCharacterType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarCharacters);
 
 	const bellShopCharacterCategory = bellShopCategories.find(c => c.name === constants.bellShop.categories.avatarCharacters);
 
@@ -113,19 +114,20 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.character_ids : [],
 		mappedBellShopRedeemedItems.length > 0 && bellShopCharacterCategory != null ? sortedBellShopItems[bellShopCharacterCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae:any) => ae.character_ids).flat() : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.character_ids).flat() : [],
 		avatarCharacters,
-		(character:DataCharacterType) => {
+		(character: DataCharacterType) =>
+		{
 			return {
 				id: character.id,
 				name: character.name,
 				image: character.image,
-				tags: character.tags
+				tags: character.tags,
 			};
 		},
 	);
 
-	const avatarAccents:DataAccentType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarAccents);
+	const avatarAccents: DataAccentType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarAccents);
 
 	const bellShopAccentCategory = bellShopCategories.find(c => c.name === constants.bellShop.categories.avatarAccents);
 
@@ -133,21 +135,22 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.accent_ids : [],
 		mappedBellShopRedeemedItems.length > 0 && bellShopAccentCategory != null ? sortedBellShopItems[bellShopAccentCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae:any) => ae.accent_ids).flat() : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.accent_ids).flat() : [],
 		avatarAccents,
-		(accent:DataAccentType) => {
+		(accent: DataAccentType) =>
+		{
 			return {
 				id: accent.id,
 				name: accent.name,
 				image: accent.image,
 				positionable: accent.positionable,
 				zIndex: accent.zIndex,
-				tags: accent.tags
+				tags: accent.tags,
 			};
 		},
 	);
 
-	const avatarColorations:DataColorationType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarColorations);
+	const avatarColorations: DataColorationType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarColorations);
 
 	const bellShopColorationCategory = bellShopCategories.find(c => c.name === constants.bellShop.categories.backgroundColorations);
 
@@ -155,30 +158,32 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.coloration_ids : [],
 		mappedBellShopRedeemedItems.length > 0 && bellShopColorationCategory != null ? sortedBellShopItems[bellShopColorationCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae:any) => ae.coloration_ids).flat() : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.coloration_ids).flat() : [],
 		avatarColorations,
-		(coloration:DataColorationType) => {
+		(coloration: DataColorationType) =>
+		{
 			return {
 				id: coloration.id,
 				name: coloration.name,
-				css: coloration.css
+				css: coloration.css,
 			};
 		},
 	);
 
-	let characterTags:AvatarsType['tags']['characterTags'] = [], accentTags:AvatarsType['tags']['accentTags'] = [], backgroundTags:AvatarsType['tags']['backgroundTags'] = [];
+	let characterTags: AvatarsType['tags']['characterTags'] = [], accentTags: AvatarsType['tags']['accentTags'] = [], backgroundTags: AvatarsType['tags']['backgroundTags'] = [];
 	const usedTags = [...new Set([...availableBackgrounds.usedTags, ...availableCharacters.usedTags, ...availableAccents.usedTags])];
 
 	const avatarTags = await ACCCache.get(constants.cacheKeys.avatarTags);
 
-	avatarTags.forEach((tag:DataTagType) => {
+	avatarTags.forEach((tag: DataTagType) =>
+	{
 		if (usedTags.includes(tag.id))
 		{
 			if (tag.forCharacter)
 			{
 				characterTags.push({
 					id: tag.id,
-					name: tag.name
+					name: tag.name,
 				});
 			}
 
@@ -186,7 +191,7 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 			{
 				accentTags.push({
 					id: tag.id,
-					name: tag.name
+					name: tag.name,
 				});
 			}
 
@@ -194,7 +199,7 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 			{
 				backgroundTags.push({
 					id: tag.id,
-					name: tag.name
+					name: tag.name,
 				});
 			}
 		}
@@ -205,23 +210,23 @@ export default async function avatars(this: APIThisType) : Promise<AvatarsType>
 		accents: availableAccents.available,
 		characters: availableCharacters.available,
 		colorations: availableColorations.available,
-		tags: {characterTags, accentTags, backgroundTags},
-	}
+		tags: { characterTags, accentTags, backgroundTags },
+	};
 }
 
 /*
  * Get those avatars of each type that the user has access to.
  */
-function getAvailableAvatars(grantedPerms:string[], grantedAvatarPerms:number[], bellShopRedeemedItems:number[], availableIdsEvents:number[], avatarTypes:DataBackgroundType[]|DataCharacterType[]|DataAccentType[]|DataColorationType[], transformFunc:Function)
+function getAvailableAvatars(grantedPerms: string[], grantedAvatarPerms: number[], bellShopRedeemedItems: number[], availableIdsEvents: number[], avatarTypes: DataBackgroundType[] | DataCharacterType[] | DataAccentType[] | DataColorationType[], transformFunc: Function)
 {
-	let available:DataBackgroundType[]|DataCharacterType[]|DataAccentType[]|DataColorationType[] = [], usedTags:string[] = [];
+	let available: DataBackgroundType[] | DataCharacterType[] | DataAccentType[] | DataColorationType[] = [], usedTags: string[] = [];
 
 	for (const key in avatarTypes)
 	{
 		const at = avatarTypes[key];
 		let checkDateRestricted = false, isAvailable = false;
 
-		if (at.hasOwnProperty('permissions') && at.permissions != null)
+		if (Object.prototype.hasOwnProperty.call(at, 'permissions') && at.permissions)
 		{
 			if (at.permissions.some(p => grantedPerms.includes(p)))
 			{
@@ -272,12 +277,12 @@ function getAvailableAvatars(grantedPerms:string[], grantedAvatarPerms:number[],
 		{
 			available.push(transformFunc(at));
 
-			if (at.hasOwnProperty('tags'))
+			if (Object.prototype.hasOwnProperty.call(at, 'tags'))
 			{
-				usedTags = [...new Set([...usedTags, ...(at as DataBackgroundType|DataCharacterType|DataAccentType).tags])];
+				usedTags = [...new Set([...usedTags, ...(at as DataBackgroundType | DataCharacterType | DataAccentType).tags])];
 			}
 		}
 	}
 
-	return {available, usedTags};
+	return { available, usedTags };
 }

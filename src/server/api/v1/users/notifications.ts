@@ -3,18 +3,18 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserNotificationsType } from '@types';
 
-async function notifications(this: APIThisType, {page, sortBy}: notificationsProps) : Promise<UserNotificationsType>
+async function notifications(this: APIThisType, { page, sortBy }: notificationsProps): Promise<UserNotificationsType>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	// Perform queries
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
 	let query = `
 		SELECT notification.id
@@ -52,16 +52,18 @@ async function notifications(this: APIThisType, {page, sortBy}: notificationsPro
 	]);
 
 	const [results, globalResults] = await Promise.all([
-		Promise.all(notifications.map(async(notification:any) => {
-			return await this.query('v1/notification', {id: notification.id});
+		Promise.all(notifications.map(async(notification: any) =>
+		{
+			return await this.query('v1/notification', { id: notification.id });
 		})),
-		Promise.all(globalNotifications.map(async(notification:any) => {
-			return await this.query('v1/global_notification', {id: notification.id});
+		Promise.all(globalNotifications.map(async(notification: any) =>
+		{
+			return await this.query('v1/global_notification', { id: notification.id });
 		})),
 	]);
 
 	return <UserNotificationsType>{
-		userNotifications: results.filter(notification => notification !== null).slice(offset, offset+pageSize),
+		userNotifications: results.filter(notification => notification !== null).slice(offset, offset + pageSize),
 		globalNotifications: globalResults,
 		page: page,
 		pageSize: pageSize,
@@ -81,11 +83,11 @@ notifications.apiTypes = {
 		includes: ['category', 'notified'],
 		default: 'notified',
 	},
-}
+};
 
 type notificationsProps = {
 	page: number
 	sortBy: 'category' | 'notified'
-}
+};
 
 export default notifications;

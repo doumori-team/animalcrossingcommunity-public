@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function restore(this: APIThisType, {id}: restoreProps) : Promise<void>
+async function restore(this: APIThisType, { id }: restoreProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -24,7 +24,7 @@ async function restore(this: APIThisType, {id}: restoreProps) : Promise<void>
 		throw new UserError('invalid-rule-restore');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -51,10 +51,10 @@ restore.apiTypes = {
 		type: APITypes.ruleId,
 		required: true,
 	},
-}
+};
 
 type restoreProps = {
 	id: number
-}
+};
 
 export default restore;

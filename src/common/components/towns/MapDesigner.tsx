@@ -15,11 +15,11 @@ const MapDesigner = ({
 	height,
 	cursorData,
 	flipData,
-	imageData
+	imageData,
 }: MapDesignerProps) =>
 {
 	// initialize 2D array used for storing colors used on canvas in X, Y positions
-	let initialFormData:any = [], initialCursorFormData:any = [], initialFlipFormData:any = [], initialImageFormData:any = [];
+	let initialFormData: any = [], initialCursorFormData: any = [], initialFlipFormData: any = [], initialImageFormData: any = [];
 
 	for (let i = 0; i < width; i++)
 	{
@@ -68,13 +68,13 @@ const MapDesigner = ({
 		initialPaletteInterfaces[i] = {
 			border: '',
 			backgroundColor: '',
-		}
+		};
 	}
 
 	// figure out what is needed when adding image to array
-	const getImage = (imageName:string) : any =>
+	const getImage = (imageName: string): any =>
 	{
-		let image:any = new Image();
+		let image: any = new Image();
 		image.src = '/images/maps/acnh/' + imageName + '.png';
 
 		image.data = {
@@ -83,7 +83,7 @@ const MapDesigner = ({
 		};
 
 		return image;
-	}
+	};
 
 	let imageArray = [...initialImageFormData];
 
@@ -109,8 +109,8 @@ const MapDesigner = ({
 	const [activePaletteId, setActivePaletteId] = useState<number>(0);
 	const [formData, setFormData] = useState<any>(initialFormData);
 	const [cursor, setCursor] = useState<string>('rect');
-	const [draggingImageX, setDraggingImageX] = useState<number|null>(null);
-	const [draggingImageY, setDraggingImageY] = useState<number|null>(null);
+	const [draggingImageX, setDraggingImageX] = useState<number | null>(null);
+	const [draggingImageY, setDraggingImageY] = useState<number | null>(null);
 	const [scale, setScale] = useState<number>(1);
 	const [cursorFormData, setCursorFormData] = useState<any>(initialCursorFormData);
 	const [imageFormData, setImageFormData] = useState<any>(imageArray);
@@ -126,7 +126,8 @@ const MapDesigner = ({
 	const mapInterface = useRef<any>();
 	const didMount = useRef<any>();
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		let initialScale = 1;
 
 		if (mapInterface.current.dataset.scale)
@@ -142,14 +143,15 @@ const MapDesigner = ({
 		setScale(initialScale);
 	}, []);
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).scale)
 		{
 			(didMount as any).scale = true;
 			return;
 		}
 
-		drawMap(true, 0, 0, width-1, height-1);
+		drawMap(true, 0, 0, width - 1, height - 1);
 
 		// load the image on canvas
 		// we always drawImages AFTER drawMap
@@ -163,25 +165,26 @@ const MapDesigner = ({
 
 					if (image !== constants.town.noImageId)
 					{
-						image.onload = () => {
+						image.onload = () =>
+						{
 							drawImage(image, image.x, image.y);
-						}
+						};
 					}
 				}
 			}
 		}
-	}, [scale])
+	}, [scale]);
 
-	const editIfDrawing = (e:any) : void =>
+	const editIfDrawing = (e: any): void =>
 	{
 		if (currentlyDrawing || currentlyDragging)
 		{
 			editMap(e);
 		}
-	}
+	};
 
 	// Changes the color of the 'pixel' indicated.
-	const editMap = (e:any) : void =>
+	const editMap = (e: any): void =>
 	{
 		const pos = getCursorPosition(e, mapInterface.current);
 
@@ -255,9 +258,10 @@ const MapDesigner = ({
 			setPosY(posy);
 			setFormData(dataArray);
 		}
-	}
+	};
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).formData)
 		{
 			(didMount as any).formData = true;
@@ -267,13 +271,13 @@ const MapDesigner = ({
 		drawMap(true, posX, posY, posX, posY);
 	}, [formData]);
 
-	const stopDrawing = () : void =>
+	const stopDrawing = (): void =>
 	{
 		// clear the canvas of grid to save prettified map
 		clearCanvas(mapInterface.current, 0, 0, width, height);
 
-		drawMap(false, 0, 0, width-1, height-1);
-		drawImages(0, 0, width-1, height-1);
+		drawMap(false, 0, 0, width - 1, height - 1);
+		drawImages(0, 0, width - 1, height - 1);
 
 		setCurrentlyDrawing(false);
 		setCurrentlyDragging(false);
@@ -281,11 +285,11 @@ const MapDesigner = ({
 		setDraggingImageY(null);
 		setDataUrl(mapInterface.current.toDataURL());
 
-		drawMap(true, 0, 0, width-1, height-1);
-		drawImages(0, 0, width-1, height-1);
-	}
+		drawMap(true, 0, 0, width - 1, height - 1);
+		drawImages(0, 0, width - 1, height - 1);
+	};
 
-	const startDrawing = (e:any) : void =>
+	const startDrawing = (e: any): void =>
 	{
 		// are we moving an image?
 		const pos = getCursorPosition(e, mapInterface.current);
@@ -317,9 +321,9 @@ const MapDesigner = ({
 					// detect whether the mouse is inside the image boundaries
 					if (
 						posx >= x &&
-						posx <= (x + Math.floor(image.data.width / scale)) &&
+						posx <= x + Math.floor(image.data.width / scale) &&
 						posy >= y &&
-						posy <= (y + Math.floor(image.data.height / scale))
+						posy <= y + Math.floor(image.data.height / scale)
 					)
 					{
 						draggingImageX = x;
@@ -341,10 +345,10 @@ const MapDesigner = ({
 		{
 			setCurrentlyDrawing(true);
 		}
-	}
+	};
 
 	// Changes the active palette color to the one clicked on.
-	const changeDrawingColor = (index:number) : void =>
+	const changeDrawingColor = (index: number): void =>
 	{
 		const oldColorIndex = activePaletteId;
 
@@ -357,12 +361,12 @@ const MapDesigner = ({
 
 		drawPalette(oldColorIndex);
 		drawPalette(index);
-	}
+	};
 
 	// Draws one of the colors of the palette on the appropriate canvas.
-	const drawPalette = (index:number) : void =>
+	const drawPalette = (index: number): void =>
 	{
-		let rgb:string = colors[palette[index]];
+		let rgb: string = colors[palette[index]];
 
 		let newPaletteInterfaces = [...paletteInterfaces];
 
@@ -377,10 +381,10 @@ const MapDesigner = ({
 		newPaletteInterfaces[index].border = '1px solid ' + rgb;
 
 		setPaletteInterfaces(newPaletteInterfaces);
-	}
+	};
 
 	// Draws the map on the canvas
-	const drawMap = (drawGrid:boolean, x1:number, y1:number, x2:number, y2:number) : void =>
+	const drawMap = (drawGrid: boolean, x1: number, y1: number, x2: number, y2: number): void =>
 	{
 		const canvas = mapInterface.current;
 
@@ -441,10 +445,10 @@ const MapDesigner = ({
 				}
 			}
 		}
-	}
+	};
 
 	// Clears the contents of a canvas.
-	const clearCanvas = (canvas:any, x1:number, y1:number, x2:number, y2:number) : void =>
+	const clearCanvas = (canvas: any, x1: number, y1: number, x2: number, y2: number): void =>
 	{
 		x1 *= scale;
 		y1 *= scale;
@@ -455,15 +459,15 @@ const MapDesigner = ({
 		const width = x2 - x1 + 1;
 
 		canvas.getContext('2d').clearRect(x1, y1, width, height);
-	}
+	};
 
 	// draw a line at x, y position along the grid
-	const drawLine = (canvas:any, x:number, y:number) : void =>
+	const drawLine = (canvas: any, x: number, y: number): void =>
 	{
-		const xCalc = x+1;
-		const yCalc = y+1;
-		const xPos = x*scale;
-		const yPos = y*scale;
+		const xCalc = x + 1;
+		const yCalc = y + 1;
+		const xPos = x * scale;
+		const yPos = y * scale;
 		const color = '#ff0000';
 		const lineWidth = 1.2;
 
@@ -472,8 +476,8 @@ const MapDesigner = ({
 		if (xCalc % gridLength === 0 && xCalc !== width)
 		{
 			context.beginPath();
-			context.moveTo(xPos+scale, yPos);
-			context.lineTo(xPos+scale, yPos+scale);
+			context.moveTo(xPos + scale, yPos);
+			context.lineTo(xPos + scale, yPos + scale);
 			context.lineWidth = lineWidth;
 			context.strokeStyle = color;
 			context.stroke();
@@ -482,16 +486,16 @@ const MapDesigner = ({
 		if (yCalc % gridLength === 0 && yCalc !== height)
 		{
 			context.beginPath();
-			context.moveTo(xPos+scale, yPos+scale);
-			context.lineTo(xPos, yPos+scale);
+			context.moveTo(xPos + scale, yPos + scale);
+			context.lineTo(xPos, yPos + scale);
 			context.lineWidth = lineWidth;
 			context.strokeStyle = color;
 			context.stroke();
 		}
-	}
+	};
 
 	// Draws a one-unit square on a canvas.
-	const drawScaledSquare = (canvas:any, x:number, y:number, fillColor:string, borderColor:string|boolean, fillType:string) : void =>
+	const drawScaledSquare = (canvas: any, x: number, y: number, fillColor: string, borderColor: string | boolean, fillType: string): void =>
 	{
 		x *= scale;
 		y *= scale;
@@ -514,26 +518,26 @@ const MapDesigner = ({
 				if (fillType === constants.town.rectTypes[2].value) // top-right
 				{
 					context.moveTo(x, y);
-					context.lineTo(x+scale, y);
-					context.lineTo(x+scale, y+scale);
+					context.lineTo(x + scale, y);
+					context.lineTo(x + scale, y + scale);
 				}
 				else if (fillType === constants.town.rectTypes[4].value) // bottom-right
 				{
-					context.moveTo(x+scale, y);
-					context.lineTo(x+scale, y+scale);
-					context.lineTo(x, y+scale);
+					context.moveTo(x + scale, y);
+					context.lineTo(x + scale, y + scale);
+					context.lineTo(x, y + scale);
 				}
 				else if (fillType === constants.town.rectTypes[3].value) // bottom-left
 				{
 					context.moveTo(x, y);
-					context.lineTo(x, y+scale);
-					context.lineTo(x+scale, y+scale);
+					context.lineTo(x, y + scale);
+					context.lineTo(x + scale, y + scale);
 				}
 				else if (fillType === constants.town.rectTypes[5].value) // top-left
 				{
 					context.moveTo(x, y);
-					context.lineTo(x+scale, y);
-					context.lineTo(x, y+scale);
+					context.lineTo(x + scale, y);
+					context.lineTo(x, y + scale);
 				}
 
 				context.closePath();
@@ -544,12 +548,12 @@ const MapDesigner = ({
 		if (borderColor)
 		{
 			context.strokeStyle = borderColor;
-			context.strokeRect(x+0.5, y+0.5, scale, scale);
+			context.strokeRect(x + 0.5, y + 0.5, scale, scale);
 		}
-	}
+	};
 
 	// Works out the coordinate indicated on a canvas, relative to the canvas' scale.
-	const getCursorPosition = (e:any, canvas:any) : [number, number]|boolean =>
+	const getCursorPosition = (e: any, canvas: any): [number, number] | boolean =>
 	{
 		let x, y;
 
@@ -563,14 +567,14 @@ const MapDesigner = ({
 			do
 			{
 				left += parent.offsetLeft;
-				top  += parent.offsetTop;
+				top += parent.offsetTop;
 			}
 			while (parent = parent.offsetParent);
 		}
 
 		const canvasOffset = [left, top];
 
-		if ((e.pageX != undefined) && (e.pageY != undefined))
+		if (e.pageX != undefined && e.pageY != undefined)
 		{
 			x = e.pageX;
 			y = e.pageY;
@@ -586,7 +590,7 @@ const MapDesigner = ({
 		y -= canvasOffset[1];
 
 		// now x and y are relative to top left corner of canvas
-		if ((x < 0) || (y < 0) || (x > canvas.width-1) || (y > canvas.height-1))
+		if (x < 0 || y < 0 || x > canvas.width - 1 || y > canvas.height - 1)
 		{
 			return false;
 		}
@@ -598,16 +602,16 @@ const MapDesigner = ({
 
 		// account for scale
 		return [x, y];
-	}
+	};
 
 	// draw that image on the canvas at x, y
-	const drawImage = (image:any, x:number, y:number) : void =>
+	const drawImage = (image: any, x: number, y: number): void =>
 	{
-		mapInterface.current.getContext('2d').drawImage(image, x*scale, y*scale, image.data.width, image.data.height);
-	}
+		mapInterface.current.getContext('2d').drawImage(image, x * scale, y * scale, image.data.width, image.data.height);
+	};
 
 	// re-draw images between positions
-	const drawImages = (x1:number, y1:number, x2:number, y2:number) : void =>
+	const drawImages = (x1: number, y1: number, x2: number, y2: number): void =>
 	{
 		for (let x = x1; x <= x2; x++)
 		{
@@ -621,10 +625,10 @@ const MapDesigner = ({
 				}
 			}
 		}
-	}
+	};
 
 	// add an image to the canvas
-	const addImage = () : void =>
+	const addImage = (): void =>
 	{
 		const image = getImage(curImageName);
 
@@ -633,24 +637,26 @@ const MapDesigner = ({
 
 		setImageFormData(imageArray);
 
-		image.onload = () => {
+		image.onload = () =>
+		{
 			drawImage(image, image.x, image.y);
-		}
-	}
+		};
+	};
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).allImagesChange)
 		{
 			(didMount as any).allImagesChange = true;
 			return;
 		}
 
-		drawMap(true, 0, 0, width-1, height-1);
-		drawImages(0, 0, width-1, height-1);
+		drawMap(true, 0, 0, width - 1, height - 1);
+		drawImages(0, 0, width - 1, height - 1);
 	}, [allImagesChange]);
 
 	// delete all images of that type from the canvas
-	const deleteAllImages = () : void =>
+	const deleteAllImages = (): void =>
 	{
 		let imageArray = [...imageFormData];
 
@@ -671,10 +677,11 @@ const MapDesigner = ({
 
 		setImageFormData(imageArray);
 		setAllImagesChange(Math.random());
-	}
+	};
 
 	const showRectTypes = Object.keys(constants.town.rectTypes)
-		.map(i => {
+		.map(i =>
+		{
 			return {
 				id: (constants.town.rectTypes as any)[i].value,
 				name: (constants.town.rectTypes as any)[i].name,
@@ -682,7 +689,8 @@ const MapDesigner = ({
 		});
 
 	const showImages = Object.keys(images)
-		.map(i => {
+		.map(i =>
+		{
 			const image = images[i];
 
 			return {
@@ -695,87 +703,87 @@ const MapDesigner = ({
 		});
 
 	return (
-	 (<div className='MapDesigner'>
-	  <div className='MapMakerPage_description'>
-		  To create a map of your island use the Paintbrush tool to emulate your in-game town map down to the fine details. You can also add images such as the airport, bridges, and more by clicking on the desired image, clicking "Add Image", and then dragging the image around the map.
-	  </div>
-	  <div className='MapDesigner_grid'>
-		  <canvas height='960' width='1120' ref={mapInterface}
-			  data-scale='10' onMouseMove={editIfDrawing}
-			  onMouseDown={startDrawing}
-			  onMouseUp={() => stopDrawing()}
-			  onMouseOut={() => stopDrawing()}
-			  onClick={editIfDrawing}
-			  className='MapDesigner_canvas'
-		  />
-		  <div className='MapPalette'>
-			  <h4 className='MapPalette_header'>
-				  Palette
-			  </h4>
-			  <div className='MapPaletter_palettes'>
-				  {[...Array(constants.town.numberOfColors).keys()].map(i =>
-					  <div key={`paletteInterface${i}`}
-						  onClick={() => changeDrawingColor(i)}
-						  className={i === activePaletteId ?
-							  `paletteInterface paletteInterface${i} selected` :
-							  `paletteInterface paletteInterface${i}`}
-						  style={{backgroundColor: paletteInterfaces[i].backgroundColor,
-							  border: paletteInterfaces[i].border}}
-					  />
-				  )}
-			  </div>
-			  <h4 className='MapPalette_header'>
-				  Paintbrush
-			  </h4>
-			  <Check
-				  options={showRectTypes}
-				  name='paintbrush'
-				  defaultValue={[showRectTypes.find(rt => rt.id === cursor)?.id]}
-				  onChangeHandler={(e:any) => setCursor(String(e.target.value))}
-				  label='Paintbrush'
-				  hideLabel
-			  />
-			  <div className='MapDesigner_imageSection'>
-				  <h4 className='MapPalette_header'>
-					  Images
-				  </h4>
-				  <Check
-					  options={showImages}
-					  name='icons'
-					  defaultValue={[curImageName]}
-					  onChangeHandler={(e:any) => setCurImageName(String(e.target.value))}
-					  imageLocation='maps/acnh'
-					  useImageFilename
-					  hideName
-					  label='Images'
-					  hideLabel
-				  />
-				  <Button
-					  clickHandler={() => addImage()}
-					  label='Add Image'
-				  />
-				  <Button
-					  clickHandler={() => deleteAllImages()}
-					  label='Delete All Of Image'
-				  />
-			  </div>
-		  </div>
-	  </div>
-	  <Form action='v1/town/map/designer/save' callback='/profile/:userId/towns' showButton>
-		  <input type='hidden' name='townId' value={townId} />
-		  <input type='hidden' name='data' value={formData.flat(2)} />
-		  <input type='hidden' name='dataUrl' value={dataUrl} />
-		  <input type='hidden' name='cursorData' value={cursorFormData.flat(2)} />
-		  <input type='hidden' name='flipData' value={flipFormData.flat(2)} />
-		  <input type='hidden' name='imageData'
-			  value={imageFormData.flat(2).map((image:any) =>
-				  !image.src ? image : image.src.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '')
-			  )}
-		  />
-	  </Form>
-	 </div>)
+		<div className='MapDesigner'>
+			<div className='MapMakerPage_description'>
+				To create a map of your island use the Paintbrush tool to emulate your in-game town map down to the fine details. You can also add images such as the airport, bridges, and more by clicking on the desired image, clicking "Add Image", and then dragging the image around the map.
+			</div>
+			<div className='MapDesigner_grid'>
+				<canvas height='960' width='1120' ref={mapInterface}
+					data-scale='10' onMouseMove={editIfDrawing}
+					onMouseDown={startDrawing}
+					onMouseUp={() => stopDrawing()}
+					onMouseOut={() => stopDrawing()}
+					onClick={editIfDrawing}
+					className='MapDesigner_canvas'
+				/>
+				<div className='MapPalette'>
+					<h4 className='MapPalette_header'>
+						Palette
+					</h4>
+					<div className='MapPaletter_palettes'>
+						{[...Array(constants.town.numberOfColors).keys()].map(i =>
+							<div key={`paletteInterface${i}`}
+								onClick={() => changeDrawingColor(i)}
+								className={i === activePaletteId ?
+									`paletteInterface paletteInterface${i} selected` :
+									`paletteInterface paletteInterface${i}`}
+								style={{ backgroundColor: paletteInterfaces[i].backgroundColor,
+									border: paletteInterfaces[i].border }}
+							/>,
+						)}
+					</div>
+					<h4 className='MapPalette_header'>
+						Paintbrush
+					</h4>
+					<Check
+						options={showRectTypes}
+						name='paintbrush'
+						defaultValue={[showRectTypes.find(rt => rt.id === cursor)?.id]}
+						onChangeHandler={(e: any) => setCursor(String(e.target.value))}
+						label='Paintbrush'
+						hideLabel
+					/>
+					<div className='MapDesigner_imageSection'>
+						<h4 className='MapPalette_header'>
+							Images
+						</h4>
+						<Check
+							options={showImages}
+							name='icons'
+							defaultValue={[curImageName]}
+							onChangeHandler={(e: any) => setCurImageName(String(e.target.value))}
+							imageLocation='maps/acnh'
+							useImageFilename
+							hideName
+							label='Images'
+							hideLabel
+						/>
+						<Button
+							clickHandler={() => addImage()}
+							label='Add Image'
+						/>
+						<Button
+							clickHandler={() => deleteAllImages()}
+							label='Delete All Of Image'
+						/>
+					</div>
+				</div>
+			</div>
+			<Form action='v1/town/map/designer/save' callback={`/profile/:userId/town/${townId}`} showButton>
+				<input type='hidden' name='townId' value={townId} />
+				<input type='hidden' name='data' value={formData.flat(2)} />
+				<input type='hidden' name='dataUrl' value={dataUrl} />
+				<input type='hidden' name='cursorData' value={cursorFormData.flat(2)} />
+				<input type='hidden' name='flipData' value={flipFormData.flat(2)} />
+				<input type='hidden' name='imageData'
+					value={imageFormData.flat(2).map((image: any) =>
+						!image.src ? image : image.src.replace(/^.*[\\/]/, '').replace(/\.[^/.]+$/, ''),
+					)}
+				/>
+			</Form>
+		</div>
 	);
-}
+};
 
 type MapDesignerProps = {
 	townId: number

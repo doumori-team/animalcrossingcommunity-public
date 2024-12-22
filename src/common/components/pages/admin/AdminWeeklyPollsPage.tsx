@@ -10,7 +10,7 @@ import { APIThisType, PollsType } from '@types';
 
 const AdminWeeklyPollsPage = () =>
 {
-	const {polls, totalCount, page, pageSize, type} = useLoaderData() as AdminWeeklyPollsPageProps;
+	const { polls, totalCount, page, pageSize, type } = useLoaderData() as AdminWeeklyPollsPageProps;
 
 	return (
 		<div className='AdminWeeklyPollsPage'>
@@ -34,12 +34,16 @@ const AdminWeeklyPollsPage = () =>
 				</Header>
 
 				<Section>
-					{polls.map(poll => {
+					{polls.map(poll =>
+					{
 						const status = !poll.isEnabled ? 'disabled' :
 							dateUtils.isAfterCurrentDateTimezone(poll.startDate) ? constants.pollTypes.upcoming :
-							dateUtils.isBeforeCurrentDateTimezone(poll.endDate) ? constants.pollTypes.previous :
-							'current';
-						const totalVotes = poll.options.reduce((acc, cur) => {return acc + cur.votes}, 0);
+								dateUtils.isBeforeCurrentDateTimezone(poll.endDate) ? constants.pollTypes.previous :
+									'current';
+						const totalVotes = poll.options.reduce((acc, cur) =>
+						{
+							return acc + cur.votes;
+						}, 0);
 
 						return (
 							<div key={poll.id} className={`PollAdmin_section PollAdmin_section-${status}`}>
@@ -48,7 +52,7 @@ const AdminWeeklyPollsPage = () =>
 										{poll.question}
 									</em>
 
-									{status !== constants.pollTypes.previous && (
+									{status !== constants.pollTypes.previous &&
 										<div className='PollQuestion_links'>
 											<Link to={`/admin/weekly-poll/${encodeURIComponent(poll.id)}/edit`}>
 												Edit
@@ -61,7 +65,7 @@ const AdminWeeklyPollsPage = () =>
 												id={poll.id}
 											/>
 										</div>
-									)}
+									}
 								</div>
 
 								{poll.description &&
@@ -84,18 +88,20 @@ const AdminWeeklyPollsPage = () =>
 										</li>
 										<li>
 											<strong>Total Votes:</strong>
-											{' '}{poll.options.reduce((acc, cur) => {
-												return acc + cur.votes
+											{' '}{poll.options.reduce((acc, cur) =>
+											{
+												return acc + cur.votes;
 											}, 0)}
 										</li>
 										<li>
 											<strong>Options:</strong>
-											{poll.options.map((option, index) => {
-												const proportion = (totalVotes > 0) ? option.votes/totalVotes : 0;
+											{poll.options.map((option, index) =>
+											{
+												const proportion = totalVotes > 0 ? option.votes / totalVotes : 0;
 
 												return (
 													<div key={index}>
-														<span>Option #{index+1}: {option.description} (Votes: {(proportion * 100).toFixed(1)}% ({option.votes}))</span>
+														<span>Option #{index + 1}: {option.description} (Votes: {(proportion * 100).toFixed(1)}% ({option.votes}))</span>
 													</div>
 												);
 											})}
@@ -106,9 +112,9 @@ const AdminWeeklyPollsPage = () =>
 						);
 					})}
 
-					{polls.length === 0 && (
+					{polls.length === 0 &&
 						'No polls found.'
-					)}
+					}
 
 					<Pagination
 						page={page}
@@ -120,9 +126,9 @@ const AdminWeeklyPollsPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {type}: {type: string}, {page}: {page?: string}) : Promise<AdminWeeklyPollsPageProps>
+export async function loadData(this: APIThisType, { type }: { type: string }, { page }: { page?: string }): Promise<AdminWeeklyPollsPageProps>
 {
 	const [polls] = await Promise.all([
 		this.query('v1/admin/polls', {
@@ -146,6 +152,6 @@ type AdminWeeklyPollsPageProps = {
 	page: PollsType['page']
 	pageSize: PollsType['pageSize']
 	type: string
-}
+};
 
 export default AdminWeeklyPollsPage;

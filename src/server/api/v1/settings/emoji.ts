@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, EmojiSettingType } from '@types';
 
-export default async function emoji(this: APIThisType, {userIds}: emojiProps) : Promise<EmojiSettingType[]>
+export default async function emoji(this: APIThisType, { userIds }: emojiProps): Promise<EmojiSettingType[]>
 {
 	// Check params
 	if (!Array.isArray(userIds))
@@ -50,7 +50,8 @@ export default async function emoji(this: APIThisType, {userIds}: emojiProps) : 
 		WHERE user_id = ANY($1)
 	`, userIds);
 
-	return results.map((result:any) => {
+	return results.map((result: any) =>
+	{
 		return {
 			userId: result.user_id,
 			type: result.type,
@@ -61,4 +62,4 @@ export default async function emoji(this: APIThisType, {userIds}: emojiProps) : 
 
 type emojiProps = {
 	userIds: any[] | string
-}
+};

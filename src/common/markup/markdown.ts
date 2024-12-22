@@ -4,7 +4,7 @@ import spoiler from '@traptitech/markdown-it-spoiler';
 import color from './markdown-color.ts';
 import attrs from 'markdown-it-attrs';
 import { full as emoji } from 'markdown-it-emoji';
-import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
 import userTag from './markdown-user-tag.ts';
 import center from './markdown-center.ts';
 import { constants } from '@utils';
@@ -13,38 +13,38 @@ import { UserType, EmojiSettingType } from '@types';
 const parserEmojiDef = {
 	defs: { ...emojiDefs[0], ...emojiDefs[1] },
 	shortcuts: {
-		"smile": [ ":)", "<:)" ],
-		"frowning_face": [ ":(", "<:(" ],
-		"grin": [ ":D", "<:D" ],
-		"smiling_face_with_two_hearts": [ ":x", "<:x" ],
-		"shifty": [ ";\\", "<;\\" ],
-		"sunglasses": [ "B-)", "<B-)" ],
-		"smiling_imp": [ "]:)", "<]:)" ],
-		"stuck_out_tongue": [ ":p", "<:p", ":P", "<:P" ],
-		"rage": [ "X-(", "<X-(" ],
-		"laughing": [ ":^O", "<:^O" ],
-		"wink": [ ";)", "<;)" ],
-		"blush": [ ":8}", "<:8}" ],
-		"cry": [ ":_|", "<:_|" ],
-		"confused": [ "?:|", "<?:|" ],
-		"astonished": [ ":O", "<:O" ],
-		"neutral_face": [ ":|", "<:|" ],
-		"nauseated_face": [ ":&", "<:&" ],
-		"roll_eyes": [ ":'", "<:'" ],
-		"resetti": [ "(X0" ],
-		"blanca": [ ":#" ],
-		"gyroid": [ "{|=0" ],
-		"serena": [ "{=]" ],
-		"kk": [ ":-o~" ],
-		"nat": [ "8-P" ]
+		'smile': [ ':)', '<:)' ],
+		'frowning_face': [ ':(', '<:(' ],
+		'grin': [ ':D', '<:D' ],
+		'smiling_face_with_two_hearts': [ ':x', '<:x' ],
+		'shifty': [ ';\\', '<;\\' ],
+		'sunglasses': [ 'B-)', '<B-)' ],
+		'smiling_imp': [ ']:)', '<]:)' ],
+		'stuck_out_tongue': [ ':p', '<:p', ':P', '<:P' ],
+		'rage': [ 'X-(', '<X-(' ],
+		'laughing': [ ':^O', '<:^O' ],
+		'wink': [ ';)', '<;)' ],
+		'blush': [ ':8}', '<:8}' ],
+		'cry': [ ':_|', '<:_|' ],
+		'confused': [ '?:|', '<?:|' ],
+		'astonished': [ ':O', '<:O' ],
+		'neutral_face': [ ':|', '<:|' ],
+		'nauseated_face': [ ':&', '<:&' ],
+		'roll_eyes': [ ":'", "<:'" ],
+		'resetti': [ '(X0' ],
+		'blanca': [ ':#' ],
+		'gyroid': [ '{|=0' ],
+		'serena': [ '{=]' ],
+		'kk': [ ':-o~' ],
+		'nat': [ '8-P' ],
 	},
-}
+};
 
 const parser = new MarkdownIt({
 	html: false, // Disable HTML tags
 	breaks: true, // Preserve line breaks added by the user
 	linkify: true, // Autoconvert URLs to links
-	typographer: true // Beautification of quote marks and dashes
+	typographer: true, // Beautification of quote marks and dashes
 });
 parser.disable('image'); // Disable embedded images (hard to moderate)
 parser.use(ins); // Plugin: adds ++ tags (for underlining)
@@ -53,14 +53,14 @@ parser.use(color); // Plugin (our own): adds {color} tags
 parser.use(emoji, parserEmojiDef); // Plugin: add emoji
 parser.use(center); // Plugin (our own): auto-center text
 
-var defaultRender = parser.renderer.rules.link_open || function(tokens:any, idx:any, options:any, env:any, self:any)
+let defaultRender = parser.renderer.rules.link_open || function(tokens: any, idx: any, options: any, env: any, self: any)
 {
 	return self.renderToken(tokens, idx, options);
 };
 
-parser.renderer.rules.link_open = function(tokens:any, idx:any, options:any, env:any, self:any) : string
+parser.renderer.rules.link_open = function(tokens: any, idx: any, options: any, env: any, self: any): string
 {
-	var hIndex = tokens[idx].attrIndex('href');
+	let hIndex = tokens[idx].attrIndex('href');
 
 	if (tokens[idx].attrs[hIndex][1].startsWith('Topic/') || tokens[idx].attrs[hIndex][1].startsWith('forums/'))
 	{
@@ -81,7 +81,7 @@ const htmlParser = new MarkdownIt({
 	html: true,
 	breaks: true,
 	linkify: true,
-	typographer: true
+	typographer: true,
 });
 htmlParser.enable('image');
 htmlParser.use(ins);
@@ -90,9 +90,9 @@ htmlParser.use(color);
 htmlParser.use(emoji, parserEmojiDef);
 htmlParser.use(attrs); // Plugin: adds attributes (id, class, etc.)
 
-export default function parse(text:string, emojiSettings:EmojiSettingType[]|undefined, currentUser:UserType|null, html = false)
+export default function parse(text: string, emojiSettings: EmojiSettingType[] | undefined, currentUser: UserType | null, html = false)
 {
-	function renderEmoji(token:any, idx:any) : string
+	function renderEmoji(token: any, idx: any): string
 	{
 		const emoji = token[idx];
 

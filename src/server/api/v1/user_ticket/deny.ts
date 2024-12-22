@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function deny(this: APIThisType, {id, denyReasonId}: denyProps) : Promise<void>
+async function deny(this: APIThisType, { id, denyReasonId }: denyProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -61,11 +61,11 @@ deny.apiTypes = {
 		type: APITypes.number,
 		default: 0,
 	},
-}
+};
 
 type denyProps = {
 	id: number
 	denyReasonId: number
-}
+};
 
 export default deny;

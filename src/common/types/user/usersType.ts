@@ -1,6 +1,6 @@
 type UsersType = {
-    id: number
-    username: string
-}
+	id: number
+	username: string
+};
 
 export type { UsersType };

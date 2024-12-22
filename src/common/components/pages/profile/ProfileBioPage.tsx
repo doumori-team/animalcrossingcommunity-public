@@ -8,8 +8,8 @@ import { APIThisType, UserBioType, EmojiSettingType, UserType } from '@types';
 
 const ProfileBioPage = () =>
 {
-	const {bio, emojiSettings, error} = useLoaderData() as ProfileBioPageProps;
-	const {user} = useOutletContext() as {user: UserType};
+	const { bio, emojiSettings, error } = useLoaderData() as ProfileBioPageProps;
+	const { user } = useOutletContext() as { user: UserType };
 
 	/**
 	 * Sometimes react-router will start rendering the profile page before
@@ -27,14 +27,14 @@ const ProfileBioPage = () =>
 					name='About Me'
 					links={
 						<>
-						<RequireUser id={user.id} permission='modify-profiles' silent>
-							<Link to={`/profile/${encodeURIComponent(user.id)}/edit`}>
-								Edit
+							<RequireUser id={user.id} permission='modify-profiles' silent>
+								<Link to={`/profile/${encodeURIComponent(user.id)}/edit`}>
+									Edit
+								</Link>
+							</RequireUser>
+							<Link to={`/threads/${encodeURIComponent(user.id)}`}>
+								Threads
 							</Link>
-						</RequireUser>
-						<Link to={`/threads/${encodeURIComponent(user.id)}`}>
-							Threads
-						</Link>
 						</>
 					}
 				/>
@@ -47,23 +47,23 @@ const ProfileBioPage = () =>
 						/>Name: {bio.name ? bio.name : user.username}
 					</div>
 
-					{bio.location && (
+					{bio.location &&
 						<div className='ProfileBioPage_option'>
 							<ReportProblem
 								type={constants.userTicket.types.profileLocation}
 								id={user.id}
 							/>Location: {bio.location}
 						</div>
-					)}
+					}
 
-					{bio.email && (
+					{bio.email &&
 						<div className='ProfileBioPage_option'>
 							Email: {bio.email}
 						</div>
-					)}
+					}
 				</Section>
 
-				{bio.bio && (
+				{bio.bio &&
 					<ContentBox>
 						<ReportProblem
 							type={constants.userTicket.types.profileBio}
@@ -76,9 +76,9 @@ const ProfileBioPage = () =>
 							key={Math.random()}
 						/>
 					</ContentBox>
-				)}
+				}
 
-				{bio.files.length > 0 && (
+				{bio.files.length > 0 &&
 					<ContentBox>
 						<PhotoGallery
 							userId={user.id}
@@ -86,33 +86,33 @@ const ProfileBioPage = () =>
 							reportType={constants.userTicket.types.profileImage}
 						/>
 					</ContentBox>
-				)}
+				}
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ProfileBioPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileBioPageProps>
 {
 	if (!utils.isNumber(id))
 	{
 		return {
-			error: 'unknown'
+			error: 'unknown',
 		};
 	}
 
 	const [bio, emojiSettings] = await Promise.all([
-		this.query('v1/users/bio', {id}),
-		this.query('v1/settings/emoji', {userIds: [id]}),
+		this.query('v1/users/bio', { id }),
+		this.query('v1/settings/emoji', { userIds: [id] }),
 	]);
 
-	return {bio, emojiSettings};
+	return { bio, emojiSettings };
 }
 
 type ProfileBioPageProps = {
 	bio?: UserBioType
 	emojiSettings?: EmojiSettingType[]
 	error?: string
-}
+};
 
 export default ProfileBioPage;

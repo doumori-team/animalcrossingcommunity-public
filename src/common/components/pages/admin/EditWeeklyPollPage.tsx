@@ -8,7 +8,7 @@ import { APIThisType, PollType } from '@types';
 
 const EditWeeklyPollPage = () =>
 {
-	const {poll} = useLoaderData() as EditWeeklyPollPageProps;
+	const { poll } = useLoaderData() as EditWeeklyPollPageProps;
 
 	return (
 		<div className='EditWeeklyPollPage'>
@@ -24,19 +24,19 @@ const EditWeeklyPollPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<EditWeeklyPollPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditWeeklyPollPageProps>
 {
 	const [poll] = await Promise.all([
-		this.query('v1/poll', {id}),
+		this.query('v1/poll', { id }),
 	]);
 
-	return {poll};
+	return { poll };
 }
 
 type EditWeeklyPollPageProps = {
 	poll: PollType
-}
+};
 
 export default EditWeeklyPollPage;

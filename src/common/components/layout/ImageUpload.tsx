@@ -8,16 +8,16 @@ import * as iso from 'common/iso.js';
 import { constants } from '@utils';
 
 const ImageUpload = ({
-	directory
+	directory,
 }: ImageUploadProps) =>
 {
 	const [errors, setErrors] = useState<string[]>([]);
 	const [success, setSuccess] = useState<boolean>(false);
 	const [uploadedFileName, setUploadedFileName] = useState<string>('');
-	const [file, setFile] = useState<File|null>(null);
+	const [, setFile] = useState<File | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 
-	const scanFile = async (e:any) : Promise<void> =>
+	const scanFile = async (e: any): Promise<void> =>
 	{
 		const file = e.target.files[0];
 
@@ -25,7 +25,7 @@ const ImageUpload = ({
 		setUploadedFileName('');
 		setFile(null);
 
-		if (typeof file == 'undefined')
+		if (typeof file === 'undefined')
 		{
 			return;
 		}
@@ -39,9 +39,9 @@ const ImageUpload = ({
 		}
 
 		setFile(file);
-	}
+	};
 
-	const uploadImage = async (file:any) =>
+	const uploadImage = async (file: any) =>
 	{
 		if (file === null)
 		{
@@ -59,7 +59,7 @@ const ImageUpload = ({
 			{
 				try
 				{
-					await axios.put(s3PresignedUrl, file, {headers: {'Content-Type': file.type}});
+					await axios.put(s3PresignedUrl, file, { headers: { 'Content-Type': file.type } });
 
 					setSuccess(true);
 					setUploadedFileName(file.name);
@@ -75,33 +75,34 @@ const ImageUpload = ({
 					setLoading(false);
 				}
 			})
-			.catch((error:any) =>
+			.catch((error: any) =>
 			{
 				console.error('Error attempting to get presigned url.');
 				console.error(error);
 
 				setErrors(['bad-format']);
 				setLoading(false);
-			})
-	}
+			});
+	};
 
 	return (
 		<RequirePermission permission='image-upload' silent>
 			<div className='ImageUpload'>
 				{errors.map(
 					(identifier, index) =>
-						(<ErrorMessage identifier={identifier} key={index} />)
+						<ErrorMessage identifier={identifier} key={index} />,
 				)}
 
-				{success && (
+				{success &&
 					<Alert type='success'>
 						Your file has been uploaded: {`${constants.AWS_URL}/${directory}/${uploadedFileName}`}
 					</Alert>
-				)}
+				}
 
 				<RequireClientJS fallback={
 					<ErrorMessage identifier='javascript-required' />
-				}>
+				}
+				>
 					<div className='ImageUpload_upload'>
 						<h3>Upload Image:</h3>
 						<input type='file' accept='image/*' onChange={scanFile} />
@@ -118,7 +119,7 @@ const ImageUpload = ({
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
 type ImageUploadProps = {
 	directory: string

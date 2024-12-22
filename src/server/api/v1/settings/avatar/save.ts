@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, AvatarsType } from '@types';
 
-async function save(this: APIThisType, {backgroundId, colorationId, characterId, accentId, accentPosition, useDefault}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { backgroundId, colorationId, characterId, accentId, accentPosition, useDefault }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -21,19 +21,19 @@ async function save(this: APIThisType, {backgroundId, colorationId, characterId,
 	else
 	{
 		// We can't have just a background or just foregrounds
-		if ((backgroundId && !characterId) || (!backgroundId && characterId))
+		if (backgroundId && !characterId || !backgroundId && characterId)
 		{
 			throw new UserError('incomplete-avatar');
 		}
 
-		const {backgrounds, colorations, accents, characters}:AvatarsType = await this.query('v1/avatars');
+		const { backgrounds, colorations, accents, characters }: AvatarsType = await this.query('v1/avatars');
 
 		const background = backgrounds.find(bg => bg.id === backgroundId);
 
 		if (!background ||
 			!characters.some(character => character.id === characterId) ||
-			(accentId && !accents.some(accent => accent.id === accentId)) ||
-			(colorationId && !colorations.some(coloration => coloration.id === colorationId))
+			accentId && !accents.some(accent => accent.id === accentId) ||
+			colorationId && !colorations.some(coloration => coloration.id === colorationId)
 		)
 		{
 			throw new UserError('avatar-permission');
@@ -46,7 +46,7 @@ async function save(this: APIThisType, {backgroundId, colorationId, characterId,
 		}
 
 		// Nuke accent positioning if it's not positionable
-		if ((!accentId || !(accents.find(accent => accent.id === accentId)?.positionable)) && accentPosition)
+		if ((!accentId || !accents.find(accent => accent.id === accentId)?.positionable) && accentPosition)
 		{
 			accentPosition = null;
 		}
@@ -93,15 +93,15 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type saveProps = {
-	backgroundId: number|null
-	colorationId: number|null
-	characterId: number|null
-	accentId: number|null
-	accentPosition: number|null
+	backgroundId: number | null
+	colorationId: number | null
+	characterId: number | null
+	accentId: number | null
+	accentPosition: number | null
 	useDefault: boolean
-}
+};
 
 export default save;

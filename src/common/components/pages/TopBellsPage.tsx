@@ -9,7 +9,7 @@ import { APIThisType, TopBellsType } from '@types';
 
 const TopBellsPage = () =>
 {
-	const {totalCount, users, page, pageSize, order, reverse, username, lastJackpot} = useLoaderData() as TopBellsPageProps;
+	const { totalCount, users, page, pageSize, order, reverse, username, lastJackpot } = useLoaderData() as TopBellsPageProps;
 
 	const link = `&username=${encodeURIComponent(username)}
 		&order=${encodeURIComponent(order)}
@@ -40,7 +40,7 @@ const TopBellsPage = () =>
 							name='order'
 							value={order}
 							options={constants.orderOptions.topBells}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -55,7 +55,7 @@ const TopBellsPage = () =>
 
 				<Section>
 					<Grid message='No bell records found.' options={users}>
-						{users.map((user:TopBellsType['results'][number], index:number) =>
+						{users.map((user: TopBellsType['results'][number], index: number) =>
 							<div className='TopBellsPage_user' key={index}>
 								<div className='TopBellsPage_username'>
 									Username: <Link to={`/profile/${encodeURIComponent(user.id)}`}>
@@ -86,7 +86,7 @@ const TopBellsPage = () =>
 								<div className='TopBellsPage_jackpotsMissed'>
 									Jackpots Missed: {user.jackpotsMissed}
 								</div>
-							</div>
+							</div>,
 						)}
 					</Grid>
 
@@ -101,9 +101,9 @@ const TopBellsPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {page, order, reverse, username}: {page?: string, order?: string, reverse?: string, username?: string}) : Promise<TopBellsPageProps>
+export async function loadData(this: APIThisType, _: any, { page, order, reverse, username }: { page?: string, order?: string, reverse?: string, username?: string }): Promise<TopBellsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/top_bells', {
@@ -135,6 +135,6 @@ type TopBellsPageProps = {
 	order: TopBellsType['order']
 	reverse: TopBellsType['reverse']
 	lastJackpot: TopBellsType['lastJackpot']
-}
+};
 
 export default TopBellsPage;

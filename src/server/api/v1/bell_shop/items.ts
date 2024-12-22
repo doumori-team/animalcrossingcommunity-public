@@ -4,9 +4,9 @@ import { constants, dateUtils, utils } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, BellShopItemsType, DataTagType, ShopItemsType } from '@types';
 
-async function items(this: APIThisType, {page, categoryId, sortBy, groupBy, debug}: itemsProps) : Promise<ShopItemsType>
+async function items(this: APIThisType, { page, categoryId, sortBy, groupBy, debug }: itemsProps): Promise<ShopItemsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'purchase-bell-shop'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'purchase-bell-shop' });
 
 	if (!permissionGranted)
 	{
@@ -14,10 +14,10 @@ async function items(this: APIThisType, {page, categoryId, sortBy, groupBy, debu
 	}
 
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
-	let results:any = [], count = 0;
+	const offset = page * pageSize - pageSize;
+	let results: any = [], count = 0;
 
-	let items:BellShopItemsType[number] = [];
+	let items: BellShopItemsType[number] = [];
 
 	if (!constants.LIVE_SITE && utils.realStringLength(debug) > 0)
 	{
@@ -38,31 +38,32 @@ async function items(this: APIThisType, {page, categoryId, sortBy, groupBy, debu
 		throw new UserError('bad-format');
 	}
 
-	let tags:any = [];
+	let tags: any = [];
 
 	const categories = constants.bellShop.categories;
 
 	if ([categories.avatarAccentsId, categories.avatarBackgroundsId, categories.avatarCharactersId].includes(categoryId))
 	{
-		const avatarTags:DataTagType[] = await ACCCache.get(constants.cacheKeys.avatarTags);
+		const avatarTags: DataTagType[] = await ACCCache.get(constants.cacheKeys.avatarTags);
 
-		avatarTags.forEach((tag:DataTagType) => {
+		avatarTags.forEach((tag: DataTagType) =>
+		{
 			if (
 				tag.id !== 'bell-shop' &&
-				((tag.forCharacter && categoryId === categories.avatarCharactersId && items.some(i => i.avatar?.character?.tags.includes(tag.id))) ||
-				(tag.forAccent && categoryId === categories.avatarAccentsId && items.some(i => i.avatar?.accent?.tags.includes(tag.id))) ||
-				(tag.forBackground && categoryId === categories.avatarBackgroundsId && items.some(i => i.avatar?.background?.tags.includes(tag.id))))
+				(tag.forCharacter && categoryId === categories.avatarCharactersId && items.some(i => i.avatar?.character?.tags.includes(tag.id)) ||
+				tag.forAccent && categoryId === categories.avatarAccentsId && items.some(i => i.avatar?.accent?.tags.includes(tag.id)) ||
+				tag.forBackground && categoryId === categories.avatarBackgroundsId && items.some(i => i.avatar?.background?.tags.includes(tag.id)))
 			)
 			{
 				tags.push({
 					id: tag.id,
-					name: tag.name
+					name: tag.name,
 				});
 			}
 		});
 	}
 
-	if (utils.realStringLength(groupBy) > 0 && !tags.find((t:any) => t.id === groupBy))
+	if (utils.realStringLength(groupBy) > 0 && !tags.find((t: any) => t.id === groupBy))
 	{
 		throw new UserError('bad-format');
 	}
@@ -86,7 +87,8 @@ async function items(this: APIThisType, {page, categoryId, sortBy, groupBy, debu
 	switch (sortBy)
 	{
 		case 'date':
-			items = items.sort((a, b) => {
+			items = items.sort((a, b) =>
+			{
 				return dateUtils.toDate(b.releaseDate).getTime() - dateUtils.toDate(a.releaseDate).getTime();
 			});
 
@@ -103,7 +105,7 @@ async function items(this: APIThisType, {page, categoryId, sortBy, groupBy, debu
 
 	if (items)
 	{
-		results = items.slice(offset, offset+pageSize);
+		results = items.slice(offset, offset + pageSize);
 
 		count = Number(items.length);
 	}
@@ -115,7 +117,7 @@ async function items(this: APIThisType, {page, categoryId, sortBy, groupBy, debu
 		pageSize: pageSize,
 		sortBy: sortBy,
 		groupBy: groupBy,
-		tags: tags.sort((a:any, b:any) => a.name.localeCompare(b.name)),
+		tags: tags.sort((a: any, b: any) => a.name.localeCompare(b.name)),
 	};
 }
 
@@ -142,7 +144,7 @@ items.apiTypes = {
 		type: APITypes.string,
 		default: '',
 	},
-}
+};
 
 type itemsProps = {
 	page: number
@@ -150,6 +152,6 @@ type itemsProps = {
 	sortBy: 'date' | 'price' | 'name'
 	groupBy: string
 	debug: string
-}
+};
 
 export default items;

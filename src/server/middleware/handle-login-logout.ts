@@ -30,7 +30,7 @@ handler.get('/go', (request, response, next) =>
  * redirect them to the homepage.
  * Their user ID can be retrieved as request.session.user later.
  */
-handler.get('/ready', (request:any, response:any, next:any) =>
+handler.get('/ready', (request: any, response: any, next: any) =>
 {
 	response.set('Cache-Control', 'no-store');
 
@@ -76,7 +76,7 @@ handler.get('/ready', (request:any, response:any, next:any) =>
  *
  * Copy in api-requests.
  */
-handler.post('/logout', (request:any, response:any, next:any) =>
+handler.post('/logout', (request: any, response: any, next: any) =>
 {
 	response.set('Cache-Control', 'no-store');
 
@@ -92,13 +92,13 @@ handler.post('/logout', (request:any, response:any, next:any) =>
 		delete request.session.username;
 
 		logoutProcess = Promise.all(
-		[
-			accounts.logout(userId),
-			db.logout(userId),
-			(iso as any).query(userId, 'v1/session/update', {
-				url: 'logout'
-			}),
-		]);
+			[
+				accounts.logout(userId),
+				db.logout(userId),
+				(iso as any).query(userId, 'v1/session/update', {
+					url: 'logout',
+				}),
+			]);
 	}
 	else
 	{
@@ -115,7 +115,7 @@ handler.post('/logout', (request:any, response:any, next:any) =>
 });
 
 // Error handler
-handler.use((error:any, request:any, response:any, next:any) =>
+handler.use((error: any, request: any, response: any, _: any) =>
 {
 	response.set('Cache-Control', 'no-store');
 

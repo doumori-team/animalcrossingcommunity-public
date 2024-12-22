@@ -5,11 +5,11 @@ import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
 import { APIThisType, MarkupStyleType } from '@types';
 
-async function message(this: APIThisType, {id, message, userTicketId, status, staffOnly, format, usernameHistoryId}: messageProps) : Promise<void>
+async function message(this: APIThisType, { id, message, userTicketId, status, staffOnly, format, usernameHistoryId }: messageProps): Promise<void>
 {
 	const [processSupportTickets, submitSupportTickets] = await Promise.all([
-		this.query('v1/permission', {permission: 'process-support-tickets'}),
-		this.query('v1/permission', {permission: 'submit-support-tickets'}),
+		this.query('v1/permission', { permission: 'process-support-tickets' }),
+		this.query('v1/permission', { permission: 'submit-support-tickets' }),
 	]);
 
 	if (!(processSupportTickets || submitSupportTickets))
@@ -51,7 +51,7 @@ async function message(this: APIThisType, {id, message, userTicketId, status, st
 		usernameHistoryId = null;
 	}
 
-	const supportTicketMessageId = await db.transaction(async (query:any) =>
+	const supportTicketMessageId = await db.transaction(async (query: any) =>
 	{
 		const [[supportTicketMessage]] = await Promise.all([
 			query(`
@@ -83,7 +83,7 @@ async function message(this: APIThisType, {id, message, userTicketId, status, st
 	{
 		await this.query('v1/notification/create', {
 			id: supportTicketMessageId,
-			type: constants.notification.types.supportTicket
+			type: constants.notification.types.supportTicket,
 		});
 	}
 }
@@ -122,16 +122,16 @@ message.apiTypes = {
 		type: APITypes.number,
 		nullable: true,
 	},
-}
+};
 
 type messageProps = {
 	id: number
 	message: string
-	userTicketId: number|null
+	userTicketId: number | null
 	status: string
 	staffOnly: boolean
 	format: MarkupStyleType
-	usernameHistoryId: number|null
-}
+	usernameHistoryId: number | null
+};
 
 export default message;

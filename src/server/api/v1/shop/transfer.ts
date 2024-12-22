@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ShopType } from '@types';
 
-async function transfer(this: APIThisType, {id}: transferProps) : Promise<void>
+async function transfer(this: APIThisType, { id }: transferProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -17,9 +17,9 @@ async function transfer(this: APIThisType, {id}: transferProps) : Promise<void>
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: id});
+	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
 	{
@@ -42,10 +42,10 @@ transfer.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type transferProps = {
 	id: number
-}
+};
 
 export default transfer;

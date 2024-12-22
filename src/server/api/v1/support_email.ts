@@ -4,9 +4,9 @@ import { dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SupportEmailType } from '@types';
 
-async function support_email(this: APIThisType, {id}: supportEmailProps) : Promise<SupportEmailType>
+async function support_email(this: APIThisType, { id }: supportEmailProps): Promise<SupportEmailType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -61,10 +61,10 @@ support_email.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type supportEmailProps = {
 	id: number
-}
+};
 
 export default support_email;

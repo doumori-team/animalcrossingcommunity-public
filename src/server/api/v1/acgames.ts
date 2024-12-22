@@ -1,7 +1,7 @@
 import * as db from '@db';
 import { APIThisType, ACGameType } from '@types';
 
-export default async function acgames(this: APIThisType) : Promise<ACGameType[]>
+export default async function acgames(this: APIThisType): Promise<ACGameType[]>
 {
 	// Used in lots of places; doesn't seem worth locking down
 
@@ -11,7 +11,8 @@ export default async function acgames(this: APIThisType) : Promise<ACGameType[]>
 		ORDER BY has_town DESC, id ASC
 	`);
 
-	return await Promise.all(acgames.map(async(acgame:any) => {
-		return this.query('v1/acgame', {id: acgame.id});
+	return await Promise.all(acgames.map(async(acgame: any) =>
+	{
+		return this.query('v1/acgame', { id: acgame.id });
 	}));
 }

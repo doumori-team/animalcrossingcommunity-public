@@ -4,10 +4,10 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, ShopType } from '@types';
 
-async function save(this: APIThisType, {id, shopId, name, description, parentId, positions, apply,
-	contact, active, applications, services, stats}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { id, shopId, name, description, parentId, positions, apply,
+	contact, active, applications, services, stats }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -19,9 +19,9 @@ async function save(this: APIThisType, {id, shopId, name, description, parentId,
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: shopId});
+	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
 	{
@@ -47,7 +47,7 @@ async function save(this: APIThisType, {id, shopId, name, description, parentId,
 		}
 	}
 
-	const defaultServices = await Promise.all(services.filter((id:any) => id.startsWith('default_')).map(async(serviceId) =>
+	const defaultServices = await Promise.all(services.filter((id: any) => id.startsWith('default_')).map(async(serviceId) =>
 	{
 		const serviceId2 = serviceId.substring('default_'.length);
 
@@ -70,7 +70,7 @@ async function save(this: APIThisType, {id, shopId, name, description, parentId,
 		return Number(serviceId2);
 	}));
 
-	services = await Promise.all(services.filter((id:any) => !id.startsWith('default_')).map(async(id) =>
+	services = await Promise.all(services.filter((id: any) => !id.startsWith('default_')).map(async(id) =>
 	{
 		if (isNaN(id))
 		{
@@ -102,7 +102,7 @@ async function save(this: APIThisType, {id, shopId, name, description, parentId,
 		throw new UserError('shop-max-roles');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		if (id != null && id > 0)
 		{
@@ -146,20 +146,22 @@ async function save(this: APIThisType, {id, shopId, name, description, parentId,
 
 		await Promise.all([
 			Promise.all([
-				services.map(async (serviceId:any) => {
+				services.map(async (serviceId: any) =>
+				{
 					await query(`
 						INSERT INTO shop_role_service (shop_role_id, shop_service_id)
 						VALUES ($1, $2)
 					`, id, serviceId);
-				})
+				}),
 			]),
 			Promise.all([
-				defaultServices.map(async (serviceId:any) => {
+				defaultServices.map(async (serviceId: any) =>
+				{
 					await query(`
 						INSERT INTO shop_role_default_service (shop_role_id, shop_default_service_id)
 						VALUES ($1, $2)
 					`, id, serviceId);
-				})
+				}),
 			]),
 			query(`
 				INSERT INTO shop_audit (shop_id, value, user_id)
@@ -176,7 +178,7 @@ async function save(this: APIThisType, {id, shopId, name, description, parentId,
 
 	return {
 		_success: `The role has been added / updated!`,
-	}
+	};
 }
 
 save.apiTypes = {
@@ -234,14 +236,14 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	shopId: number
 	name: string
 	description: string
-	parentId: number|null
+	parentId: number | null
 	positions: number
 	apply: boolean
 	contact: boolean
@@ -249,6 +251,6 @@ type saveProps = {
 	applications: boolean
 	services: any[]
 	stats: boolean
-}
+};
 
 export default save;

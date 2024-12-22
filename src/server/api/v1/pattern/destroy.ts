@@ -5,9 +5,9 @@ import { ACCCache } from '@cache';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-patterns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-patterns' });
 
 	if (!permissionGranted)
 	{
@@ -30,13 +30,18 @@ async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
 		throw new UserError('permission');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
 				UPDATE town
 				SET flag_id = NULL
 				WHERE flag_id = $1::int
+			`, id),
+			query(`
+				UPDATE character
+				SET door_pattern_id = NULL
+				WHERE door_pattern_id = $1::int
 			`, id),
 			query(`
 				DELETE FROM pattern
@@ -53,10 +58,10 @@ destroy.apiTypes = {
 		type: APITypes.patternId,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

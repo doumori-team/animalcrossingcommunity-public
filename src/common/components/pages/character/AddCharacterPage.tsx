@@ -9,7 +9,7 @@ import { APIThisType, TownType, CharacterGameType } from '@types';
 
 const AddCharacterPage = () =>
 {
-	const {towns, selectedTownId, characterGame, userId} = useLoaderData() as AddCharacterPageProps;
+	const { towns, selectedTownId, characterGame, userId } = useLoaderData() as AddCharacterPageProps;
 
 	const encodedId = encodeURIComponent(userId);
 	const town = characterGame ? towns.find(t => t.id === selectedTownId) : null;
@@ -26,7 +26,8 @@ const AddCharacterPage = () =>
 							<Link to={`/profile/${encodedId}/towns/add`}>add towns page</Link>
 							{' to setup a town.'}
 						</>
-					}>
+					}
+					>
 						{towns.map(town =>
 							<Link
 								to={`/profile/${encodedId}/characters/add/${encodeURIComponent(town.id)}`}
@@ -34,11 +35,11 @@ const AddCharacterPage = () =>
 								className={`ACGameButtons_game ACGameButtons_game_${town.game.identifier}`}
 								aria-label={ReactDomServer.renderToString(
 									<>
-									<Keyboard
-										name={town.name}
-										gameId={town.game.id}
-									/> ({town.game.shortname})
-									</>
+										<Keyboard
+											name={town.name}
+											gameId={town.game.id}
+										/> ({town.game.shortname})
+									</>,
 								)}
 							>
 								<p>
@@ -47,12 +48,12 @@ const AddCharacterPage = () =>
 										gameId={town.game.id}
 									/> ({town.game.shortname})
 								</p>
-							</Link>
+							</Link>,
 						)}
 					</Grid>
 				</Section>
 
-				{(characterGame && town != null) && (
+				{characterGame && !!town &&
 					<Section>
 						<EditCharacter
 							key={selectedTownId}
@@ -60,13 +61,13 @@ const AddCharacterPage = () =>
 							gameInfo={characterGame}
 						/>
 					</Section>
-				)}
+				}
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id, townId}: {id: string, townId?: string}) : Promise<AddCharacterPageProps>
+export async function loadData(this: APIThisType, { id, townId }: { id: string, townId?: string }): Promise<AddCharacterPageProps>
 {
 	const selectedTownId = Number(townId);
 	const userId = Number(id);
@@ -75,29 +76,31 @@ export async function loadData(this: APIThisType, {id, townId}: {id: string, tow
 
 	const [towns, town] = await Promise.all([
 		this.query('v1/users/towns'),
-		selectedTownId ? this.query('v1/town', {id: townId}) : null,
+		selectedTownId ? this.query('v1/town', { id: townId }) : null,
 	]);
 
 	if (selectedTownId)
 	{
-		const [info, houseSizes, bedLocations, faces] = await Promise.all([
-			this.query('v1/acgame', {id: town.game.id}),
-			this.query('v1/acgame/house_size', {id: town.game.id}),
-			this.query('v1/acgame/bed_location', {id: town.game.id}),
-			this.query('v1/acgame/face', {id: town.game.id}),
+		const [info, houseSizes, bedLocations, faces, paintColors, monuments] = await Promise.all([
+			this.query('v1/acgame', { id: town.game.id }),
+			this.query('v1/acgame/house_size', { id: town.game.id }),
+			this.query('v1/acgame/bed_location', { id: town.game.id }),
+			this.query('v1/acgame/face', { id: town.game.id }),
+			this.query('v1/acgame/paint', { id: town.game.id }),
+			this.query('v1/acgame/monument', { id: town.game.id }),
 		]);
 
-		characterGame = {info, houseSizes, bedLocations, faces};
+		characterGame = { info, houseSizes, bedLocations, faces, paintColors, monuments };
 	}
 
-	return {towns, selectedTownId, characterGame, userId};
+	return { towns, selectedTownId, characterGame, userId };
 }
 
 type AddCharacterPageProps = {
 	towns: TownType[]
 	selectedTownId: number
-	characterGame: CharacterGameType|null
+	characterGame: CharacterGameType | null
 	userId: number
-}
+};
 
 export default AddCharacterPage;

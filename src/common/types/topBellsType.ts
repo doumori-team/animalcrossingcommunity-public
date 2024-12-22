@@ -1,6 +1,6 @@
 import { constants } from '@utils';
 
-const orderOptions = constants.orderOptions.topBells.map(x => x.id);
+const _orderOptions = constants.orderOptions.topBells.map(x => x.id);
 
 type TopBellsType = {
 	results: {
@@ -17,7 +17,7 @@ type TopBellsType = {
 	page: number
 	pageSize: number
 	username: string
-	order: typeof orderOptions[number]
+	order: typeof _orderOptions[number]
 	reverse: boolean
 	lastJackpot: {
 		username: string

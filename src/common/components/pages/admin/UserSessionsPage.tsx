@@ -9,8 +9,8 @@ import { APIThisType, SessionsType } from '@types';
 
 const UserSessionsPage = () =>
 {
-	const {username, startDate, endDate, url, sessions, page, pageSize,
-		totalCount} = useLoaderData() as UserSessionsPageProps;
+	const { username, startDate, endDate, url, sessions, page, pageSize,
+		totalCount } = useLoaderData() as UserSessionsPageProps;
 
 	const link = `&username=${encodeURIComponent(username)}
 		&startDate=${encodeURIComponent(startDate)}
@@ -78,12 +78,12 @@ const UserSessionsPage = () =>
 									Start Date: {userSession.formattedStartDate}
 								</div>
 
-								{userSession.formattedEndDate && (
+								{userSession.formattedEndDate &&
 									<div className='UserSessionPage_userSessionEndDate'>
 										End Date: {userSession.formattedEndDate}
 									</div>
-								)}
-							</InnerSection>
+								}
+							</InnerSection>,
 						)}
 					</Grid>
 
@@ -98,9 +98,9 @@ const UserSessionsPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, username, startDate, endDate, url}: {page?: string, username?: string, startDate?: string, endDate?: string, url?: string}) : Promise<UserSessionsPageProps>
+export async function loadData(this: APIThisType, _: any, { page, username, startDate, endDate, url }: { page?: string, username?: string, startDate?: string, endDate?: string, url?: string }): Promise<UserSessionsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/session/sessions', {
@@ -133,6 +133,6 @@ type UserSessionsPageProps = {
 	startDate: SessionsType['startDate']
 	endDate: SessionsType['endDate']
 	url: SessionsType['url']
-}
+};
 
 export default UserSessionsPage;

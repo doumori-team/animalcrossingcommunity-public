@@ -9,9 +9,9 @@ import { APIThisType, NodeBoardType, ACGameType, ViewEmailType } from '@types';
 
 const AutomationPage = () =>
 {
-	const {boards, acgames} = useLoaderData() as AutomationPageProps;
+	const { boards, acgames } = useLoaderData() as AutomationPageProps;
 
-	const [latestEmail, setLatestEmail] = useState<ViewEmailType|null>(null);
+	const [latestEmail, setLatestEmail] = useState<ViewEmailType | null>(null);
 
 	return (
 		<RequireTestSite>
@@ -146,7 +146,7 @@ const AutomationPage = () =>
 										label='Board ID'
 										hideLabel
 										options={boards}
-										optionsMapping={{value: 'id', label: 'title'}}
+										optionsMapping={{ value: 'id', label: 'title' }}
 									/>
 								</Form.Group>
 							</Form>
@@ -195,7 +195,7 @@ const AutomationPage = () =>
 										name='gameId'
 										label='Setup Town, Character, FC in Game'
 										options={acgames.filter(g => g.hasTown)}
-										optionsMapping={{value: 'id', label: 'name'}}
+										optionsMapping={{ value: 'id', label: 'name' }}
 									/>
 								</Form.Group>
 							</Form>
@@ -305,19 +305,19 @@ const AutomationPage = () =>
 								action='v1/automation/other/view_email'
 								showButton
 								buttonText='View Latest Email'
-								updateFunction={(data:ViewEmailType|null) => setLatestEmail(data)}
+								updateFunction={(data: ViewEmailType | null) => setLatestEmail(data)}
 							/>
 
-							{latestEmail != null && (
+							{!!latestEmail &&
 								<div className='AutomationPage_sectionInfo'>
 									<div>Date: {latestEmail.recorded}</div>
 									<div>From: {latestEmail.from}</div>
 									<div>Subject: {latestEmail.subject}</div>
 									<div>Body:
-									<br/>
-									{latestEmail.body}</div>
+										<br/>
+										{latestEmail.body}</div>
 								</div>
-							)}
+							}
 						</div>
 
 						<hr/>
@@ -342,12 +342,12 @@ const AutomationPage = () =>
 											name='step'
 											label='Step'
 											options={[
-												{value: 'create_trade', label: 'Create Trade'},
-												{value: 'make_offers', label: 'Make Offers'},
-												{value: 'accept_offer', label: 'Accept Offer'},
-												{value: 'share_info', label: 'Share Info (Contacts / FCs)'},
-												{value: 'complete_trade', label: 'Complete Trade'},
-												{value: 'submit_feedback', label: 'Submit Feedback'},
+												{ value: 'create_trade', label: 'Create Trade' },
+												{ value: 'make_offers', label: 'Make Offers' },
+												{ value: 'accept_offer', label: 'Accept Offer' },
+												{ value: 'share_info', label: 'Share Info (Contacts / FCs)' },
+												{ value: 'complete_trade', label: 'Complete Trade' },
+												{ value: 'submit_feedback', label: 'Submit Feedback' },
 											]}
 											hideLabel
 											required
@@ -358,9 +358,9 @@ const AutomationPage = () =>
 											name='gameId'
 											label='Game'
 											options={[
-												{id: 'real-world', name: 'Real-World'} as any
+												{ id: 'real-world', name: 'Real-World' } as any,
 											].concat(acgames.filter(g => g.hasTown))}
-											optionsMapping={{value: 'id', label: 'name'}}
+											optionsMapping={{ value: 'id', label: 'name' }}
 											hideLabel
 										/>
 									</Form.Group>
@@ -381,21 +381,21 @@ const AutomationPage = () =>
 			</RequireUser>
 		</RequireTestSite>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AutomationPageProps>
+export async function loadData(this: APIThisType): Promise<AutomationPageProps>
 {
 	const [boards, acgames] = await Promise.all([
 		this.query('v1/node/boards'),
 		this.query('v1/acgames'),
 	]);
 
-	return {boards, acgames};
+	return { boards, acgames };
 }
 
 type AutomationPageProps = {
 	boards: NodeBoardType[]
 	acgames: ACGameType[]
-}
+};
 
 export default AutomationPage;

@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function set(this: APIThisType, {amount}: setProps) : Promise<SuccessType>
+async function set(this: APIThisType, { amount }: setProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -34,15 +34,15 @@ async function set(this: APIThisType, {amount}: setProps) : Promise<SuccessType>
 	await db.query(`
 		INSERT INTO treasure_offer (user_id, bells, type, offer)
 		VALUES ($1::int, $2::int, $3, (now() - interval '1 minute' * $4))
-	`, constants.accUserId, amount*20, 'amount', constants.bellThreshold+10);
+	`, constants.accUserId, amount * 20, 'amount', constants.bellThreshold + 10);
 
 	// this is for testing missed bells, and it's possible that there will be other
 	// users treasure that are deleted above, but we really just care about our own
 	// so just update stats for us (and the test account above)
 
 	await Promise.all([
-		db.regenerateTopBells({userId: constants.accUserId}),
-		db.regenerateTopBells({userId: this.userId}),
+		db.regenerateTopBells({ userId: constants.accUserId }),
+		db.regenerateTopBells({ userId: this.userId }),
 	]);
 
 	return {
@@ -58,10 +58,10 @@ set.apiTypes = {
 		max: 500000,
 		min: 1,
 	},
-}
+};
 
 type setProps = {
 	amount: number
-}
+};
 
 export default set;

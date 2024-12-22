@@ -10,7 +10,7 @@ const EditFeature = ({
 	categories,
 	statuses,
 	feature,
-	userEmojiSettings
+	userEmojiSettings,
 }: EditFeatureProps) =>
 {
 	return (
@@ -45,8 +45,8 @@ const EditFeature = ({
 						value={feature ? feature.categoryId : ''}
 						required
 						label='Category'
-						options={(categories as any).concat([{id: '', name: 'Other'}])}
-						optionsMapping={{value: 'id', label: 'name'}}
+						options={(categories as any).concat([{ id: '', name: 'Other' }])}
+						optionsMapping={{ value: 'id', label: 'name' }}
 					/>
 				</Form.Group>
 				<Form.Group>
@@ -60,7 +60,7 @@ const EditFeature = ({
 						defaultValue={feature ? [feature.isBug] : [false]}
 					/>
 				</Form.Group>
-				{!feature && (
+				{!feature &&
 					<Form.Group>
 						<Switch
 							name='isExploit'
@@ -68,7 +68,7 @@ const EditFeature = ({
 							value={false}
 						/>
 					</Form.Group>
-				)}
+				}
 				<RequirePermission permission='claim-features' silent>
 					<Form.Group>
 						<RichTextArea
@@ -111,14 +111,14 @@ const EditFeature = ({
 							label='Status'
 							value={feature ? feature.statusId : ''}
 							options={statuses}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 				</RequirePermission>
 			</Form>
 		</section>
 	);
-}
+};
 
 type EditFeatureProps = {
 	categories: FeatureCategoryType[]

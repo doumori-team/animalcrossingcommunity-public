@@ -1,7 +1,7 @@
 import React from 'react';
 
 const InnerSection = ({
-	children
+	children,
 }: InnerSectionProps) =>
 {
 	return (
@@ -9,7 +9,7 @@ const InnerSection = ({
 			{children}
 		</div>
 	);
-}
+};
 
 type InnerSectionProps = {
 	children: React.ReactNode | string

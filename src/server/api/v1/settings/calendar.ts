@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, CalendarSettingType } from '@types';
 
-export default async function calendar(this: APIThisType) : Promise<CalendarSettingType>
+export default async function calendar(this: APIThisType): Promise<CalendarSettingType>
 {
 	if (!this.userId)
 	{
@@ -24,7 +24,7 @@ export default async function calendar(this: APIThisType) : Promise<CalendarSett
 		`, this.userId),
 	]);
 
-	const games = await Promise.all(settings.map(async (setting:any) =>
+	const games = await Promise.all(settings.map(async (setting: any) =>
 	{
 		return {
 			id: setting.game_id,
@@ -34,12 +34,12 @@ export default async function calendar(this: APIThisType) : Promise<CalendarSett
 				SELECT category_id
 				FROM calendar_setting_category
 				WHERE calendar_setting_id = $1::int
-			`, setting.id)).map((csc:any) => csc.category_id),
+			`, setting.id)).map((csc: any) => csc.category_id),
 		};
 	}));
 
 	return <CalendarSettingType>{
 		categories: calendarCategories,
 		games: games,
-	}
+	};
 }

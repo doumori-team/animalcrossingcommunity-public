@@ -8,7 +8,7 @@ import { APIThisType, GuideType } from '@types';
 
 const EditGuidePage = () =>
 {
-	const {guide} = useLoaderData() as EditGuidePageProps;
+	const { guide } = useLoaderData() as EditGuidePageProps;
 
 	return (
 		<div className='EditGuidePage'>
@@ -28,19 +28,19 @@ const EditGuidePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string})
+export async function loadData(this: APIThisType, { id }: { id: string })
 {
 	const [guide] = await Promise.all([
-		this.query('v1/guide', {id: id}),
+		this.query('v1/guide', { id: id }),
 	]);
 
-	return {guide};
+	return { guide };
 }
 
 type EditGuidePageProps = {
 	guide: GuideType
-}
+};
 
 export default EditGuidePage;

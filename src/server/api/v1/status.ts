@@ -6,7 +6,7 @@ import { APIThisType, StatusType } from '@types';
  * Provides information about the current status of the site, useful for display on almost every page.
  * See iso-server, used for tracking last active time & page requests.
  */
-export default async function status(this: APIThisType) : Promise<StatusType>
+export default async function status(this: APIThisType): Promise<StatusType>
 {
 	const [userData] = await Promise.all([
 		this.userId ? db.query(`
@@ -28,7 +28,7 @@ export default async function status(this: APIThisType) : Promise<StatusType>
 	}
 
 	const [user, groupIds, settings] = await Promise.all([
-		this.userId ? this.query('v1/user', {id: this.userId}) : null,
+		this.userId ? this.query('v1/user', { id: this.userId }) : null,
 		db.getUserGroups(this.userId),
 		this.userId ? db.query(`
 			SELECT southern_hemisphere
@@ -71,7 +71,8 @@ export default async function status(this: APIThisType) : Promise<StatusType>
 		WHERE granted = true
 	`, this.userId, groupIds);
 
-	const identifiers = await Promise.all(permissions.map(async (p:any) => {
+	const identifiers = await Promise.all(permissions.map(async (p: any) =>
+	{
 		switch (p.identifier)
 		{
 			case 'allow-post-images':
@@ -90,5 +91,5 @@ export default async function status(this: APIThisType) : Promise<StatusType>
 		user: user,
 		permissions: identifiers,
 		southernHemisphere: settings ? settings[0].southern_hemisphere : false,
-	}
+	};
 }

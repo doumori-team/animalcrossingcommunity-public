@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, StoreType } from '@types';
 
-async function store(this: APIThisType, {id}: storeProps) : Promise<StoreType>
+async function store(this: APIThisType, { id }: storeProps): Promise<StoreType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -17,6 +17,7 @@ async function store(this: APIThisType, {id}: storeProps) : Promise<StoreType>
 		SELECT
 			store.id,
 			store.name,
+			store.filename,
 			store.store_group AS group
 		FROM store
 		JOIN ac_game_store ON (store.id = ac_game_store.store_id AND ac_game_store.game_id = $1::int)
@@ -24,9 +25,9 @@ async function store(this: APIThisType, {id}: storeProps) : Promise<StoreType>
 	`, id);
 
 	return {
-		others: stores.filter((s:any) => s.group === 'other').sort((a:any, b:any) => a.name.localeCompare(b.name)),
-		nooks: stores.filter((s:any) => s.group === 'nook'),
-	}
+		others: stores.filter((s: any) => s.group === 'other').sort((a: any, b: any) => a.name.localeCompare(b.name)),
+		nooks: stores.filter((s: any) => s.group === 'nook'),
+	};
 }
 
 store.apiTypes = {
@@ -34,10 +35,10 @@ store.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type storeProps = {
 	id: number
-}
+};
 
 export default store;

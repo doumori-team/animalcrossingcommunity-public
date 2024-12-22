@@ -3,11 +3,11 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import * as accounts from '@accounts';
-import { APIThisType,  } from '@types';
+import { APIThisType } from '@types';
 
-async function read(this: APIThisType, {toUser, subject, message}: readProps) : Promise<{id: number}>
+async function read(this: APIThisType, { toUser, subject, message }: readProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -41,7 +41,7 @@ async function read(this: APIThisType, {toUser, subject, message}: readProps) : 
 
 	return {
 		id: supportEmail.id,
-	}
+	};
 }
 
 read.apiTypes = {
@@ -62,12 +62,12 @@ read.apiTypes = {
 		length: constants.max.supportEmailBody,
 		profanity: true,
 	},
-}
+};
 
 type readProps = {
 	toUser: string
 	subject: string
 	message: string
-}
+};
 
 export default read;

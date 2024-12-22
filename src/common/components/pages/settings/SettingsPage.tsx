@@ -14,9 +14,9 @@ const SettingsPage = () =>
 			<Header
 				name={
 					<UserContext.Consumer>
-						{user => user && (
+						{user => user &&
 							<span>{utils.getPossessiveNoun(user.username)} Settings</span>
-						)}
+						}
 					</UserContext.Consumer>
 				}
 			>
@@ -39,6 +39,6 @@ const SettingsPage = () =>
 			<Outlet />
 		</RequireUser>
 	);
-}
+};
 
 export default SettingsPage;

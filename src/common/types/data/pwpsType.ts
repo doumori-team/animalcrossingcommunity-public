@@ -1,10 +1,10 @@
 type ACGamePWPType = {
-    id: string
-    name: string
+	id: string
+	name: string
 };
 
 type PWPsType = {
-    [id: string]: ACGamePWPType[]
+	[id: string]: ACGamePWPType[]
 };
 
 export type { PWPsType, ACGamePWPType };

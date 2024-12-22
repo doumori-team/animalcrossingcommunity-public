@@ -1,9 +1,9 @@
 import * as db from '@db';
 import { dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType,  } from '@types';
+import { APIThisType } from '@types';
 
-async function update(this: APIThisType, {url, params, query} : updateProps) : Promise<void>
+async function update(this: APIThisType, { url, params, query }: updateProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -22,7 +22,7 @@ async function update(this: APIThisType, {url, params, query} : updateProps) : P
 			params = null;
 		}
 	}
-	catch (e)
+	catch (_: any)
 	{
 		params = null;
 	}
@@ -38,7 +38,7 @@ async function update(this: APIThisType, {url, params, query} : updateProps) : P
 			query = null;
 		}
 	}
-	catch (e)
+	catch (_: any)
 	{
 		query = null;
 	}
@@ -61,7 +61,7 @@ async function update(this: APIThisType, {url, params, query} : updateProps) : P
 	`, url);
 
 	// find last session and update it if necessary
-	let userSession:any;
+	let userSession: any;
 
 	[userSession] = await db.query(`
 		SELECT
@@ -115,7 +115,7 @@ async function update(this: APIThisType, {url, params, query} : updateProps) : P
 		}
 	}
 
-	await db.transaction(async (dbQuery:any) =>
+	await db.transaction(async (dbQuery: any) =>
 	{
 		if (close)
 		{
@@ -149,12 +149,12 @@ update.apiTypes = {
 		required: true,
 	},
 	// params & query left alone on purpose
-}
+};
 
 type updateProps = {
 	url: string
 	params: any
 	query: any
-}
+};
 
 export default update;

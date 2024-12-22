@@ -9,8 +9,8 @@ import { APIThisType, UserRatingType, UserType } from '@types';
 
 const ProfileFriendCodesPage = () =>
 {
-	const {userRatings} = useLoaderData() as ProfileFriendCodesPageProps;
-	const {user} = useOutletContext() as {user: UserType};
+	const { userRatings } = useLoaderData() as ProfileFriendCodesPageProps;
+	const { user } = useOutletContext() as { user: UserType };
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -22,20 +22,20 @@ const ProfileFriendCodesPage = () =>
 					link={`/profile/${encodedId}/friend-codes`}
 					links={
 						<>
-						<Link to={`/ratings/${encodedId}/${constants.rating.types.wifi}`}>
-							Wifi Ratings
-						</Link>
-						<Link to={`/trading-post/${encodedId}/all`}>
-							Trades
-						</Link>
-						<Link to={`/ratings/${encodedId}/${constants.rating.types.trade}`}>
-							Trade Ratings
-						</Link>
-						<RequireUser id={user.id} silent>
-							<Link to={`/profile/${encodedId}/friend-code/add`}>
-								Add Friend Code
+							<Link to={`/ratings/${encodedId}/${constants.rating.types.wifi}`}>
+								Wifi Ratings
 							</Link>
-						</RequireUser>
+							<Link to={`/trading-post/${encodedId}/all`}>
+								Trades
+							</Link>
+							<Link to={`/ratings/${encodedId}/${constants.rating.types.trade}`}>
+								Trade Ratings
+							</Link>
+							<RequireUser id={user.id} silent>
+								<Link to={`/profile/${encodedId}/friend-code/add`}>
+									Add Friend Code
+								</Link>
+							</RequireUser>
 						</>
 					}
 				>
@@ -51,19 +51,19 @@ const ProfileFriendCodesPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ProfileFriendCodesPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileFriendCodesPageProps>
 {
 	const [userRatings] = await Promise.all([
-		this.query('v1/users/ratings', {id}),
+		this.query('v1/users/ratings', { id }),
 	]);
 
-	return {userRatings};
+	return { userRatings };
 }
 
 type ProfileFriendCodesPageProps = {
 	userRatings: UserRatingType
-}
+};
 
 export default ProfileFriendCodesPage;

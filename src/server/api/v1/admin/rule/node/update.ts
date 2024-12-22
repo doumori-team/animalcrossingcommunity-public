@@ -6,9 +6,9 @@ import { APIThisType } from '@types';
 /*
  * Update the rule's thread.
  */
-export default async function update(this: APIThisType, {nodeId, content}: updateProps) : Promise<void>
+export default async function update(this: APIThisType, { nodeId, content }: updateProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -21,7 +21,7 @@ export default async function update(this: APIThisType, {nodeId, content}: updat
 	}
 
 	// update thread with latest info
-	const messageId = await db.transaction(async (query:any) =>
+	const messageId = await db.transaction(async (query: any) =>
 	{
 		const [message] = await query(`
 			INSERT INTO node (parent_node_id, user_id, type)
@@ -39,10 +39,10 @@ export default async function update(this: APIThisType, {nodeId, content}: updat
 
 	await db.updateThreadStats(nodeId);
 
-	await this.query('v1/notification/create', {id: messageId, type: constants.notification.types.FT});
+	await this.query('v1/notification/create', { id: messageId, type: constants.notification.types.FT });
 }
 
 type updateProps = {
 	nodeId: number
 	content: string
-}
+};

@@ -7,16 +7,16 @@ import { APIThisType, FollowedNodesType, UserLiteType } from '@types';
 /*
  * Get followed threads
  */
-async function followed(this: APIThisType, {type, page}: followedProps) : Promise<FollowedNodesType>
+async function followed(this: APIThisType, { type, page }: followedProps): Promise<FollowedNodesType>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	const user:UserLiteType = await this.query('v1/user_lite', {id: this.userId});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
-	const offset = (page * constants.threadPageSize) - constants.threadPageSize;
+	const offset = page * constants.threadPageSize - constants.threadPageSize;
 
 	// check permissions: users are granted node read access through user or group level
 	// so check user level for thread and parent and check group for all of this user's
@@ -110,11 +110,11 @@ followed.apiTypes = {
 		required: true,
 		min: 1,
 	},
-}
+};
 
 type followedProps = {
 	type: 'thread' | 'board'
 	page: number
-}
+};
 
 export default followed;

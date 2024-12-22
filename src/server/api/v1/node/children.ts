@@ -5,7 +5,7 @@ import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
 import { APIThisType, NodeChildNodesType } from '@types';
 
-async function children(this: APIThisType, {id, order, reverse, page, showLocked}: childrenProps) : Promise<NodeChildrenType>
+async function children(this: APIThisType, { id, order, reverse, page, showLocked }: childrenProps): Promise<NodeChildrenType>
 {
 	if (showLocked && !this.userId)
 	{
@@ -13,7 +13,7 @@ async function children(this: APIThisType, {id, order, reverse, page, showLocked
 	}
 
 	const [permission, [node], groupIds, ggBoardPerm, publicBoards, archivedBoards] = await Promise.all([
-		this.query('v1/node/permission', {permission: 'read', nodeId: id}),
+		this.query('v1/node/permission', { permission: 'read', nodeId: id }),
 		db.query(`
 			SELECT type
 			FROM node
@@ -22,7 +22,7 @@ async function children(this: APIThisType, {id, order, reverse, page, showLocked
 		db.getUserGroups(this.userId),
 		this.userId && id === constants.boardIds.accForums ? this.query('v1/node/permission', {
 			permission: 'read',
-			nodeId: constants.boardIds.ggBoard
+			nodeId: constants.boardIds.ggBoard,
 		}) : null,
 		id === constants.boardIds.publicThreads ? db.query(`
 			SELECT id
@@ -55,7 +55,7 @@ async function children(this: APIThisType, {id, order, reverse, page, showLocked
 	// logic that auto grants access to user to age-locked GG Boards
 	if (this.userId && id === constants.boardIds.accForums && !ggBoardPerm)
 	{
-		const modifyBoardAgePerm:boolean = await this.query('v1/permission', {permission: 'allow-age-board'});
+		const modifyBoardAgePerm: boolean = await this.query('v1/permission', { permission: 'allow-age-board' });
 
 		if (modifyBoardAgePerm)
 		{
@@ -81,7 +81,7 @@ async function children(this: APIThisType, {id, order, reverse, page, showLocked
 	}
 
 	const pageSize = node.type === 'board' ? 50 : constants.threadPageSize;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
 	let resultsQuery = null;
 
@@ -192,9 +192,9 @@ async function children(this: APIThisType, {id, order, reverse, page, showLocked
 				ORDER BY time DESC
 				FETCH FIRST 1 ROW ONLY
 			) last_revision ON true
-		`, publicBoards.map((x: {id: string}) => Number(x.id)).concat([constants.boardIds.ggBoard, constants.boardIds.ggOffTopic, constants.boardIds.ggWiFiLobby, constants.boardIds.colorDuels, constants.boardIds.schrodingersChat]), pageSize, offset, constants.nodePermissions.read, groupIds, this.userId);
+		`, publicBoards.map((x: { id: string }) => Number(x.id)).concat([constants.boardIds.ggBoard, constants.boardIds.ggOffTopic, constants.boardIds.ggWiFiLobby, constants.boardIds.colorDuels, constants.boardIds.schrodingersChat]), pageSize, offset, constants.nodePermissions.read, groupIds, this.userId);
 	}
-	else if (archivedBoards.map((x: {id: string}) => Number(x.id)).includes(id))
+	else if (archivedBoards.map((x: { id: string }) => Number(x.id)).includes(id))
 	{
 		resultsQuery = db.query(`
 			SELECT
@@ -302,7 +302,7 @@ children.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type childrenProps = {
 	id: number
@@ -310,7 +310,7 @@ type childrenProps = {
 	reverse: boolean
 	page: number
 	showLocked: boolean
-}
+};
 
 type NodeChildrenType = {
 	childNodes: NodeChildNodesType[]
@@ -320,6 +320,6 @@ type NodeChildrenType = {
 	order: typeof orderOptions[number]
 	reverse: boolean,
 	showLocked: boolean,
-}
+};
 
 export default children;

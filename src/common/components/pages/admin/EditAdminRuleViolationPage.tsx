@@ -8,7 +8,7 @@ import { APIThisType, ViolationType, SeverityType } from '@types';
 
 const EditAdminRuleViolationPage = () =>
 {
-	const {ruleId, violation, severities} = useLoaderData() as EditAdminRuleViolationPageProps;
+	const { ruleId, violation, severities } = useLoaderData() as EditAdminRuleViolationPageProps;
 
 	return (
 		<div className='EditAdminRuleViolationPage'>
@@ -23,22 +23,22 @@ const EditAdminRuleViolationPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {ruleId, violationId}: {ruleId: string, violationId: string}) : Promise<EditAdminRuleViolationPageProps>
+export async function loadData(this: APIThisType, { ruleId, violationId }: { ruleId: string, violationId: string }): Promise<EditAdminRuleViolationPageProps>
 {
 	const [violation, severities] = await Promise.all([
-		this.query('v1/admin/violation', {id: violationId}),
+		this.query('v1/admin/violation', { id: violationId }),
 		this.query('v1/admin/rule/severities'),
 	]);
 
-	return {ruleId, violation, severities};
+	return { ruleId, violation, severities };
 }
 
 type EditAdminRuleViolationPageProps = {
 	ruleId: string
 	violation: ViolationType
 	severities: SeverityType[]
-}
+};
 
 export default EditAdminRuleViolationPage;

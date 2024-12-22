@@ -8,7 +8,7 @@ import { UserType } from '@types';
 
 const ProfileTownsPage = () =>
 {
-	const {user} = useOutletContext() as ProfileTownsPageProps;
+	const { user } = useOutletContext() as ProfileTownsPageProps;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -20,14 +20,14 @@ const ProfileTownsPage = () =>
 					link={`/profile/${encodedId}/towns`}
 					links={
 						<>
-						<Link to={`/catalog/${encodedId}/${constants.town.catalogTypes.user}`}>
-							User Catalog
-						</Link>
-						<RequireUser id={user.id} permission='modify-towns' silent>
-							<Link to={`/profile/${encodedId}/towns/add`}>
-								Add Town
+							<Link to={`/catalog/${encodedId}/${constants.town.catalogTypes.user}`}>
+								User Catalog
 							</Link>
-						</RequireUser>
+							<RequireUser id={user.id} permission='modify-towns' silent>
+								<Link to={`/profile/${encodedId}/towns/add`}>
+									Add Town
+								</Link>
+							</RequireUser>
 						</>
 					}
 				/>
@@ -36,10 +36,10 @@ const ProfileTownsPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
 type ProfileTownsPageProps = {
 	user: UserType
-}
+};
 
 export default ProfileTownsPage;

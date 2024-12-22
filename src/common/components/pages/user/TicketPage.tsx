@@ -8,7 +8,7 @@ import { APIThisType, EmojiSettingType, TicketType } from '@types';
 
 const TicketPage = () =>
 {
-	const {ticket, ticketUserEmojiSettings} = useLoaderData() as TicketPageProps;
+	const { ticket, ticketUserEmojiSettings } = useLoaderData() as TicketPageProps;
 
 	const referenceLink = utils.getReferenceLink(ticket);
 	const encodedId = encodeURIComponent(ticket.id);
@@ -30,7 +30,7 @@ const TicketPage = () =>
 
 				<div className='TicketPage_content'>
 					Reference Content:
-					{ticket.reference.text && (
+					{ticket.reference.text &&
 						<Markup
 							text={ticket.reference.text}
 							format={ticket.reference.format ?
@@ -38,12 +38,12 @@ const TicketPage = () =>
 								'markdown'}
 							emojiSettings={ticketUserEmojiSettings}
 						/>
-					)}
-					{ticket.reference.url && (
+					}
+					{ticket.reference.url &&
 						<div className='TicketPage_referenceUrl'>
 							<img src={ticket.reference.url} alt='Reference Image' />
 						</div>
-					)}
+					}
 				</div>
 
 				<div className='TicketPage_date'>
@@ -54,17 +54,17 @@ const TicketPage = () =>
 					Rule: {ticket.rule}
 				</div>
 
-				{ticket.violation && (
+				{ticket.violation &&
 					<div className='TicketPage_violation'>
 						Violation: {ticket.violation}
 					</div>
-				)}
+				}
 
 				<div className='TicketPage_action'>
 					Action: {ticket.action.name}
 				</div>
 
-				{(ticket.action.identifier === constants.userTicket.actions.modify && ticket.updatedContent != null) && (
+				{ticket.action.identifier === constants.userTicket.actions.modify && ticket.updatedContent &&
 					<div className='TicketPage_updatedContent'>
 						Updated Content: <Markup
 							text={ticket.updatedContent}
@@ -74,7 +74,7 @@ const TicketPage = () =>
 							emojiSettings={ticketUserEmojiSettings}
 						/>
 					</div>
-				)}
+				}
 
 				<div className='TicketPage_ban'>
 					Ban Length (for Ticket): {ticket.banLength}
@@ -85,17 +85,17 @@ const TicketPage = () =>
 				<h3>Messages: </h3>
 
 				<div className='TicketPage_messages'>
-					{ticket.messages.length > 0 ? (
-						ticket.messages.map((message:TicketType['messages'][number]) =>
+					{ticket.messages.length > 0 ?
+						ticket.messages.map((message: TicketType['messages'][number]) =>
 							<div key={message.id} className='TicketPage_message'>
 								<div className='TicketPage_messageBy'>
-									{message.user ? (
+									{message.user ?
 										<>
-										Message By: <Link to={`/profile/${encodeURIComponent(message.user.id)}`}>
-											{message.user.username}
-										</Link>
+											Message By: <Link to={`/profile/${encodeURIComponent(message.user.id)}`}>
+												{message.user.username}
+											</Link>
 										</>
-									) : 'Staff Response'} on {message.formattedDate}
+										: 'Staff Response'} on {message.formattedDate}
 								</div>
 
 								<div className='TicketPage_message'>
@@ -112,11 +112,11 @@ const TicketPage = () =>
 											'markdown'}
 									/>}
 								</div>
-							</div>
+							</div>,
 						)
-					) : (
+						:
 						'No messages have been posted.'
-					)}
+					}
 				</div>
 
 				<div className='TicketPage_makeMessage'>
@@ -142,24 +142,24 @@ const TicketPage = () =>
 			</div>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id?: string}) : Promise<TicketPageProps>
+export async function loadData(this: APIThisType, { id }: { id?: string }): Promise<TicketPageProps>
 {
 	const [ticket] = await Promise.all([
-		this.query('v1/users/ticket', {id: id}),
+		this.query('v1/users/ticket', { id: id }),
 	]);
 
 	const [ticketUserEmojiSettings] = await Promise.all([
-		this.query('v1/settings/emoji', {userIds: [ticket.violator.id]}),
+		this.query('v1/settings/emoji', { userIds: [ticket.violator.id] }),
 	]);
 
-	return {ticket, ticketUserEmojiSettings};
+	return { ticket, ticketUserEmojiSettings };
 }
 
 type TicketPageProps = {
 	ticket: TicketType
 	ticketUserEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default TicketPage;

@@ -7,43 +7,43 @@ const Header = ({
 	link,
 	children,
 	description,
-	description2
+	description2,
 }: HeaderProps) =>
 {
 	return (
 		<div className='Header'>
-			{links && (
+			{links &&
 				<div className='Header_links'>
 					{links}
 				</div>
-			)}
+			}
 
 			<h1 className='Header_name'>
-				{link ? (
+				{link ?
 					<Link to={link}>
 						{name}
 					</Link>
-				) : (
+					:
 					name
-				)}
+				}
 			</h1>
 
-			{description && (
+			{description &&
 				<div className='Header_description'>
 					{description}
 				</div>
-			)}
+			}
 
-			{description2 && (
+			{description2 &&
 				<div className='Header_description'>
 					{description2}
 				</div>
-			)}
+			}
 
 			{children}
 		</div>
 	);
-}
+};
 
 type HeaderProps = {
 	links?: React.ReactNode

@@ -27,6 +27,7 @@
 	.Pattern_row {
 		display: flex;
 		flex-direction: row;
+		flex-wrap: wrap;
 
 		margin-top: px2rem(5px);
 
@@ -46,7 +47,7 @@
 			.Pattern_name {
 				font-size: px2rem(24px);
 				text-align: center;
-				word-break: break-word;
+				word-break: keep-all;
 
 				.Pattern_submitted {
 					display: block;

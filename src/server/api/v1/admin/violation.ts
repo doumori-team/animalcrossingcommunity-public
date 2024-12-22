@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ViolationType } from '@types';
 
-async function violation(this: APIThisType, {id}: violationProps) : Promise<ViolationType>
+async function violation(this: APIThisType, { id }: violationProps): Promise<ViolationType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -40,10 +40,10 @@ violation.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type violationProps = {
 	id: number
-}
+};
 
 export default violation;

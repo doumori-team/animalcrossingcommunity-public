@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {tuneId, id}: saveProps) : Promise<{userId: number}>
+async function save(this: APIThisType, { tuneId, id }: saveProps): Promise<{ userId: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -60,11 +60,11 @@ save.apiTypes = {
 		type: APITypes.townId,
 		nullable: true,
 	},
-}
+};
 
 type saveProps = {
 	tuneId: number
-	id: number|null
-}
+	id: number | null
+};
 
 export default save;

@@ -19,7 +19,7 @@ import { LocationType, BuddiesType } from '@types';
 const NavbarMenuButton = ({
 	children,
 	fallbackLink,
-	buddies
+	buddies,
 }: NavbarMenuButtonProps) =>
 {
 	const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -35,13 +35,16 @@ const NavbarMenuButton = ({
 	}
 
 	// Close the menu whenever we navigate away from the current page.
-	useEffect(() => {
+	useEffect(() =>
+	{
 		setMenuOpen(false);
 	}, [location.pathname]);
 
 	// close the menu whenever we click outside the site menu
-	useEffect(() => {
-		const handleClickOutside = (event:MouseEvent) => {
+	useEffect(() =>
+	{
+		const handleClickOutside = (event: MouseEvent) =>
+		{
 			if (!ref.current?.contains(event.target))
 			{
 				setMenuOpen(false);
@@ -54,14 +57,15 @@ const NavbarMenuButton = ({
 	const toggleMenu = () =>
 	{
 		setMenuOpen(!menuOpen);
-	}
+	};
 
 	return (
 		<RequireClientJS fallback={
 			<Link to={fallbackLink} className='NavbarMenuButton'>
 				{children}
 			</Link>
-		}>
+		}
+		>
 			<Button
 				className={className}
 				clickHandler={toggleMenu}
@@ -70,15 +74,15 @@ const NavbarMenuButton = ({
 				{children}
 			</Button>
 			{menuOpen && (
-				buddies ? (
+				buddies ?
 					<BuddiesMenu dynamic closeFunc={toggleMenu} ref={ref} buddies={buddies} />
-				) : (
+					:
 					<SiteMenu dynamic closeFunc={toggleMenu} ref={ref} />
-				)
+
 			)}
 		</RequireClientJS>
 	);
-}
+};
 
 type NavbarMenuButtonProps = {
 	children: React.ReactNode

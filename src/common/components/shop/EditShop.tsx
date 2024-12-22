@@ -13,23 +13,23 @@ import { AnySrvRecord } from 'dns';
 const EditShop = ({
 	shop,
 	acgames,
-	catalogItems
+	catalogItems,
 }: EditShopProps) =>
 {
 	const [errors, setErrors] = useState<string[]>([]);
-	const [fileId, setFileId] = useState<string|null>(null);
+	const [fileId, setFileId] = useState<string | null>(null);
 	const [games, setGames] = useState<any[]>(shop && shop.games.length > 0 ? shop.games : []);
 
-	const changeGames = (newGameIds:number[]) : void =>
+	const changeGames = (newGameIds: number[]): void =>
 	{
 		const newGames = newGameIds.map(gameId => acgames.find(ag => ag.id === gameId));
 
 		setGames(newGames);
-	}
+	};
 
-	const scanFile = async (e:any) : Promise<void> =>
+	const scanFile = async (e: any): Promise<void> =>
 	{
-		const compressedFile:any = await compressImage(e.target.files[0]);
+		const compressedFile: any = await compressImage(e.target.files[0]);
 
 		// 10000 KB / 10 MB max size
 		if (compressedFile.size > 10000000)
@@ -42,31 +42,32 @@ const EditShop = ({
 		const fileName = await uploadImage(compressedFile);
 
 		setFileId(fileName);
-	}
+	};
 
-	const compressImage = async (file:any) : Promise<any> =>
+	const compressImage = async (file: any): Promise<any> =>
 	{
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) =>
+		{
 			new Compressor(file, {
 				convertSize: 1000000,
 				success: resolve,
 				error: reject,
 			});
 		});
-	}
+	};
 
-	const uploadImage = async (file:any) : Promise<string> =>
+	const uploadImage = async (file: any): Promise<string> =>
 	{
 		let params = new FormData();
 		params.append('shopId', String(shop?.id || ''));
 		params.append('imageExtension', file.type.replace(/(.*)\//g, ''));
 
 		return await (iso as any).query(null, 'v1/shop/upload_image', params)
-			.then(async ({s3PresignedUrl, fileName}: {s3PresignedUrl: string, fileName: string}) =>
+			.then(async ({ s3PresignedUrl, fileName }: { s3PresignedUrl: string, fileName: string }) =>
 			{
 				try
 				{
-					await axios.put(s3PresignedUrl, file, {headers: {'Content-Type': file.type}});
+					await axios.put(s3PresignedUrl, file, { headers: { 'Content-Type': file.type } });
 
 					return fileName;
 				}
@@ -78,16 +79,16 @@ const EditShop = ({
 					setErrors(['bad-format']);
 				}
 			})
-			.catch((error:any) =>
+			.catch((error: any) =>
 			{
 				console.error('Error attempting to get presigned url.');
 				console.error(error);
 
 				setErrors(['bad-format']);
 			});
-	}
+	};
 
-	const handleItemsLookup = async (query: string, selectedGameId: number) : Promise<ACGameItemType[number]['all']['items']> =>
+	const handleItemsLookup = async (query: string, selectedGameId: number): Promise<ACGameItemType[number]['all']['items']> =>
 	{
 		let callback = 'v1/acgame/catalog';
 
@@ -107,14 +108,14 @@ const EditShop = ({
 
 				return items.filter(item => item.tradeable);
 			})
-			.catch((error:AnySrvRecord) =>
+			.catch((error: AnySrvRecord) =>
 			{
 				console.error('Error attempting to get items.');
 				console.error(error);
 
 				return [];
-			})
-	}
+			});
+	};
 
 	return (
 		<section className='EditShop'>
@@ -166,19 +167,21 @@ const EditShop = ({
 
 				<RequireClientJS fallback={
 					<ErrorMessage identifier='javascript-required' />
-				}>
+				}
+				>
 					<Form.Group>
 						<Select
 							label='Game(s)'
 							name='games'
 							multiple
-							value={games.map((g:any) => g.id)}
-							options={acgames.filter(g => g.hasTown === true).slice().sort((a, b) => {
-								const indexA = games.findIndex((g:any) => a.id === g.id);
-								const indexB = games.findIndex((g:any) => b.id === g.id);
+							value={games.map((g: any) => g.id)}
+							options={acgames.filter(g => g.hasTown === true).slice().sort((a, b) =>
+							{
+								const indexA = games.findIndex((g: any) => a.id === g.id);
+								const indexB = games.findIndex((g: any) => b.id === g.id);
 								return indexA - indexB;
 							})}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							placeholder='Choose Animal Crossing game(s)...'
 							size={5}
 							required
@@ -186,59 +189,59 @@ const EditShop = ({
 						/>
 					</Form.Group>
 
-					{games.length > 0 && (
+					{games.length > 0 &&
 						<div className='EditShop_gameOptions'>
-							{games.map((game:any, index:any) =>
+							{games.map((game: any, index: any) =>
 							{
 								const shopGame = shop ? shop.games.find(g => g.id === game.id) : null;
 
 								return (
 									<React.Fragment key={game.id}>
-									<Form.Group>
-										<Text
-											type='number'
-											label={`${game.shortname}: Max Items Allowed Per Order`}
-											name={`perOrders[${index}]`}
-											required
-											max={constants.max.shopPerOrder}
-											min={constants.min.number}
-											value={shopGame ? shopGame.perOrder : 20}
-										/>
-									</Form.Group>
-									<Form.Group>
-										<Switch
-											name={`stackOrQuantities[${index}]`}
-											label={`${game.shortname}: Max Items by Stack`}
-											value={shopGame ? shopGame.stackOrQuantity : true}
-										/>
-									</Form.Group>
-									<Form.Group>
-										<Switch
-											name={`completeOrders[${index}]`}
-											label={`${game.shortname}: Complete Order Before Ordering Again`}
-											value={shopGame ? shopGame.completeOrder : true}
-										/>
-									</Form.Group>
-									<Form.Group>
-										<Select
-											name={`items[${index}]`}
-											label={`${game.shortname}: Unorderables`}
-											options={catalogItems && catalogItems.find(g => g.gameId === game.id) ? catalogItems.find(g => g.gameId === game.id)?.items.filter((item:any) => item.tradeable) : []}
-											optionsMapping={{value: 'id', label: 'name'}}
-											value={shopGame ? shopGame.items : []}
-											placeholder='Select item(s)...'
-											async
-											multiple
-											groupBy='categoryName'
-											size={15}
-											loadOptionsHandler={(query:string) => handleItemsLookup(query, game.id)}
-										/>
-									</Form.Group>
+										<Form.Group>
+											<Text
+												type='number'
+												label={`${game.shortname}: Max Items Allowed Per Order`}
+												name={`perOrders[${index}]`}
+												required
+												max={constants.max.shopPerOrder}
+												min={constants.min.number}
+												value={shopGame ? shopGame.perOrder : 20}
+											/>
+										</Form.Group>
+										<Form.Group>
+											<Switch
+												name={`stackOrQuantities[${index}]`}
+												label={`${game.shortname}: Max Items by Stack`}
+												value={shopGame ? shopGame.stackOrQuantity : true}
+											/>
+										</Form.Group>
+										<Form.Group>
+											<Switch
+												name={`completeOrders[${index}]`}
+												label={`${game.shortname}: Complete Order Before Ordering Again`}
+												value={shopGame ? shopGame.completeOrder : true}
+											/>
+										</Form.Group>
+										<Form.Group>
+											<Select
+												name={`items[${index}]`}
+												label={`${game.shortname}: Unorderables`}
+												options={catalogItems && catalogItems.find(g => g.gameId === game.id) ? catalogItems.find(g => g.gameId === game.id)?.items.filter((item: any) => item.tradeable) : []}
+												optionsMapping={{ value: 'id', label: 'name' }}
+												value={shopGame ? shopGame.items : []}
+												placeholder='Select item(s)...'
+												async
+												multiple
+												groupBy='categoryName'
+												size={15}
+												loadOptionsHandler={(query: string) => handleItemsLookup(query, game.id)}
+											/>
+										</Form.Group>
 									</React.Fragment>
 								);
 							})}
 						</div>
-					)}
+					}
 				</RequireClientJS>
 
 				<Form.Group>
@@ -277,51 +280,52 @@ const EditShop = ({
 					/>
 				</Form.Group>
 
-				{shop && (
+				{shop &&
 					<>
-					<RequirePermission permission='post-images' silent>
-						<div className='EditShop_imageUpload'>
-							{errors.map(
-								(identifier, index) =>
-									(<ErrorMessage identifier={identifier} key={index} />)
-							)}
+						<RequirePermission permission='post-images' silent>
+							<div className='EditShop_imageUpload'>
+								{errors.map(
+									(identifier, index) =>
+										<ErrorMessage identifier={identifier} key={index} />,
+								)}
 
-							<RequireClientJS fallback={
-								<ErrorMessage identifier='javascript-required' />
-							}>
-								<div className='EditShop_upload'>
-									<h3>Upload Image:</h3>
+								<RequireClientJS fallback={
+									<ErrorMessage identifier='javascript-required' />
+								}
+								>
+									<div className='EditShop_upload'>
+										<h3>Upload Image:</h3>
 
-									<input
-										type='file'
-										accept='.png,.jpg,.jpeg'
-										onChange={scanFile}
-										name='file'
-									/>
-
-									{fileId && (
 										<input
-											type='hidden'
-											name='fileId'
-											value={fileId}
+											type='file'
+											accept='.png,.jpg,.jpeg'
+											onChange={scanFile}
+											name='file'
 										/>
-									)}
 
-									{(shop && shop.fileId) && (
-										<>
-										You have a header uploaded! Upload it again to keep it, or leave it blank to remove it.
-										</>
-									)}
-								</div>
-							</RequireClientJS>
-						</div>
-					</RequirePermission>
+										{fileId &&
+											<input
+												type='hidden'
+												name='fileId'
+												value={fileId}
+											/>
+										}
+
+										{shop && shop.fileId &&
+											<>
+												You have a header uploaded! Upload it again to keep it, or leave it blank to remove it.
+											</>
+										}
+									</div>
+								</RequireClientJS>
+							</div>
+						</RequirePermission>
 					</>
-				)}
+				}
 			</Form>
 		</section>
 	);
-}
+};
 
 type EditShopProps = {
 	shop?: ShopType

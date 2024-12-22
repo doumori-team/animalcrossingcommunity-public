@@ -7,7 +7,7 @@ import { constants } from '@utils';
 
 const MapMaker = ({
 	town,
-	mapTiles
+	mapTiles,
 }: MapMakerProps) =>
 {
 	const firstTile = mapTiles.all[town.mapTiles[0]];
@@ -22,7 +22,7 @@ const MapMaker = ({
 
 	const mapDir = `${constants.AWS_URL}/images/maps/${town.game.identifier}/`;
 
-	const handleAcreChange = (selectedAcreId:number, styleMapTile:MapMakerProps['mapTiles']['all'][number]) : void =>
+	const handleAcreChange = (selectedAcreId: number, styleMapTile: MapMakerProps['mapTiles']['all'][number]): void =>
 	{
 		let newSelectedAcreId = Number(selectedAcreId);
 		let newCurrentAcre = 'A';
@@ -34,8 +34,9 @@ const MapMaker = ({
 		}
 
 		// add up to the current acre for each row we pass
-		acres.map((_, index) => {
-			if ((++index % town.game.mapX) === 0 && index <= newSelectedAcreId)
+		acres.map((_, index) =>
+		{
+			if (++index % town.game.mapX === 0 && index <= newSelectedAcreId)
 			{
 				newCurrentAcre = String.fromCharCode(newCurrentAcre.charCodeAt(0) + 1);
 			}
@@ -47,16 +48,16 @@ const MapMaker = ({
 		setSelectedPaletteChildId1(styleMapTile.child_id1);
 		setSelectedPaletteChildId2(styleMapTile.child_id2);
 		setSelectedStyleId(styleMapTile.id);
-	}
+	};
 
-	const handlePaletteChange = (parentTile:MapMakerProps['mapTiles']['all'][number]|MapMakerProps['mapTiles']['org'][number]['paletteGroups'][number]['parentMapTile']|undefined, paletteGroupId:number, paletteGroup:string) : void =>
+	const handlePaletteChange = (parentTile: MapMakerProps['mapTiles']['all'][number] | MapMakerProps['mapTiles']['org'][number]['paletteGroups'][number]['parentMapTile'] | undefined, paletteGroupId: number, paletteGroup: string): void =>
 	{
-		let newSelectedStyleId:number|undefined = 0;
+		let newSelectedStyleId: number | undefined = 0;
 		let newSelectedPaletteParentId = selectedPaletteParentId;
-		let newSelectedPaletteChildId1:number|null = selectedPaletteChildId1;
-		let newSelectedPaletteChildId2:number|null = selectedPaletteChildId2;
+		let newSelectedPaletteChildId1: number | null = selectedPaletteChildId1;
+		let newSelectedPaletteChildId2: number | null = selectedPaletteChildId2;
 
-		if (paletteGroup === 'Parent' && parentTile != null)
+		if (paletteGroup === 'Parent' && parentTile)
 		{
 			newSelectedStyleId = parentTile.id;
 			newSelectedPaletteParentId = Number(paletteGroupId);
@@ -95,7 +96,7 @@ const MapMaker = ({
 			newSelectedStyleId = parentTile?.id;
 		}
 
-		let array:TownType['mapTiles'] = checkUnique((parentTile as any), mapTiles.grassTileId);
+		let array: TownType['mapTiles'] = checkUnique((parentTile as any), mapTiles.grassTileId);
 		array[selectedAcreId] = (newSelectedStyleId as any);
 
 		setAcres(array);
@@ -103,23 +104,23 @@ const MapMaker = ({
 		setSelectedPaletteChildId1(newSelectedPaletteChildId1);
 		setSelectedPaletteChildId2(newSelectedPaletteChildId2);
 		setSelectedStyleId((newSelectedStyleId as any));
-	}
+	};
 
-	const handleStyleChange = (styleMapTile:MapMakerProps['mapTiles']['all'][number]) : void =>
+	const handleStyleChange = (styleMapTile: MapMakerProps['mapTiles']['all'][number]): void =>
 	{
 		// AC:GC Track Tiles is changed at the style level, not palette level
 		// so need to check for 'only 1 unique tile on map' here too
-		let array:TownType['mapTiles'] = checkUnique(styleMapTile, acres[selectedAcreId]);
+		let array: TownType['mapTiles'] = checkUnique(styleMapTile, acres[selectedAcreId]);
 
 		// replace selected tile in map with selected style image
 		array[selectedAcreId] = styleMapTile.id;
 
 		setAcres(array);
 		setSelectedStyleId(styleMapTile.id);
-	}
+	};
 
 	// Check 'only 1 unique tile of this on the map'
-	const checkUnique = (smt:MapMakerProps['mapTiles']['all'][number], replaceTileId:number) : TownType['mapTiles'] =>
+	const checkUnique = (smt: MapMakerProps['mapTiles']['all'][number], replaceTileId: number): TownType['mapTiles'] =>
 	{
 		let array = [...acres];
 
@@ -128,7 +129,7 @@ const MapMaker = ({
 		{
 			// if so, check to see if the image is already in the map
 			// AND isn't the currently selected acre
-			var index = array.indexOf(smt.id);
+			let index = array.indexOf(smt.id);
 
 			if (index !== -1 && index !== selectedAcreId)
 			{
@@ -138,7 +139,7 @@ const MapMaker = ({
 		}
 
 		return array;
-	}
+	};
 
 	return (
 		<div className='MapMaker'>
@@ -155,7 +156,8 @@ const MapMaker = ({
 				/>
 
 				<div className='MapPalette'>
-					{mapTiles.org.map(mapTile => {
+					{mapTiles.org.map(mapTile =>
+					{
 						let child2Group = false;
 
 						if (selectedPaletteChildId2 !== null)
@@ -167,11 +169,13 @@ const MapMaker = ({
 						return (
 							<div key={mapTile.paletteGroupId} className='Palette'>
 								<h4 className={'PaletteHeader' + (mapTile.paletteDisplay
-										? ' hidden' : '')}>
+									? ' hidden' : '')}
+								>
 									{mapTile.paletteGroupName}
 								</h4>
 								<div className='PaletteGroups'>
-									{mapTile.paletteGroups.map(paletteGroup => {
+									{mapTile.paletteGroups.map(paletteGroup =>
+									{
 										let group = '';
 										const parentTile = paletteGroup.parentMapTile;
 
@@ -199,30 +203,32 @@ const MapMaker = ({
 												paletteGroup.styleMapTiles
 													.some(smt => smt.parent_id === selectedPaletteParentId &&
 													(child2Group === false ||
-														(child2Group === true &&
+														child2Group === true &&
 															smt.child_id1 === selectedPaletteChildId1
-														)
+
+													),
 													)
-												)
 											);
 
 										return (
 											<div key={paletteGroup.groupId} className='PaletteGroup'>
 												<h5 className={'PaletteHeader' + (mapTile.paletteDisplay
-														? '' : ' hidden')}>
+													? '' : ' hidden')}
+												>
 													{paletteGroup.groupName}
 												</h5>
 												<div className={check ? '' : 'hidden'}
 													onClick={() =>
 														handlePaletteChange(parentTile,
-															paletteGroup.groupId, group)}>
+															paletteGroup.groupId, group)}
+												>
 													<img className={[selectedPaletteParentId,
-															selectedPaletteChildId1,
-															selectedPaletteChildId2]
+														selectedPaletteChildId1,
+														selectedPaletteChildId2]
 															.includes(paletteGroup.groupId)
-															? 'selected': ''}
-														src={mapDir + parentTile.img_name}
-														alt='Map Tile'
+														? 'selected' : ''}
+													src={mapDir + parentTile.img_name}
+													alt='Map Tile'
 													/>
 												</div>
 											</div>
@@ -241,33 +247,35 @@ const MapMaker = ({
 								.filter(smt => !smt.unchangeable &&
 									selectedPaletteParentId === smt.parent_id &&
 									selectedPaletteChildId1 === smt.child_id1 &&
-									selectedPaletteChildId2 === smt.child_id2
+									selectedPaletteChildId2 === smt.child_id2,
 								)
-								.map(styleMapTile => {
-								return (
-									<div key={styleMapTile.id}
-										className='PaletteGroup'
-										onClick={() => handleStyleChange(styleMapTile)}>
+								.map(styleMapTile =>
+								{
+									return (
+										<div key={styleMapTile.id}
+											className='PaletteGroup'
+											onClick={() => handleStyleChange(styleMapTile)}
+										>
 											<img alt='Map Tile'
-											className={selectedStyleId === styleMapTile.id ?
-												'selected': ''}
-											src={mapDir + styleMapTile.img_name}
-										/>
-									</div>
-								);
-							})}
+												className={selectedStyleId === styleMapTile.id ?
+													'selected' : ''}
+												src={mapDir + styleMapTile.img_name}
+											/>
+										</div>
+									);
+								})}
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<Form action='v1/town/map/save' callback='/profile/:userId/towns' showButton>
+			<Form action='v1/town/map/save' callback={`/profile/:userId/town/${town.id}`} showButton>
 				<input type='hidden' name='townId' value={town.id} />
 				<input type='hidden' name='acres' value={acres.join(',')} />
 			</Form>
 		</div>
 	);
-}
+};
 
 type MapMakerProps = {
 	town: TownType

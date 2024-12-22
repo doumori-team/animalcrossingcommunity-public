@@ -6,9 +6,9 @@ import { APIThisType } from '@types';
 /*
  * Move a message to staff notes.
  */
-async function move(this: APIThisType, {id}: moveProps) : Promise<void>
+async function move(this: APIThisType, { id }: moveProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -43,10 +43,10 @@ move.apiTypes = {
 		type: APITypes.number,
 		default: 0,
 	},
-}
+};
 
 type moveProps = {
 	id: number
-}
+};
 
 export default move;

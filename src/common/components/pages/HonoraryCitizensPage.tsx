@@ -10,7 +10,7 @@ import { APIThisType, DonationsType } from '@types';
 
 const HonoraryCitizensPage = () =>
 {
-	const {users} = useLoaderData() as HonoraryCitizensPageProps;
+	const { users } = useLoaderData() as HonoraryCitizensPageProps;
 
 	return (
 		<div className='HonoraryCitizensPage'>
@@ -26,40 +26,40 @@ const HonoraryCitizensPage = () =>
 			</ContentBox>
 			<Section>
 				<UserContext.Consumer>
-					{currentUser => (
+					{currentUser =>
 						<Grid message='No donations found.' options={users}>
 							{users.map((user, index) =>
 								<InnerSection key={index}>
 									<div className='HonoraryCitizensPage_user'>
-										{currentUser ? (
+										{currentUser ?
 											<><Link to={`/profile/${encodeURIComponent(user.id)}`}>
 												{user.username}
 											</Link> (${user.donations})</>
-										) : (
+											:
 											<>{user.username} (${user.donations})</>
-										)}
+										}
 									</div>
-								</InnerSection>
+								</InnerSection>,
 							)}
 						</Grid>
-					)}
+					}
 				</UserContext.Consumer>
 			</Section>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<HonoraryCitizensPageProps>
+export async function loadData(this: APIThisType): Promise<HonoraryCitizensPageProps>
 {
 	const [users] = await Promise.all([
 		this.query('v1/donations'),
 	]);
 
-	return {users};
+	return { users };
 }
 
 type HonoraryCitizensPageProps = {
 	users: DonationsType[]
-}
+};
 
 export default HonoraryCitizensPage;

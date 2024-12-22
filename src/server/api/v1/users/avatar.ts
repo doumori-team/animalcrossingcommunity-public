@@ -38,11 +38,11 @@ import { APIThisType, UserAvatarType, DataBackgroundType, DataAccentType, DataCh
  * 			id - number - tag id
  * 			parentID - number - id of parent tag (if applicable)
  */
-async function avatar(this: APIThisType, {id}: avatarProps) : Promise<UserAvatarType>
+async function avatar(this: APIThisType, { id }: avatarProps): Promise<UserAvatarType>
 {
 	const [viewForums, viewProfiles] = await Promise.all([
-		this.query('v1/node/permission', {permission: 'read', nodeId: constants.boardIds.accForums}),
-		this.query('v1/permission', {permission: 'view-profiles'}),
+		this.query('v1/node/permission', { permission: 'read', nodeId: constants.boardIds.accForums }),
+		this.query('v1/permission', { permission: 'view-profiles' }),
 	]);
 
 	if (!(viewForums || viewProfiles))
@@ -64,7 +64,7 @@ async function avatar(this: APIThisType, {id}: avatarProps) : Promise<UserAvatar
 	if (!userAvatar.avatar_background_id)
 	{
 		// No avatar, so use defaults
-		return {...constants.defaultAvatar};
+		return { ...constants.defaultAvatar };
 	}
 
 	if (!userAvatar.avatar_background_id || !userAvatar.avatar_character_id)
@@ -72,15 +72,15 @@ async function avatar(this: APIThisType, {id}: avatarProps) : Promise<UserAvatar
 		throw new UserError('incomplete-avatar');
 	}
 
-	const avatarBackground:DataBackgroundType = (await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds))[userAvatar.avatar_background_id];
-	const avatarCharacter:DataCharacterType = (await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters))[userAvatar.avatar_character_id];
-	const avatarColoration:DataColorationType = userAvatar.avatar_coloration_id ? (await ACCCache.get(constants.cacheKeys.indexedAvatarColorations))[userAvatar.avatar_coloration_id] : null;
-	const avatarAccent:DataAccentType = userAvatar.avatar_accent_id ? (await ACCCache.get(constants.cacheKeys.indexedAvatarAccents))[userAvatar.avatar_accent_id] : null;
+	const avatarBackground: DataBackgroundType = (await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds))[userAvatar.avatar_background_id];
+	const avatarCharacter: DataCharacterType = (await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters))[userAvatar.avatar_character_id];
+	const avatarColoration: DataColorationType = userAvatar.avatar_coloration_id ? (await ACCCache.get(constants.cacheKeys.indexedAvatarColorations))[userAvatar.avatar_coloration_id] : null;
+	const avatarAccent: DataAccentType = userAvatar.avatar_accent_id ? (await ACCCache.get(constants.cacheKeys.indexedAvatarAccents))[userAvatar.avatar_accent_id] : null;
 
 	if (!avatarBackground ||
 		!avatarCharacter ||
-		(userAvatar.avatar_coloration_id && !avatarColoration) ||
-		(userAvatar.avatar_accent_id && !avatarAccent)
+		userAvatar.avatar_coloration_id && !avatarColoration ||
+		userAvatar.avatar_accent_id && !avatarAccent
 	)
 	{
 		throw new UserError('no-such-avatar');
@@ -92,18 +92,18 @@ async function avatar(this: APIThisType, {id}: avatarProps) : Promise<UserAvatar
 			name: avatarBackground.name,
 			image: avatarBackground.image,
 			colorable: avatarBackground.colorable,
-			tags: avatarBackground.tags
+			tags: avatarBackground.tags,
 		},
 		coloration: userAvatar.avatar_coloration_id ? {
 			id: avatarColoration.id,
 			name: avatarColoration.name,
-			css: avatarColoration.css
+			css: avatarColoration.css,
 		} : null,
 		character: {
 			id: avatarCharacter.id,
 			name: avatarCharacter.name,
 			image: avatarCharacter.image,
-			tags: avatarCharacter.tags
+			tags: avatarCharacter.tags,
 		},
 		accent: userAvatar.avatar_accent_id ? {
 			id: avatarAccent.id,
@@ -111,9 +111,9 @@ async function avatar(this: APIThisType, {id}: avatarProps) : Promise<UserAvatar
 			image: avatarAccent.image,
 			positionable: avatarAccent.positionable,
 			zIndex: avatarAccent.zIndex,
-			tags: avatarAccent.tags
+			tags: avatarAccent.tags,
 		} : null,
-		accentPosition: Number(userAvatar.avatar_accent_position)
+		accentPosition: Number(userAvatar.avatar_accent_position),
 	};
 }
 
@@ -122,10 +122,10 @@ avatar.apiTypes = {
 		type: APITypes.userId,
 		default: true,
 	},
-}
+};
 
 type avatarProps = {
 	id: number
-}
+};
 
 export default avatar;

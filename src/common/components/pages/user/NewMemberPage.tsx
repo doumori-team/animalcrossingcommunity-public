@@ -32,6 +32,6 @@ const NewMemberPage = () =>
 			</ContentBox>
 		</div>
 	);
-}
+};
 
 export default NewMemberPage;

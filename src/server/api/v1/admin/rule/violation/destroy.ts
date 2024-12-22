@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -52,10 +52,10 @@ destroy.apiTypes = {
 		type: APITypes.ruleViolationId,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

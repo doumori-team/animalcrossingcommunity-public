@@ -4,11 +4,11 @@ import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SupportTicketType } from '@types';
 
-async function support_ticket(this: APIThisType, {id}: supportTicketProps) : Promise<SupportTicketType>
+async function support_ticket(this: APIThisType, { id }: supportTicketProps): Promise<SupportTicketType>
 {
 	const [processSupportTickets, submitSupportTickets] = await Promise.all([
-		this.query('v1/permission', {permission: 'process-support-tickets'}),
-		this.query('v1/permission', {permission: 'submit-support-tickets'}),
+		this.query('v1/permission', { permission: 'process-support-tickets' }),
+		this.query('v1/permission', { permission: 'submit-support-tickets' }),
 	]);
 
 	if (!(processSupportTickets || submitSupportTickets))
@@ -40,8 +40,8 @@ async function support_ticket(this: APIThisType, {id}: supportTicketProps) : Pro
 	const notificationTypes = constants.notification.types;
 
 	const [currentBan, user, messages] = await Promise.all([
-		this.query('v1/users/ban_length', {id: supportTicket.user_id}),
-		this.query('v1/user_lite', {id: supportTicket.user_id}),
+		this.query('v1/users/ban_length', { id: supportTicket.user_id }),
+		this.query('v1/user_lite', { id: supportTicket.user_id }),
 		db.query(`
 			SELECT id, user_id, message, created, message_format, staff_only
 			FROM support_ticket_message
@@ -50,11 +50,11 @@ async function support_ticket(this: APIThisType, {id}: supportTicketProps) : Pro
 		`, supportTicket.id),
 		this.query('v1/notification/destroy', {
 			id: supportTicket.id,
-			type: notificationTypes.supportTicket
+			type: notificationTypes.supportTicket,
 		}),
 		this.query('v1/notification/destroy', {
 			id: supportTicket.id,
-			type: notificationTypes.supportTicketProcessed
+			type: notificationTypes.supportTicketProcessed,
 		}),
 	]);
 
@@ -76,10 +76,11 @@ async function support_ticket(this: APIThisType, {id}: supportTicketProps) : Pro
 			days: supportTicket.days,
 		} : null,
 		currentBan: currentBan,
-		messages: await Promise.all(messages.filter((m:any) => processSupportTickets || !m.staff_only).map(async (message:any) => {
+		messages: await Promise.all(messages.filter((m: any) => processSupportTickets || !m.staff_only).map(async (message: any) =>
+		{
 			return {
 				id: message.id,
-				user: processSupportTickets || message.user_id === this.userId ? await this.query('v1/user_lite', {id: message.user_id}) : null,
+				user: processSupportTickets || message.user_id === this.userId ? await this.query('v1/user_lite', { id: message.user_id }) : null,
 				formattedDate: dateUtils.formatDateTime(message.created),
 				message: message.message,
 				staffOnly: message.staff_only,
@@ -95,10 +96,10 @@ support_ticket.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type supportTicketProps = {
 	id: number
-}
+};
 
 export default support_ticket;

@@ -12,7 +12,7 @@ export default async function tos(this: APIThisType)
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	await db.query(`
 		UPDATE users

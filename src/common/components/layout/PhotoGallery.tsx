@@ -9,12 +9,13 @@ import PhotoSlideshow from '@/components/layout/PhotoSlideshow.tsx';
 const PhotoGallery = ({
 	userId,
 	files,
-	reportType
+	reportType,
 }: PhotoGalleryProps) =>
 {
 	const [fileIndex, setFileIndex] = useState<number>(-1);
 
-	const slides = files?.map(file => {
+	const slides = files?.map(file =>
+	{
 		return {
 			src: `${constants.USER_FILE_DIR}${userId}/${file.fileId}`,
 			alt: file.caption,
@@ -26,7 +27,7 @@ const PhotoGallery = ({
 		};
 	});
 
-	const renderPhoto = ({photo, layoutOptions, imageProps: {alt, style, ...restImageProps}}: any) => (
+	const renderPhoto = ({ _, layoutOptions, imageProps: { alt, style, ...restImageProps } }: any) =>
 		<div
 			style={{
 				boxSizing: 'content-box',
@@ -40,7 +41,7 @@ const PhotoGallery = ({
 				alt={alt} style={{ ...style, width: '100%', padding: 0 }} {...restImageProps}
 			/>
 		</div>
-	);
+	;
 
 	return (
 		<RequireClientJS>
@@ -63,7 +64,7 @@ const PhotoGallery = ({
 			/>
 		</RequireClientJS>
 	);
-}
+};
 
 type PhotoGalleryProps = {
 	userId: number

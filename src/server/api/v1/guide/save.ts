@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, gameId, name, description, content}: saveProps) : Promise<{id: number}>
+async function save(this: APIThisType, { id, gameId, name, description, content }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-guides'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-guides' });
 
 	if (!permissionGranted)
 	{
@@ -53,7 +53,7 @@ async function save(this: APIThisType, {id, gameId, name, description, content}:
 	ACCCache.deleteMatch(constants.cacheKeys.acGameGuide);
 
 	return {
-		id: id
+		id: id,
 	};
 }
 
@@ -90,7 +90,7 @@ save.apiTypes = {
 		length: constants.max.guideContent,
 		profanity: true,
 	},
-}
+};
 
 type saveProps = {
 	id: number
@@ -98,6 +98,6 @@ type saveProps = {
 	name: string
 	description: string
 	content: string
-}
+};
 
 export default save;

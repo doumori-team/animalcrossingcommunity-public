@@ -11,7 +11,7 @@ import { APIThisType, ThreadApplicationType, EmojiSettingType, MarkupStyleType }
 
 const ApplicationPage = () =>
 {
-	const {application, userEmojiSettings, markupStyle} = useLoaderData() as ApplicationPageProps;
+	const { application, userEmojiSettings, markupStyle } = useLoaderData() as ApplicationPageProps;
 
 	return (
 		<div className='ApplicationPage'>
@@ -20,12 +20,12 @@ const ApplicationPage = () =>
 					name={`Applications: ${application.user.username}`}
 					links={
 						<>
-						<Link to='/shops'>
-							Shops
-						</Link>
-						<Link to='/shops/threads'>
-							Threads
-						</Link>
+							<Link to='/shops'>
+								Shops
+							</Link>
+							<Link to='/shops/threads'>
+								Threads
+							</Link>
 						</>
 					}
 				/>
@@ -118,12 +118,12 @@ const ApplicationPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ApplicationPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ApplicationPageProps>
 {
 	const [application, userEmojiSettings, forumSettings] = await Promise.all([
-		this.query('v1/shop/thread', {id: id, category: constants.shops.categories.applications}),
+		this.query('v1/shop/thread', { id: id, category: constants.shops.categories.applications }),
 		this.query('v1/settings/emoji'),
 		this.query('v1/settings/forum'),
 	]);
@@ -131,7 +131,7 @@ export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<
 	return {
 		application,
 		userEmojiSettings,
-		markupStyle: forumSettings.markupStyle
+		markupStyle: forumSettings.markupStyle,
 	};
 }
 
@@ -139,6 +139,6 @@ type ApplicationPageProps = {
 	application: ThreadApplicationType
 	userEmojiSettings: EmojiSettingType[]
 	markupStyle: MarkupStyleType
-}
+};
 
 export default ApplicationPage;

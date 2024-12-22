@@ -8,7 +8,7 @@ import { Form, Text } from '@form';
 
 const EmailNeededPage = () =>
 {
-	const {id} = useParams();
+	const { id } = useParams();
 
 	return (
 		<div className='EmailNeededPage'>
@@ -34,6 +34,6 @@ const EmailNeededPage = () =>
 			</RequireGroup>
 		</div>
 	);
-}
+};
 
 export default EmailNeededPage;

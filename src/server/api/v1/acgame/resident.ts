@@ -5,11 +5,11 @@ import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, ResidentsType } from '@types';
 
-async function resident(this: APIThisType, {id}: residentProps) : Promise<ResidentsType|ResidentsType[number]>
+async function resident(this: APIThisType, { id }: residentProps): Promise<ResidentsType | ResidentsType[number]>
 {
 	const [modifyTownsPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'modify-towns'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'modify-towns' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(modifyTownsPerm || useTradingPostPerm))
@@ -17,7 +17,7 @@ async function resident(this: APIThisType, {id}: residentProps) : Promise<Reside
 		throw new UserError('permission');
 	}
 
-	const sortedResidents:ResidentsType[number]|ResidentsType = id === 0 ? await ACCCache.get(constants.cacheKeys.residents) : (await ACCCache.get(constants.cacheKeys.residents))[id];
+	const sortedResidents: ResidentsType[number] | ResidentsType = id === 0 ? await ACCCache.get(constants.cacheKeys.residents) : (await ACCCache.get(constants.cacheKeys.residents))[id];
 
 	if (id === 0)
 	{
@@ -44,10 +44,10 @@ resident.apiTypes = {
 		default: 0,
 		required: true,
 	},
-}
+};
 
 type residentProps = {
 	id: number
-}
+};
 
 export default resident;

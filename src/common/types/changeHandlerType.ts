@@ -1,3 +1,5 @@
+import React from 'react';
+
 type ElementSelectType = React.ChangeEvent<HTMLSelectElement>;
 
 type ChangeHandlerSelectType = (e: ElementSelectType) => any;

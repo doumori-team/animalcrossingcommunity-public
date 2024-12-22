@@ -7,9 +7,9 @@ import { APIThisType, ListingType } from '@types';
 /*
  * Gives information needed to initiate trade (character, secret codes, friend code, dodo code).
  */
-async function code(this: APIThisType, {id, characterId, secretCodes, friendCode, dodoCode}: codeProps) : Promise<void>
+async function code(this: APIThisType, { id, characterId, secretCodes, friendCode, dodoCode }: codeProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -22,9 +22,9 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 	}
 
 	// Check parameters
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
-	if (listing.game?.id === constants.gameIds.ACGC && Number(characterId||0) <= 0)
+	if (listing.game?.id === constants.gameIds.ACGC && Number(characterId || 0) <= 0)
 	{
 		throw new UserError('bad-format');
 	}
@@ -64,7 +64,7 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		if (characterId != null && characterId > 0)
 		{
@@ -74,7 +74,7 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 				WHERE id = $1::int
 			`, offer.id, characterId);
 
-			if (Number(listing.game?.id||0) > constants.gameIds.ACGC && utils.realStringLength(friendCode) === 0 && utils.realStringLength(dodoCode) === 0)
+			if (Number(listing.game?.id || 0) > constants.gameIds.ACGC && utils.realStringLength(friendCode) === 0 && utils.realStringLength(dodoCode) === 0)
 			{
 				const [friendCode] = await query(`
 					SELECT
@@ -100,7 +100,7 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 			// if sell, you're updating your own items
 			// if buying, you're updating the other's items
 			const listingTypes = constants.tradingPost.listingTypes;
-			var items = [];
+			let items = [];
 
 			if (listing.type === listingTypes.sell)
 			{
@@ -113,7 +113,7 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 			}
 			else if (listing.type === listingTypes.buy)
 			{
-				var itemOffer = this.userId === listing.creator.id ? listing.offers.accepted : null;
+				let itemOffer = this.userId === listing.creator.id ? listing.offers.accepted : null;
 
 				if (this.userId !== listing.creator.id)
 				{
@@ -136,7 +136,8 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 				}
 			}
 
-			items.map(async(item:any, index:any) => {
+			items.map(async(item: any, index: any) =>
+			{
 				await query(`
 					UPDATE listing_offer_catalog_item
 					SET secret_code = $2
@@ -164,16 +165,16 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 		}
 	});
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
-		const updatedListing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+		const updatedListing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 		const offerAccepted = updatedListing.offers.accepted;
 
 		// either has put in character id (GC)
 		// either has a dodo code (NH)
 		// either have FCs (WW / CF / NL / NH)
-		if ((offerAccepted?.character || updatedListing.character) ||
+		if (offerAccepted?.character || updatedListing.character ||
 			(offerAccepted?.dodoCode || updatedListing.dodoCode) ||
 			(offerAccepted?.friendCode || updatedListing.friendCode))
 		{
@@ -192,7 +193,7 @@ async function code(this: APIThisType, {id, characterId, secretCodes, friendCode
 			`, id),
 			this.query('v1/notification/create', {
 				id: id,
-				type: constants.notification.types.listingContact
+				type: constants.notification.types.listingContact,
 			}),
 		]);
 	});
@@ -218,14 +219,14 @@ code.apiTypes = {
 		type: APITypes.regex,
 		regex: constants.regexes.dodoCode,
 	},
-}
+};
 
 type codeProps = {
 	id: number
-	characterId: number|null
+	characterId: number | null
 	secretCodes: any[]
 	friendCode: string
 	dodoCode: string
-}
+};
 
 export default code;

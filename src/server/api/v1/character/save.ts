@@ -4,10 +4,10 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, townId, name, bells, debt, houseSizeIds, hraScore,
-	bedLocationId, faceId, nookMiles, happyHomeNetworkId, creatorId}: saveProps) : Promise<{id: number, userId: number}>
+async function save(this: APIThisType, { id, townId, name, bells, debt, houseSizeIds, hraScore,
+	bedLocationId, faceId, nookMiles, happyHomeNetworkId, creatorId, paintId, monumentId }: saveProps): Promise<{ id: number, userId: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -35,12 +35,14 @@ async function save(this: APIThisType, {id, townId, name, bells, debt, houseSize
 	// Other area validations
 	await Promise.all([
 		validateHouseSizes.bind(this)(townId, houseSizeIds), // House Sizes
-		validateBedLocation.bind(this)(townId, bedLocationId), // Bed Location
-		validateFace.bind(this)(townId, faceId), // Face
+		validateBedLocation.bind(this)(townId, bedLocationId), // AC:GC/AC:WW Bed Location
+		validateFace.bind(this)(townId, faceId), // Face (AC:GC through AC:NL only)
+		validatePaint.bind(this)(townId, paintId), // AC:GC and AC:CF Roof Paint
+		validateMonument.bind(this)(townId, monumentId), // AC:GC Train Station Monument
 	]);
 
 	// Perform queries
-	const townUserId = await db.transaction(async (query:any) =>
+	const townUserId = await db.transaction(async (query: any) =>
 	{
 		let townUserId;
 
@@ -84,13 +86,13 @@ async function save(this: APIThisType, {id, townId, name, bells, debt, houseSize
 
 			await query(`
 				UPDATE character
-				SET name = $2, bells = $3, debt = $4, hra_score = $5, face_id = $6::int, bed_location_id = $7::int, nook_miles = $8::int, happy_home_network_id = $9, creator_id = $10
+				SET name = $2, bells = $3, debt = $4, hra_score = $5, face_id = $6::int, bed_location_id = $7::int, nook_miles = $8::int, happy_home_network_id = $9, creator_id = $10, paint_id = $11, monument_id = $12
 				WHERE character.id = $1::int
-			`, id, name, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, creatorId);
+			`, id, name, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, creatorId, paintId, monumentId);
 		}
 		else
 		{
-			await this.query('v1/user_lite', {id: this.userId});
+			await this.query('v1/user_lite', { id: this.userId });
 
 			let [foundTown] = await query(`
 				SELECT town.game_id, ac_game.max_characters
@@ -110,7 +112,7 @@ async function save(this: APIThisType, {id, townId, name, bells, debt, houseSize
 				WHERE town_id = $1::int
 			`, townId);
 
-			if (Number(characters.count)+1 > foundTown.max_characters)
+			if (Number(characters.count) + 1 > foundTown.max_characters)
 			{
 				throw new UserError('too-many-characters');
 			}
@@ -127,16 +129,16 @@ async function save(this: APIThisType, {id, townId, name, bells, debt, houseSize
 				WHERE town.user_id = $1
 			`, this.userId);
 
-			if (townCharacters.count >= (constants.max.towns*8))
+			if (townCharacters.count >= constants.max.towns * 8)
 			{
 				throw new UserError('too-many-town-characters');
 			}
 
 			const [newTown] = await query(`
-				INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id, creator_id)
-				VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9, $10)
+				INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id, creator_id, paint_id, monument_id)
+				VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9, $10, $11, $12)
 				RETURNING id
-			`, name, townId, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, creatorId);
+			`, name, townId, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, creatorId, paintId, monumentId);
 
 			id = newTown.id;
 
@@ -145,22 +147,23 @@ async function save(this: APIThisType, {id, townId, name, bells, debt, houseSize
 
 		// Other areas
 		await Promise.all([
-			updateHouseSizes.bind(this)(Number(id||0), houseSizeIds, query), // House Sizes
+			updateHouseSizes.bind(this)(Number(id || 0), houseSizeIds, query), // House Sizes
 		]);
 
 		return townUserId;
 	});
 
 	return {
-		id: Number(id||0),
+		id: Number(id || 0),
 		userId: townUserId,
 	};
 }
 
-async function validateHouseSizes(townId:number, houseSizeIds:any[]) : Promise<void>
+async function validateHouseSizes(townId: number, houseSizeIds: any[]): Promise<void>
 {
 	await Promise.all([
-		houseSizeIds.map(async (houseSizeId) => {
+		houseSizeIds.map(async (houseSizeId) =>
+		{
 			if (houseSizeId > 0)
 			{
 				const [houseSize] = await db.query(`
@@ -176,11 +179,11 @@ async function validateHouseSizes(townId:number, houseSizeIds:any[]) : Promise<v
 					throw new UserError('bad-format');
 				}
 			}
-		})
+		}),
 	]);
 }
 
-async function validateBedLocation(townId:number, bedLocationId:number|null) : Promise<void>
+async function validateBedLocation(townId: number, bedLocationId: number | null): Promise<void>
 {
 	if (bedLocationId === null)
 	{
@@ -201,7 +204,7 @@ async function validateBedLocation(townId:number, bedLocationId:number|null) : P
 	}
 }
 
-async function validateFace(townId:number, faceId:number|null) : Promise<void>
+async function validateFace(townId: number, faceId: number | null): Promise<void>
 {
 	if (faceId === null)
 	{
@@ -221,7 +224,7 @@ async function validateFace(townId:number, faceId:number|null) : Promise<void>
 	}
 }
 
-async function validateHappyHomeNetworkId(gameId:number, happyHomeNetworkId:string) : Promise<void>
+async function validateHappyHomeNetworkId(gameId: number, happyHomeNetworkId: string): Promise<void>
 {
 	if (utils.realStringLength(happyHomeNetworkId) === 0)
 	{
@@ -234,7 +237,7 @@ async function validateHappyHomeNetworkId(gameId:number, happyHomeNetworkId:stri
 	}
 }
 
-async function validateCreatorId(gameId:number, creatorId:string) : Promise<void>
+async function validateCreatorId(gameId: number, creatorId: string): Promise<void>
 {
 	if (utils.realStringLength(creatorId) === 0)
 	{
@@ -247,7 +250,7 @@ async function validateCreatorId(gameId:number, creatorId:string) : Promise<void
 	}
 }
 
-async function updateHouseSizes(id:number, houseSizeIds:any[], query:any) : Promise<void>
+async function updateHouseSizes(id: number, houseSizeIds: any[], query: any): Promise<void>
 {
 	query(`
 		DELETE FROM character_house_size
@@ -255,7 +258,8 @@ async function updateHouseSizes(id:number, houseSizeIds:any[], query:any) : Prom
 	`, id);
 
 	await Promise.all([
-		houseSizeIds.map(async (houseSizeId) => {
+		houseSizeIds.map(async (houseSizeId) =>
+		{
 			if (houseSizeId > 0)
 			{
 				await query(`
@@ -263,8 +267,49 @@ async function updateHouseSizes(id:number, houseSizeIds:any[], query:any) : Prom
 					VALUES ($1::int, $2::int)
 				`, id, houseSizeId);
 			}
-		})
+		}),
 	]);
+}
+
+async function validatePaint(townId: number, paintId: number | null): Promise<void>
+{
+	if (paintId === null)
+	{
+		return;
+	}
+
+	const [paint] = await db.query(`
+		SELECT ac_game_paint.id
+		FROM town
+		JOIN ac_game_paint ON (ac_game_paint.game_id = town.game_id)
+		WHERE ac_game_paint.id = $1::int AND town.id = $2::int
+	`, paintId, townId);
+
+	if (!paint)
+	{
+		throw new UserError('bad-format');
+	}
+}
+
+async function validateMonument(townId: number, monumentId: number | null): Promise<void>
+{
+	if (monumentId === null)
+	{
+		return;
+	}
+
+	const [monument] = await db.query(`
+		SELECT monument.id
+		FROM town
+		JOIN ac_game_monument ON (ac_game_monument.game_id = town.game_id)
+		JOIN monument ON (ac_game_monument.monument_id = monument.id)
+		WHERE monument.id = $1::int AND town.id = $2::int
+	`, monumentId, townId);
+
+	if (!monument)
+	{
+		throw new UserError('bad-format');
+	}
 }
 
 save.apiTypes = {
@@ -323,10 +368,18 @@ save.apiTypes = {
 		type: APITypes.regex,
 		regex: constants.regexes.creatorId,
 	},
-}
+	paintId: {
+		type: APITypes.number,
+		nullable: true,
+	},
+	monumentId: {
+		type: APITypes.number,
+		nullable: true,
+	},
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	townId: number
 	name: string
 	bells: number
@@ -334,10 +387,12 @@ type saveProps = {
 	debt: number
 	houseSizeIds: any[]
 	hraScore: number
-	bedLocationId: number|null
-	faceId: number|null
+	bedLocationId: number | null
+	faceId: number | null
 	happyHomeNetworkId: string
 	creatorId: string
-}
+	paintId: number | null
+	monumentId: number | null
+};
 
 export default save;

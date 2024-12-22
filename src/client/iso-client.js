@@ -38,7 +38,7 @@ export function query(userId, method, params = {})
 					}
 					else
 					{
-						if (response.hasOwnProperty('_errors'))
+						if (Object.prototype.hasOwnProperty.call(response, '_errors'))
 						{
 							reject(new errors.UserError(...response._errors));
 						}
@@ -53,7 +53,7 @@ export function query(userId, method, params = {})
 					reject(new errors.UserError('bad-format'));
 				}
 			}
-		}
+		};
 
 		// this allows our CDN to cache the GET results for visitors
 		let httpMethod = 'GET';

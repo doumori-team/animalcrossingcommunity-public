@@ -7,9 +7,9 @@ import { APIThisType, UserLiteType } from '@types';
 /*
  * Save settings for adoption buddy thread.
  */
-async function save(this: APIThisType, {username, action}: saveProps) : Promise<void>
+async function save(this: APIThisType, { username, action }: saveProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'adoption-bt-settings'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-bt-settings' });
 
 	if (!permissionGranted)
 	{
@@ -17,12 +17,12 @@ async function save(this: APIThisType, {username, action}: saveProps) : Promise<
 	}
 
 	// Check parameters
-	const user:UserLiteType = await this.query('v1/user_lite', {username: username});
+	const user: UserLiteType = await this.query('v1/user_lite', { username: username });
 
 	// Update permissions
 	const nodeId = constants.boardIds.adopteeBT;
 
-	const alreadyHavePermission:boolean = await this.query('v1/node/permission', {permission: 'read', nodeId: nodeId, userId: user.id});
+	const alreadyHavePermission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: nodeId, userId: user.id });
 
 	if (alreadyHavePermission)
 	{
@@ -59,11 +59,11 @@ save.apiTypes = {
 		includes: ['add', 'remove'],
 		required: true,
 	},
-}
+};
 
 type saveProps = {
 	username: string
 	action: 'add' | 'remove'
-}
+};
 
 export default save;

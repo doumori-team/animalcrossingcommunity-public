@@ -8,5 +8,5 @@ const router = createBrowserRouter(routes);
 
 hydrateRoot(
 	(document.querySelector('#react-root') as any),
-	<RouterProvider router={router} />
-)
+	<RouterProvider router={router} />,
+);

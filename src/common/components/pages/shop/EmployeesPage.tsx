@@ -9,7 +9,7 @@ import { APIThisType, EmployeesType, ShopType, ServiceType, RoleType } from '@ty
 
 const EmployeesPage = () =>
 {
-	const {shop, employees, shopServices, shopRoles} = useLoaderData() as EmployeesPageProps;
+	const { shop, employees, shopServices, shopRoles } = useLoaderData() as EmployeesPageProps;
 
 	const encodedId = encodeURIComponent(shop.id);
 
@@ -45,7 +45,7 @@ const EmployeesPage = () =>
 						label='Parent Role'
 						name='parentId'
 						options={employees.roles}
-						optionsMapping={{value: 'id', label: 'name'}}
+						optionsMapping={{ value: 'id', label: 'name' }}
 						placeholder='None'
 						value={role ? role.parentId : ''}
 					/>
@@ -109,13 +109,13 @@ const EmployeesPage = () =>
 						multiple
 						value={role && role.services.length > 0 ? role.services.map(s => s.id) : []}
 						options={shopServices}
-						optionsMapping={{value: 'id', label: 'name'}}
+						optionsMapping={{ value: 'id', label: 'name' }}
 						placeholder='Choose service(s)...'
 					/>
 				</Form.Group>
 			</Form>
 		);
-	}
+	};
 
 	const currentEmployees = () =>
 	{
@@ -123,15 +123,15 @@ const EmployeesPage = () =>
 			<Section>
 				<h2>Current Employees:</h2>
 				<ul>
-				{employees.list.map(e =>
-					<li>
-						<Link to={`/profile/${encodeURIComponent(e.id)}`}>{e.username}</Link> - {e.role}
-					</li>
-				)}
+					{employees.list.map(e =>
+						<li key={e.id}>
+							<Link to={`/profile/${encodeURIComponent(e.id)}`}>{e.username}</Link> - {e.role}
+						</li>,
+					)}
 				</ul>
 			</Section>
 		);
-	}
+	};
 
 	const modifyUserRoles = () =>
 	{
@@ -168,14 +168,14 @@ const EmployeesPage = () =>
 							name='roles'
 							multiple
 							options={shopRoles}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							placeholder='Choose role(s)...'
 						/>
 					</Form.Group>
 				</Form>
 			</Section>
 		);
-	}
+	};
 
 	const editExistingRoles = () =>
 	{
@@ -184,10 +184,10 @@ const EmployeesPage = () =>
 				<Section key={role.id}>
 					<h2>Edit Existing Role:</h2>
 					{editRole(role)}
-				</Section>
+				</Section>,
 			)
 		);
-	}
+	};
 
 	return (
 		<RequireUser ids={shop.owners.map(o => o.id)} permission='modify-shops'>
@@ -197,12 +197,12 @@ const EmployeesPage = () =>
 					link={`/shop/${encodedId}`}
 					links={
 						<>
-						<Link to={`/shop/${encodedId}/services`}>
-							Manage Services
-						</Link>
-						<Link to={`/shop/${encodedId}/edit`}>
-							Edit
-						</Link>
+							<Link to={`/shop/${encodedId}/services`}>
+								Manage Services
+							</Link>
+							<Link to={`/shop/${encodedId}/edit`}>
+								Edit
+							</Link>
 						</>
 					}
 				/>
@@ -211,13 +211,13 @@ const EmployeesPage = () =>
 					defaultActiveKey='modify'
 					fallback={
 						<>
-						{currentEmployees()}
-						{modifyUserRoles()}
-						{editExistingRoles()}
-						<Section>
-							<h2>Add New Role:</h2>
-							{editRole()}
-						</Section>
+							{currentEmployees()}
+							{modifyUserRoles()}
+							{editExistingRoles()}
+							<Section>
+								<h2>Add New Role:</h2>
+								{editRole()}
+							</Section>
 						</>
 					}
 				>
@@ -240,18 +240,18 @@ const EmployeesPage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<EmployeesPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EmployeesPageProps>
 {
 	const [shop, employees, shopServices, shopRoles] = await Promise.all([
-		this.query('v1/shop', {id: id}),
-		this.query('v1/shop/employees', {id: id}),
-		this.query('v1/shop/services', {id: id}),
-		this.query('v1/shop/roles', {id: id}),
+		this.query('v1/shop', { id: id }),
+		this.query('v1/shop/employees', { id: id }),
+		this.query('v1/shop/services', { id: id }),
+		this.query('v1/shop/roles', { id: id }),
 	]);
 
-	return {shop, employees, shopServices, shopRoles,};
+	return { shop, employees, shopServices, shopRoles };
 }
 
 type EmployeesPageProps = {
@@ -259,6 +259,6 @@ type EmployeesPageProps = {
 	employees: EmployeesType
 	shopServices: ServiceType[]
 	shopRoles: RoleType[]
-}
+};
 
 export default EmployeesPage;

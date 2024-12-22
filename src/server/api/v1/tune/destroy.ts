@@ -5,11 +5,11 @@ import { ACCCache } from '@cache';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
 	const [modifyTunes, processUserTickets] = await Promise.all([
-		this.query('v1/permission', {permission: 'modify-tunes'}),
-		this.query('v1/permission', {permission: 'process-user-tickets'}),
+		this.query('v1/permission', { permission: 'modify-tunes' }),
+		this.query('v1/permission', { permission: 'process-user-tickets' }),
 	]);
 
 	if (!(modifyTunes || processUserTickets))
@@ -35,7 +35,7 @@ async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
 	}
 
 	// Perform query
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await query(`
 			UPDATE town
@@ -57,10 +57,10 @@ destroy.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

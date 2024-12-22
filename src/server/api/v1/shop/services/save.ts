@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, ShopType } from '@types';
 
-async function save(this: APIThisType, {shopId, services}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { shopId, services }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -17,9 +17,9 @@ async function save(this: APIThisType, {shopId, services}: saveProps) : Promise<
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: shopId});
+	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
 	{
@@ -75,7 +75,7 @@ async function save(this: APIThisType, {shopId, services}: saveProps) : Promise<
 		return Number(id);
 	}));
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await Promise.all([
 			query(`
@@ -92,29 +92,31 @@ async function save(this: APIThisType, {shopId, services}: saveProps) : Promise<
 
 		await Promise.all([
 			Promise.all([
-				services.map(async (serviceId) => {
+				services.map(async (serviceId) =>
+				{
 					await query(`
 						UPDATE shop_service
 						SET active = true
 						WHERE id = $1
 					`, serviceId);
-				})
+				}),
 			]),
 			Promise.all([
-				defaultServices.map(async (serviceId) => {
+				defaultServices.map(async (serviceId) =>
+				{
 					await query(`
 						INSERT INTO shop_default_service_shop (shop_default_service_id, shop_id, active)
 						VALUES ($1, $2, true)
 						ON CONFLICT (shop_default_service_id, shop_id) DO UPDATE SET active = true
 					`, serviceId, shopId);
-				})
+				}),
 			]),
 		]);
 	});
 
 	return {
 		_success: 'Your active services have been updated!',
-	}
+	};
 }
 
 save.apiTypes = {
@@ -126,11 +128,11 @@ save.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type saveProps = {
 	shopId: number
 	services: any[]
-}
+};
 
 export default save;

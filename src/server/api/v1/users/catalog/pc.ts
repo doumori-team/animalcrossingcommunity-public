@@ -6,9 +6,9 @@ import { APIThisType, CatalogItemsType } from '@types';
 /*
  * Fetches information about a user's catalog (PC).
  */
-async function pc(this: APIThisType, {id}: pcProps) : Promise<CatalogItemsType[]>
+async function pc(this: APIThisType, { id }: pcProps): Promise<CatalogItemsType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-user-catalog'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-user-catalog' });
 
 	if (!permissionGranted)
 	{
@@ -24,7 +24,8 @@ async function pc(this: APIThisType, {id}: pcProps) : Promise<CatalogItemsType[]
 		WHERE pc_catalog_item.user_id = $1::int
 	`, id);
 
-	return catalog.map((item:any) => {
+	return catalog.map((item: any) =>
+	{
 		return {
 			id: item.id,
 			isInventory: item.is_inventory,
@@ -38,10 +39,10 @@ pc.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type pcProps = {
 	id: number
-}
+};
 
 export default pc;

@@ -3,7 +3,7 @@
 const TOKEN_TYPE = 'center_text';
 const MARKUP = '{center}';
 
-function tokenize(state:any, silent:any) : boolean
+function tokenize(state: any, silent: any): boolean
 {
 	if (silent)
 	{
@@ -26,7 +26,7 @@ function tokenize(state:any, silent:any) : boolean
 	return true;
 }
 
-function render(tokens:any, idx:any) : string
+function render(tokens: any, idx: any): string
 {
 	const token = tokens[idx];
 
@@ -40,7 +40,7 @@ function render(tokens:any, idx:any) : string
 	}
 }
 
-export default function center(md:any) : void
+export default function center(md: any): void
 {
 	md.inline.ruler.after('emphasis', TOKEN_TYPE, tokenize);
 	md.renderer.rules[TOKEN_TYPE] = render;

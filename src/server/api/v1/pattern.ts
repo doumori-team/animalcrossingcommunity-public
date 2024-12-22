@@ -4,9 +4,9 @@ import { utils, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, PatternType } from '@types';
 
-async function pattern(this: APIThisType, {id}: patternProps) : Promise<PatternType>
+async function pattern(this: APIThisType, { id }: patternProps): Promise<PatternType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-patterns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-patterns' });
 
 	if (!permissionGranted)
 	{
@@ -43,7 +43,7 @@ async function pattern(this: APIThisType, {id}: patternProps) : Promise<PatternT
 			FROM pattern_favorite
 			WHERE pattern_id = $1::int AND user_id = $2::int
 		`, pattern.id, this.userId),
-		this.query('v1/user_lite', {id: pattern.creator_id})
+		this.query('v1/user_lite', { id: pattern.creator_id }),
 	]);
 
 	const colors = utils.getPatternColors(pattern.game_id);
@@ -57,9 +57,9 @@ async function pattern(this: APIThisType, {id}: patternProps) : Promise<PatternT
 		isFavorite: patternFav ? true : false,
 		designId: pattern.design_id,
 		data: pattern.data.match(/.{4}/g)
-			.map((hex:any) => colors[parseInt(hex, 16)] ?
+			.map((hex: any) => colors[parseInt(hex, 16)] ?
 				colors[parseInt(hex, 16)] :
-				String(parseInt(hex, 16))
+				String(parseInt(hex, 16)),
 			),
 		dataUrl: pattern.data_url,
 		gameId: pattern.game_id,
@@ -74,10 +74,10 @@ pattern.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type patternProps = {
 	id: number
-}
+};
 
 export default pattern;

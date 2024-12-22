@@ -5,9 +5,9 @@ import { ACCCache } from '@cache';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-async function publish(this: APIThisType, {id}: publishProps) : Promise<void>
+async function publish(this: APIThisType, { id }: publishProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'publish-guides'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'publish-guides' });
 
 	if (!permissionGranted)
 	{
@@ -46,10 +46,10 @@ publish.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type publishProps = {
 	id: number
-}
+};
 
 export default publish;

@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -37,10 +37,10 @@ destroy.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

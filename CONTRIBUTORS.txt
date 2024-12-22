@@ -15,3 +15,5 @@ Contributors:
     * Weekly poll display
   Maze (missamazing2008)
     * Graphics
+  pidgezero-one
+    * Code

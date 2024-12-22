@@ -8,7 +8,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Add X Threads with Y Posts to Z board.
  */
-async function threads(this: APIThisType, {threads, posts, boardId}: threadsProps) : Promise<SuccessType>
+async function threads(this: APIThisType, { threads, posts, boardId }: threadsProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -36,7 +36,7 @@ async function threads(this: APIThisType, {threads, posts, boardId}: threadsProp
 		const threadId = await db.transaction(async (query: any) =>
 		{
 			const threadUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
-			const threadTitle = faker.random.words();
+			const threadTitle = faker.lorem.words();
 			const threadText = faker.lorem.sentences();
 
 			// create thread
@@ -71,7 +71,7 @@ async function threads(this: APIThisType, {threads, posts, boardId}: threadsProp
 			const postUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
 			const postText = faker.lorem.sentences();
 
-			await db.transaction(async (query:any) =>
+			await db.transaction(async (query: any) =>
 			{
 				const [post] = await query(`
 					INSERT INTO node (parent_node_id, user_id, type)
@@ -90,7 +90,7 @@ async function threads(this: APIThisType, {threads, posts, boardId}: threadsProp
 	}
 
 	return {
-		_success: `Your thread(s) have been created!`
+		_success: `Your thread(s) have been created!`,
 	};
 }
 
@@ -111,12 +111,12 @@ threads.apiTypes = {
 		type: APITypes.nodeId,
 		required: true,
 	},
-}
+};
 
 type threadsProps = {
 	threads: number
 	posts: number
 	boardId: number
-}
+};
 
 export default threads;

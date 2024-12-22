@@ -4,9 +4,9 @@ import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-async function read(this: APIThisType, {id}: readProps) : Promise<void>
+async function read(this: APIThisType, { id }: readProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -33,7 +33,7 @@ async function read(this: APIThisType, {id}: readProps) : Promise<void>
 	await Promise.all([
 		this.query('v1/notification/destroy', {
 			id: id,
-			type: constants.notification.types.supportEmail
+			type: constants.notification.types.supportEmail,
 		}),
 	]);
 }
@@ -43,10 +43,10 @@ read.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type readProps = {
 	id: number
-}
+};
 
 export default read;

@@ -11,7 +11,7 @@ import { ACCCache } from '@cache';
  */
 export async function query(userId = null, method, params = {}, tryCache = true)
 {
-	if (userId != null)
+	if (userId)
 	{
 		if (method === 'v1/treasure')
 		{
@@ -33,12 +33,12 @@ export async function query(userId = null, method, params = {}, tryCache = true)
 		{
 			query(userId, 'v1/notification/destroy', {
 				id: userId,
-				type: constants.notification.types.donationReminder
+				type: constants.notification.types.donationReminder,
 			});
 		}
 	}
 
-	if (tryCache && (('debug' in params && params.debug) || !('debug' in params)) && ![
+	if (tryCache && ('debug' in params && params.debug || !('debug' in params)) && ![
 		'v1/profanity/check',
 		'v1/signup/signup',
 		'v1/signup/age',
@@ -82,17 +82,15 @@ export async function query(userId = null, method, params = {}, tryCache = true)
 			params = await APITypes.parse
 				.bind({
 					userId,
-					query: query.bind(null, userId)
-				})
-				(func.apiTypes, params);
+					query: query.bind(null, userId),
+				})(func.apiTypes, params);
 		}
 
 		return await func
 			.bind({
 				userId,
-				query: query.bind(null, userId)
-			})
-			(params);
+				query: query.bind(null, userId),
+			})(params);
 	}
 	catch (error)
 	{

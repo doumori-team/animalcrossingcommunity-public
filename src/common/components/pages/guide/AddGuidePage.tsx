@@ -8,7 +8,7 @@ import { APIThisType, ACGameType } from '@types';
 
 const AddGuidePage = () =>
 {
-	const {game} = useLoaderData() as AddGuidePageProps;
+	const { game } = useLoaderData() as AddGuidePageProps;
 
 	return (
 		<div className='AddGuidePage'>
@@ -27,19 +27,19 @@ const AddGuidePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {gameId}: {gameId: string}) : Promise<AddGuidePageProps>
+export async function loadData(this: APIThisType, { gameId }: { gameId: string }): Promise<AddGuidePageProps>
 {
 	const [game] = await Promise.all([
-		this.query('v1/acgame', {id: gameId}),
+		this.query('v1/acgame', { id: gameId }),
 	]);
 
-	return {game};
+	return { game };
 }
 
 type AddGuidePageProps = {
 	game: ACGameType
-}
+};
 
 export default AddGuidePage;

@@ -5,7 +5,7 @@ import { APIThisType } from '@types';
 /*
  * How much is in current jackpot.
  */
-export default async function jackpot(this: APIThisType) : Promise<number>
+export default async function jackpot(this: APIThisType): Promise<number>
 {
 	const [jackpotAmount] = await db.query(`
 		SELECT COALESCE((sum(bells) / 20), 0) AS amount

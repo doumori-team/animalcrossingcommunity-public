@@ -39,6 +39,6 @@ const ModminHomePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
 export default ModminHomePage;

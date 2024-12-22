@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, gameConsoleId, name, shortName, pattern, placeholder, sequence, isEnabled}: saveProps) : Promise<{id: number}>
+async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pattern, placeholder, sequence, isEnabled }: saveProps): Promise<{ id: number }>
 {
-	const permission:boolean = await this.query('v1/permission', {permission: 'games-admin'});
+	const permission: boolean = await this.query('v1/permission', { permission: 'games-admin' });
 
 	if (!permission)
 	{
@@ -37,7 +37,7 @@ async function save(this: APIThisType, {id, gameConsoleId, name, shortName, patt
 	}
 
 	// Save information
-	const result = await db.transaction(async (query:any) =>
+	const result = await db.transaction(async (query: any) =>
 	{
 		if (id != null && id > 0)
 		{
@@ -191,7 +191,7 @@ async function save(this: APIThisType, {id, gameConsoleId, name, shortName, patt
 	ACCCache.deleteMatch(constants.cacheKeys.games);
 
 	return {
-		id: result.id
+		id: result.id,
 	};
 }
 
@@ -242,17 +242,17 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	gameConsoleId: number
 	name: string
 	shortName: string
 	pattern: string
 	placeholder: string
-	sequence: number|null
+	sequence: number | null
 	isEnabled: boolean
-}
+};
 
 export default save;

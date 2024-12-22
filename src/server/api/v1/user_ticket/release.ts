@@ -4,9 +4,9 @@ import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-async function release(this: APIThisType, {id}: releaseProps) : Promise<void>
+async function release(this: APIThisType, { id }: releaseProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -35,11 +35,11 @@ async function release(this: APIThisType, {id}: releaseProps) : Promise<void>
 	await Promise.all([
 		this.query('v1/notification/create', {
 			id: id,
-			type: constants.notification.types.modminUT
+			type: constants.notification.types.modminUT,
 		}),
 		this.query('v1/notification/create', {
 			id: id,
-			type: constants.notification.types.modminUTMany
+			type: constants.notification.types.modminUTMany,
 		}),
 	]);
 }
@@ -49,10 +49,10 @@ release.apiTypes = {
 		type: APITypes.userTicketId,
 		required: true,
 	},
-}
+};
 
 type releaseProps = {
 	id: number
-}
+};
 
 export default release;

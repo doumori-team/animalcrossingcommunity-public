@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, RoleType } from '@types';
 
-async function roles(this: APIThisType, {id, apply = false, inactive = false}: rolesProps) : Promise<RoleType[]>
+async function roles(this: APIThisType, { id, apply = false, inactive = false }: rolesProps): Promise<RoleType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -93,25 +93,28 @@ async function roles(this: APIThisType, {id, apply = false, inactive = false}: r
 		`, id),
 	]);
 
-	return roles.map((role:any) => {
-		const filled = filledPositions.find((f:any) => f.id === role.id);
+	return roles.map((role: any) =>
+	{
+		const filled = filledPositions.find((f: any) => f.id === role.id);
 		const positions = Number(role.positions);
-		const games = roleGames.filter((f:any) => f.id === role.id);
-		const services = roleDefaultServices.concat(roleServices).filter((s:any) => s.shop_role_id === role.id);
+		const games = roleGames.filter((f: any) => f.id === role.id);
+		const services = roleDefaultServices.concat(roleServices).filter((s: any) => s.shop_role_id === role.id);
 
 		return {
 			id: role.id,
 			name: role.name,
 			description: role.description,
-			positionsAvailable: filled ? Math.max(0, positions-Number(filled.count)) : positions,
-			games: games.length > 0 ? games.map((g:any) => {
+			positionsAvailable: filled ? Math.max(0, positions - Number(filled.count)) : positions,
+			games: games.length > 0 ? games.map((g: any) =>
+			{
 				return {
 					id: g.game_id,
 					name: g.name,
 				};
 			}) : [],
 			parentId: role.parent_id,
-			services: services.length > 0 ? services.map((s:any) => {
+			services: services.length > 0 ? services.map((s: any) =>
+			{
 				return {
 					id: s.id,
 					name: s.name,
@@ -131,12 +134,12 @@ roles.apiTypes = {
 		required: true,
 	},
 	// apply, inactive will always be booleans
-}
+};
 
 type rolesProps = {
 	id: number
 	apply: boolean
 	inactive: boolean
-}
+};
 
 export default roles;

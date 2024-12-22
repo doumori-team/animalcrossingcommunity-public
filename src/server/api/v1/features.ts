@@ -4,7 +4,7 @@ import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
 import { APIThisType, FeaturesType } from '@types';
 
-async function features(this: APIThisType, {page, statusId, isBug, categoryId, following, staffOnly, readOnly, createdUser, assignedUser}: featuresProps) : Promise<FeaturesType>
+async function features(this: APIThisType, { page, statusId, isBug, categoryId, following, staffOnly, readOnly, createdUser, assignedUser }: featuresProps): Promise<FeaturesType>
 {
 	if (!this.userId)
 	{
@@ -40,7 +40,7 @@ async function features(this: APIThisType, {page, statusId, isBug, categoryId, f
 		}
 	}
 
-	const advancedPermission:boolean = await this.query('v1/permission', {permission: 'advanced-features'});
+	const advancedPermission: boolean = await this.query('v1/permission', { permission: 'advanced-features' });
 
 	if (!advancedPermission)
 	{
@@ -52,8 +52,8 @@ async function features(this: APIThisType, {page, statusId, isBug, categoryId, f
 
 	// Do actual search
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -71,7 +71,7 @@ async function features(this: APIThisType, {page, statusId, isBug, categoryId, f
 
 		if (following === 'no')
 		{
-			leftjoin = 'LEFT '
+			leftjoin = 'LEFT ';
 		}
 
 		query += `
@@ -214,8 +214,9 @@ async function features(this: APIThisType, {page, statusId, isBug, categoryId, f
 
 	if (features.length > 0)
 	{
-		results = await Promise.all(features.map(async (feature:any) => {
-			return this.query('v1/feature', {id: feature.id})
+		results = await Promise.all(features.map(async (feature: any) =>
+		{
+			return this.query('v1/feature', { id: feature.id });
 		}));
 
 		count = Number(features[0].count);
@@ -233,7 +234,7 @@ async function features(this: APIThisType, {page, statusId, isBug, categoryId, f
 		staffOnly: staffOnly,
 		readOnly: readOnly,
 		createdUser: createdUser,
-		assignedUser: assignedUser
+		assignedUser: assignedUser,
 	};
 }
 
@@ -282,7 +283,7 @@ features.apiTypes = {
 		default: '',
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type featuresProps = {
 	page: number
@@ -294,6 +295,6 @@ type featuresProps = {
 	staffOnly: string
 	createdUser: string
 	assignedUser: string
-}
+};
 
 export default features;

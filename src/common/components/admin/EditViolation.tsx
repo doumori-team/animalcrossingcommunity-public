@@ -7,7 +7,7 @@ import { SeverityType, ViolationType } from '@types';
 const EditViolation = ({
 	ruleId,
 	violation,
-	severities
+	severities,
 }: EditViolationProps) =>
 {
 	return (
@@ -18,7 +18,7 @@ const EditViolation = ({
 
 				<Form.Group>
 					<Check
-						options={[{id: '', name: 'No Severity'} as any].concat(severities)}
+						options={[{ id: '', name: 'No Severity' } as any].concat(severities)}
 						name='severityId'
 						defaultValue={violation && violation.severityId ? [violation.severityId] : ['']}
 						label='Severity'
@@ -49,7 +49,7 @@ const EditViolation = ({
 			</Form>
 		</div>
 	);
-}
+};
 
 type EditViolationProps = {
 	ruleId: string

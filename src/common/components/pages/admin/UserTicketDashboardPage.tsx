@@ -11,14 +11,14 @@ import {
 	UserTicketTypeType,
 	UserTicketsType,
 	CurrentRuleType,
-	DenyReasonType
+	DenyReasonType,
 } from '@types';
 
 const UserTicketDashboardPage = () =>
 {
-	const {totalCount, userTickets, page, statuses, rules, types, statusId,
+	const { totalCount, userTickets, page, statuses, rules, types, statusId,
 		assignee, ruleId, typeId, pageSize, denyReasons, violator,
-		denyReasonId} = useLoaderData() as UserTicketDashboardPageProps;
+		denyReasonId } = useLoaderData() as UserTicketDashboardPageProps;
 
 	const link = `&statusId=${encodeURIComponent(statusId)}
 		&assignee=${encodeURIComponent(assignee)}
@@ -47,8 +47,8 @@ const UserTicketDashboardPage = () =>
 							label='Status'
 							name='statusId'
 							value={statusId}
-							options={[{id: '', name: 'All Statuses'} as any].concat(statuses)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							options={[{ id: '', name: 'All Statuses' } as any].concat(statuses)}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -56,17 +56,18 @@ const UserTicketDashboardPage = () =>
 							label='Rule'
 							name='ruleId'
 							value={ruleId}
-							options={[{id: '', name: 'All Rules'} as any,{id: -1, name: 'Any Rule'} as any].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
+							options={[{ id: '', name: 'All Rules' } as any,{ id: -1, name: 'Any Rule' } as any].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
 							optionsMapping={{
 								value: 'id',
-								label: (rule:any) => {
-									if (!rule.hasOwnProperty('number'))
+								label: (rule: any) =>
+								{
+									if (!Object.prototype.hasOwnProperty.call(rule, 'number'))
 									{
 										return rule.name;
 									}
 
 									return `${rule.categoryId}.${rule.number} - ${rule.name ? rule.name : rule.description}`;
-								}
+								},
 							}}
 							useReactSelect
 						/>
@@ -76,8 +77,8 @@ const UserTicketDashboardPage = () =>
 							label='Type'
 							name='typeId'
 							value={typeId}
-							options={[{id: '', description: 'All Types'} as any].concat(types)}
-							optionsMapping={{value: 'id', label: 'description'}}
+							options={[{ id: '', description: 'All Types' } as any].concat(types)}
+							optionsMapping={{ value: 'id', label: 'description' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -85,8 +86,8 @@ const UserTicketDashboardPage = () =>
 							label='Deny Reason'
 							name='denyReasonId'
 							value={denyReasonId}
-							options={[{id: '', name: 'All Deny Reasons'},{id: -1, name: 'Any Deny Reason'}].concat(denyReasons)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							options={[{ id: '', name: 'All Deny Reasons' },{ id: -1, name: 'Any Deny Reason' }].concat(denyReasons)}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 					<Form.Group>
@@ -143,24 +144,24 @@ const UserTicketDashboardPage = () =>
 									# Users Reported: {userTicket.reportedUsers?.length}
 								</div>
 
-								{userTicket.formattedClosed && (
+								{userTicket.formattedClosed &&
 									<>
-									{userTicket.rule && (
-										<div className='UserTicketDashboardPage_userTicketRule'>
-											Rule: {userTicket.rule}
+										{userTicket.rule &&
+											<div className='UserTicketDashboardPage_userTicketRule'>
+												Rule: {userTicket.rule}
+											</div>
+										}
+										{userTicket.denyReason &&
+											<div className='UserTicketDashboardPage_userTicketReason'>
+												Deny Reason: {userTicket.denyReason}
+											</div>
+										}
+										<div className='UserTicketDashboardPage_userTicketClosed'>
+											Closed: {userTicket.formattedClosed}
 										</div>
-									)}
-									{userTicket.denyReason && (
-										<div className='UserTicketDashboardPage_userTicketReason'>
-											Deny Reason: {userTicket.denyReason}
-										</div>
-									)}
-									<div className='UserTicketDashboardPage_userTicketClosed'>
-										Closed: {userTicket.formattedClosed}
-									</div>
 									</>
-								)}
-							</div>
+								}
+							</div>,
 						)}
 					</Grid>
 
@@ -175,11 +176,11 @@ const UserTicketDashboardPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, query: {page?: string, statusId?: string, assignee?: string, ruleId?: string, typeId?: string, violator?: string, denyReasonId?: string}) : Promise<UserTicketDashboardPageProps>
+export async function loadData(this: APIThisType, _: any, query: { page?: string, statusId?: string, assignee?: string, ruleId?: string, typeId?: string, violator?: string, denyReasonId?: string }): Promise<UserTicketDashboardPageProps>
 {
-	const {page, statusId, assignee, ruleId, typeId, violator, denyReasonId} = query;
+	const { page, statusId, assignee, ruleId, typeId, violator, denyReasonId } = query;
 
 	const [statuses, rules, types, denyReasons, returnValue] = await Promise.all([
 		this.query('v1/user_ticket/statuses'),
@@ -230,6 +231,6 @@ type UserTicketDashboardPageProps = {
 	denyReasons: DenyReasonType[]
 	violator: UserTicketsType['violator']
 	denyReasonId: UserTicketsType['denyReasonId']
-}
+};
 
 export default UserTicketDashboardPage;

@@ -20,17 +20,17 @@ export const markdownTags = {
 	'table': { prefix: `| Header 1 | Header 2 |
 | - | - |
 | Col 1, Row 1 | Col 2, Row 1 |
-| Col 1, Row 2 | Col 2, Row 2 |`},
+| Col 1, Row 2 | Col 2, Row 2 |` },
 	'center': { start: '{center}', end: '{center}' },
 	'line': { prefix: '---' },
 	'usertag': { start: '@', attrName: 'Username', attrType: 'username', end: '$' },
-}
+};
 
 export const markdownHtmlTags = {
 	...markdownTags,
 	'image': { prefix: '![TITLE](IMAGE)' },
 	'anchor': { prefix: '[TEXT](#TAG)' },
-}
+};
 
 export const traditionalTags = {
 	'bold': { start: '[b]', end: '[/b]' },
@@ -44,7 +44,7 @@ export const traditionalTags = {
 	'link': { start: '[link=$]', attrName: 'URL', attrType: 'url', end: '[/link]' },
 	'line': { prefix: '[hr]' },
 	'usertag': { start: '@', attrName: 'Username', attrType: 'username', end: '$' },
-}
+};
 
 // What emoji should insert
 
@@ -97,7 +97,7 @@ export const markdownEmoji = {
 	'feedback_positive': ':feedback_positive:',
 	'feedback_negative': ':feedback_negative:',
 	'feedback_neutral': ':feedback_neutral:',
-}
+};
 
 export const traditionalEmoji = {
 	'smile': '[face_happy]',
@@ -148,13 +148,13 @@ export const traditionalEmoji = {
 	'feedback_positive': '[acc_positive]',
 	'feedback_negative': '[acc_negative]',
 	'feedback_neutral': '[acc_neutral]',
-}
+};
 
-function parsePlaintext(text:string) : string
+function parsePlaintext(text: string): string
 {
 	// First remove dangerous characters
 	text = escapeHtml(text);
-	
+
 	// Then replace spaces and newlines with non-breaking spaces and <br> tags,
 	// to preserve the user's whitespace.
 	// We can't do both steps at once because otherwise the tags we insert would
@@ -175,11 +175,11 @@ function parsePlaintext(text:string) : string
 				}
 				return spaces;
 			}
-		}
+		},
 	);
-	
+
 	// And finally, put it all in a <p> so that typography styles get applied.
-	return `<p>${text}</p>`
+	return `<p>${text}</p>`;
 }
 
 // This is the only function that is actually called from outside this file
@@ -191,7 +191,7 @@ function parsePlaintext(text:string) : string
 //	- 'markdown'
 //	- 'markdown+html'
 // - emojiSettings: user emoji settings, for gendered emojis
-export function parse({text, format, emojiSettings, currentUser}: {text:string, format: MarkupFormatType, emojiSettings: EmojiSettingType[]|undefined, currentUser: UserType|null})
+export function parse({ text, format, emojiSettings, currentUser }: { text: string, format: MarkupFormatType, emojiSettings: EmojiSettingType[] | undefined, currentUser: UserType | null })
 {
 	if (format === 'markdown')
 	{

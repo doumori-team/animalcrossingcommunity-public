@@ -8,7 +8,7 @@ import { APIThisType, ACGameType } from '@types';
 
 const AddPatternPage = () =>
 {
-	const {acgames} = useLoaderData() as AddPatternPageProps;
+	const { acgames } = useLoaderData() as AddPatternPageProps;
 
 	return (
 		<div className='AddPatternPage'>
@@ -26,19 +26,19 @@ const AddPatternPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddPatternPageProps>
+export async function loadData(this: APIThisType): Promise<AddPatternPageProps>
 {
 	const [acgames] = await Promise.all([
 		this.query('v1/acgames'),
 	]);
 
-	return {acgames};
+	return { acgames };
 }
 
 type AddPatternPageProps = {
 	acgames: ACGameType[]
-}
+};
 
 export default AddPatternPage;

@@ -4,9 +4,9 @@ import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ShopsType } from '@types';
 
-async function shops(this: APIThisType, {page, services, fee, vacation, gameId, mine}: shopsProps) : Promise<ShopsType>
+async function shops(this: APIThisType, { page, services, fee, vacation, gameId, mine }: shopsProps): Promise<ShopsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -39,8 +39,8 @@ async function shops(this: APIThisType, {page, services, fee, vacation, gameId, 
 
 	// Do actual search
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 	let results = [], count = 0;
 
@@ -163,8 +163,9 @@ async function shops(this: APIThisType, {page, services, fee, vacation, gameId, 
 
 	if (shops.length > 0)
 	{
-		results = await Promise.all(shops.map(async (shop:any) => {
-			return this.query('v1/shop', {id: shop.id});
+		results = await Promise.all(shops.map(async (shop: any) =>
+		{
+			return this.query('v1/shop', { id: shop.id });
 		}));
 
 		count = Number(shops[0].count);
@@ -210,7 +211,7 @@ shops.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type shopsProps = {
 	page: number
@@ -219,6 +220,6 @@ type shopsProps = {
 	gameId: number | null
 	services: any[]
 	mine: boolean
-}
+};
 
 export default shops;

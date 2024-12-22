@@ -3,11 +3,11 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
 	const [modifyTowns, processUserTickets] = await Promise.all([
-		this.query('v1/permission', {permission: 'modify-towns'}),
-		this.query('v1/permission', {permission: 'process-user-tickets'}),
+		this.query('v1/permission', { permission: 'modify-towns' }),
+		this.query('v1/permission', { permission: 'process-user-tickets' }),
 	]);
 
 	if (!(modifyTowns || processUserTickets))
@@ -31,7 +31,7 @@ async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
 		throw new UserError('permission');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		// update any trades using this character; see v1/character/destroy.js
 		await query(`
@@ -52,10 +52,10 @@ destroy.apiTypes = {
 		type: APITypes.townId,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

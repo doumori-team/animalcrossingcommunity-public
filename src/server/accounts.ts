@@ -11,11 +11,12 @@ import * as db from '@db';
 import { dateUtils } from '@utils';
 import { AccountUserType, AccountUserLiteType } from '@types';
 
-const consumer_key = (process.env.ACCOUNTS_API_KEY || '');
+const consumer_key = process.env.ACCOUNTS_API_KEY || '';
 const host = 'https://accounts.animalcrossingcommunity.com/';
 
-axios.defaults.validateStatus = () => {
-    return true;
+axios.defaults.validateStatus = () =>
+{
+	return true;
 };
 
 // Generates a request token that uniquely identifies a login transaction.
@@ -23,7 +24,7 @@ axios.defaults.validateStatus = () => {
 //    looks something like this:
 //    https://animalcrossingcommunity.com/auth/ready?redirect_to=/wherever/the/user/was/before
 // Returns a URL to the login form, with the request token prefilled.
-export async function initiate(callback: string) : Promise<string>
+export async function initiate(callback: string): Promise<string>
 {
 	let response;
 
@@ -31,7 +32,7 @@ export async function initiate(callback: string) : Promise<string>
 	{
 		response = await axios.post(
 			new url.URL('/initiate', host).toString(),
-			new URLSearchParams({consumer_key, callback}),
+			new URLSearchParams({ consumer_key, callback }),
 		);
 	}
 	catch (error)
@@ -42,9 +43,11 @@ export async function initiate(callback: string) : Promise<string>
 	switch(response.status)
 	{
 		case 200: // OK
+		{
 			const authorizeUrl = new url.URL('/authorize', host);
 			authorizeUrl.searchParams.set('token', response.data.token);
 			return authorizeUrl.href;
+		}
 		case 401: // Unauthorized
 			throw new AccountsError('initiate', 'invalid api key', 401);
 		default:
@@ -62,7 +65,7 @@ export async function initiate(callback: string) : Promise<string>
 //  - id: user's unique numeric ID (primary key for user table) (number)
 //  - username (string)
 //  - signup_date: date user created their account (Date)
-export async function getToken(token:string, verifier:string) : Promise<string & AccountUserType>
+export async function getToken(token: string, verifier: string): Promise<string & AccountUserType>
 {
 	let response;
 
@@ -70,7 +73,7 @@ export async function getToken(token:string, verifier:string) : Promise<string &
 	{
 		response = await axios.post(
 			new url.URL('/token', host).toString(),
-			new URLSearchParams({consumer_key, token, verifier})
+			new URLSearchParams({ consumer_key, token, verifier }),
 		);
 	}
 	catch (error)
@@ -111,7 +114,7 @@ export async function getToken(token:string, verifier:string) : Promise<string &
 }
 
 // Checks whether an access token is still valid. Returns true or false.
-export async function checkToken(token:string) : Promise<boolean>
+export async function checkToken(token: string): Promise<boolean>
 {
 	let response;
 
@@ -119,7 +122,7 @@ export async function checkToken(token:string) : Promise<boolean>
 	{
 		response = await axios.post(
 			new url.URL('/token/check', host).toString(),
-			new URLSearchParams({consumer_key, token})
+			new URLSearchParams({ consumer_key, token }),
 		);
 	}
 	catch(error)
@@ -143,7 +146,7 @@ export async function checkToken(token:string) : Promise<boolean>
 //  - id: user's unique numeric ID (primary key for user table) (number)
 //  - username (string)
 //  - signup_date: date user created their account (Date)
-export async function getData(id?:number|null|string, username?:string) : Promise<AccountUserLiteType>
+export async function getData(id?: number | null | string, username?: string): Promise<AccountUserLiteType>
 {
 	if ((id == null || id == 0) && username === undefined)
 	{
@@ -175,9 +178,9 @@ export async function getData(id?:number|null|string, username?:string) : Promis
 	// If there is a recent cached result, return it and disregard the rest of the function
 	if (results.length > 0)
 	{
-		const {id, username, signup_date} = results[0];
+		const { id, username, signup_date } = results[0];
 
-		return {id, username, signup_date};
+		return { id, username, signup_date };
 	}
 
 	// We haven't got a result, so fetch one afresh from the accounts website
@@ -186,26 +189,26 @@ export async function getData(id?:number|null|string, username?:string) : Promis
 	return <AccountUserLiteType>{
 		id: userData.id,
 		username: userData.username,
-		signup_date: userData.signup_date
-	}
+		signup_date: userData.signup_date,
+	};
 }
 
 // Grabs birth date for user.
 // Returns a Date object
-export async function getBirthDate(id?:number) : Promise<Date>
+export async function getBirthDate(id?: number): Promise<Date>
 {
 	const userData = await getUserData(id);
 
 	return dateUtils.dateToDate(
 		userData.birth_date.year,
-		userData.birth_date.month-1,
+		userData.birth_date.month - 1,
 		userData.birth_date.day,
 	);
 }
 
 // Get birthdays for current date.
 // Returns array of ids & usernames.
-export async function getBirthdays() : Promise<{id: number, username: string}[]>
+export async function getBirthdays(): Promise<{ id: number, username: string }[]>
 {
 	const dataUrl = new url.URL('/birthdays', host);
 	dataUrl.searchParams.set('consumer_key', consumer_key);
@@ -240,18 +243,18 @@ export async function getBirthdays() : Promise<{id: number, username: string}[]>
 //  - signup_date: date user created their account (Date)
 //  - birth_date: object w/day, month & year (object)
 //  - address: user address (string)
-export async function getUserData(id?:number|null|string, username?:string|null, email?:string|null) : Promise<AccountUserType>
+export async function getUserData(id?: number | null | string, username?: string | null, email?: string | null): Promise<AccountUserType>
 {
 	const dataUrl = new url.URL('/data', host);
 	dataUrl.searchParams.set('consumer_key', consumer_key);
 	dataUrl.searchParams.set('id', String(id || ''));
 
-	if (username != null)
+	if (username)
 	{
 		dataUrl.searchParams.set('username', username);
 	}
 
-	if (email != null)
+	if (email)
 	{
 		dataUrl.searchParams.set('email', email);
 	}
@@ -270,9 +273,11 @@ export async function getUserData(id?:number|null|string, username?:string|null,
 	switch(response.status)
 	{
 		case 200: // OK
+		{
 			const userData = response.data;
 			await db.updateAccountCache(userData); // We have data, so let's update the cache
 			return userData;
+		}
 		case 400: // Bad Request
 			throw new AccountsError('GET data', `user ID '${id}' is not numeric`, 400);
 		case 401: // Unauthorized
@@ -287,7 +292,7 @@ export async function getUserData(id?:number|null|string, username?:string|null,
 	}
 }
 
-export async function getDataByUsername(username:string) : Promise<AccountUserLiteType>
+export async function getDataByUsername(username: string): Promise<AccountUserLiteType>
 {
 	return await getData(undefined, username);
 }
@@ -295,12 +300,12 @@ export async function getDataByUsername(username:string) : Promise<AccountUserLi
 // Updates information about a user
 // userData: An object with properties:
 export async function pushData(userData: {
-	user_id: string|number
+	user_id: string | number
 	username?: string
-	email?: string|null
+	email?: string | null
 	ignore_history?: boolean
 	consent_given?: boolean
-}) : Promise<void>
+}): Promise<void>
 {
 	let response;
 
@@ -308,7 +313,7 @@ export async function pushData(userData: {
 	{
 		response = await axios.post(
 			new url.URL('/data', host).toString(),
-			new URLSearchParams({consumer_key, ...userData} as any)
+			new URLSearchParams({ consumer_key, ...userData } as any),
 		);
 	}
 	catch(error)
@@ -319,7 +324,7 @@ export async function pushData(userData: {
 	switch(response.status)
 	{
 		case 200: // OK
-			if (userData.hasOwnProperty('username'))
+			if (Object.prototype.hasOwnProperty.call(userData, 'username'))
 			{
 				await db.query(`
 					UPDATE user_account_cache
@@ -350,7 +355,7 @@ export async function signup(userData: {
 	birth_date_year: number
 	email?: string
 	consent_given: boolean
-}) : Promise<AccountUserType>
+}): Promise<AccountUserType>
 {
 	let response;
 
@@ -358,7 +363,7 @@ export async function signup(userData: {
 	{
 		response = await axios.post(
 			new url.URL('/signup', host).toString(),
-			new URLSearchParams({consumer_key, ...userData} as any)
+			new URLSearchParams({ consumer_key, ...userData } as any),
 		);
 	}
 	catch(error)
@@ -369,9 +374,11 @@ export async function signup(userData: {
 	switch(response.status)
 	{
 		case 200: // OK
+		{
 			const userData = response.data;
 			await db.updateAccountCache(userData);
 			return userData;
+		}
 		case 400: // Bad Request
 			console.error(userData);
 			throw new AccountsError('POST data', 'invalid user email or date of birth', 400);
@@ -382,7 +389,7 @@ export async function signup(userData: {
 }
 
 // Delete account
-export async function deleteUser(id: number) : Promise<void>
+export async function deleteUser(id: number): Promise<void>
 {
 	let response;
 
@@ -390,7 +397,7 @@ export async function deleteUser(id: number) : Promise<void>
 	{
 		response = await axios.post(
 			new url.URL('/delete-user', host).toString(),
-			new URLSearchParams({consumer_key, id: String(id)})
+			new URLSearchParams({ consumer_key, id: String(id) }),
 		);
 	}
 	catch(error)
@@ -416,7 +423,7 @@ export async function deleteUser(id: number) : Promise<void>
 export async function updateAddress(userData: {
 	user_id: number
 	address: string
-}) : Promise<void>
+}): Promise<void>
 {
 	let response;
 
@@ -424,7 +431,7 @@ export async function updateAddress(userData: {
 	{
 		response = await axios.post(
 			new url.URL('/address', host).toString(),
-			new URLSearchParams({consumer_key, ...userData} as any)
+			new URLSearchParams({ consumer_key, ...userData } as any),
 		);
 	}
 	catch(error)
@@ -444,7 +451,7 @@ export async function updateAddress(userData: {
 }
 
 // Reset username history, for test accounts only
-export async function resetUsernameHistory(id:number) : Promise<void>
+export async function resetUsernameHistory(id: number): Promise<void>
 {
 	let response;
 
@@ -452,7 +459,7 @@ export async function resetUsernameHistory(id:number) : Promise<void>
 	{
 		response = await axios.post(
 			new url.URL('/reset-username-history', host).toString(),
-			new URLSearchParams({consumer_key, user_id: String(id)})
+			new URLSearchParams({ consumer_key, user_id: String(id) }),
 		);
 	}
 	catch(error)
@@ -474,7 +481,7 @@ export async function resetUsernameHistory(id:number) : Promise<void>
 }
 
 // Delete username history row
-export async function deleteUsernameHistory(id:number) : Promise<void>
+export async function deleteUsernameHistory(id: number): Promise<void>
 {
 	let response;
 
@@ -482,7 +489,7 @@ export async function deleteUsernameHistory(id:number) : Promise<void>
 	{
 		response = await axios.post(
 			new url.URL('/delete-username-history', host).toString(),
-			new URLSearchParams({consumer_key, username_history_id: String(id)})
+			new URLSearchParams({ consumer_key, username_history_id: String(id) }),
 		);
 	}
 	catch(error)
@@ -511,7 +518,7 @@ export async function emailUser(emailData: {
 	subject: string
 	text: string
 	email?: string
-}) : Promise<void>
+}): Promise<void>
 {
 	let response;
 
@@ -519,7 +526,7 @@ export async function emailUser(emailData: {
 	{
 		response = await axios.post(
 			new url.URL('/email', host).toString(),
-			new URLSearchParams({consumer_key, ...emailData} as any)
+			new URLSearchParams({ consumer_key, ...emailData } as any),
 		);
 	}
 	catch(error)
@@ -542,7 +549,7 @@ export async function emailUser(emailData: {
 
 // Logs out the user with the given ID.
 // (i.e. Invalidates all their access tokens.)
-export async function logout(id:number) : Promise<void>
+export async function logout(id: number): Promise<void>
 {
 	let response;
 
@@ -550,7 +557,7 @@ export async function logout(id:number) : Promise<void>
 	{
 		response = await axios.post(
 			new url.URL('/logout', host).toString(),
-			new URLSearchParams({consumer_key, id: String(id)})
+			new URLSearchParams({ consumer_key, id: String(id) }),
 		);
 	}
 	catch(error)
@@ -571,7 +578,7 @@ export async function logout(id:number) : Promise<void>
 
 // Get reset password url for user
 //   id - who the password reset is for
-export async function resetPassword(id:number) : Promise<string>
+export async function resetPassword(id: number): Promise<string>
 {
 	let response;
 
@@ -579,7 +586,7 @@ export async function resetPassword(id:number) : Promise<string>
 	{
 		response = await axios.post(
 			new url.URL('/reset-password', host).toString(),
-			new URLSearchParams({consumer_key, id: String(id)})
+			new URLSearchParams({ consumer_key, id: String(id) }),
 		);
 	}
 	catch(error)

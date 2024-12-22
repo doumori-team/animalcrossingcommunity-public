@@ -5,9 +5,9 @@ import { ACCCache } from '@cache';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'games-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'games-admin' });
 
 	if (!permissionGranted)
 	{
@@ -27,10 +27,10 @@ destroy.apiTypes = {
 		type: APITypes.gameConsoleId,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

@@ -9,7 +9,7 @@ import { APIThisType, SuccessType, ResidentsType, PWPsType } from '@types';
 /*
  * Create basic town, character and FC (if possible)
  */
-async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<SuccessType>
+async function town(this: APIThisType, { gameId, userId }: townProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -28,7 +28,7 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 
 	// Perform queries
 
-	const sortedResidents:ResidentsType = await ACCCache.get(constants.cacheKeys.residents);
+	const sortedResidents: ResidentsType = await ACCCache.get(constants.cacheKeys.residents);
 
 	// get info
 	const [grassShapeIds, ordinanceIds, hemisphereIds, fruitIds, nativeFruitIds,
@@ -111,16 +111,16 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 
 	// Town
 
-	const town = await db.transaction(async (query:any) =>
+	const town = await db.transaction(async (query: any) =>
 	{
-		const townName = faker.address.cityName();
+		const townName = faker.location.city();
 		const grassShapeId = (faker.helpers.arrayElement(grassShapeIds) as any).id;
 
 		let dreamAddress = null;
 
 		if ([constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId))
 		{
-			dreamAddress = `${faker.random.alphaNumeric(4)}-${faker.random.alphaNumeric(4)}-${faker.random.alphaNumeric(4)}`;
+			dreamAddress = `${faker.string.alphanumeric(4)}-${faker.string.alphanumeric(4)}-${faker.string.alphanumeric(4)}`;
 		}
 
 		if (gameId === constants.gameIds.ACNH)
@@ -128,14 +128,34 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 			dreamAddress = `DA-${dreamAddress}`;
 		}
 
+		let stationShape = null;
+		if (gameId === constants.gameIds.ACGC)
+		{
+			stationShape = Math.ceil(Math.random() * 15);
+		}
+
+		let paintId = null;
+		if (gameId === constants.gameIds.ACWW)
+		{
+			const [paintIds] = await Promise.all([
+				query(`
+					SELECT ac_game_paint.id
+					FROM ac_game_paint
+					WHERE ac_game_paint.game_id = $1::int
+				`, gameId),
+			]);
+
+			paintId = (faker.helpers.arrayElement(paintIds) as any).id;
+		}
+
 		const ordinanceId = [constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) ? (faker.helpers.arrayElement(ordinanceIds) as any).id : null;
 		const hemisphereId = [constants.gameIds.ACNH].includes(gameId) ? (faker.helpers.arrayElement(hemisphereIds) as any).id : null;
 
 		const [town] = await query(`
-			INSERT INTO town (name, user_id, game_id, grass_shape_id, dream_address, ordinance_id, hemisphere_id)
-			VALUES ($1, $2::int, $3::int, $4::int, $5, $6::int, $7::int)
+			INSERT INTO town (name, user_id, game_id, grass_shape_id, dream_address, ordinance_id, hemisphere_id, station_shape, paint_id)
+			VALUES ($1, $2::int, $3::int, $4::int, $5, $6::int, $7::int, $8::int, $9::int)
 			RETURNING id
-		`, townName, userId, gameId, grassShapeId, dreamAddress, ordinanceId, hemisphereId);
+		`, townName, userId, gameId, grassShapeId, dreamAddress, ordinanceId, hemisphereId, stationShape, paintId);
 
 		const nativeFruitId = (faker.helpers.arrayElement(nativeFruitIds) as any).id;
 
@@ -149,12 +169,13 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 
 		await Promise.all([
 			Promise.all([
-				fruit.map(async (fruit:any) => {
+				fruit.map(async (fruit: any) =>
+				{
 					await query(`
 						INSERT INTO town_fruit (town_id, fruit_id)
 						VALUES ($1::int, $2::int)
 					`, town.id, fruit.id);
-				})
+				}),
 			]),
 			query(`
 				INSERT INTO town_native_fruit (town_id, fruit_id)
@@ -165,12 +186,13 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 				VALUES ($1::int, $2::int)
 			`, town.id, nookStoreId),
 			Promise.all([
-				residents.map(async (resident) => {
+				residents.map(async (resident) =>
+				{
 					await query(`
 						INSERT INTO town_resident (town_id, resident_id)
 						VALUES ($1::int, $2)
 					`, town.id, resident.id);
-				})
+				}),
 			]),
 		]);
 
@@ -179,19 +201,20 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 			const islandFruitId1 = (faker.helpers.arrayElement(islandFruit1Ids) as any).id;
 			const islandFruitId2 = (faker.helpers.arrayElement(islandFruit2Ids) as any).id;
 
-			const pwpIds:PWPsType[number] = (await ACCCache.get(constants.cacheKeys.pwps))[constants.gameIds.ACNL];
+			const pwpIds: PWPsType[number] = (await ACCCache.get(constants.cacheKeys.pwps))[constants.gameIds.ACNL];
 			const pwps = faker.helpers.arrayElements(pwpIds, 30);
 
 			const stores = faker.helpers.arrayElements(storeIds, 5);
 
 			await Promise.all([
 				Promise.all([
-					pwps.map(async (pwp:any) => {
+					pwps.map(async (pwp: any) =>
+					{
 						await query(`
 							INSERT INTO town_public_work_project (town_id, pwp_id)
 							VALUES ($1::int, $2::int)
 						`, town.id, pwp.id);
-					})
+					}),
 				]),
 				query(`
 					INSERT INTO town_native_fruit (town_id, fruit_id)
@@ -202,19 +225,20 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 					VALUES ($1::int, $2::int)
 				`, town.id, islandFruitId2),
 				Promise.all([
-					stores.map(async (store:any) => {
+					stores.map(async (store: any) =>
+					{
 						await query(`
 							INSERT INTO town_store (town_id, store_id)
 							VALUES ($1::int, $2::int)
 						`, town.id, store.id);
-					})
+					}),
 				]),
 			]);
 		}
 
 		if (gameId === constants.gameIds.ACGC)
 		{
-			const islandName = faker.address.country();
+			const islandName = faker.location.country();
 			const islandResidentIds = sortedResidents[gameId].filter(r => r.isIsland === true);
 			const islandResidentId = faker.helpers.arrayElement(islandResidentIds).id;
 
@@ -224,11 +248,12 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 			`, islandName, town.id, islandResidentId);
 		}
 
-		let acres:number[]|string[]|null = utils.getDefaultMapAcres(gameId);
+		let acres: number[] | string[] | null = utils.getDefaultMapAcres(gameId);
 
 		if (acres !== null)
 		{
-			acres = acres.map(id => {
+			acres = acres.map(id =>
+			{
 				return Number(id).toString(16).padStart(4, '0');
 			});
 
@@ -241,7 +266,7 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 
 		if (tuneIds.length > 0)
 		{
-			const tune:any = faker.helpers.arrayElement(tuneIds);
+			const tune: any = faker.helpers.arrayElement(tuneIds);
 
 			await query(`
 				UPDATE town
@@ -251,7 +276,7 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 		}
 		else
 		{
-			await this.query('v1/automation/content/tunes', {amount: 1});
+			await this.query('v1/automation/content/tunes', { amount: 1 });
 
 			await query(`
 				UPDATE town
@@ -265,51 +290,67 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 
 	// Character
 
-	const character = await db.transaction(async (query:any) =>
+	const character = await db.transaction(async (query: any) =>
 	{
-		const characterName = faker.name.firstName();
-		const bells = faker.random.numeric(5);
-		const debt = faker.random.numeric(5);
-		const hraScore = faker.random.numeric(5);
+		const characterName = faker.person.firstName();
+		const bells = faker.number.int(99999);
+		const debt = faker.number.int(99999);
+		const hraScore = faker.number.int(99999);
 
 		let faceId = null, bedLocationId = null, nookMiles = null, happyHomeNetworkId = null;
 
-		if (gameId === constants.gameIds.ACGC)
+		if (gameId <= constants.gameIds.ACNL)
 		{
-			const [faceIds, bedLocationIds] = await Promise.all([
-				query(`
+			const faceIds = await query(`
 					SELECT ac_game_face.face_id AS id
 					FROM town
 					JOIN ac_game_face ON (ac_game_face.game_id = town.game_id)
 					WHERE town.id = $1::int
-				`, town.id),
-				query(`
+				`, town.id);
+
+			faceId = (faker.helpers.arrayElement(faceIds) as any).id;
+		}
+		else if (gameId === constants.gameIds.ACNH)
+		{
+			nookMiles = faker.number.int(999);
+
+			happyHomeNetworkId = `RA-${faker.string.alphanumeric(4)}-${faker.string.alphanumeric(4)}-${faker.string.alphanumeric(4)}`;
+		}
+
+		if (gameId <= constants.gameIds.ACWW)
+		{
+			const bedLocationIds = await query(`
 					SELECT bed_location.id
 					FROM town
 					JOIN ac_game_bed_location ON (ac_game_bed_location.game_id = town.game_id)
 					JOIN bed_location ON (ac_game_bed_location.bed_location_id = bed_location.id)
 					WHERE town.id = $1::int
+				`, town.id);
+			bedLocationId = (faker.helpers.arrayElement(bedLocationIds) as any).id;
+		}
+
+		let paintId = null;
+		if (gameId === constants.gameIds.ACGC || gameId === constants.gameIds.ACCF)
+		{
+			const [paintIds] = await Promise.all([
+				query(`
+					SELECT ac_game_paint.id
+					FROM town
+					JOIN ac_game_paint ON (ac_game_paint.game_id = town.game_id)
+					WHERE town.id = $1::int
 				`, town.id),
 			]);
 
-			faceId = (faker.helpers.arrayElement(faceIds) as any).id;
-
-			bedLocationId = (faker.helpers.arrayElement(bedLocationIds) as any).id;
-		}
-		else if (gameId === constants.gameIds.ACNH)
-		{
-			nookMiles = faker.random.numeric(3);
-
-			happyHomeNetworkId = `RA-${faker.random.alphaNumeric(4)}-${faker.random.alphaNumeric(4)}-${faker.random.alphaNumeric(4)}`;
+			paintId = (faker.helpers.arrayElement(paintIds) as any).id;
 		}
 
 		const [character] = await query(`
-			INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id)
-			VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9)
+			INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id, paint_id)
+			VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9, $10)
 			RETURNING id
-		`, characterName, town.id, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId);
+		`, characterName, town.id, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, paintId);
 
-		await Promise.all(houseSizes.map(async (houseSizeObj:any) =>
+		await Promise.all(houseSizes.map(async (houseSizeObj: any) =>
 		{
 			const houseSizeIds = await query(`
 				SELECT
@@ -336,9 +377,9 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 
 	if (gameId !== constants.gameIds.ACGC)
 	{
-		await db.transaction(async (query:any) =>
+		await db.transaction(async (query: any) =>
 		{
-			let code = `${faker.random.alphaNumeric(4)}-${faker.random.alphaNumeric(4)}-${faker.random.alphaNumeric(4)}`;
+			let code = `${faker.string.alphanumeric(4)}-${faker.string.alphanumeric(4)}-${faker.string.alphanumeric(4)}`;
 
 			if (gameId === constants.gameIds.ACNH)
 			{
@@ -359,7 +400,7 @@ async function town(this: APIThisType, {gameId, userId}: townProps) : Promise<Su
 	}
 
 	return {
-		_success: `Your town has been created!`
+		_success: `Your town has been created!`,
 	};
 }
 
@@ -372,11 +413,11 @@ town.apiTypes = {
 		type: APITypes.number,
 		nullable: true,
 	},
-}
+};
 
 type townProps = {
 	gameId: number
-	userId: number|null
-}
+	userId: number | null
+};
 
 export default town;

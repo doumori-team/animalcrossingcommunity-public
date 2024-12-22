@@ -8,7 +8,7 @@ import { APIThisType, FollowedNodesType } from '@types';
 
 const FollowedNodePage = () =>
 {
-	const {nodes, type, page, pageSize, totalCount} = useLoaderData() as FollowedNodePageProps;
+	const { nodes, type, page, pageSize, totalCount } = useLoaderData() as FollowedNodePageProps;
 
 	return (
 		<RequireUser>
@@ -19,7 +19,7 @@ const FollowedNodePage = () =>
 					message='Nothing is currently being followed.'
 				>
 					{nodes.map(node =>
-						<Node {...node} key={node.id} followNode={true} />
+						<Node {...node} key={node.id} followNode={true} />,
 					)}
 				</Grid>
 
@@ -32,12 +32,12 @@ const FollowedNodePage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {type}: {type: string}, {page}: {page?: string}) : Promise<FollowedNodePageProps>
+export async function loadData(this: APIThisType, { type }: { type: string }, { page }: { page?: string }): Promise<FollowedNodePageProps>
 {
 	const [returnValue] = await Promise.all([
-		this.query('v1/node/followed', {type: type, page: page ? page : 1}),
+		this.query('v1/node/followed', { type: type, page: page ? page : 1 }),
 	]);
 
 	return {
@@ -55,6 +55,6 @@ type FollowedNodePageProps = {
 	page: FollowedNodesType['page']
 	pageSize: FollowedNodesType['pageSize']
 	totalCount: FollowedNodesType['totalCount']
-}
+};
 
 export default FollowedNodePage;

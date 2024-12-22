@@ -9,7 +9,7 @@ import { APIThisType, SupportEmailType } from '@types';
 
 const SupportEmailPage = () =>
 {
-	const {supportEmail} = useLoaderData() as SupportEmailPageProps;
+	const { supportEmail } = useLoaderData() as SupportEmailPageProps;
 
 	const encodedId = encodeURIComponent(supportEmail.id);
 
@@ -20,42 +20,42 @@ const SupportEmailPage = () =>
 					name={`Support Email #${supportEmail.id}`}
 					links={
 						<>
-						<Link to={`/support-emails`}>
-							Dashboard
-						</Link>
-						{!supportEmail.read && (
-							<Confirm
-								action='v1/support_email/read'
-								callback={`/support-email/${encodedId}`}
-								id={supportEmail.id}
-								label='Read'
-								message='Are you sure you want to mark this email as read?'
-							/>
-						)}
+							<Link to={`/support-emails`}>
+								Dashboard
+							</Link>
+							{!supportEmail.read &&
+								<Confirm
+									action='v1/support_email/read'
+									callback={`/support-email/${encodedId}`}
+									id={supportEmail.id}
+									label='Read'
+									message='Are you sure you want to mark this email as read?'
+								/>
+							}
 						</>
 					}
 				/>
 
 				<Section>
-					{supportEmail.fromUser && (
+					{supportEmail.fromUser &&
 						<div className='SupportEmailPage_fromUser'>
-							From: {supportEmail.fromUser.id && (
+							From: {supportEmail.fromUser.id &&
 								<Link to={`/profile/${encodeURIComponent(supportEmail.fromUser.id)}`}>
 									{supportEmail.fromUser.username}
 								</Link>
-							)} {supportEmail.fromUser.email && `<${supportEmail.fromUser.email}>`}
+							} {supportEmail.fromUser.email && `<${supportEmail.fromUser.email}>`}
 						</div>
-					)}
+					}
 
-					{supportEmail.toUser && (
+					{supportEmail.toUser &&
 						<div className='SupportEmailPage_toUser'>
-							To: {supportEmail.toUser.id && (
+							To: {supportEmail.toUser.id &&
 								<Link to={`/profile/${encodeURIComponent(supportEmail.toUser.id)}`}>
 									{supportEmail.toUser.username}
 								</Link>
-							)} {supportEmail.toUser.email && `<${supportEmail.toUser.email}>`}
+							} {supportEmail.toUser.email && `<${supportEmail.toUser.email}>`}
 						</div>
-					)}
+					}
 
 					<div className='SupportEmailPage_subject'>
 						Subject: {supportEmail.subject}
@@ -77,7 +77,7 @@ const SupportEmailPage = () =>
 					</div>
 				</Section>
 
-				{supportEmail.fromUser?.email && (
+				{supportEmail.fromUser?.email &&
 					<Section>
 						<Form
 							action='v1/support_email/reply'
@@ -96,25 +96,25 @@ const SupportEmailPage = () =>
 							</Form.Group>
 						</Form>
 					</Section>
-				)}
+				}
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<SupportEmailPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportEmailPageProps>
 {
 	const [supportEmail] = await Promise.all([
-		this.query('v1/support_email', {id: id}),
+		this.query('v1/support_email', { id: id }),
 	]);
 
 	return {
-		supportEmail
+		supportEmail,
 	};
 }
 
 type SupportEmailPageProps = {
 	supportEmail: SupportEmailType
-}
+};
 
 export default SupportEmailPage;

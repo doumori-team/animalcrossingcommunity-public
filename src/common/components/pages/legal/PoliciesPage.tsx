@@ -24,7 +24,7 @@ const PoliciesPage = () =>
 						<p>If you are concerned your password has been compromised, you can securely request a new password by contacting ACC Modmins via these steps:</p>
 						<ol>
 							<li>
-								Email our Modmins directly <a href={"mailto:support@animalcrossingcommunity.com"}>support@animalcrossingcommunity.com</a>.
+								Email our Modmins directly <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a>.
 							</li>
 							<li>
 								In your email, state who you are, what your username is, and the email address associated with the account. Be sure to mention that you believe your account has been compromised. We will begin working as soon as we see your request.
@@ -48,8 +48,8 @@ const PoliciesPage = () =>
 						<span className='PoliciesPage_updated'>Site Bans - 1/28/2023</span>
 						<p>The ACC Modmins work hard to enforce the guidelines and policies of the site fairly and consistently. Some of our guidelines enable the site to function smoothly and remain family-friendly, while other guidelines are to ensure the safety and comfort of all ACC members.</p>
 						<p>Some violations of site guidelines and policies may result in a short-term temporary ban on a member's account to prevent them from using the site. In more severe cases, a long-term temporary ban may be placed on a member's account. In extreme cases, when it is deemed necessary to protect other members of the community, the Modmins may permanently ban a member from the site. Most users on the verge of receiving a permanent ban will receive a written final warning from the Modmins as a last chance to rectify their behavior. Any member who has been banned will receive notification of the ban via email with an explanation of why the ban occurred. In very particular cases, the Modmins may issue a permanent ban without any warnings and without sending a ban notification email.</p>
-						<p>The Modmins will not discuss the circumstances or terms of a ban with anyone except the banned member. This is to protect the privacy of the member involved. For the same reason, no one should discuss the circumstances of a ban anywhere on the site. Please see <Link to='/guidelines'>the Accounts section of the Site Guidelines</Link> for more details regarding this. If a banned member has questions about the circumstances of a ban, they should contact the Modmins by sending an email to <a href={"mailto:support@animalcrossingcommunity.com"}>support@animalcrossingcommunity.com</a> or reply to a ban notification email.</p>
-						<p>The Modmins recognize that permanently banned members can mature or take responsibility for the behavior that resulted in their ban. In these cases, permanent bans may be reviewed by the Modmin team. To request a review, an email should be sent to <a href={"mailto:support@animalcrossingcommunity.com"}>support@animalcrossingcommunity.com</a> explaining why the ban should be lifted. Please note that while there is no strict time limit, bans less than a year old are highly unlikely to be lifted. All requests are thoroughly discussed by multiple members of the Modmin team. If the Modmin team agrees to lift a permanent ban on an account, the account in question will be reinstated and monitored closely. In the event that the Modmin team decides to deny a permaban reversal request, any further permaban reversal requests sent in by the member will be ignored for one year after the denial was issued.</p>
+						<p>The Modmins will not discuss the circumstances or terms of a ban with anyone except the banned member. This is to protect the privacy of the member involved. For the same reason, no one should discuss the circumstances of a ban anywhere on the site. Please see <Link to='/guidelines'>the Accounts section of the Site Guidelines</Link> for more details regarding this. If a banned member has questions about the circumstances of a ban, they should contact the Modmins by sending an email to <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a> or reply to a ban notification email.</p>
+						<p>The Modmins recognize that permanently banned members can mature or take responsibility for the behavior that resulted in their ban. In these cases, permanent bans may be reviewed by the Modmin team. To request a review, an email should be sent to <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a> explaining why the ban should be lifted. Please note that while there is no strict time limit, bans less than a year old are highly unlikely to be lifted. All requests are thoroughly discussed by multiple members of the Modmin team. If the Modmin team agrees to lift a permanent ban on an account, the account in question will be reinstated and monitored closely. In the event that the Modmin team decides to deny a permaban reversal request, any further permaban reversal requests sent in by the member will be ignored for one year after the denial was issued.</p>
 					</li>
 					<li>
 						<span className='PoliciesPage_updated'>Site Images and Content - 2/29/2020</span>
@@ -73,6 +73,6 @@ const PoliciesPage = () =>
 			</ContentBox>
 		</div>
 	);
-}
+};
 
 export default PoliciesPage;

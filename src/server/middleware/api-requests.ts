@@ -27,13 +27,13 @@ handler.set('views', new URL('../views', import.meta.url).pathname);
 handler.get('/*', handleRequest);
 handler.post('/*', handleRequest);
 
-function handleRequest (request:any, response:any, next:any) :any
+function handleRequest (request: any, response: any, next: any): any
 {
 	response.set('Cache-Control', 'no-store');
 
 	let log = utils.startLog(request, 'apirequests');
 
-	const requiresJsonResponse = !(request.body._callback_uri);
+	const requiresJsonResponse = !request.body._callback_uri;
 
 	let ipAddresses = request.headers['x-forwarded-for'];
 
@@ -68,9 +68,9 @@ function handleRequest (request:any, response:any, next:any) :any
 		params.ipAddresses = ipAddresses;
 	}
 
-	(iso as any).query(request.session.user, query, params).then((data:any) =>
+	(iso as any).query(request.session.user, query, params).then((data: any) =>
 	{
-		if (typeof data === 'object' && data !== null && data.hasOwnProperty('_logout'))
+		if (typeof data === 'object' && data !== null && Object.prototype.hasOwnProperty.call(data, '_logout'))
 		{
 			log += ` status=200`;
 			console.info(log);
@@ -79,10 +79,10 @@ function handleRequest (request:any, response:any, next:any) :any
 			const userId = request.session.user;
 			delete request.session.user;
 			let logoutProcess = Promise.all(
-			[
-				accounts.logout(userId),
-				db.logout(userId)
-			]);
+				[
+					accounts.logout(userId),
+					db.logout(userId),
+				]);
 			logoutProcess.then(() =>
 			{
 				response.json(data);
@@ -105,7 +105,7 @@ function handleRequest (request:any, response:any, next:any) :any
 			// it's literally an Easter egg. Just my little joke.
 			if (typeof data === 'undefined')
 			{
-				response.json({'🐰': '🐣'});
+				response.json({ '🐰': '🐣' });
 			}
 			else
 			{
@@ -125,7 +125,7 @@ function handleRequest (request:any, response:any, next:any) :any
 				{
 					response.render('success', {
 						message: data._success || data._notice,
-						callback
+						callback,
 					});
 				}
 				else
@@ -138,7 +138,7 @@ function handleRequest (request:any, response:any, next:any) :any
 				response.redirect(303, request.body._callback_uri);
 			}
 		}
-	}).catch((error:any) =>
+	}).catch((error: any) =>
 	{
 		console.error('Error while handling API query:');
 		console.error(error);
@@ -177,7 +177,10 @@ function handleRequest (request:any, response:any, next:any) :any
 			else
 			{
 				const details = error.identifiers.map(
-					(id:any) => { return { id, message: (errors.ERROR_MESSAGES as any)[id].message } }
+					(id: any) =>
+					{
+						return { id, message: (errors.ERROR_MESSAGES as any)[id].message };
+					},
 				);
 
 				response.render('error', { errors: details });
@@ -192,12 +195,15 @@ function handleRequest (request:any, response:any, next:any) :any
 
 			if (requiresJsonResponse)
 			{
-				response.json({ _errors: [{name:'ProfanityError', message: `${(errors.ERROR_MESSAGES as any)[error.identifier].message} ${error.words}`}] });
+				response.json({ _errors: [{ name:'ProfanityError', message: `${(errors.ERROR_MESSAGES as any)[error.identifier].message} ${error.words}` }] });
 			}
 			else
 			{
 				const details = error.identifier.map(
-					(id:any) => { return { id, message: `${(errors.ERROR_MESSAGES as any)[id].message} ${error.words}` } }
+					(id: any) =>
+					{
+						return { id, message: `${(errors.ERROR_MESSAGES as any)[id].message} ${error.words}` };
+					},
 				);
 
 				response.render('error', { errors: details });
@@ -224,14 +230,14 @@ function handleRequest (request:any, response:any, next:any) :any
 }
 
 // see v1/signup/signup
-async function recordIP(user_id:number|null = null, ip_addresses:string|any) : Promise<void>
+async function recordIP(user_id: number | null = null, ip_addresses: string | any): Promise<void>
 {
 	if (user_id === null || typeof ip_addresses !== 'string')
 	{
 		return;
 	}
 
-	var ipAddresses = ip_addresses.split(',')
+	let ipAddresses = ip_addresses.split(',')
 		.map(item => item.trim());
 
 	if (ipAddresses.length > 1)
@@ -243,13 +249,14 @@ async function recordIP(user_id:number|null = null, ip_addresses:string|any) : P
 	if (ipAddresses.length > 0)
 	{
 		await Promise.all([
-			ipAddresses.map(async (ip) => {
+			ipAddresses.map(async (ip) =>
+			{
 				await db.query(`
 					INSERT INTO user_ip_address (user_id, ip_address)
 					VALUES ($1::int, $2)
 					ON CONFLICT (user_id, ip_address) DO NOTHING
 				`, user_id, ip);
-			})
+			}),
 		]);
 	}
 }

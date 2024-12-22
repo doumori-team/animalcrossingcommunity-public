@@ -7,7 +7,7 @@ import { APIThisType } from '@types';
 /*
  * Remove yourself from PTs.
  */
-async function remove(this: APIThisType, {nodeIds}: removeProps) : Promise<void>
+async function remove(this: APIThisType, { nodeIds }: removeProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -27,7 +27,7 @@ async function remove(this: APIThisType, {nodeIds}: removeProps) : Promise<void>
 			throw new UserError('no-such-node');
 		}
 
-		const permission:boolean = await this.query('v1/node/permission', {permission: 'read', nodeId: id});
+		const permission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: id });
 
 		if (!permission)
 		{
@@ -61,10 +61,10 @@ remove.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type removeProps = {
 	nodeIds: any[]
-}
+};
 
 export default remove;

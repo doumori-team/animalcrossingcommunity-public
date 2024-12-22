@@ -8,7 +8,7 @@ import { APIThisType, SeverityType } from '@types';
 
 const AddAdminRuleViolationPage = () =>
 {
-	const {ruleId, severities} = useLoaderData() as AddAdminRuleViolationPageProps;
+	const { ruleId, severities } = useLoaderData() as AddAdminRuleViolationPageProps;
 
 	return (
 		<div className='AddAdminRuleViolationPage'>
@@ -22,20 +22,20 @@ const AddAdminRuleViolationPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {ruleId}: {ruleId: string}) : Promise<AddAdminRuleViolationPageProps>
+export async function loadData(this: APIThisType, { ruleId }: { ruleId: string }): Promise<AddAdminRuleViolationPageProps>
 {
 	const [severities] = await Promise.all([
 		this.query('v1/admin/rule/severities'),
 	]);
 
-	return {ruleId, severities};
+	return { ruleId, severities };
 }
 
 type AddAdminRuleViolationPageProps = {
 	ruleId: string
 	severities: SeverityType[]
-}
+};
 
 export default AddAdminRuleViolationPage;

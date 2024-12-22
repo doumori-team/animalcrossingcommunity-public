@@ -13,23 +13,23 @@ const PatternMaker = ({
 	data,
 	initialDataUrl,
 	initialGameId,
-	initialPaletteId
+	initialPaletteId,
 }: PatternMakerProps) =>
 {
 	// initialize 2D array used for storing colors used on canvas in X, Y positions
-	let initialFormData:any = [];
+	let initialFormData: any = [];
 
 	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
 		initialFormData[i] = [];
 	}
 
-	let initialColors:any = gameColors[initialGameId], initialPalette:any = [];
+	let initialColors: any = gameColors[initialGameId], initialPalette: any = [];
 
 	// we need to load the colors in the same order as the palette used
-	const gamePaletteColors = (gamePalettes as any)[initialGameId][initialPaletteId-1].colors;
+	const gamePaletteColors = (gamePalettes as any)[initialGameId][initialPaletteId - 1].colors;
 
-	for (var key in gamePaletteColors)
+	for (let key in gamePaletteColors)
 	{
 		initialPalette[key] = initialColors.indexOf(gamePaletteColors[key]);
 	}
@@ -37,7 +37,7 @@ const PatternMaker = ({
 	// if editing an existing pattern...
 	if (data)
 	{
-		let includedColors:any = [];
+		let includedColors: any = [];
 
 		// convert 1D array to 2D for X Y positions
 		// this actually goes column by column instead of row by row
@@ -60,15 +60,15 @@ const PatternMaker = ({
 		// change out any colors that aren't used for ones that are
 
 		// what colors are in the pattern that isn't in the palette
-		const incColors = includedColors.filter((x:any) => !gamePaletteColors.includes(x) && Number(x) !== constants.pattern.transparentColorId);
+		const incColors = includedColors.filter((x: any) => !gamePaletteColors.includes(x) && Number(x) !== constants.pattern.transparentColorId);
 
 		if (incColors.length > 0)
 		{
 			// colors in the palette not used in the pattern
-			const palColors = gamePaletteColors.filter((x:any) => !includedColors.includes(x));
+			const palColors = gamePaletteColors.filter((x: any) => !includedColors.includes(x));
 			let i = 0;
 
-			for (var key in initialPalette)
+			for (let key in initialPalette)
 			{
 				// if this color is one not used
 				if (palColors.includes(initialColors[initialPalette[key]]))
@@ -103,7 +103,7 @@ const PatternMaker = ({
 	if (initialGameId === constants.gameIds.ACNH)
 	{
 		const firstColor = (gameColorInfo as any)[initialGameId]
-			.find((c:any) => c.hex === initialColors[initialPalette[0]]);
+			.find((c: any) => c.hex === initialColors[initialPalette[0]]);
 
 		if (firstColor)
 		{
@@ -130,8 +130,8 @@ const PatternMaker = ({
 	const [formData, setFormData] = useState<any>(initialFormData);
 	const [posX1, setPosX1] = useState<number>(0);
 	const [posY1, setPosY1] = useState<number>(0);
-	const [posX2, setPosX2] = useState<number>(constants.pattern.paletteLength-1);
-	const [posY2, setPosY2] = useState<number>(constants.pattern.paletteLength-1);
+	const [posX2, setPosX2] = useState<number>(constants.pattern.paletteLength - 1);
+	const [posY2, setPosY2] = useState<number>(constants.pattern.paletteLength - 1);
 	const [currentGameId, setCurrentGameId] = useState<number>(initialGameId);
 	const [hue, setHue] = useState<number>(initialHue);
 	const [vividness, setVividness] = useState<number>(initialVividness);
@@ -145,7 +145,8 @@ const PatternMaker = ({
 	const paletteInterfaceExtended = useRef<any>();
 	const didMount = useRef<any>(false);
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).mounted)
 		{
 			(didMount as any).mounted = true;
@@ -162,18 +163,19 @@ const PatternMaker = ({
 		}
 
 		drawPaletteExtended();
-		drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+		drawPattern(true, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
 	}, [currentGameId, palette]);
 
-	const editIfDrawing = (e:any) : void =>
+	const editIfDrawing = (e: any): void =>
 	{
 		if (currentlyDrawing)
 		{
 			editPattern(e);
 		}
-	}
+	};
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).formData)
 		{
 			(didMount as any).formData = true;
@@ -184,7 +186,7 @@ const PatternMaker = ({
 	}, [formData]);
 
 	// Changes the color of the 'pixel' indicated.
-	const editPattern = (e:any) : void =>
+	const editPattern = (e: any): void =>
 	{
 		const pos = getCursorPosition(e, patternInterface.current);
 
@@ -216,22 +218,22 @@ const PatternMaker = ({
 		setPosX2(posx);
 		setPosY2(posy);
 		setFormData(dataArray);
-	}
+	};
 
-	const stopDrawing = () : void =>
+	const stopDrawing = (): void =>
 	{
 		// clear the canvas of grid to save prettified pattern
 		clearCanvas(patternInterface.current, 0, 0, constants.pattern.paletteLength, constants.pattern.paletteLength);
-		drawPattern(false, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+		drawPattern(false, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
 
 		setCurrentlyDrawing(false);
 		setDataUrl(patternInterface.current.toDataURL());
 
-		drawPattern(true, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
-	}
+		drawPattern(true, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
+	};
 
 	// Changes the active palette color's slot in the palette to the one clicked on.
-	const changePaletteColor = (e:any) : void =>
+	const changePaletteColor = (e: any): void =>
 	{
 		const pos = getCursorPosition(e, paletteInterfaceExtended.current);
 
@@ -242,7 +244,7 @@ const PatternMaker = ({
 
 		const posx = (pos as any)[0], posy = (pos as any)[1];
 
-		if ((posx >= 16) || (posy >= 18) || (posy % 4 === 3) || ((posx % 4 === 3) && (posy < 16)))
+		if (posx >= 16 || posy >= 18 || posy % 4 === 3 || posx % 4 === 3 && posy < 16)
 		{
 			return;
 		}
@@ -255,15 +257,15 @@ const PatternMaker = ({
 		if (groupy < 4)
 		{
 			const ingroupx = posx % 4, ingroupy = posy % 4;
-			const group = (groupx + (groupy * 4));
-			const ingroup = (ingroupx + (ingroupy * 3));
+			const group = groupx + groupy * 4;
+			const ingroup = ingroupx + ingroupy * 3;
 
-			colorId = (ingroup + (group * 9));
+			colorId = ingroup + group * 9;
 		}
 		// greyscale
 		else
 		{
-			colorId = ((16 * 9) + posx);
+			colorId = 16 * 9 + posx;
 		}
 
 		let array = [...palette];
@@ -288,12 +290,13 @@ const PatternMaker = ({
 		setPalette(array);
 		setPosX1(0);
 		setPosY1(0);
-		setPosX2(constants.pattern.paletteLength-1);
-		setPosY2(constants.pattern.paletteLength-1);
+		setPosX2(constants.pattern.paletteLength - 1);
+		setPosY2(constants.pattern.paletteLength - 1);
 		setFormData(dataArray);
-	}
+	};
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).activePaletteId)
 		{
 			(didMount as any).activePaletteId = true;
@@ -304,7 +307,7 @@ const PatternMaker = ({
 	}, [activePaletteId]);
 
 	// Changes the active palette color to the one clicked on.
-	const changeDrawingColor = (index:number) : void =>
+	const changeDrawingColor = (index: number): void =>
 	{
 		const oldColorIndex = activePaletteId;
 
@@ -322,10 +325,10 @@ const PatternMaker = ({
 
 		drawPalette(oldColorIndex);
 		drawPalette(index);
-	}
+	};
 
 	// Draws one of the colors of the palette on the appropriate canvas.
-	const drawPalette = (index:number) : void =>
+	const drawPalette = (index: number): void =>
 	{
 		let newPaletteInterfaces = [...paletteInterfaces];
 
@@ -353,10 +356,10 @@ const PatternMaker = ({
 		setPaletteInterfaces(newPaletteInterfaces);
 
 		setPaletteColorsKey(Math.random());
-	}
+	};
 
 	// Draws the extended palette on a canvas.
-	const drawPaletteExtended = () : void =>
+	const drawPaletteExtended = (): void =>
 	{
 		// this is only for NL
 		if (currentGameId !== constants.gameIds.ACNL)
@@ -364,13 +367,13 @@ const PatternMaker = ({
 			return;
 		}
 
-		clearCanvas(paletteInterfaceExtended.current, 0, 0, constants.pattern.paletteLength-1, constants.pattern.paletteLength-1);
+		clearCanvas(paletteInterfaceExtended.current, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
 
 		// i = color ID
 		for (let i = 0; i < 159; i++)
 		{
 			// which of the ~9-color groups?
-			const group = Math.floor(i/9);
+			const group = Math.floor(i / 9);
 
 			// where in that group?
 			const posingroup = i % 9;
@@ -379,13 +382,13 @@ const PatternMaker = ({
 			// in one of the 16 hued groups
 			if (group < 16)
 			{
-				x = ((group % 4) * 4) + (posingroup % 3);
-				y = (group - (group % 4)) + Math.floor(posingroup / 3);
+				x = group % 4 * 4 + posingroup % 3;
+				y = group - group % 4 + Math.floor(posingroup / 3);
 			}
 			// on the greyscale
 			else
 			{
-				x = i - (16 * 9);
+				x = i - 16 * 9;
 				y = 16;
 			}
 
@@ -398,10 +401,10 @@ const PatternMaker = ({
 				drawScaledSquare(paletteInterfaceExtended.current, x, y, colors[i], false);
 			}
 		}
-	}
+	};
 
 	// Draws the pattern on a canvas.
-	const drawPattern = (drawGrid:boolean, x1:number, y1:number, x2:number, y2:number) : void =>
+	const drawPattern = (drawGrid: boolean, x1: number, y1: number, x2: number, y2: number): void =>
 	{
 		for (let x = x1; x <= x2; x++)
 		{
@@ -425,10 +428,10 @@ const PatternMaker = ({
 				}
 			}
 		}
-	}
+	};
 
 	// Clears the contents of a canvas.
-	const clearCanvas = (canvas:any, x1:number, y1:number, x2:number, y2:number) : void =>
+	const clearCanvas = (canvas: any, x1: number, y1: number, x2: number, y2: number): void =>
 	{
 		const scale = canvas.dataset.scale;
 
@@ -441,10 +444,10 @@ const PatternMaker = ({
 		const width = x2 - x1 + 1;
 
 		canvas.getContext('2d').clearRect(x1, y1, width, height);
-	}
+	};
 
 	// Draws a one-unit square on a canvas.
-	const drawScaledSquare = (canvas:any, x:number, y:number, fillColor:string, borderColor:string|boolean) : void =>
+	const drawScaledSquare = (canvas: any, x: number, y: number, fillColor: string, borderColor: string | boolean): void =>
 	{
 		let scale = 1;
 
@@ -476,12 +479,12 @@ const PatternMaker = ({
 		if (borderColor)
 		{
 			canvas.getContext('2d').strokeStyle = borderColor;
-			canvas.getContext('2d').strokeRect(x+0.5, y+0.5, scale, scale);
+			canvas.getContext('2d').strokeRect(x + 0.5, y + 0.5, scale, scale);
 		}
-	}
+	};
 
 	// Works out the coordinate indicated on a canvas, relative to the canvas' scale.
-	const getCursorPosition = (e:any, canvas:any) : boolean|[number, number] =>
+	const getCursorPosition = (e: any, canvas: any): boolean | [number, number] =>
 	{
 		let x, y, scale = 1;
 
@@ -496,14 +499,14 @@ const PatternMaker = ({
 			do
 			{
 				left += parent.offsetLeft;
-				top  += parent.offsetTop;
+				top += parent.offsetTop;
 			}
 			while (parent = parent.offsetParent);
 		}
 
 		const canvasOffset = [left, top];
 
-		if ((e.pageX != undefined) && (e.pageY != undefined))
+		if (e.pageX != undefined && e.pageY != undefined)
 		{
 			x = e.pageX;
 			y = e.pageY;
@@ -519,13 +522,13 @@ const PatternMaker = ({
 		y -= canvasOffset[1];
 
 		// now x and y are relative to top left corner of canvas
-		if ((x < 0) || (y < 0) || (x > canvas.width-1) || (y > canvas.height-1))
+		if (x < 0 || y < 0 || x > canvas.width - 1 || y > canvas.height - 1)
 		{
 			return false;
 		}
 
 		// cancel if user clicked outside display
-		if (typeof(canvas.dataset.scale) !== 'undefined')
+		if (typeof canvas.dataset.scale !== 'undefined')
 		{
 			scale = parseInt(canvas.dataset.scale, 10);
 		}
@@ -537,9 +540,10 @@ const PatternMaker = ({
 
 		// account for scale
 		return [x, y];
-	}
+	};
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		if (!(didMount as any).colors)
 		{
 			(didMount as any).colors = true;
@@ -549,9 +553,9 @@ const PatternMaker = ({
 		updatePaletteColor();
 	}, [hue, vividness, brightness]);
 
-	const changeHue = (e:any) : void =>
+	const changeHue = (e: any): void =>
 	{
-		let {value, min, max} = e.target;
+		let { value, min, max } = e.target;
 		min = Number(min), max = Number(max);
 
 		if (isNaN(value) || value < min || value > max)
@@ -562,11 +566,11 @@ const PatternMaker = ({
 		}
 
 		setHue(Math.max(min, Math.min(max, Number(value))));
-	}
+	};
 
-	const changeVividness = (e:any) : void =>
+	const changeVividness = (e: any): void =>
 	{
-		let {value, min, max} = e.target;
+		let { value, min, max } = e.target;
 		min = Number(min), max = Number(max);
 
 		if (isNaN(value) || value < min || value > max)
@@ -577,11 +581,11 @@ const PatternMaker = ({
 		}
 
 		setVividness(Math.max(min, Math.min(max, Number(value))));
-	}
+	};
 
-	const changeBrightness = (e:any) : void =>
+	const changeBrightness = (e: any): void =>
 	{
-		let {value, min, max} = e.target;
+		let { value, min, max } = e.target;
 		min = Number(min), max = Number(max);
 
 		if (isNaN(value) || value < min || value > max)
@@ -592,10 +596,10 @@ const PatternMaker = ({
 		}
 
 		setBrightness(Math.max(min, Math.min(max, Number(value))));
-	}
+	};
 
 	// called after updating hue, vividness or brightness
-	const updatePaletteColor = () : void =>
+	const updatePaletteColor = (): void =>
 	{
 		// manually double-check hue, vividness, brightness
 		if (hue < 1 || hue > 30 || vividness < 1 || vividness > 15 || brightness < 1 || brightness > 15)
@@ -605,7 +609,7 @@ const PatternMaker = ({
 
 		// update the palette to have new color
 		let newPalette = [...palette];
-		const newRgbIndex = (gameColorInfo as any)[currentGameId].findIndex((c:any) => c.hue === hue &&
+		const newRgbIndex = (gameColorInfo as any)[currentGameId].findIndex((c: any) => c.hue === hue &&
 			c.vividness === vividness &&
 			c.brightness === brightness);
 		newPalette[activePaletteId] = newRgbIndex;
@@ -629,13 +633,13 @@ const PatternMaker = ({
 		setPalette(newPalette);
 		setPosX1(0);
 		setPosY1(0);
-		setPosX2(constants.pattern.paletteLength-1);
-		setPosY2(constants.pattern.paletteLength-1);
+		setPosX2(constants.pattern.paletteLength - 1);
+		setPosY2(constants.pattern.paletteLength - 1);
 		setFormData(dataArray);
 		setDataUrl(patternInterface.current.toDataURL());
-	}
+	};
 
-	const fillPatternColor = (rgb:string) : void =>
+	const fillPatternColor = (rgb: string): void =>
 	{
 		if (!rgb)
 		{
@@ -661,24 +665,24 @@ const PatternMaker = ({
 
 		setPosX1(0);
 		setPosY1(0);
-		setPosX2(constants.pattern.paletteLength-1);
-		setPosY2(constants.pattern.paletteLength-1);
+		setPosX2(constants.pattern.paletteLength - 1);
+		setPosY2(constants.pattern.paletteLength - 1);
 		setFormData(dataArray);
-	}
+	};
 
-	const resetPalette = (usePaletteId?:string) : void =>
+	const resetPalette = (usePaletteId?: string): void =>
 	{
-		const newGamePaletteId = usePaletteId != null ? usePaletteId : gamePaletteId;
-		const gameId = Number(newGamePaletteId.substr(0, newGamePaletteId.indexOf('-')));
-		const paletteId = Number(newGamePaletteId.substr(newGamePaletteId.indexOf('-')+1));
+		const newGamePaletteId = usePaletteId ?? gamePaletteId;
+		const gameId = Number(newGamePaletteId.substring(0, newGamePaletteId.indexOf('-')));
+		const paletteId = Number(newGamePaletteId.substring(newGamePaletteId.indexOf('-') + 1));
 
 		// need to load new colors into palette boxes
-		const gamePaletteColors = (gamePalettes as any)[gameId][paletteId-1].colors;
+		const gamePaletteColors = (gamePalettes as any)[gameId][paletteId - 1].colors;
 		const newColors = gameColors[gameId];
 
-		let newPalette:any = [];
+		let newPalette: any = [];
 
-		for (var key in palette)
+		for (let key in palette)
 		{
 			newPalette[key] = newColors.indexOf(gamePaletteColors[Number(key)]);
 		}
@@ -727,30 +731,31 @@ const PatternMaker = ({
 		setPalette(newPalette);
 		setFormData(dataArray);
 		setCurrentGameId(gameId);
-	}
+	};
 
-	let palettes:any = [];
+	let palettes: any = [];
 
-	for (var key in gamePalettes)
+	for (let key in gamePalettes)
 	{
 		let game = acgames.find(g => g.id === Number(key));
 
-		if (game != null)
+		if (game)
 		{
-			(gamePalettes as any)[key].map((palette:any) => {
+			(gamePalettes as any)[key].map((palette: any) =>
+			{
 				palettes.push({
 					'id': key + '-' + palette.paletteId,
 					'game': game.shortname,
-					'name': 'Palette #' + palette.paletteId
+					'name': 'Palette #' + palette.paletteId,
 				});
 			});
 		}
 	}
 
-	const paletteId = Number(gamePaletteId.substring(gamePaletteId.indexOf('-')+1));
+	const paletteId = Number(gamePaletteId.substring(gamePaletteId.indexOf('-') + 1));
 	const curRgb = colors[palette[activePaletteId]];
-	const defaultRgb = (gamePalettes as any)[currentGameId][paletteId-1].colors[activePaletteId];
-	const defaultColor = (gameColorInfo as any)[currentGameId].find((c:any) => c.hex === defaultRgb);
+	const defaultRgb = (gamePalettes as any)[currentGameId][paletteId - 1].colors[activePaletteId];
+	const defaultColor = (gameColorInfo as any)[currentGameId].find((c: any) => c.hex === defaultRgb);
 
 	return (
 		<div className='PatternMaker'>
@@ -780,10 +785,10 @@ const PatternMaker = ({
 								label='Palette'
 								name='gamePaletteId'
 								options={palettes}
-								optionsMapping={{value: 'id', label: 'name'}}
+								optionsMapping={{ value: 'id', label: 'name' }}
 								groupBy='game'
 								value={gamePaletteId}
-								changeHandler={(e:any) => resetPalette(String(e.target.value))}
+								changeHandler={(e: any) => resetPalette(String(e.target.value))}
 								required
 							/>
 
@@ -794,17 +799,21 @@ const PatternMaker = ({
 										className={i === activePaletteId ?
 											`paletteInterface paletteInterface${i} selected` :
 											`paletteInterface paletteInterface${i}`}
-										style={{backgroundColor: paletteInterfaces[i].backgroundColor,
-											border: paletteInterfaces[i].border}}
-									/>
+										style={{
+											backgroundColor: paletteInterfaces[i].backgroundColor,
+											border: paletteInterfaces[i].border,
+										}}
+									/>,
 								)}
 								<div
 									onClick={() => changeDrawingColor(15)}
 									className={15 === activePaletteId ?
 										`Pattern_transparent paletteInterface paletteInterface15 selected` :
-										`Pattern_transparent paletteInterface paletteInterface15 ${(currentGameId !== constants.gameIds.ACNH ? ' hidden' : '')}`}
-									style={{backgroundColor: paletteInterfaces[15].backgroundColor,
-										border: paletteInterfaces[15].border}}
+										`Pattern_transparent paletteInterface paletteInterface15 ${currentGameId !== constants.gameIds.ACNH ? ' hidden' : ''}`}
+									style={{
+										backgroundColor: paletteInterfaces[15].backgroundColor,
+										border: paletteInterfaces[15].border,
+									}}
 								/>
 							</div>
 						</div>
@@ -816,24 +825,24 @@ const PatternMaker = ({
 							label='Fill With Selected Color'
 						/>
 
-						{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) && (
+						{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) &&
 							<Button
 								clickHandler={() => resetPalette()}
 								label='Reset Palette'
 							/>
-						)}
+						}
 					</div>
 
-					{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) && (
+					{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) &&
 						<div className='PatternMaker_extended'>
-							{currentGameId === constants.gameIds.ACNL && (
+							{currentGameId === constants.gameIds.ACNL &&
 								<canvas height='256' width='226' ref={paletteInterfaceExtended}
 									data-scale='15' onClick={(e) => changePaletteColor(e)}
 									className='PatternMaker_nlInterface'
 								/>
-							)}
+							}
 
-							{currentGameId === constants.gameIds.ACNH && defaultColor && (
+							{currentGameId === constants.gameIds.ACNH && defaultColor &&
 								<div className='PatternMaker_nhInterface'>
 									<div className='PatternMaker_nhDefault'>
 										<h3>Default:</h3>{defaultColor.hue} {defaultColor.vividness} {defaultColor.brightness}
@@ -875,17 +884,17 @@ const PatternMaker = ({
 										</Form.Group>
 									</div>
 								</div>
-							)}
+							}
 						</div>
-					)}
+					}
 				</div>
 			</div>
 		</div>
 	);
-}
+};
 
 type PatternMakerProps = {
-	data: string[]|null
+	data: string[] | null
 	initialDataUrl: string
 	gameColors: PatternColorsType[number]
 	gamePalettes: PatternPalettesType[number]

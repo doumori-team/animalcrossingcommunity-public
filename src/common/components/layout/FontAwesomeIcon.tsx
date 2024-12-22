@@ -10,19 +10,19 @@ import React from 'react';
 const FontAwesomeIcon = ({
 	name,
 	alt,
-	title
+	title,
 }: FontAwesomeIconProps) =>
 {
 	return (
 		<svg className={`FontAwesomeIcon${title ? ' informational-icon' : ''}`} aria-label={alt}>
 			<use href={`/fa-solid.svg#${name}`} />
 			{alt}
-			{title && (
+			{title &&
 				<title>{title}</title>
-			)}
+			}
 		</svg>
 	);
-}
+};
 
 type FontAwesomeIconProps = {
 	name: string

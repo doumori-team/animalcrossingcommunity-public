@@ -4,10 +4,10 @@ import { constants, utils, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserType, UserDonationsType, MarkupStyleType } from '@types';
 
-async function save(this: APIThisType, {id, location = null, name, bio, format, fileIds, fileNames,
-	fileWidths, fileHeights, fileCaptions}: saveProps) : Promise<{id: number}>
+async function save(this: APIThisType, { id, location = null, name, bio, format, fileIds, fileNames,
+	fileWidths, fileHeights, fileCaptions }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-profiles'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-profiles' });
 
 	if (!permissionGranted)
 	{
@@ -24,9 +24,9 @@ async function save(this: APIThisType, {id, location = null, name, bio, format, 
 		throw new UserError('permission');
 	}
 
-	const user:UserType = await this.query('v1/user', {id: this.userId});
+	const user: UserType = await this.query('v1/user', { id: this.userId });
 
-	const userDonations:UserDonationsType = await this.query('v1/users/donations', {id: this.userId});
+	const userDonations: UserDonationsType = await this.query('v1/users/donations', { id: this.userId });
 
 	if (
 		userDonations.monthlyPerks < 10 && utils.realStringLength(bio) > constants.max.bio3 ||
@@ -47,7 +47,7 @@ async function save(this: APIThisType, {id, location = null, name, bio, format, 
 		throw new UserError('too-many-files');
 	}
 
-	fileCaptions.map((caption:string) =>
+	fileCaptions.map((caption: string) =>
 	{
 		if (utils.realStringLength(caption) > constants.max.imageCaption)
 		{
@@ -85,7 +85,8 @@ async function save(this: APIThisType, {id, location = null, name, bio, format, 
 
 	if (fileIds.length > 0)
 	{
-		await Promise.all(fileIds.map(async (id:any, index:any) => {
+		await Promise.all(fileIds.map(async (id: any, index: any) =>
+		{
 			const [file] = await db.query(`
 				INSERT INTO file (file_id, name, width, height, caption, sequence)
 				VALUES ($1, $2, $3, $4, $5, $6)
@@ -100,7 +101,7 @@ async function save(this: APIThisType, {id, location = null, name, bio, format, 
 	}
 
 	return {
-		id: id
+		id: id,
 	};
 }
 
@@ -147,11 +148,11 @@ save.apiTypes = {
 	fileCaptions: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	id: number
-	location: string|null
+	location: string | null
 	name: string
 	bio: string
 	format: MarkupStyleType
@@ -160,6 +161,6 @@ type saveProps = {
 	fileWidths: any[]
 	fileHeights: any[]
 	fileCaptions: any[]
-}
+};
 
 export default save;

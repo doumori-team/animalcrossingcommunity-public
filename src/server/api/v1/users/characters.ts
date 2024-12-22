@@ -3,13 +3,13 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, CharacterType } from '@types';
 
-async function characters(this: APIThisType, {id}: charactersProps) : Promise<CharacterType[]>
+async function characters(this: APIThisType, { id }: charactersProps): Promise<CharacterType[]>
 {
 	const [viewUserCatalog, useTradingPostPerm, viewTowns, useFriendCodes] = await Promise.all([
-		this.query('v1/permission', {permission: 'view-user-catalog'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
-		this.query('v1/permission', {permission: 'view-towns'}),
-		this.query('v1/permission', {permission: 'use-friend-codes'}),
+		this.query('v1/permission', { permission: 'view-user-catalog' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
+		this.query('v1/permission', { permission: 'view-towns' }),
+		this.query('v1/permission', { permission: 'use-friend-codes' }),
 	]);
 
 	if (!(viewUserCatalog || useTradingPostPerm || viewTowns || useFriendCodes))
@@ -24,8 +24,9 @@ async function characters(this: APIThisType, {id}: charactersProps) : Promise<Ch
 		WHERE town.user_id = $1::int
 	`, id);
 
-	return await Promise.all(characters.map(async (character:any) => {
-		return this.query('v1/character', {id: character.id})
+	return await Promise.all(characters.map(async (character: any) =>
+	{
+		return this.query('v1/character', { id: character.id });
 	}));
 }
 
@@ -35,10 +36,10 @@ characters.apiTypes = {
 		default: true,
 		nullable: true,
 	},
-}
+};
 
 type charactersProps = {
 	id: number
-}
+};
 
 export default characters;

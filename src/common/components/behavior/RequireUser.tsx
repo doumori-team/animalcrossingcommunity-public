@@ -20,38 +20,39 @@ const RequireUser = ({
 	permission,
 	silent = false,
 	children,
-	ids = []
+	ids = [],
 }: RequireUserProps) =>
 {
-    return (
-        <UserContext.Consumer>
-            {user => {
-                if (user)
-                {
-                    if (permission)
-                    {
-                        if ((ids.length > 0 && ids.some(i => user.id === i)) || (ids.length === 0 && (!id || user.id === id)))
-                        {
-                            return (
-                                <RequirePermission permission={permission} silent={silent}>
-                                    {children}
-                                </RequirePermission>
-                            );
-                        }
-                    }
-                    else if ((ids.length > 0 && ids.some(i => user.id === i)) || (ids.length === 0 && (!id || user.id === id)))
-                    {
-                        return children;
-                    }
-                }
+	return (
+		<UserContext.Consumer>
+			{user =>
+			{
+				if (user)
+				{
+					if (permission)
+					{
+						if (ids.length > 0 && ids.some(i => user.id === i) || ids.length === 0 && (!id || user.id === id))
+						{
+							return (
+								<RequirePermission permission={permission} silent={silent}>
+									{children}
+								</RequirePermission>
+							);
+						}
+					}
+					else if (ids.length > 0 && ids.some(i => user.id === i) || ids.length === 0 && (!id || user.id === id))
+					{
+						return children;
+					}
+				}
 
-                return silent || (
-                    <ErrorMessage identifier='login-needed' />
-                );
-            }}
-        </UserContext.Consumer>
-    );
-}
+				return silent ||
+					<ErrorMessage identifier='login-needed' />
+				;
+			}}
+		</UserContext.Consumer>
+	);
+};
 
 type RequireUserProps = {
 	id?: number

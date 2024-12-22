@@ -12,7 +12,7 @@ import { UserContext } from '@contexts';
 
 const Offer = ({
 	offer,
-	listing
+	listing,
 }: OfferProps) =>
 {
 	const encodedId = encodeURIComponent(listing.id);
@@ -21,16 +21,16 @@ const Offer = ({
 		<div className='Offer'>
 			<div className='Offer_links'>
 				<RequireUser id={listing.creator.id} silent>
-					{([
+					{[
 						constants.tradingPost.listingStatuses.open,
-						constants.tradingPost.listingStatuses.offerAccepted
+						constants.tradingPost.listingStatuses.offerAccepted,
 					].includes(listing.status) &&
 						![
 							constants.tradingPost.offerStatuses.rejected,
-							constants.tradingPost.offerStatuses.cancelled
-						].includes(offer.status)) && (
+							constants.tradingPost.offerStatuses.cancelled,
+						].includes(offer.status) &&
 						<>
-							{!listing.offers.accepted && (
+							{!listing.offers.accepted &&
 								<Confirm
 									action='v1/trading_post/listing/offer/accept'
 									callback={`/trading-post/${encodedId}`}
@@ -38,9 +38,9 @@ const Offer = ({
 									label='Accept'
 									message='Are you sure you want to accept this offer?'
 								/>
-							)}
+							}
 							{(!listing.offers.accepted ||
-								(listing.offers.accepted.id === offer.id)) && (
+								listing.offers.accepted.id === offer.id) &&
 								<Confirm
 									action='v1/trading_post/listing/offer/reject'
 									callback={`/trading-post/${encodedId}`}
@@ -48,19 +48,19 @@ const Offer = ({
 									label='Reject'
 									message='Are you sure you want to reject this offer?'
 								/>
-							)}
+							}
 						</>
-					)}
+					}
 				</RequireUser>
 				<RequireUser id={offer.user.id} silent>
-					{([
+					{[
 						constants.tradingPost.listingStatuses.open,
-						constants.tradingPost.listingStatuses.offerAccepted
+						constants.tradingPost.listingStatuses.offerAccepted,
 					].includes(listing.status) &&
 						![
 							constants.tradingPost.offerStatuses.rejected,
-							constants.tradingPost.offerStatuses.cancelled
-						].includes(offer.status)) && (
+							constants.tradingPost.offerStatuses.cancelled,
+						].includes(offer.status) &&
 						<Confirm
 							action='v1/trading_post/listing/offer/cancel'
 							callback={`/trading-post/${encodedId}`}
@@ -68,7 +68,7 @@ const Offer = ({
 							label='Cancel'
 							message='Are you sure you want to cancel this offer?'
 						/>
-					)}
+					}
 				</RequireUser>
 			</div>
 
@@ -77,94 +77,94 @@ const Offer = ({
 				Offer #{offer.sequence}
 			</h1>
 
-			{(offer.items.length > 0 || offer.bells > 0 || offer.residents.length > 0 || offer.comment) ? (
+			{offer.items.length > 0 || offer.bells > 0 || offer.residents.length > 0 || offer.comment ?
 				<>
-				<div className='Offer_offered'>
-					<UserContext.Consumer>
-						{currentUser => (
-							currentUser ? (
-								<Link to={`/profile/${encodeURIComponent(offer.user.id)}`}>
-									{offer.user.username}
-								</Link>
-							) : (
-								offer.user.username
-							)
-						)}
-					</UserContext.Consumer>
-					{listing.type === constants.tradingPost.listingTypes.buy ? (
-						` wants...`
-					) : (
-						` will trade...`
-					)}
-				</div>
+					<div className='Offer_offered'>
+						<UserContext.Consumer>
+							{currentUser =>
+								currentUser ?
+									<Link to={`/profile/${encodeURIComponent(offer.user.id)}`}>
+										{offer.user.username}
+									</Link>
+									:
+									offer.user.username
 
-				<div className='Offer_offer'>
-					{offer.items.length > 0 && (
-						<div className='Offer_items'>
-							Item(s):
-							<ul>
-								{offer.items.map(item =>
-									<li key={item.id}>
-										{item.name}, Qty: {item.quantity}
-									</li>
-								)}
-							</ul>
-						</div>
-					)}
+							}
+						</UserContext.Consumer>
+						{listing.type === constants.tradingPost.listingTypes.buy ?
+							` wants...`
+							:
+							` will trade...`
+						}
+					</div>
 
-					{offer.bells > 0 && (
-						<div className='Offer_bells'>
-							Bells: {offer.bells.toLocaleString()}
-						</div>
-					)}
+					<div className='Offer_offer'>
+						{offer.items.length > 0 &&
+							<div className='Offer_items'>
+								Item(s):
+								<ul>
+									{offer.items.map(item =>
+										<li key={item.id}>
+											{item.name}, Qty: {item.quantity}
+										</li>,
+									)}
+								</ul>
+							</div>
+						}
 
-					{offer.residents.length > 0 && (
-						<div className='Offer_villagers'>
-							Villager(s):
-							<ul>
-								{offer.residents.map(resident =>
-									<li key={resident.id}>
-										{resident.name}
-									</li>
-								)}
-							</ul>
-						</div>
-					)}
+						{offer.bells > 0 &&
+							<div className='Offer_bells'>
+								Bells: {offer.bells.toLocaleString()}
+							</div>
+						}
 
-					{offer.comment && (
-						<div className='Offer_additionalComments'>
-							Additional Comment(s): {offer.comment}
-						</div>
-					)}
-				</div>
+						{offer.residents.length > 0 &&
+							<div className='Offer_villagers'>
+								Villager(s):
+								<ul>
+									{offer.residents.map(resident =>
+										<li key={resident.id}>
+											{resident.name}
+										</li>,
+									)}
+								</ul>
+							</div>
+						}
+
+						{offer.comment &&
+							<div className='Offer_additionalComments'>
+								Additional Comment(s): {offer.comment}
+							</div>
+						}
+					</div>
 				</>
-			) : (
+				:
 				<div className='Offer_offered'>
 					<UserContext.Consumer>
-						{currentUser => (
-							currentUser ? (
+						{currentUser =>
+							currentUser ?
 								<>
-								User: <Link to={`/profile/${encodeURIComponent(offer.user.id)}`}>
-									{offer.user.username}
-								</Link>
+									User: <Link to={`/profile/${encodeURIComponent(offer.user.id)}`}>
+										{offer.user.username}
+									</Link>
 								</>
-							) : (
+								:
 								<>
-								User: {offer.user.username}
+									User: {offer.user.username}
 								</>
-							)
-						)}
+
+						}
 					</UserContext.Consumer>
 				</div>
-			)}
+			}
 
-			{!listing.game && (
+			{!listing.game &&
 				<RequireUser silent>
 					<div className='Offer_location'>
 						Location: {offer.bioLocation ? offer.bioLocation : 'Not available'}
 					</div>
 				</RequireUser>
-			)}
+			}
 
 			<div className='Offer_lastActive'>
 				Last Active: <StatusIndicator
@@ -185,7 +185,7 @@ const Offer = ({
 			</div>
 		</div>
 	);
-}
+};
 
 type OfferProps = {
 	offer: OfferType

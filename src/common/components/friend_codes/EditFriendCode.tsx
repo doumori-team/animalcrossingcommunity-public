@@ -8,7 +8,7 @@ import { Keyboard, ErrorMessage } from '@layout';
 const EditFriendCode = ({
 	friendCode,
 	games,
-	characters
+	characters,
 }: EditFriendCodeProps) =>
 {
 	const [placeholder, setPlaceholder] = useState<string>(friendCode ? friendCode.placeholder : '');
@@ -17,18 +17,18 @@ const EditFriendCode = ({
 
 	const changePattern = (event: ElementSelectType) =>
 	{
-		if (games != null)
+		if (games)
 		{
 			const game = games.find(game => game.id === Number(event.target.value));
 
-			if (game != null)
+			if (game)
 			{
 				setPlaceholder(game.placeholder);
 				setPattern(game.pattern);
 				setSelectedCharacters(characters.filter(c => c.game.id === game.acGameId));
 			}
 		}
-	}
+	};
 
 	return (
 		<div className='EditFriendCode'>
@@ -40,16 +40,17 @@ const EditFriendCode = ({
 				<input type='hidden' name='id' value={friendCode ? friendCode.id : ''} />
 
 				<div className='EditFriendCode_game'>
-					{!friendCode ? (
+					{!friendCode ?
 						<RequireClientJS fallback={
 							<ErrorMessage identifier='javascript-required' />
-						}>
+						}
+						>
 							<Form.Group>
 								<Select
 									label='Game'
 									name='gameId'
 									options={games}
-									optionsMapping={{value: 'id', label: 'name'}}
+									optionsMapping={{ value: 'id', label: 'name' }}
 									groupBy='consoleName'
 									placeholder='Select game...'
 									changeHandler={changePattern}
@@ -57,7 +58,7 @@ const EditFriendCode = ({
 								/>
 							</Form.Group>
 						</RequireClientJS>
-					) : (
+						:
 						<>
 							<input type='hidden' name='gameId' value={friendCode.game.id} />
 
@@ -65,10 +66,10 @@ const EditFriendCode = ({
 								{friendCode.name}
 							</label>
 						</>
-					)}
+					}
 				</div>
 
-				{placeholder && (
+				{placeholder &&
 					<div className='EditFriendCode_codeSection'>
 						<Form.Group>
 							<Text
@@ -81,17 +82,18 @@ const EditFriendCode = ({
 							/>
 						</Form.Group>
 
-						{selectedCharacters.length > 0 && (
+						{selectedCharacters.length > 0 &&
 							<Form.Group>
 								<Select
 									name='characterId'
 									value={friendCode && friendCode.character ? friendCode.character.id : 0}
 									label='Character'
-									options={[{id: 0, label: 'None'}].concat(selectedCharacters as any)}
+									options={[{ id: 0, label: 'None' }].concat(selectedCharacters as any)}
 									optionsMapping={{
 										value: 'id',
-										label: (character:any) => {
-											if (character.hasOwnProperty('label'))
+										label: (character: any) =>
+										{
+											if (Object.prototype.hasOwnProperty.call(character, 'label'))
 											{
 												return character.label;
 											}
@@ -99,11 +101,12 @@ const EditFriendCode = ({
 											return (
 												`${character.name} (${character.town.name})`
 											);
-										}
+										},
 									}}
 									useReactSelect
 									option={
-										(value:any) => {
+										(value: any) =>
+										{
 											if (value === 0)
 											{
 												return 'None';
@@ -111,33 +114,33 @@ const EditFriendCode = ({
 
 											const character = selectedCharacters.find(c => c.id === value);
 
-											if (character == null)
+											if (!character)
 											{
 												return;
 											}
 
 											return (
 												<>
-												<Keyboard
-													name={character.name}
-													gameId={character.game.id}
-												/> (<Keyboard
-													name={character.town.name}
-													gameId={character.game.id}
-												/>)
+													<Keyboard
+														name={character.name}
+														gameId={character.game.id}
+													/> (<Keyboard
+														name={character.town.name}
+														gameId={character.game.id}
+													/>)
 												</>
 											);
 										}
 									}
 								/>
 							</Form.Group>
-						)}
+						}
 					</div>
-				)}
+				}
 			</Form>
 		</div>
 	);
-}
+};
 
 type EditFriendCodeProps = {
 	friendCode?: FriendCodeType

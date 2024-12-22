@@ -5,9 +5,9 @@ import { constants } from '@utils';
 import * as accounts from '@accounts';
 import { APIThisType } from '@types';
 
-async function reply(this: APIThisType, {id, message}: replyProps) : Promise<void>
+async function reply(this: APIThisType, { id, message }: replyProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -27,7 +27,7 @@ async function reply(this: APIThisType, {id, message}: replyProps) : Promise<voi
 
 	const subject = `RE: ${supportEmail.subject}`;
 
-	let data:any = {
+	let data: any = {
 		subject: subject,
 		text: message.replace(constants.regexes.newLineToHTML, '<br/>'),
 	};
@@ -51,7 +51,7 @@ async function reply(this: APIThisType, {id, message}: replyProps) : Promise<voi
 		`, id),
 		this.query('v1/notification/destroy', {
 			id: id,
-			type: constants.notification.types.supportEmail
+			type: constants.notification.types.supportEmail,
 		}),
 		db.query(`
 			INSERT INTO support_email (from_user_id, to_user_id, to_email, subject, recorded, body, read)
@@ -71,11 +71,11 @@ reply.apiTypes = {
 		length: constants.max.supportEmailBody,
 		profanity: true,
 	},
-}
+};
 
 type replyProps = {
 	id: number
 	message: string
-}
+};
 
 export default reply;

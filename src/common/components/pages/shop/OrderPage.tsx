@@ -9,7 +9,7 @@ import { APIThisType, ThreadOrderType, EmojiSettingType, MarkupStyleType } from 
 
 const OrderPage = () =>
 {
-	const {order, userEmojiSettings, markupStyle} = useLoaderData() as OrderPageProps;
+	const { order, userEmojiSettings, markupStyle } = useLoaderData() as OrderPageProps;
 
 	return (
 		<div className='OrderPage'>
@@ -18,12 +18,12 @@ const OrderPage = () =>
 					name='Orders, Applications & Other Threads'
 					links={
 						<>
-						<Link to='/shops'>
-							Shops
-						</Link>
-						<Link to='/shops/threads'>
-							Threads
-						</Link>
+							<Link to='/shops'>
+								Shops
+							</Link>
+							<Link to='/shops/threads'>
+								Threads
+							</Link>
 						</>
 					}
 				/>
@@ -41,25 +41,25 @@ const OrderPage = () =>
 						Service: {order.service} ({order.game.shortname})
 					</div>
 
-					{order.items.length > 0 && (
+					{order.items.length > 0 &&
 						<div className='OrderPage_items'>
 							Item(s):
 							<ul>
 								{order.items.map(item =>
 									<li key={item.id}>
 										{item.name}, Qty: {item.quantity}
-									</li>
+									</li>,
 								)}
 							</ul>
 						</div>
-					)}
+					}
 
-					{order.comment && (
+					{order.comment &&
 						<div className='OrderPage_comment'>
 							<ReportProblem type={constants.userTicket.types.shopOrder} id={order.id} />
 							Comment: {order.comment}
 						</div>
-					)}
+					}
 
 					<div>
 						Ordered: {order.formattedDate}
@@ -108,12 +108,12 @@ const OrderPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<OrderPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<OrderPageProps>
 {
 	const [order, userEmojiSettings, forumSettings] = await Promise.all([
-		this.query('v1/shop/thread', {id: id, category: constants.shops.categories.orders, getItems: true}),
+		this.query('v1/shop/thread', { id: id, category: constants.shops.categories.orders, getItems: true }),
 		this.query('v1/settings/emoji'),
 		this.query('v1/settings/forum'),
 	]);
@@ -121,7 +121,7 @@ export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<
 	return {
 		order,
 		userEmojiSettings,
-		markupStyle: forumSettings.markupStyle
+		markupStyle: forumSettings.markupStyle,
 	};
 }
 
@@ -129,6 +129,6 @@ type OrderPageProps = {
 	order: ThreadOrderType
 	userEmojiSettings: EmojiSettingType[]
 	markupStyle: MarkupStyleType
-}
+};
 
 export default OrderPage;

@@ -4,10 +4,10 @@ import { utils, dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, question, description, startDate, duration,
-	isMultipleChoice, isEnabled, options}: saveProps) : Promise<{id: number}>
+async function save(this: APIThisType, { id, question, description, startDate, duration,
+	isMultipleChoice, isEnabled, options }: saveProps): Promise<{ id: number }>
 {
-	const permission:boolean = await this.query('v1/permission', {permission: 'polls-admin'});
+	const permission: boolean = await this.query('v1/permission', { permission: 'polls-admin' });
 
 	if (!permission)
 	{
@@ -43,7 +43,7 @@ async function save(this: APIThisType, {id, question, description, startDate, du
 
 		let newOption = String(option);
 
-		await this.query('v1/profanity/check', {text: newOption});
+		await this.query('v1/profanity/check', { text: newOption });
 
 		return newOption;
 	}));
@@ -56,7 +56,7 @@ async function save(this: APIThisType, {id, question, description, startDate, du
 	}
 
 	// Perform queries
-	const pollResult = await db.transaction(async (query:any) =>
+	const pollResult = await db.transaction(async (query: any) =>
 	{
 		if (id != null && id > 0)
 		{
@@ -74,7 +74,8 @@ async function save(this: APIThisType, {id, question, description, startDate, du
 				WHERE poll_id = $1::int
 			`, id);
 
-			await Promise.all(options.map(async (option, index) => {
+			await Promise.all(options.map(async (option, index) =>
+			{
 				if (index + 1 <= lastInSequence.max)
 				{
 					// Updates existing options
@@ -113,7 +114,8 @@ async function save(this: APIThisType, {id, question, description, startDate, du
 				RETURNING id
 			`, question, description, startDate, durationInterval, isMultipleChoice, isEnabled);
 
-			await Promise.all(options.map(async (option, index) => {
+			await Promise.all(options.map(async (option, index) =>
+			{
 				await query(`
 					INSERT INTO poll_option (poll_id, description, sequence)
 					VALUES ($1::int, $2, $3::int)
@@ -125,7 +127,7 @@ async function save(this: APIThisType, {id, question, description, startDate, du
 	});
 
 	return {
-		id: pollResult.id
+		id: pollResult.id,
 	};
 }
 
@@ -171,10 +173,10 @@ save.apiTypes = {
 	options: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	question: string
 	description: string
 	startDate: string
@@ -182,6 +184,6 @@ type saveProps = {
 	isMultipleChoice: boolean
 	isEnabled: boolean
 	options: any[]
-}
+};
 
 export default save;

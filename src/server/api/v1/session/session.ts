@@ -4,9 +4,9 @@ import { dateUtils, constants, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SessionType } from '@types';
 
-async function session(this: APIThisType, {id, page, url}: sessionProps) : Promise<SessionType>
+async function session(this: APIThisType, { id, page, url }: sessionProps): Promise<SessionType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -47,8 +47,8 @@ async function session(this: APIThisType, {id, page, url}: sessionProps) : Promi
 
 	// Do actual search
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
-	let params:any = [pageSize, offset];
+	const offset = page * pageSize - pageSize;
+	let params: any = [pageSize, offset];
 	let paramIndex = params.length;
 
 	let query = `
@@ -106,24 +106,25 @@ async function session(this: APIThisType, {id, page, url}: sessionProps) : Promi
 	// Run query
 	const [urls, user] = await Promise.all([
 		db.query(query, ...params),
-		this.query('v1/user_lite', {id: userSession.user_id}),
+		this.query('v1/user_lite', { id: userSession.user_id }),
 	]);
 
 	const result = {
 		id: userSession.id,
 		user: user,
 		urls: [],
-	}
+	};
 
 	if (urls.length > 0)
 	{
-		result.urls = urls.map((url:any) => {
+		result.urls = urls.map((url: any) =>
+		{
 			return {
 				formattedDate: dateUtils.formatDateTime(url.date),
 				url: url.url,
 				params: url.params ? JSON.stringify(url.params, undefined, 2) : null,
 				query: url.query ? JSON.stringify(url.query, undefined, 2) : null,
-			}
+			};
 		});
 	}
 
@@ -151,12 +152,12 @@ session.apiTypes = {
 		default: '',
 		maxLength: constants.max.url,
 	},
-}
+};
 
 type sessionProps = {
 	id: number
 	page: number
 	url: string
-}
+};
 
 export default session;

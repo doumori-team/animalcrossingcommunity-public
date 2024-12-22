@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function discussion(this: APIThisType, {id}: discussionProps) : Promise<void>
+async function discussion(this: APIThisType, { id }: discussionProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -42,7 +42,7 @@ async function discussion(this: APIThisType, {id}: discussionProps) : Promise<vo
 		`, id, status.id),
 		this.query('v1/notification/create', {
 			id: id,
-			type: constants.notification.types.modminUTDiscussion
+			type: constants.notification.types.modminUTDiscussion,
 		}),
 	]);
 }
@@ -52,10 +52,10 @@ discussion.apiTypes = {
 		type: APITypes.userTicketId,
 		required: true,
 	},
-}
+};
 
 type discussionProps = {
 	id: number
-}
+};
 
 export default discussion;

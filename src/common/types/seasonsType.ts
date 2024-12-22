@@ -9,9 +9,10 @@ type SeasonsType = {
 	},
 	theme: string
 	season: string
-	event: string|null
+	event: string | null
 	bannerName: string
 	debug: boolean
+	time: number
 };
 
 export type { SeasonsType };

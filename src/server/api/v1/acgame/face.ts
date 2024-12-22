@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, FaceType } from '@types';
 
-async function face(this: APIThisType, {id}: faceProps) : Promise<FaceType[]>
+async function face(this: APIThisType, { id }: faceProps): Promise<FaceType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -20,7 +20,7 @@ async function face(this: APIThisType, {id}: faceProps) : Promise<FaceType[]>
 		FROM ac_game_face
 		JOIN face ON (ac_game_face.face_id = face.id)
 		WHERE ac_game_face.game_id = $1::int
-		ORDER BY face.id ASC
+		ORDER BY ac_game_face.id ASC
 	`, id);
 }
 
@@ -29,10 +29,10 @@ face.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type faceProps = {
 	id: number
-}
+};
 
 export default face;

@@ -6,9 +6,9 @@ import { APIThisType } from '@types';
 /*
  * Toggle favorite for a pattern
  */
-async function favorite(this: APIThisType, {patternId}: favoriteProps) : Promise<void>
+async function favorite(this: APIThisType, { patternId }: favoriteProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-patterns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-patterns' });
 
 	if (!permissionGranted)
 	{
@@ -47,10 +47,10 @@ favorite.apiTypes = {
 		type: APITypes.patternId,
 		required: true,
 	},
-}
+};
 
 type favoriteProps = {
 	patternId: number
-}
+};
 
 export default favorite;

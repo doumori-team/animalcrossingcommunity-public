@@ -3,7 +3,7 @@ import React from 'react';
 import { RequirePermission } from '@behavior';
 
 const Navbar = ({
-	children
+	children,
 }: NavbarProps) =>
 {
 	return (
@@ -13,7 +13,7 @@ const Navbar = ({
 			</ul>
 		</nav>
 	);
-}
+};
 
 /* A single clickable option in the navbar.
  *
@@ -29,7 +29,7 @@ const Item = ({
 	extra,
 	icon,
 	username,
-	permission
+	permission,
 }: ItemProps) =>
 {
 	let className = 'NavbarItem';
@@ -61,7 +61,7 @@ const Item = ({
 	return (
 		<li className={className}>{children}</li>
 	);
-}
+};
 
 Navbar.Item = Item;
 
@@ -78,8 +78,8 @@ type ItemProps = {
  */
 const Spacer = () =>
 {
-	return (<li className='NavbarSpacer'></li>);
-}
+	return <li className='NavbarSpacer'></li>;
+};
 
 Navbar.Spacer = Spacer;
 

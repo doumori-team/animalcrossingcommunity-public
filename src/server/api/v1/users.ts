@@ -2,7 +2,7 @@ import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UsersType } from '@types';
 
-async function users(this: APIThisType, {query}: usersProps) : Promise<UsersType[]>
+async function users(this: APIThisType, { query }: usersProps): Promise<UsersType[]>
 {
 	if (!this.userId)
 	{
@@ -22,10 +22,10 @@ users.apiTypes = {
 		min: 3,
 		required: true,
 	},
-}
+};
 
 type usersProps = {
 	query: string
-}
+};
 
 export default users;

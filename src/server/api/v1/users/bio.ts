@@ -8,9 +8,9 @@ import { APIThisType, UserBioType } from '@types';
 /*
  * Lists the information about a user that should appear in the "Bio" tab of their profile.
  */
-async function bio(this: APIThisType, {id}: bioProps) : Promise<UserBioType>
+async function bio(this: APIThisType, { id }: bioProps): Promise<UserBioType>
 {
-	const permission:boolean = await this.query('v1/permission', {permission: 'view-profiles'});
+	const permission: boolean = await this.query('v1/permission', { permission: 'view-profiles' });
 
 	if (!permission)
 	{
@@ -55,7 +55,7 @@ async function bio(this: APIThisType, {id}: bioProps) : Promise<UserBioType>
 	{
 		this.query('v1/notification/destroy', {
 			id: id,
-			type: constants.notification.types.giftDonation
+			type: constants.notification.types.giftDonation,
 		});
 	}
 
@@ -65,7 +65,8 @@ async function bio(this: APIThisType, {id}: bioProps) : Promise<UserBioType>
 		bio: result.bio,
 		format: result.format,
 		email: email,
-		files: userFiles ? userFiles.map((file:any) => {
+		files: userFiles ? userFiles.map((file: any) =>
+		{
 			return {
 				id: file.id,
 				fileId: file.file_id,
@@ -73,7 +74,7 @@ async function bio(this: APIThisType, {id}: bioProps) : Promise<UserBioType>
 				width: file.width,
 				height: file.height,
 				caption: file.caption,
-			}
+			};
 		}) : [],
 	};
 }
@@ -83,10 +84,10 @@ bio.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type bioProps = {
 	id: number
-}
+};
 
 export default bio;

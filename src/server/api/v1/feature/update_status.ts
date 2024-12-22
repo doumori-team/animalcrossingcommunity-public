@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function update_status(this: APIThisType, {id, newStatus}: updateStatusProps) : Promise<void>
+async function update_status(this: APIThisType, { id, newStatus }: updateStatusProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -12,9 +12,9 @@ async function update_status(this: APIThisType, {id, newStatus}: updateStatusPro
 	}
 
 	const [basicPermission, leadPermission, feature, [status]] = await Promise.all([
-		this.query('v1/permission', {permission: 'claim-features'}),
-		this.query('v1/permission', {permission: 'manage-features'}),
-		this.query('v1/feature', {id: id}),
+		this.query('v1/permission', { permission: 'claim-features' }),
+		this.query('v1/permission', { permission: 'manage-features' }),
+		this.query('v1/feature', { id: id }),
 		db.query(`
 			SELECT
 				feature_status.id
@@ -58,11 +58,11 @@ update_status.apiTypes = {
 		default: '',
 		required: true,
 	},
-}
+};
 
 type updateStatusProps = {
 	id: number
 	newStatus: string
-}
+};
 
 export default update_status;

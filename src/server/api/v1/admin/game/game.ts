@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, GameType } from '@types';
 
-async function game(this: APIThisType, {id}: gameProps) : Promise<GameType>
+async function game(this: APIThisType, { id }: gameProps): Promise<GameType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'games-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'games-admin' });
 
 	if (!permissionGranted)
 	{
@@ -39,7 +39,7 @@ async function game(this: APIThisType, {id}: gameProps) : Promise<GameType>
 		pattern: game.pattern,
 		placeholder: game.placeholder,
 		sequence: game.sequence,
-		isEnabled: game.is_enabled
+		isEnabled: game.is_enabled,
 	};
 }
 
@@ -48,10 +48,10 @@ game.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type gameProps = {
 	id: number
-}
+};
 
 export default game;

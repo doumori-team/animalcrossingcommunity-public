@@ -1,22 +1,35 @@
 import React from 'react';
 
-import { constants } from '@utils';
-import { TownType, TownGameType } from '@types';
+import { constants, utils } from '@utils';
+import { TownType, TownGameType, SeasonsType } from '@types';
 import { Form, Check, Select, Text } from '@form';
 import { EditKeyboard, InnerSection } from '@layout';
 
 const EditTown = ({
 	gameId,
 	town,
-	gameInfo
+	season,
+	gameInfo,
 }: EditTownProps) =>
 {
-	const {info, fruit, grassShapes, ordinances, stores, pwps, residents,
-		hemispheres} = gameInfo;
+	const { info, fruit, grassShapes, ordinances, stores, pwps, residents, paintColors,
+		hemispheres } = gameInfo;
+
+	// Train station shapes, grass shapes, and PWPs have image icons, so these three lines map their filenames.
+	// Stations are just numbered 1-15, but grass and PWPs have distinct names and therefore their own TS types.
+	const stationOptions = Array.from({ length: 15 }, (_, i) => i + 1).map(n => ({ id: n, name: `Station ${n}` }));
+	const grassOptions = grassShapes.map(shape => ({ ...shape, filename: utils.grassTileFilename(shape, season.time) }));
+	const pwpOptions = pwps.map(pwp => ({ ...pwp, filename: utils.publicWorkIconUrl(pwp.name) }));
+	// Add custom filename logic for island villagers too because "O'Hare" doesn't have the apostrophe stripped on S3
+	const gcIslandVillagerOptions = residents.filter(r => r.isIsland === true).map(v => ({ ...v, filename: `${v.name.toLowerCase().replace(/[^a-z]+/g, '')}.png` }));
+
+	const gameAbbrev = utils.getIconDirectoryFromGameID(gameId);
+
+	const callbackURL = town ? `/profile/:userId/town/${town.id}` : `/profile/:userId/towns`;
 
 	return (
 		<section className='EditTown'>
-			<Form action='v1/town/save' callback={`/profile/:userId/towns`} showButton>
+			<Form action='v1/town/save' callback={callbackURL} showButton>
 				<input type='hidden' name='gameId' value={gameId} />
 				<input type='hidden' name='id' value={town ? String(town.id) : ['0']} />
 
@@ -57,7 +70,7 @@ const EditTown = ({
 						/>
 					</Form.Group>
 
-					{fruit.island1.length > 0 && fruit.island2.length > 0 && (
+					{fruit.island1.length > 0 && fruit.island2.length > 0 &&
 						<>
 							<Form.Group>
 								<label>Native Island Fruit:</label>
@@ -85,7 +98,7 @@ const EditTown = ({
 								</div>
 							</Form.Group>
 						</>
-					)}
+					}
 
 					<Form.Group>
 						<Check
@@ -117,7 +130,7 @@ const EditTown = ({
 							name='residents'
 							multiple
 							options={residents.filter(r => r.isTown === true)}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							value={town ? town.residents.map(r => r.id) : []}
 							placeholder='Choose residents...'
 							size={15}
@@ -135,7 +148,7 @@ const EditTown = ({
 						Additional Information
 					</h2>
 
-					{gameId === constants.gameIds.ACNH ? (
+					{gameId === constants.gameIds.ACNH ?
 						<input
 							type='hidden'
 							name='nookId'
@@ -143,7 +156,7 @@ const EditTown = ({
 								[String(town.stores.nook[town.stores.nook.length - 1].id)] :
 								[String(stores.nooks[0].id)]}
 						/>
-					) : (
+						:
 						<Form.Group>
 							<Check
 								options={stores.nooks}
@@ -152,44 +165,78 @@ const EditTown = ({
 									[town.stores.nook[town.stores.nook.length - 1].id] :
 									[stores.nooks[0].id]}
 								label='Current Nook Store'
+								useImageFilename={true}
+								imageLocation={`games/${gameAbbrev}/nook`}
 							/>
 						</Form.Group>
-					)}
+					}
 
-					{gameId === constants.gameIds.ACGC && (
-						<div className='EditTown_island'>
-							<Form.Group>
-								<EditKeyboard
-									name='islandName'
-									defaultValue={town && town.island ? town.island.name : ''}
-									label='Island Name'
-								/>
-							</Form.Group>
+					{gameId === constants.gameIds.ACGC &&
+						<>
+							<div className='EditTown_island'>
+								<Form.Group>
+									<EditKeyboard
+										name='islandName'
+										defaultValue={town && town.island ? town.island.name : ''}
+										label='Island Name'
+									/>
+								</Form.Group>
 
-							<Form.Group>
-								<Check
-									options={residents.filter(r => r.isIsland === true)}
-									name='islandResidentId'
-									defaultValue={town && town.island ?
-										[town.island.resident.id] : [0]}
-									label='Island Resident'
-								/>
-							</Form.Group>
-						</div>
-					)}
+								<Form.Group>
+									<Check
+										options={gcIslandVillagerOptions}
+										name='islandResidentId'
+										defaultValue={town && town.island ?
+											[town.island.resident.id] : [0]}
+										label='Island Resident'
+										imageLocation={`games/${gameAbbrev}/villagers/icons`}
+										useImageFilename={true}
+									/>
+								</Form.Group>
+							</div>
 
-					{gameId <= constants.gameIds.ACNL && (
+							<div className='EditTown_station'>
+								<Form.Group>
+									<Check
+										options={stationOptions}
+										name='stationShape'
+										defaultValue={town && town.stationShape ?
+											[town.stationShape] : [0]}
+										imageLocation={`games/${gameAbbrev}/stations`}
+										hideName={true}
+										label='Train Station Design'
+									/>
+								</Form.Group>
+							</div>
+						</>
+					}
+
+					{gameId <= constants.gameIds.ACNL &&
 						<Form.Group>
 							<Check
-								options={grassShapes}
+								options={grassOptions}
 								name='grassShapeId'
 								defaultValue={town ? [town.grassShape.id] : [grassShapes[0].id]}
 								label='Grass Shape'
+								imageLocation={`games/${gameAbbrev}/grass`}
+								useImageFilename={true}
+								hideName={true}
 							/>
 						</Form.Group>
-					)}
+					}
 
-					{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) && (
+					{gameId === constants.gameIds.ACWW &&
+						<Form.Group>
+							<Check
+								options={paintColors}
+								name='paintId'
+								defaultValue={town?.paint ? [town.paint.id] : [0]}
+								label='Roof Color'
+							/>
+						</Form.Group>
+					}
+
+					{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) &&
 						<Form.Group>
 							<Check
 								options={ordinances}
@@ -198,9 +245,9 @@ const EditTown = ({
 								label='Current Ordinance'
 							/>
 						</Form.Group>
-					)}
+					}
 
-					{gameId === constants.gameIds.ACNL && (
+					{gameId === constants.gameIds.ACNL &&
 						<>
 							<Form.Group>
 								<Text
@@ -223,22 +270,25 @@ const EditTown = ({
 										town.stores.others.map(s => s.id) :
 										[0]}
 									label='Other Shops and Amenities'
+									imageLocation={`games/${gameAbbrev}/amenities`}
 								/>
 							</Form.Group>
 
 							<Form.Group>
 								<Check
-									options={pwps}
+									options={pwpOptions}
 									multiple
 									name='pwps'
 									defaultValue={town ? town.pwps.map(p => p.id) : [0]}
 									label='Public Work Project(s)'
+									imageLocation={`games/${gameAbbrev}/works`}
+									useImageFilename={true}
 								/>
 							</Form.Group>
 						</>
-					)}
+					}
 
-					{gameId === constants.gameIds.ACNH && (
+					{gameId === constants.gameIds.ACNH &&
 						<>
 							<Form.Group>
 								<Text
@@ -262,16 +312,17 @@ const EditTown = ({
 								/>
 							</Form.Group>
 						</>
-					)}
+					}
 				</InnerSection>
 			</Form>
 		</section>
 	);
-}
+};
 
 type EditTownProps = {
 	gameId: number
 	gameInfo: TownGameType
+	season: SeasonsType
 	town?: TownType
 };
 

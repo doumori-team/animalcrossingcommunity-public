@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {boardId, parentId, title, description, type}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { boardId, parentId, title, description, type }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'board-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'board-admin' });
 
 	if (!permissionGranted)
 	{
@@ -48,7 +48,7 @@ async function save(this: APIThisType, {boardId, parentId, title, description, t
 		LIMIT 1
 	`, boardId);
 
-	if (!board || (board.title != title || board.content != description))
+	if (!board || (board.title !== title || board.content !== description))
 	{
 		await db.query(`
 			INSERT INTO node_revision (node_id, reviser_id, title, content, content_format)
@@ -97,14 +97,14 @@ save.apiTypes = {
 		nullable: true,
 		includes: constants.boardTypeOptions,
 	},
-}
+};
 
 type saveProps = {
-	boardId: number|null
+	boardId: number | null
 	parentId: number
 	title: string
 	description: string
-	type: string|null
-}
+	type: string | null
+};
 
 export default save;

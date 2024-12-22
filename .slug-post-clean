@@ -18,3 +18,4 @@ global.d.ts
 package-lock.json
 tsconfig.json
 webpack.config.js
+eslint.config.js

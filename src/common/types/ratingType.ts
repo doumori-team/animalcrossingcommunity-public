@@ -6,9 +6,9 @@ type RatingType = {
 	formattedDate: string
 	rating: string
 	comment: string
-	listingId: number|null
-	adoptionNodeId: number|null
-	shopNodeId: number|null
+	listingId: number | null
+	adoptionNodeId: number | null
+	shopNodeId: number | null
 };
 
 export type { RatingType };

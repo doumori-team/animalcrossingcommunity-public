@@ -4,9 +4,9 @@ import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, GuideType } from '@types';
 
-async function guide(this: APIThisType, {id}: guideProps) : Promise<GuideType>
+async function guide(this: APIThisType, { id }: guideProps): Promise<GuideType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-guides'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-guides' });
 
 	if (!permissionGranted)
 	{
@@ -37,7 +37,7 @@ async function guide(this: APIThisType, {id}: guideProps) : Promise<GuideType>
 		throw new UserError('no-such-guide');
 	}
 
-	let returnGuide:GuideType = {
+	let returnGuide: GuideType = {
 		id: guide.id,
 		name: guide.name,
 		description: guide.description,
@@ -49,8 +49,8 @@ async function guide(this: APIThisType, {id}: guideProps) : Promise<GuideType>
 	};
 
 	const [modifyGuidesPerm, user] = await Promise.all([
-		this.query('v1/permission', {permission: 'modify-guides'}),
-		this.query('v1/user_lite', {id: guide.updated_user_id}),
+		this.query('v1/permission', { permission: 'modify-guides' }),
+		this.query('v1/user_lite', { id: guide.updated_user_id }),
 	]);
 
 	if (modifyGuidesPerm)
@@ -72,10 +72,10 @@ guide.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type guideProps = {
 	id: number
-}
+};
 
 export default guide;

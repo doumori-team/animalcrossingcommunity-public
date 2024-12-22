@@ -10,7 +10,7 @@ import { APIThisType, TownType } from '@types';
 
 const MapMakerPage = () =>
 {
-	const {town} = useLoaderData() as MapMakerPageProps;
+	const { town } = useLoaderData() as MapMakerPageProps;
 
 	const mapInfo = utils.getMapInfo(town.game.id);
 
@@ -18,9 +18,9 @@ const MapMakerPage = () =>
 		<RequireUser id={town.userId} permission='modify-towns'>
 			<div className='MapMakerPage'>
 				<RequireClientJS fallback={<ErrorMessage identifier='javascript-required' />}>
-					{town.game.id === constants.gameIds.ACNH ? (
+					{town.game.id === constants.gameIds.ACNH ?
 						<RequireLargeScreen size='1275'>
-							{town.mapDesignData != null && (
+							{!!town.mapDesignData &&
 								<MapDesigner
 									townId={town.id}
 									images={utils.getMapImages(town.game.id)}
@@ -28,37 +28,37 @@ const MapMakerPage = () =>
 									data={town.mapDesignData.colorData}
 									initialDataUrl={town.mapDesignData.dataUrl}
 									gridLength={mapInfo.gridLength}
-									width={mapInfo.gridLength*mapInfo.width}
-									height={mapInfo.gridLength*mapInfo.height}
+									width={mapInfo.gridLength * mapInfo.width}
+									height={mapInfo.gridLength * mapInfo.height}
 									cursorData={town.mapDesignData.cursorData}
 									flipData={town.mapDesignData.flipData}
 									imageData={town.mapDesignData.imageData}
 								/>
-							)}
+							}
 						</RequireLargeScreen>
-					) : (
+						:
 						<MapMaker
 							town={town}
 							mapTiles={utils.getMapTiles(town.game.id)}
 						/>
-					)}
+					}
 				</RequireClientJS>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {townId}: {townId: string}) : Promise<MapMakerPageProps>
+export async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<MapMakerPageProps>
 {
 	const [town] = await Promise.all([
-		this.query('v1/town', {id: townId}),
+		this.query('v1/town', { id: townId }),
 	]);
 
-	return {town};
+	return { town };
 }
 
 type MapMakerPageProps = {
 	town: TownType
-}
+};
 
 export default MapMakerPage;

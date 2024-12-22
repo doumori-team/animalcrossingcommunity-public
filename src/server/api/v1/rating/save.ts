@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ListingType } from '@types';
 
-async function save(this: APIThisType, {id, rating, comment, userId, listingId, adoptionNodeId, shopNodeId}: saveProps) : Promise<number|null>
+async function save(this: APIThisType, { id, rating, comment, userId, listingId, adoptionNodeId, shopNodeId }: saveProps): Promise<number | null>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -50,7 +50,7 @@ async function save(this: APIThisType, {id, rating, comment, userId, listingId, 
 
 	if (listingId > 0)
 	{
-		const listing:ListingType = await this.query('v1/trading_post/listing', {id: listingId});
+		const listing: ListingType = await this.query('v1/trading_post/listing', { id: listingId });
 
 		// only users involved in trade can submit
 		// only if listing in right status
@@ -118,7 +118,7 @@ async function save(this: APIThisType, {id, rating, comment, userId, listingId, 
 
 		if (listingId > 0)
 		{
-			await db.transaction(async (query:any) =>
+			await db.transaction(async (query: any) =>
 			{
 				await Promise.all([
 					query(`
@@ -140,10 +140,10 @@ async function save(this: APIThisType, {id, rating, comment, userId, listingId, 
 			});
 
 			const [updatedListing] = await Promise.all([
-				this.query('v1/trading_post/listing', {id: listingId}),
+				this.query('v1/trading_post/listing', { id: listingId }),
 				this.query('v1/notification/create', {
 					id: listingId,
-					type: types.listingFeedback
+					type: types.listingFeedback,
 				}),
 			]);
 
@@ -167,7 +167,7 @@ async function save(this: APIThisType, {id, rating, comment, userId, listingId, 
 
 			await this.query('v1/notification/create', {
 				id: adoptionNodeId,
-				type: types.scoutFeedback
+				type: types.scoutFeedback,
 			});
 		}
 
@@ -217,16 +217,16 @@ save.apiTypes = {
 		type: APITypes.number,
 		default: 0,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	rating: string
 	comment: string
-	userId: number|null
+	userId: number | null
 	listingId: number
 	adoptionNodeId: number
 	shopNodeId: number
-}
+};
 
 export default save;

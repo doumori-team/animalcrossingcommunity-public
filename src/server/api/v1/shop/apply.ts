@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, MarkupStyleType } from '@types';
 
-async function apply(this: APIThisType, {id, roleId, text, format, gameIds}: applyProps) : Promise<SuccessType>
+async function apply(this: APIThisType, { id, roleId, text, format, gameIds }: applyProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'order-apply-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'order-apply-shops' });
 
 	if (!permissionGranted)
 	{
@@ -18,7 +18,7 @@ async function apply(this: APIThisType, {id, roleId, text, format, gameIds}: app
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	const [shop] = await db.query(`
 		SELECT id
@@ -86,7 +86,7 @@ async function apply(this: APIThisType, {id, roleId, text, format, gameIds}: app
 		throw new UserError('shop-current-employee');
 	}
 
-	const shopApplicationId = await db.transaction(async (query:any) =>
+	const shopApplicationId = await db.transaction(async (query: any) =>
 	{
 		const [shopApplication] = await query(`
 			INSERT INTO shop_application (shop_id, user_id, shop_role_id, application, application_format)
@@ -95,22 +95,23 @@ async function apply(this: APIThisType, {id, roleId, text, format, gameIds}: app
 		`, id, this.userId, roleId, text, format);
 
 		await Promise.all([
-			gameIds.map(async (gameId) => {
+			gameIds.map(async (gameId) =>
+			{
 				await query(`
 					INSERT INTO shop_application_ac_game (shop_application_id, game_id)
 					VALUES ($1, $2)
 				`, shopApplication.id, gameId);
-			})
+			}),
 		]);
 
 		return shopApplication.id;
 	});
 
-	await this.query('v1/notification/create', {id: shopApplicationId, type: constants.notification.types.shopApplication});
+	await this.query('v1/notification/create', { id: shopApplicationId, type: constants.notification.types.shopApplication });
 
 	return {
 		_success: 'Thank you for applying! You will be notified when your application has been reviewed.',
-	}
+	};
 }
 
 apply.apiTypes = {
@@ -139,7 +140,7 @@ apply.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type applyProps = {
 	id: number
@@ -147,6 +148,6 @@ type applyProps = {
 	text: string
 	format: MarkupStyleType
 	gameIds: any[]
-}
+};
 
 export default apply;

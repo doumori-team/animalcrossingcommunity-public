@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserListingsType } from '@types';
 
-async function listings(this: APIThisType, {id, page}: listingsProps) : Promise<UserListingsType>
+async function listings(this: APIThisType, { id, page }: listingsProps): Promise<UserListingsType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -13,7 +13,7 @@ async function listings(this: APIThisType, {id, page}: listingsProps) : Promise<
 	}
 
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
 	const results = await db.query(`
 		SELECT
@@ -25,8 +25,9 @@ async function listings(this: APIThisType, {id, page}: listingsProps) : Promise<
 		LIMIT $1::int OFFSET $2::int
 	`, pageSize, offset, id);
 
-	const listings = await Promise.all(results.map(async (listing:any) => {
-		return this.query('v1/trading_post/listing', {id: listing.id})
+	const listings = await Promise.all(results.map(async (listing: any) =>
+	{
+		return this.query('v1/trading_post/listing', { id: listing.id });
 	}));
 
 	return {
@@ -47,11 +48,11 @@ listings.apiTypes = {
 		required: true,
 		min: 1,
 	},
-}
+};
 
 type listingsProps = {
 	id: number
 	page: number
-}
+};
 
 export default listings;

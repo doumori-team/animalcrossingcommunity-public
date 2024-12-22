@@ -4,9 +4,9 @@ import { Await, useLoaderData } from 'react-router-dom';
 import ErrorMessage from '@/components/layout/ErrorMessage.tsx';
 import { constants } from '@utils';
 
-const Loading = ({children}: LoadingProps) =>
+const Loading = ({ children }: LoadingProps) =>
 {
-	const {data} = useLoaderData() as {data: any};
+	const { data } = useLoaderData() as { data: any };
 
 	return (
 		<Suspense
@@ -26,10 +26,10 @@ const Loading = ({children}: LoadingProps) =>
 			</Await>
 		</Suspense>
 	);
-}
+};
 
 type LoadingProps = {
 	children: React.ReactNode | string
-}
+};
 
 export default Loading;

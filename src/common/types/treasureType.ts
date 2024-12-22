@@ -1,6 +1,6 @@
 type TreasureType = {
-    id: number
-    treasureTypeId: number
+	id: number
+	treasureTypeId: number
 };
 
 export type { TreasureType };

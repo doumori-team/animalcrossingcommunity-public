@@ -15,15 +15,15 @@ const Check = ({
 	useImageFilename = false,
 	onChangeHandler,
 	label,
-	optionsMapping
+	optionsMapping,
 }: CheckProps) =>
 {
-	const showOptions = optionsMapping ? options.map((option:any) => ({
+	const showOptions = optionsMapping ? options.map((option: any) => ({
 		id: option[optionsMapping.id],
 		name: typeof optionsMapping.name === 'string' ?
 			option[optionsMapping.name] :
 			optionsMapping.name(option),
-		filename: (optionsMapping.hasOwnProperty('filename') && optionsMapping.filename != null) ?
+		filename: Object.prototype.hasOwnProperty.call(optionsMapping, 'filename') && !!optionsMapping.filename ?
 			option[optionsMapping.filename] :
 			'',
 		width: null,
@@ -32,48 +32,49 @@ const Check = ({
 
 	return (
 		<>
-		{!hideLabel && (
-			<label htmlFor={name}>{label}:</label>
-		)}
-		<div className='Check'>
-			{showOptions.map((option:any) => {
-				const key = `${name}_${option.id}`;
+			{!hideLabel &&
+				<label htmlFor={name}>{label}:</label>
+			}
+			<div className='Check'>
+				{showOptions.map((option: any) =>
+				{
+					const key = `${name}_${option.id}`;
 
-				return (
-					<React.Fragment key={key}>
-						<input
-							type={multiple ? 'checkbox' : 'radio'}
-							name={name}
-							id={key}
-							value={option.id}
-							className='Check_input'
-							defaultChecked={defaultValue.includes(option.id)}
-							required={required}
-							onClick={onChangeHandler}
-							aria-label={label}
-						/>
-						<label htmlFor={key} className='Check_option'>
-							{utils.realStringLength(imageLocation) > 0 &&
+					return (
+						<React.Fragment key={key}>
+							<input
+								type={multiple ? 'checkbox' : 'radio'}
+								name={name}
+								id={key}
+								value={option.id}
+								className='Check_input'
+								defaultChecked={defaultValue.includes(option.id)}
+								required={required}
+								onClick={onChangeHandler}
+								aria-label={label}
+							/>
+							<label htmlFor={key} className='Check_option'>
+								{utils.realStringLength(imageLocation) > 0 &&
 								<img
 									src={`${constants.AWS_URL}/images/${imageLocation}/${useImageFilename ?
 										option.filename :
-										utils.convertForUrl(option.name)+'.png'}`}
+										utils.convertForUrl(option.name) + '.png'}`}
 									width={option.width ? option.width : ''}
 									height={option.height ? option.height : ''}
 									alt={option.name ? option.name : option.filename}
 								/>
-							}
-							{!hideName && (
-								<span>{option.name}</span>
-							)}
-						</label>
-					</React.Fragment>
-				);
-			})}
+								}
+								{!hideName &&
+									<span>{option.name}</span>
+								}
+							</label>
+						</React.Fragment>
+					);
+				})}
 			</div>
 		</>
 	);
-}
+};
 
 type CheckProps = {
 	options: {

@@ -6,4 +6,4 @@ export {
 	constants,
 	utils,
 	dateUtils,
-}
+};

@@ -1,5 +1,5 @@
 type ACGameYearsType = {
-    [id: number]: number[]
+	[id: number]: number[]
 };
 
 export type { ACGameYearsType };

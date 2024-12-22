@@ -4,13 +4,13 @@ import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, RatingType } from '@types';
 
-async function rating(this: APIThisType, {id}: ratingProps) : Promise<RatingType>
+async function rating(this: APIThisType, { id }: ratingProps): Promise<RatingType>
 {
 	const [useFriendCodesPerm, useTradingPostPerm, viewRatingsPerm, viewShopsPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'use-friend-codes'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
-		this.query('v1/permission', {permission: 'view-ratings'}),
-		this.query('v1/permission', {permission: 'view-shops'}),
+		this.query('v1/permission', { permission: 'use-friend-codes' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
+		this.query('v1/permission', { permission: 'view-ratings' }),
+		this.query('v1/permission', { permission: 'view-shops' }),
 	]);
 
 	if (!(useFriendCodesPerm || useTradingPostPerm || viewRatingsPerm || viewShopsPerm))
@@ -43,7 +43,7 @@ async function rating(this: APIThisType, {id}: ratingProps) : Promise<RatingType
 
 	if (rating.adoption_node_id)
 	{
-		const permissionGranted:boolean = await this.query('v1/permission', {permission: 'scout-pages'});
+		const permissionGranted: boolean = await this.query('v1/permission', { permission: 'scout-pages' });
 
 		if (!permissionGranted && this.userId !== rating.user_id)
 		{
@@ -54,15 +54,15 @@ async function rating(this: APIThisType, {id}: ratingProps) : Promise<RatingType
 	const types = constants.notification.types;
 
 	const [user, ratingUser] = await Promise.all([
-		this.query('v1/user_lite', {id: rating.user_id}),
-		this.query('v1/user_lite', {id: rating.rating_user_id}),
+		this.query('v1/user_lite', { id: rating.user_id }),
+		this.query('v1/user_lite', { id: rating.rating_user_id }),
 		rating.listing_id ? this.query('v1/notification/destroy', {
 			id: rating.listing_id,
-			type: types.listingFeedback
+			type: types.listingFeedback,
 		}) : null,
 		rating.adoption_node_id ? this.query('v1/notification/destroy', {
 			id: rating.adoption_node_id,
-			type: types.scoutFeedback
+			type: types.scoutFeedback,
 		}) : null,
 	]);
 
@@ -84,10 +84,10 @@ rating.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type ratingProps = {
 	id: number
-}
+};
 
 export default rating;

@@ -8,7 +8,7 @@ import { APIThisType, FeatureCategoryType, FeatureStatusType, EmojiSettingType }
 
 const AddFeaturePage = () =>
 {
-	const {categories, statuses, userEmojiSettings} = useLoaderData() as AddFeaturePageProps;
+	const { categories, statuses, userEmojiSettings } = useLoaderData() as AddFeaturePageProps;
 
 	return (
 		<RequireUser permission='suggest-features'>
@@ -28,9 +28,9 @@ const AddFeaturePage = () =>
 			</div>
 		</RequireUser>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddFeaturePageProps>
+export async function loadData(this: APIThisType): Promise<AddFeaturePageProps>
 {
 	const [categories, statuses, userEmojiSettings] = await Promise.all([
 		this.query('v1/feature/categories'),
@@ -38,13 +38,13 @@ export async function loadData(this: APIThisType) : Promise<AddFeaturePageProps>
 		this.query('v1/settings/emoji'),
 	]);
 
-	return {categories, statuses, userEmojiSettings};
+	return { categories, statuses, userEmojiSettings };
 }
 
 type AddFeaturePageProps = {
 	categories: FeatureCategoryType[]
 	statuses: FeatureStatusType[]
 	userEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default AddFeaturePage;

@@ -10,7 +10,7 @@ import { APIThisType, SiteStatsType } from '@types';
 
 const SiteStatisticsPage = () =>
 {
-	const {stats, date, lineGraphStats, barGraphStats} = useLoaderData() as SiteStatisticsPageProps;
+	const { stats, date, lineGraphStats, barGraphStats } = useLoaderData() as SiteStatisticsPageProps;
 
 	return (
 		<div className='SiteStatisticsPage'>
@@ -38,7 +38,7 @@ const SiteStatisticsPage = () =>
 					{stats.map((stat, index) =>
 						<div className='SiteStatisticsPage_stat' key={index}>
 							{stat.label}: {stat.number}
-						</div>
+						</div>,
 					)}
 				</ContentBox>
 				<ContentBox>
@@ -61,7 +61,7 @@ const SiteStatisticsPage = () =>
 							<Tooltip />
 							<Legend />
 							{lineGraphStats.lines.map(name =>
-								<Line type='monotone' dataKey={name} stroke={utils.getRandomColor()} />
+								<Line type='monotone' dataKey={name} stroke={utils.getRandomColor()} key={name} />,
 							)}
 						</LineChart>
 						<h2>Stats Each Year:</h2>
@@ -76,6 +76,7 @@ const SiteStatisticsPage = () =>
 									left: 100,
 									bottom: 5,
 								}}
+								key={s.name}
 							>
 								<CartesianGrid strokeDasharray='3 3' />
 								<XAxis type='category' dataKey='year' />
@@ -83,16 +84,16 @@ const SiteStatisticsPage = () =>
 								<Tooltip />
 								<Legend />
 								<Bar dataKey={s.name} fill={utils.getRandomColor()} />
-							</BarChart>
+							</BarChart>,
 						)}
 					</RequireLargeScreen>
 				</ContentBox>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {date}: {date?: string}) : Promise<SiteStatisticsPageProps>
+export async function loadData(this: APIThisType, _: any, { date }: { date?: string }): Promise<SiteStatisticsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/analytics/stats', {
@@ -113,6 +114,6 @@ type SiteStatisticsPageProps = {
 	date: SiteStatsType['date']
 	lineGraphStats: SiteStatsType['lineGraphStats']
 	barGraphStats: SiteStatsType['barGraphStats']
-}
+};
 
 export default SiteStatisticsPage;

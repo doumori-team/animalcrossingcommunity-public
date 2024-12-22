@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ShopCatalogType, ShopType } from '@types';
 
-async function catalog(this: APIThisType, {id}: catalogProps) : Promise<ShopCatalogType[]>
+async function catalog(this: APIThisType, { id }: catalogProps): Promise<ShopCatalogType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'view-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
 
 	if (!permissionGranted)
 	{
@@ -17,9 +17,9 @@ async function catalog(this: APIThisType, {id}: catalogProps) : Promise<ShopCata
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: id});
+	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
 	{
@@ -33,12 +33,13 @@ async function catalog(this: APIThisType, {id}: catalogProps) : Promise<ShopCata
 	`, shop.id);
 
 	return await Promise.all(
-		games.map(async (game:any) => {
+		games.map(async (game: any) =>
+		{
 			return {
 				gameId: game.game_id,
-				items: await this.query('v1/acgame/catalog', {id: game.game_id, categoryName: 'all', sortBy: 'items'}),
+				items: await this.query('v1/acgame/catalog', { id: game.game_id, categoryName: 'all', sortBy: 'items' }),
 			};
-		})
+		}),
 	);
 }
 
@@ -47,10 +48,10 @@ catalog.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type catalogProps = {
 	id: number
-}
+};
 
 export default catalog;

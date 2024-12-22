@@ -5,9 +5,9 @@ import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {email, showBirthday, showAge, awayStartDate, awayEndDate,
+async function save(this: APIThisType, { email, showBirthday, showAge, awayStartDate, awayEndDate,
 	showEmail, emailNotifications, showStaff, shopDNC, southernHemisphere,
-	stayForever}: saveProps) : Promise<SuccessType>
+	stayForever }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -24,12 +24,12 @@ async function save(this: APIThisType, {email, showBirthday, showAge, awayStartD
 	try
 	{
 		await accounts.pushData(
-		{
-			user_id: account.id,
-			email: email
-		});
+			{
+				user_id: account.id,
+				email: email,
+			});
 	}
-	catch (error:any)
+	catch (error: any)
 	{
 		// Some other user is using the email address
 		if (error.name === 'AccountsError' && error.statusCode === 409)
@@ -88,7 +88,7 @@ async function save(this: APIThisType, {email, showBirthday, showAge, awayStartD
 		}
 
 		return {
-			_logout: 'Your email has been updated. You will now be logged out.'
+			_logout: 'Your email has been updated. You will now be logged out.',
 		};
 	}
 
@@ -98,7 +98,7 @@ async function save(this: APIThisType, {email, showBirthday, showAge, awayStartD
 	};
 }
 
-function getEmailText(username:string, newEmail:string, oldEmail:string) : string
+function getEmailText(username: string, newEmail: string, oldEmail: string): string
 {
 	const vbnewline = '<br/>';
 
@@ -109,7 +109,7 @@ function getEmailText(username:string, newEmail:string, oldEmail:string) : strin
 
 	email += `${vbnewline}${vbnewline}ACC Staff`;
 
-	return '<span style="font-family: Verdana; font-size: 11px;">'+origSendTo+email+'</span>';
+	return '<span style="font-family: Verdana; font-size: 11px;">' + origSendTo + email + '</span>';
 }
 
 save.apiTypes = {
@@ -159,20 +159,20 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-}
+};
 
 type saveProps = {
 	email: string
 	showBirthday: boolean
 	showAge: boolean
-	awayStartDate: string|null
-	awayEndDate: string|null
+	awayStartDate: string | null
+	awayEndDate: string | null
 	showEmail: boolean
 	emailNotifications: boolean
 	showStaff: boolean
 	shopDNC: boolean
 	southernHemisphere: boolean
 	stayForever: boolean
-}
+};
 
 export default save;

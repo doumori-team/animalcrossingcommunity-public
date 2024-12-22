@@ -7,7 +7,7 @@ const Map = ({
 	game,
 	mapTiles,
 	selectedAcreId,
-	onClickHandler
+	onClickHandler,
 }: MapProps) =>
 {
 	const gameMapTiles = utils.getMapTiles(game.id);
@@ -32,8 +32,9 @@ const Map = ({
 			const img = <img
 				key={key}
 				src={mapDir + gameMapTile.img_name}
-				className={selectedAcreId === key ? 'selected': ''}
-				onClick={onClickHandler != null ? () => onClickHandler(key, gameMapTile) : () => {}}
+				className={selectedAcreId === key ? 'selected' : ''}
+				onClick={onClickHandler ? () => onClickHandler(key, gameMapTile) : () =>
+				{}}
 				alt='Map Tile'
 			/>;
 
@@ -44,7 +45,7 @@ const Map = ({
 	}
 
 	return <div className='Map'>{rows}</div>;
-}
+};
 
 type MapProps = {
 	game: TownType['game']

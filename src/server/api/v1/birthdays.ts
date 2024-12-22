@@ -5,7 +5,7 @@ import { APIThisType, BirthdaysType } from '@types';
 /*
  * Get all users that have today as a birthday.
  */
-export default async function birthdays(this: APIThisType) : Promise<BirthdaysType[]>
+export default async function birthdays(this: APIThisType): Promise<BirthdaysType[]>
 {
 	try
 	{

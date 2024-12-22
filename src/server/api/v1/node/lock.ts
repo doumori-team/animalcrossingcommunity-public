@@ -6,7 +6,7 @@ import { APIThisType } from '@types';
 /*
  * Mass lock PTs.
  */
-async function lock(this: APIThisType, {nodeIds}: lockProps) : Promise<void>
+async function lock(this: APIThisType, { nodeIds }: lockProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -31,7 +31,7 @@ async function lock(this: APIThisType, {nodeIds}: lockProps) : Promise<void>
 			throw new UserError('bad-format');
 		}
 
-		const permission:boolean = await this.query('v1/node/permission', {permission: 'lock', nodeId: id});
+		const permission: boolean = await this.query('v1/node/permission', { permission: 'lock', nodeId: id });
 
 		if (!permission)
 		{
@@ -60,10 +60,10 @@ lock.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type lockProps = {
 	nodeIds: any[]
-}
+};
 
 export default lock;

@@ -7,9 +7,9 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Apply for or nominate someone for staff position.
  */
-async function apply(this: APIThisType, {groupId, text, format, username}: applyProps) : Promise<SuccessType>
+async function apply(this: APIThisType, { groupId, text, format, username }: applyProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'apply-nominate-staff'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'apply-nominate-staff' });
 
 	if (!permissionGranted)
 	{
@@ -65,24 +65,21 @@ async function apply(this: APIThisType, {groupId, text, format, username}: apply
 		case staffIdentifiers.mod:
 			title = `Moderator Nomination - ${username}`;
 			break;
-
 		case staffIdentifiers.researcher:
 			title = 'Researcher Application';
 			break;
-
 		case staffIdentifiers.dev:
 			title = 'Developer Application';
 			break;
-
 		case staffIdentifiers.scout:
 			title = `Scout Nomination - ${username}`;
 			break;
 	}
 
-	await this.query('v1/node/create', {parentId: constants.boardIds.userSubmissions, title: title, text: text, format: format});
+	await this.query('v1/node/create', { parentId: constants.boardIds.userSubmissions, title: title, text: text, format: format });
 
 	return {
-		_success: `Your nomination / application has been submitted.`
+		_success: `Your nomination / application has been submitted.`,
 	};
 }
 
@@ -96,13 +93,13 @@ apply.apiTypes = {
 		type: APITypes.string,
 		default: '',
 	},
-}
+};
 
 type applyProps = {
 	groupId: number
 	username: string
 	text: any
 	format: any
-}
+};
 
 export default apply;

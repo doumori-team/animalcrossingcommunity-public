@@ -8,9 +8,9 @@ import { APIThisType, ListingType } from '@types';
 /*
  * Gives information needed to initiate real-world trade (address).
  */
-async function address(this: APIThisType, {id, address}: addressProps) : Promise<void>
+async function address(this: APIThisType, { id, address }: addressProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -22,7 +22,7 @@ async function address(this: APIThisType, {id, address}: addressProps) : Promise
 		throw new UserError('login-needed');
 	}
 
-	const listing:ListingType = await this.query('v1/trading_post/listing', {id: id});
+	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
@@ -35,13 +35,13 @@ async function address(this: APIThisType, {id, address}: addressProps) : Promise
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await accounts.updateAddress(
-		{
-			user_id: Number(this.userId),
-			address: address
-		});
+			{
+				user_id: Number(this.userId),
+				address: address,
+			});
 
 		const otherAddress = (await accounts.getUserData(this.userId === listing.creator.id ?
 			listing.offers.accepted?.user.id : listing.creator.id)).address;
@@ -64,7 +64,7 @@ async function address(this: APIThisType, {id, address}: addressProps) : Promise
 			`, id),
 			this.query('v1/notification/create', {
 				id: id,
-				type: constants.notification.types.listingContact
+				type: constants.notification.types.listingContact,
 			}),
 		]);
 	});
@@ -82,11 +82,11 @@ address.apiTypes = {
 		length: constants.max.address,
 		profanity: true,
 	},
-}
+};
 
 type addressProps = {
 	id: number
 	address: string
-}
+};
 
 export default address;

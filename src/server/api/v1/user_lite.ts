@@ -15,11 +15,11 @@ import { APIThisType, UserLiteType } from '@types';
  *
  * Returns user or throws an error 'no-such-user'.
  */
-async function user_lite(this: APIThisType, {id, username}: userLiteProps) : Promise<UserLiteType>
+async function user_lite(this: APIThisType, { id, username }: userLiteProps): Promise<UserLiteType>
 {
 	if (id == null || isNaN(id))
 	{
-		if (typeof(username) === 'undefined')
+		if (typeof username === 'undefined')
 		{
 			id = this.userId;
 		}
@@ -34,18 +34,18 @@ async function user_lite(this: APIThisType, {id, username}: userLiteProps) : Pro
 	return <UserLiteType>{
 		id: data.id,
 		username: data.username,
-	}
+	};
 }
 
 user_lite.apiTypes = {
 	id: {
 		type: APITypes.number,
 	},
-}
+};
 
 type userLiteProps = {
-	id?: number|null
+	id?: number | null
 	username?: string
-}
+};
 
 export default user_lite;

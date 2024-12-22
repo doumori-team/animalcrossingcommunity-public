@@ -1,11 +1,11 @@
 import * as db from '@db';
 import { dateUtils } from '@utils';
-import { APIThisType, UserLiteType, NotificationType, LatestNotificationType } from '@types';
+import { APIThisType, NotificationType, LatestNotificationType } from '@types';
 
 /*
  * Get count of current notifications, latest notification
  */
-export default async function latest(this: APIThisType) : Promise<LatestNotificationType>
+export default async function latest(this: APIThisType): Promise<LatestNotificationType>
 {
 	if (!this.userId)
 	{
@@ -15,11 +15,9 @@ export default async function latest(this: APIThisType) : Promise<LatestNotifica
 		};
 	}
 
-	let user:UserLiteType;
-
 	try
 	{
-		user = await this.query('v1/user_lite', {id: this.userId});
+		await this.query('v1/user_lite', { id: this.userId });
 	}
 	catch
 	{
@@ -30,10 +28,11 @@ export default async function latest(this: APIThisType) : Promise<LatestNotifica
 	}
 
 	// Perform queries
-	let notification:NotificationType|null = null, totalCount = 0, permNotification = {};
+	let notification: NotificationType | null = null, totalCount = 0, permNotification = {};
 
 	// v1/notification does perm check, so if it comes back null, try again
-	do {
+	do
+	{
 		permNotification = {};
 
 		const [[userCount], [userNotification], [globalCount], [globalNotification]] = await Promise.all([
@@ -71,15 +70,15 @@ export default async function latest(this: APIThisType) : Promise<LatestNotifica
 
 		// if global notification created after user notification
 		if (globalNotification && (
-			(userNotification && dateUtils.isAfterTimezone(globalNotification.created, dateUtils.dateToTimezone(userNotification.created))) ||
-			(!userNotification))
+			userNotification && dateUtils.isAfterTimezone(globalNotification.created, dateUtils.dateToTimezone(userNotification.created)) ||
+			!userNotification)
 		)
 		{
-			notification = permNotification = await this.query('v1/global_notification', {id: globalNotification.id});
+			notification = permNotification = await this.query('v1/global_notification', { id: globalNotification.id });
 		}
 		else if (userNotification)
 		{
-			notification = permNotification = await this.query('v1/notification', {id: userNotification.id});
+			notification = permNotification = await this.query('v1/notification', { id: userNotification.id });
 		}
 	} while (totalCount > 0 && permNotification === null);
 

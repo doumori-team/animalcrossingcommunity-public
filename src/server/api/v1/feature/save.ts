@@ -4,10 +4,10 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {id, title, description, statusId, categoryId, isBug,
-	isExploit, staffOnly, readOnly, assignedUsers, staffDescription, format, staffDescriptionFormat}: saveProps) : Promise<SuccessType|{id: number|string}>
+async function save(this: APIThisType, { id, title, description, statusId, categoryId, isBug,
+	isExploit, staffOnly, readOnly, assignedUsers, staffDescription, format, staffDescriptionFormat }: saveProps): Promise<SuccessType | { id: number | string }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'suggest-features'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'suggest-features' });
 
 	if (!permissionGranted)
 	{
@@ -21,9 +21,9 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 
 	// Check parameters
 	const [user, managePermission, claimPermission, status, category] = await Promise.all([
-		this.query('v1/user', {id: this.userId}),
-		this.query('v1/permission', {permission: 'manage-features'}),
-		this.query('v1/permission', {permission: 'claim-features'}),
+		this.query('v1/user', { id: this.userId }),
+		this.query('v1/permission', { permission: 'manage-features' }),
+		this.query('v1/permission', { permission: 'claim-features' }),
 		utils.realStringLength(statusId) > 0 ? db.query(`
 			SELECT
 				feature_status.id
@@ -62,7 +62,7 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 				throw new UserError('bad-format');
 			}
 
-			assignedUsers = assignedUsers.split(',').map((username:any) => username.trim());
+			assignedUsers = assignedUsers.split(',').map((username: any) => username.trim());
 		}
 		else
 		{
@@ -70,7 +70,7 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 		}
 	}
 
-	const assignedUserIds = await Promise.all(assignedUsers.map(async (username:any) =>
+	const assignedUserIds = await Promise.all(assignedUsers.map(async (username: any) =>
 	{
 		const [check] = await db.query(`
 			SELECT id
@@ -125,7 +125,7 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 
 		await this.query('v1/notification/create', {
 			id: id,
-			type: constants.notification.types.followFeature
+			type: constants.notification.types.followFeature,
 		});
 	}
 	else
@@ -158,7 +158,7 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 			constants.staffIdentifiers.researcher,
 			constants.staffIdentifiers.devTL,
 			constants.staffIdentifiers.dev,
-			constants.staffIdentifiers.scout
+			constants.staffIdentifiers.scout,
 		].includes(user.group.identifier) && !managePermission)
 		{
 			staffOnly = true;
@@ -185,7 +185,7 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 
 		await this.query('v1/notification/create', {
 			id: id,
-			type: constants.notification.types.feature
+			type: constants.notification.types.feature,
 		});
 	}
 
@@ -205,14 +205,14 @@ async function save(this: APIThisType, {id, title, description, statusId, catego
 	if (successMessage)
 	{
 		return {
-			id: Number(id||0),
+			id: Number(id || 0),
 			_success: 'This feature / bug has been submitted. Thank you for letting us know!',
 			_useCallback: true,
 		};
 	}
 
 	return {
-		id: Number(id||0),
+		id: Number(id || 0),
 	};
 }
 
@@ -280,22 +280,22 @@ save.apiTypes = {
 		default: '',
 		includes: constants.formatOptions,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	title: string
 	description: string
 	format: string
 	statusId: string
-	categoryId: number|null
+	categoryId: number | null
 	isBug: boolean
 	isExploit: boolean
 	staffOnly: boolean
 	readOnly: boolean
 	assignedUsers: any
-	staffDescription: string|null
-	staffDescriptionFormat: string|null
-}
+	staffDescription: string | null
+	staffDescriptionFormat: string | null
+};
 
 export default save;

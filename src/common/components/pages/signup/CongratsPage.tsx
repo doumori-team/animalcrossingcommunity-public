@@ -19,6 +19,6 @@ const CongratsPage = () =>
 			</RequireGroup>
 		</div>
 	);
-}
+};
 
 export default CongratsPage;

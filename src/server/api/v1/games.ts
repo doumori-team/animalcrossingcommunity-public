@@ -3,11 +3,11 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, GamesType } from '@types';
 
-export default async function games(this: APIThisType) : Promise<GamesType[]>
+export default async function games(this: APIThisType): Promise<GamesType[]>
 {
 	const [useFriendCodesPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'use-friend-codes'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'use-friend-codes' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(useFriendCodesPerm || useTradingPostPerm))
@@ -30,14 +30,15 @@ export default async function games(this: APIThisType) : Promise<GamesType[]>
 		ORDER BY game_console.is_legacy NULLS FIRST, game_console.sequence, game.sequence, game.name
 	`);
 
-	return Promise.all(games.map((game:any) => {
+	return Promise.all(games.map((game: any) =>
+	{
 		return {
 			id: game.id,
 			name: game.name,
 			pattern: game.pattern,
 			placeholder: game.placeholder,
 			consoleName: game.console_name,
-			acGameId: game.acgame_id
+			acGameId: game.acgame_id,
 		};
 	}));
 }

@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, ShopType } from '@types';
 
-async function save(this: APIThisType, {id, shopId, name, description, games}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { id, shopId, name, description, games }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -18,9 +18,9 @@ async function save(this: APIThisType, {id, shopId, name, description, games}: s
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: shopId});
+	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
 	{
@@ -64,7 +64,7 @@ async function save(this: APIThisType, {id, shopId, name, description, games}: s
 		throw new UserError('shop-max-services');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		if (id != null && id > 0)
 		{
@@ -103,7 +103,8 @@ async function save(this: APIThisType, {id, shopId, name, description, games}: s
 		}
 
 		await Promise.all([
-			games.map(async (gameId) => {
+			games.map(async (gameId) =>
+			{
 				await query(`
 					INSERT INTO shop_service_ac_game (shop_service_id, game_id)
 					VALUES ($1, $2)
@@ -124,7 +125,7 @@ async function save(this: APIThisType, {id, shopId, name, description, games}: s
 
 	return {
 		_success: `Your service has been added / updated!`,
-	}
+	};
 }
 
 save.apiTypes = {
@@ -153,14 +154,14 @@ save.apiTypes = {
 	games: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	shopId: number
 	name: string
 	description: string
 	games: any[]
-}
+};
 
 export default save;

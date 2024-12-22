@@ -8,7 +8,7 @@ import { APIThisType, GameConsoleType } from '@types';
 
 const EditAdminGameConsolePage = () =>
 {
-	const {gameConsole, gameConsoles} = useLoaderData() as EditAdminGameConsolePageProps;
+	const { gameConsole, gameConsoles } = useLoaderData() as EditAdminGameConsolePageProps;
 
 	return (
 		<div className='EditAdminGameConsolePage'>
@@ -25,21 +25,21 @@ const EditAdminGameConsolePage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<EditAdminGameConsolePageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditAdminGameConsolePageProps>
 {
 	const [gameConsole, gameConsoles] = await Promise.all([
-		this.query('v1/admin/game_console/game_console', {id}),
-		this.query('v1/admin/game_consoles')
+		this.query('v1/admin/game_console/game_console', { id }),
+		this.query('v1/admin/game_consoles'),
 	]);
 
-	return {gameConsole, gameConsoles};
+	return { gameConsole, gameConsoles };
 }
 
 type EditAdminGameConsolePageProps = {
 	gameConsole: GameConsoleType
 	gameConsoles: GameConsoleType[]
-}
+};
 
 export default EditAdminGameConsolePage;

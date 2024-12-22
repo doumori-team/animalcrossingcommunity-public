@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, RuleType } from '@types';
 
-async function rule(this: APIThisType, {id}: ruleProps) : Promise<RuleType>
+async function rule(this: APIThisType, { id }: ruleProps): Promise<RuleType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -44,10 +44,10 @@ rule.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type ruleProps = {
 	id: number
-}
+};
 
 export default rule;

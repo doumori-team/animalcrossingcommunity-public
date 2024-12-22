@@ -4,7 +4,7 @@ import { dateUtils, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, NotificationType } from '@types';
 
-async function global_notification(this: APIThisType, {id}: globalNotificationProps) : Promise<NotificationType>
+async function global_notification(this: APIThisType, { id }: globalNotificationProps): Promise<NotificationType>
 {
 	if (!this.userId)
 	{
@@ -27,7 +27,7 @@ async function global_notification(this: APIThisType, {id}: globalNotificationPr
 
 	if (notification)
 	{
-		let notified:string = notification.notified;
+		let notified: string = notification.notified;
 
 		if (notified === null)
 		{
@@ -58,10 +58,10 @@ global_notification.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type globalNotificationProps = {
 	id: number
-}
+};
 
 export default global_notification;

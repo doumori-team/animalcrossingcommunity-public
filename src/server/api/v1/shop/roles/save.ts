@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, ShopType } from '@types';
 
-async function save(this: APIThisType, {shopId, user, action, roles}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { shopId, user, action, roles }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-shops'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
 
 	if (!permissionGranted)
 	{
@@ -18,9 +18,9 @@ async function save(this: APIThisType, {shopId, user, action, roles}: saveProps)
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const shop:ShopType = await this.query('v1/shop', {id: shopId});
+	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
 	{
@@ -84,7 +84,7 @@ async function save(this: APIThisType, {shopId, user, action, roles}: saveProps)
 			SELECT shop_role.id
 			FROM shop_role
 			WHERE shop_id = $1 AND active = true AND parent_id IS NULL
-		`, shopId)).map((role:any) => role.id);
+		`, shopId)).map((role: any) => role.id);
 
 		if (!roles.some(roleId => ownerRoleIds.includes(roleId)))
 		{
@@ -92,7 +92,7 @@ async function save(this: APIThisType, {shopId, user, action, roles}: saveProps)
 		}
 	}
 
-	const shopUserId = await db.transaction(async (query:any) =>
+	const shopUserId = await db.transaction(async (query: any) =>
 	{
 		let [shopUser] = await db.query(`
 			SELECT id, active
@@ -144,23 +144,24 @@ async function save(this: APIThisType, {shopId, user, action, roles}: saveProps)
 		if (roles.length > 0)
 		{
 			await Promise.all([
-				roles.map(async (roleId) => {
+				roles.map(async (roleId) =>
+				{
 					await query(`
 						INSERT INTO shop_user_role (shop_role_id, shop_user_id)
 						VALUES ($1, $2)
 					`, roleId, shopUser.id);
-				})
+				}),
 			]);
 		}
 
 		return shopUser.id;
 	});
 
-	await this.query('v1/notification/create', {id: shopUserId, type: constants.notification.types.shopEmployee});
+	await this.query('v1/notification/create', { id: shopUserId, type: constants.notification.types.shopEmployee });
 
 	return {
 		_success: `The shop's employees have been updated!`,
-	}
+	};
 }
 
 save.apiTypes = {
@@ -182,13 +183,13 @@ save.apiTypes = {
 	roles: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	shopId: number
 	user: string
 	action: 'add' | 'remove'
 	roles: any[]
-}
+};
 
 export default save;

@@ -8,9 +8,9 @@ import { APIThisType, PermissionType, UserLiteType } from '@types';
  *
  * NOTE: Most retain return structure to match v1/admin/user_group/permissions.
  */
-async function permissions(this: APIThisType, {id}: permissionsProps) : Promise<PermissionType|null>
+async function permissions(this: APIThisType, { id }: permissionsProps): Promise<PermissionType | null>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'permission-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function permissions(this: APIThisType, {id}: permissionsProps) : Promise<
 	}
 
 	// Confirm params
-	const user:UserLiteType = await this.query('v1/user_lite', {id: id});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: id });
 
 	// Perform queries
 	const groupIds = await db.getUserGroups(user.id);
@@ -156,10 +156,10 @@ permissions.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type permissionsProps = {
 	id: number
-}
+};
 
 export default permissions;

@@ -2,9 +2,9 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, DenyReasonType } from '@types';
 
-export default async function actions(this: APIThisType) : Promise<DenyReasonType[]>
+export default async function actions(this: APIThisType): Promise<DenyReasonType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{

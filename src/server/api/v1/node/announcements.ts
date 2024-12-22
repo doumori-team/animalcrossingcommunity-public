@@ -2,9 +2,9 @@ import * as db from '@db';
 import { constants, dateUtils } from '@utils';
 import { APIThisType, AnnouncementsType } from '@types';
 
-export default async function announcements(this: APIThisType) : Promise<AnnouncementsType[]>
+export default async function announcements(this: APIThisType): Promise<AnnouncementsType[]>
 {
-	const permission:boolean = await this.query('v1/node/permission', {permission: 'read', nodeId: constants.boardIds.announcements});
+	const permission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: constants.boardIds.announcements });
 
 	if (!permission)
 	{
@@ -29,7 +29,7 @@ export default async function announcements(this: APIThisType) : Promise<Announc
 		LIMIT 5
 	`, constants.boardIds.announcements);
 
-	return await Promise.all(threads.map(async (thread:any) =>
+	return await Promise.all(threads.map(async (thread: any) =>
 	{
 		const [post] = await db.cacheQuery(constants.cacheKeys.announcements, `
 			SELECT
@@ -66,7 +66,8 @@ export default async function announcements(this: APIThisType) : Promise<Announc
 				format: post.content_format,
 			},
 			created: dateUtils.formatDateTime(thread.creation_time),
-			files: nodeFiles ? nodeFiles.map((file:any) => {
+			files: nodeFiles ? nodeFiles.map((file: any) =>
+			{
 				return {
 					id: file.id,
 					fileId: file.file_id,
@@ -74,7 +75,7 @@ export default async function announcements(this: APIThisType) : Promise<Announc
 					width: file.width,
 					height: file.height,
 					caption: file.caption,
-				}
+				};
 			}) : [],
 		};
 	}));

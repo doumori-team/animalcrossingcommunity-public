@@ -30,8 +30,8 @@ import { APIThisType, UserType, UserDonationsType, NodeLiteType, MarkupStyleType
  * Returns an object with the following keys:
  * 	id - number - ID of the newly created node.
  */
-async function create(this: APIThisType, {parentId, title, text, format, lock, addUsers, removeUsers,
-	type, boardId, fileIds, fileNames, fileWidths, fileHeights, fileCaptions}: createProps) : Promise<{id: number}>
+async function create(this: APIThisType, { parentId, title, text, format, lock, addUsers, removeUsers,
+	type, boardId, fileIds, fileNames, fileWidths, fileHeights, fileCaptions }: createProps): Promise<{ id: number }>
 {
 	if (!Array.isArray(addUsers))
 	{
@@ -67,7 +67,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		}
 	}
 
-	let addUserIds:number[] = [], removeUserIds:number[] = [];
+	let addUserIds: number[] = [], removeUserIds: number[] = [];
 
 	await Promise.all(addUsers.map(async (username) =>
 	{
@@ -142,7 +142,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		throw new UserError('login-needed');
 	}
 
-	const postUser:UserType = await this.query('v1/user', {id: this.userId});
+	const postUser: UserType = await this.query('v1/user', { id: this.userId });
 
 	// Check the thing we're replying to actually exists
 	let parentDetails;
@@ -184,25 +184,25 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		SELECT id
 		FROM node
 		WHERE type = 'board' AND board_type = 'staff'
-	`)).map((x:any) => x.id);
+	`)).map((x: any) => x.id);
 
 	if (parentDetails.id === constants.boardIds.userSubmissions || ![parentDetails.id, parentDetails.parent_node_id].some(pid => staffBoards.includes(pid)))
 	{
-		await this.query('v1/profanity/check', {text: title});
-		await this.query('v1/profanity/check', {text: text});
+		await this.query('v1/profanity/check', { text: title });
+		await this.query('v1/profanity/check', { text: text });
 	}
 
 	// disallow nested replies
 	// as long as not editing post
 	const [editPermGranted1, editPermGranted2, editPermGranted3, editPermGranted4] = await Promise.all([
-		this.query('v1/node/permission', {permission: 'edit', nodeId: parentId}),
-		this.query('v1/node/permission', {permission: 'read', nodeId: parentId}),
-		parentDetails.type === 'post' ? this.query('v1/node/permission', {permission: 'edit', nodeId: parentDetails.parent_node_id}) : false,
-		parentDetails.type === 'post' ? this.query('v1/node/permission', {permission: 'read', nodeId: parentDetails.parent_node_id}) : false,
-	])
+		this.query('v1/node/permission', { permission: 'edit', nodeId: parentId }),
+		this.query('v1/node/permission', { permission: 'read', nodeId: parentId }),
+		parentDetails.type === 'post' ? this.query('v1/node/permission', { permission: 'edit', nodeId: parentDetails.parent_node_id }) : false,
+		parentDetails.type === 'post' ? this.query('v1/node/permission', { permission: 'read', nodeId: parentDetails.parent_node_id }) : false,
+	]);
 
-	const editPermGranted:boolean = editPermGranted1 && editPermGranted2;
-	const editPermGrantedParent:boolean = editPermGranted3 && editPermGranted4;
+	const editPermGranted: boolean = editPermGranted1 && editPermGranted2;
+	const editPermGrantedParent: boolean = editPermGranted3 && editPermGranted4;
 
 	if (parentDetails.type === 'post' && !editPermGranted)
 	{
@@ -214,7 +214,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		throw new UserError('bad-format');
 	}
 
-	const movePermGranted:boolean = boardId ? await this.query('v1/node/permission', {permission: 'move', nodeId: parentId}) : false;
+	const movePermGranted: boolean = boardId ? await this.query('v1/node/permission', { permission: 'move', nodeId: parentId }) : false;
 
 	if (boardId && (parentDetails.type !== 'thread' || !movePermGranted))
 	{
@@ -244,7 +244,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 	// Save up any errors we find to display to the user all at once
 	let errors = [];
 
-	const userDonations:UserDonationsType = await this.query('v1/users/donations', {id: this.userId});
+	const userDonations: UserDonationsType = await this.query('v1/users/donations', { id: this.userId });
 
 	if (
 		![parentDetails.id, parentDetails.parent_node_id].some(pid => staffBoards.includes(pid)) &&
@@ -291,14 +291,15 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 			if (adoption?.scout_id === this.userId)
 			{
 				const [scout, adoptee, scoutSettings] = await Promise.all([
-					this.query('v1/user_lite', {id: adoption.scout_id}),
-					this.query('v1/user_lite', {id: adoption.adoptee_id}),
-					this.query('v1/scout_hub/settings', {id: adoption.scout_id}),
+					this.query('v1/user_lite', { id: adoption.scout_id }),
+					this.query('v1/user_lite', { id: adoption.adoptee_id }),
+					this.query('v1/scout_hub/settings', { id: adoption.scout_id }),
 				]);
 
 				let closingTemplate = scoutSettings.closingTemplate ? scoutSettings.closingTemplate : constants.scoutHub.defaultClosingTemplate;
 
-				utils.getScoutTemplateConfig(scout, adoptee).map(config => {
+				utils.getScoutTemplateConfig(scout, adoptee).map(config =>
+				{
 					closingTemplate = closingTemplate.replaceAll(config.character, config.replace);
 				});
 
@@ -314,20 +315,20 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 	}
 
 	// if you have a title for posting on a thread you can't edit
-	if (newNodeType === 'post' && ((parentDetails.type === 'post' && !editPermGrantedParent) || (parentDetails.type !== 'post' && !editPermGranted)) && title != null && parentDetails.parent_node_id != constants.boardIds.userSubmissions)
+	if (newNodeType === 'post' && (parentDetails.type === 'post' && !editPermGrantedParent || parentDetails.type !== 'post' && !editPermGranted) && title != null && parentDetails.parent_node_id != constants.boardIds.userSubmissions)
 	{
 		errors.push('bad-format');
 	}
 
 	// Remove excess whitespace from the title and post content
 	// Everything should have titles (except when posting on another user's thread)
-	if (((editPermGranted && parentDetails.type !== 'post') || newNodeType === 'thread') && utils.realStringLength(title) === 0)
+	if ((editPermGranted && parentDetails.type !== 'post' || newNodeType === 'thread') && utils.realStringLength(title) === 0)
 	{
 		errors.push('missing-title');
 	}
 
 	// Check the user has permission to reply to the parent node
-	const permission:boolean = await this.query('v1/node/permission', {permission: 'reply', nodeId: parentId});
+	const permission: boolean = await this.query('v1/node/permission', { permission: 'reply', nodeId: parentId });
 	if (!permission)
 	{
 		errors.push('permission');
@@ -337,7 +338,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 	if (lock)
 	{
-		const permGranted:boolean = await this.query('v1/node/permission', {permission: 'lock', nodeId: parentId});
+		const permGranted: boolean = await this.query('v1/node/permission', { permission: 'lock', nodeId: parentId });
 
 		if (!permGranted)
 		{
@@ -375,7 +376,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 					WHERE type = $2 and user_id = $1::int AND creation_time > now() - interval '1' day
 				`, this.userId, newNodeType);
 
-				if ((newNodeType === 'thread' && typeCount.count >= 10) || (newNodeType === 'post' && typeCount.count >= 25))
+				if (newNodeType === 'thread' && typeCount.count >= 10 || newNodeType === 'post' && typeCount.count >= 25)
 				{
 					errors.push('new-member-restrictions');
 				}
@@ -391,7 +392,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 			if (lastNode)
 			{
-				if ((newNodeType === 'post' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(1, 'minutes'))) || (newNodeType === 'thread' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(5, 'minutes'))))
+				if (newNodeType === 'post' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(1, 'minutes')) || newNodeType === 'thread' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(5, 'minutes')))
 				{
 					errors.push('new-member-restrictions');
 				}
@@ -399,8 +400,8 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		}
 	}
 
-	const stickyPermGranted:boolean = await this.query('v1/node/permission', {permission: 'sticky', nodeId: parentId});
-	const adminLockPermGranted:boolean = await this.query('v1/node/permission', {permission: 'admin-lock', nodeId: parentId});
+	const stickyPermGranted: boolean = await this.query('v1/node/permission', { permission: 'sticky', nodeId: parentId });
+	const adminLockPermGranted: boolean = await this.query('v1/node/permission', { permission: 'admin-lock', nodeId: parentId });
 
 	if (type === 'sticky')
 	{
@@ -417,8 +418,8 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		}
 	}
 
-	const addUsersPermGranted:boolean = await this.query('v1/node/permission', {permission: 'add-users', nodeId: parentId});
-	const removeUsersPermGranted:boolean = await this.query('v1/node/permission', {permission: 'remove-users', nodeId: parentId});
+	const addUsersPermGranted: boolean = await this.query('v1/node/permission', { permission: 'add-users', nodeId: parentId });
+	const removeUsersPermGranted: boolean = await this.query('v1/node/permission', { permission: 'remove-users', nodeId: parentId });
 
 	if (addUsers.length > 0 && !addUsersPermGranted)
 	{
@@ -444,7 +445,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		}
 	}
 
-	if (fileIds.length != fileNames.length || fileIds.length != fileWidths.length || fileIds.length != fileHeights.length || fileIds.length != fileCaptions.length)
+	if (fileIds.length !== fileNames.length || fileIds.length !== fileWidths.length || fileIds.length !== fileHeights.length || fileIds.length !== fileCaptions.length)
 	{
 		errors.push('bad-format');
 	}
@@ -492,17 +493,17 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 	// Run the query
 	const types = constants.notification.types;
 
-	const newId = await db.transaction(async (query:any) =>
+	const newId = await db.transaction(async (query: any) =>
 	{
-		if (newNodeType === 'post' && ((parentDetails.type === 'post' && editPermGrantedParent) || (parentDetails.type !== 'post' && editPermGranted)))
+		if (newNodeType === 'post' && (parentDetails.type === 'post' && editPermGrantedParent || parentDetails.type !== 'post' && editPermGranted))
 		{
-			if (title != null && ((parentDetails.type !== 'post' && parentDetails.title != title) ||
-				(parentDetails.type === 'post' && parentDetails.parent_title != title)))
+			if (title != null && (parentDetails.type !== 'post' && parentDetails.title != title ||
+				parentDetails.type === 'post' && parentDetails.parent_title != title))
 			{
 				await query(`
 					INSERT INTO node_revision (node_id, reviser_id, title)
 					VALUES ($1::int, $2::int, $3::text)
-				`, (parentDetails.type !== 'post' ? parentId : parentDetails.parent_node_id), this.userId, title);
+				`, parentDetails.type !== 'post' ? parentId : parentDetails.parent_node_id, this.userId, title);
 			}
 
 			title = null;
@@ -533,7 +534,8 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 		if (newNodeType === 'post' && fileIds.length > 0)
 		{
-			await Promise.all(fileIds.map(async (id, index) => {
+			await Promise.all(fileIds.map(async (id, index) =>
+			{
 				const [file] = await query(`
 					INSERT INTO file (file_id, name, width, height, caption, sequence)
 					VALUES ($1, $2, $3, $4, $5, $6)
@@ -557,11 +559,11 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 	if (addUserIds.length > 0 || removeUserIds.length > 0)
 	{
-		let threadDetails:NodeLiteType|null = null;
+		let threadDetails: NodeLiteType | null = null;
 
 		if (newNodeType === 'post')
 		{
-			threadDetails = await this.query('v1/node/lite', {id: parentDetails.parent_node_id});
+			threadDetails = await this.query('v1/node/lite', { id: parentDetails.parent_node_id });
 		}
 
 		let userNodeId = parentDetails?.id;
@@ -582,7 +584,8 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 		await Promise.all([
 			Promise.all([
-				addUserIds.map(async (userId) => {
+				addUserIds.map(async (userId) =>
+				{
 					await db.query(`
 						INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
 						VALUES ($1::int, $2::int, $3::int, true)
@@ -594,15 +597,16 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 						VALUES ($1::int, $2::int, $3::int, true)
 						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 					`, userId, userNodeId, constants.nodePermissions.reply);
-				})
+				}),
 			]),
 			Promise.all([
-				removeUserIds.map(async (userId) => {
+				removeUserIds.map(async (userId) =>
+				{
 					await db.query(`
 						DELETE FROM user_node_permission
 						WHERE user_id = $1 AND node_id = $2
 					`, userId, userNodeId);
-				})
+				}),
 			]),
 		]);
 	}
@@ -617,14 +621,14 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 	{
 		// If making a thread: retrieve the text that we saved earlier and insert
 		// it into a new post in the thread
-		await this.query('v1/node/create', {parentId: newId, title: title, text: innerText, format: innerFormat, fileIds: fileIds, fileNames: fileNames, fileWidths: fileWidths, fileHeights: fileHeights, fileCaptions: fileCaptions});
+		await this.query('v1/node/create', { parentId: newId, title: title, text: innerText, format: innerFormat, fileIds: fileIds, fileNames: fileNames, fileWidths: fileWidths, fileHeights: fileHeights, fileCaptions: fileCaptions });
 
 		// follow thread if possible
 		if (['create'].includes(user.flag_option))
 		{
 			try
 			{
-				await this.query('v1/node/follow', {id: newId});
+				await this.query('v1/node/follow', { id: newId });
 			}
 			catch (error)
 			{
@@ -634,13 +638,13 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 		if (parentId === constants.boardIds.announcements)
 		{
-			this.query('v1/notification/create', {id: newId, type: types.announcement});
+			this.query('v1/notification/create', { id: newId, type: types.announcement });
 
 			ACCCache.deleteMatch(constants.cacheKeys.announcements);
 		}
 		else
 		{
-			this.query('v1/notification/create', {id: newId, type: types.FB});
+			this.query('v1/notification/create', { id: newId, type: types.FB });
 		}
 	}
 	else
@@ -659,7 +663,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 			{
 				try
 				{
-					await this.query('v1/node/follow', {id: parentId});
+					await this.query('v1/node/follow', { id: parentId });
 				}
 				catch (error)
 				{
@@ -669,16 +673,16 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 		}
 
 		Promise.all([
-			this.query('v1/notification/create', {id: newId, type: types.FT}),
-			this.query('v1/notification/create', {id: newId, type: types.usernameTag}),
+			this.query('v1/notification/create', { id: newId, type: types.FT }),
+			this.query('v1/notification/create', { id: newId, type: types.usernameTag }),
 			parentDetails.parent_node_id === constants.boardIds.privateThreads ?
-				this.query('v1/notification/create', {id: newId, type: types.PT}) : null,
+				this.query('v1/notification/create', { id: newId, type: types.PT }) : null,
 			parentId === constants.boardIds.adopteeBT ?
-				this.query('v1/notification/create', {id: newId, type: types.scoutBT}) : null,
+				this.query('v1/notification/create', { id: newId, type: types.scoutBT }) : null,
 			parentId !== constants.boardIds.adopteeBT && parentDetails.parent_node_id === constants.boardIds.adopteeThread ?
-				this.query('v1/notification/create', {id: newId, type: types.scoutThread}) : null,
+				this.query('v1/notification/create', { id: newId, type: types.scoutThread }) : null,
 			parentDetails.parent_node_id === constants.boardIds.shopThread ?
-				this.query('v1/notification/create', {id: newId, type: types.shopThread}) : null,
+				this.query('v1/notification/create', { id: newId, type: types.shopThread }) : null,
 		]);
 	}
 
@@ -688,7 +692,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 			UPDATE node
 			SET thread_type = $2
 			WHERE id = $1::int
-		`, (newNodeType === 'thread' ? newId : (newNodeType === 'post' && parentDetails.type === 'post' ? parentDetails.parent_node_id : parentDetails.id)), type);
+		`, newNodeType === 'thread' ? newId : newNodeType === 'post' && parentDetails.type === 'post' ? parentDetails.parent_node_id : parentDetails.id, type);
 	}
 
 	if (lock)
@@ -717,7 +721,7 @@ async function create(this: APIThisType, {parentId, title, text, format, lock, a
 
 	await db.updateThreadStats(newNodeType === 'thread' ? newId : parentId);
 
-	return {id: newId};
+	return { id: newId };
 }
 
 create.apiTypes = {
@@ -778,23 +782,23 @@ create.apiTypes = {
 	fileCaptions: {
 		type: APITypes.array,
 	},
-}
+};
 
 type createProps = {
 	parentId: number
-	title: string|null
-	text: string|null
+	title: string | null
+	text: string | null
 	format: MarkupStyleType | null
 	lock: boolean
-	addUsers: string|string[]
-	removeUsers: string|string[]
+	addUsers: string | string[]
+	removeUsers: string | string[]
 	type: 'normal' | 'sticky' | 'admin'
-	boardId: number|null
+	boardId: number | null
 	fileIds: any[]
 	fileNames: any[]
 	fileWidths: any[]
 	fileHeights: any[]
 	fileCaptions: any[]
-}
+};
 
 export default create;

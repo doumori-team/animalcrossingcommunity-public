@@ -4,9 +4,9 @@ import { utils, dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserTicketType } from '@types';
 
-async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<UserTicketType>
+async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<UserTicketType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -107,14 +107,14 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 			GROUP BY rule.id
 			HAVING count(*) > 1
 		`, userTicket.violator_id),
-		this.query('v1/user', {id: userTicket.violator_id}),
+		this.query('v1/user', { id: userTicket.violator_id }),
 		userTicket.reference_id ? db.query(`
 			SELECT user_ticket.id
 			FROM user_ticket
 			JOIN user_ticket_deny_reason ON (user_ticket.deny_reason_id = user_ticket_deny_reason.id)
 			WHERE user_ticket.id != $1::int AND user_ticket.reference_id = $2 AND user_ticket.type_id = $3::int
 		`, userTicket.id, userTicket.reference_id, userTicket.type_id) : [],
-		userTicket.assignee_id ? this.query('v1/user_lite', {id: userTicket.assignee_id}) : null,
+		userTicket.assignee_id ? this.query('v1/user_lite', { id: userTicket.assignee_id }) : null,
 		userTicket.status === constants.userTicket.statuses.closed ? db.query(`
 			SELECT
 				ban_length.id,
@@ -124,7 +124,7 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 			JOIN user_ban_length ON (user_ban_length.ban_length_id = ban_length.id)
 			WHERE user_ban_length.user_ticket_id = $1::int
 		`, userTicket.id) : null,
-		this.query('v1/users/ban_length', {id: userTicket.violator_id}),
+		this.query('v1/users/ban_length', { id: userTicket.violator_id }),
 		db.query(`
 			SELECT count(*) AS count
 			FROM support_ticket
@@ -152,11 +152,11 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 		`, userTicket.reference_id) : null,
 		this.query('v1/notification/destroy', {
 			id: userTicket.id,
-			type: notificationTypes.modminUTPost
+			type: notificationTypes.modminUTPost,
 		}),
 		this.query('v1/notification/destroy', {
 			id: userTicket.id,
-			type: notificationTypes.modminUTDiscussion
+			type: notificationTypes.modminUTDiscussion,
 		}),
 	]);
 
@@ -173,7 +173,7 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 		staffIdentifiers.owner,
 		staffIdentifiers.devTL,
 		staffIdentifiers.researcherTL,
-		staffIdentifiers.exStaff
+		staffIdentifiers.exStaff,
 	].includes(violator.group.identifier))
 	{
 		info += 'The user is a current or previous staff member.';
@@ -185,7 +185,8 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 
 		info += `The user has violated the following rules (${totalRuleCounts.count} total):`;
 
-		ruleCounts.map((ruleCount:any) => {
+		ruleCounts.map((ruleCount: any) =>
+		{
 			if (ruleCount.name)
 			{
 				info += `
@@ -214,11 +215,12 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 	}
 
 	const [submitter, messagesList] = await Promise.all([
-		this.query('v1/user_lite', {id: firstUserViolation.submitter_id}),
-		Promise.all(messages.map(async (message:any) => {
+		this.query('v1/user_lite', { id: firstUserViolation.submitter_id }),
+		Promise.all(messages.map(async (message: any) =>
+		{
 			return {
 				id: message.id,
-				user: await this.query('v1/user_lite', {id: message.user_id}),
+				user: await this.query('v1/user_lite', { id: message.user_id }),
 				formattedDate: dateUtils.formatDateTime(message.created),
 				message: message.message,
 				staffOnly: message.staff_only,
@@ -255,11 +257,12 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 		violation: ruleViolation ? `${ruleViolation[0].severity_id ? `${ruleViolation[0].severity_id} ` : ''}${ruleViolation[0].violation}` : null,
 		formattedClosed: userTicket.closed ? dateUtils.formatDateTime(userTicket.closed) : null,
 		formattedCreated: dateUtils.formatDateTime(firstUserViolation.submitted),
-		reportedUsers: userViolations.map((uv:any) => {
+		reportedUsers: userViolations.map((uv: any) =>
+		{
 			return {
 				...uv,
 				formattedSubmitted: dateUtils.formatDateTime(uv.submitted),
-			}
+			};
 		}),
 		denyReason: userTicket.deny_reason,
 		violator: violator,
@@ -285,7 +288,8 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 		info: info,
 		ban: utBan ? utBan[0] : null,
 		currentBan: currentBan,
-		supportTickets: supportTickets.map((st:any) => {
+		supportTickets: supportTickets.map((st: any) =>
+		{
 			return {
 				id: st.id,
 				title: st.title,
@@ -295,7 +299,7 @@ async function user_ticket(this: APIThisType, {id}: userTicketProps) : Promise<U
 }
 
 // Helper function for adding to info
-function checkAddToInfo(info:string) : string
+function checkAddToInfo(info: string): string
 {
 	if (utils.realStringLength(info) > 0)
 	{
@@ -311,10 +315,10 @@ user_ticket.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type userTicketProps = {
 	id: number
-}
+};
 
 export default user_ticket;

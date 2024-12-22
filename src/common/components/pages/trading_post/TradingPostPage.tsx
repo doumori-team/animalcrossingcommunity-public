@@ -12,12 +12,12 @@ import { APIThisType, ACGameType, ListingsType, ACGameItemType, ResidentsType, E
 
 const TradingPostPage = () =>
 {
-	const {listings, totalCount, page, pageSize, acgames, creator, type,
+	const { listings, totalCount, page, pageSize, acgames, creator, type,
 		bells, items, villagers, active, acItemsCatalog, wishlist,
-		bioLocation, comment, gameId, acgameCatalog, initialResidents} = useLoaderData() as TradingPostPageProps;
+		bioLocation, comment, gameId, acgameCatalog, initialResidents } = useLoaderData() as TradingPostPageProps;
 
-	const [selectedGameId, setSelectedGameId] = useState<number|null>(gameId);
-	const [residents, setResidents] = useState<ResidentsType[number]|null>(initialResidents && gameId != null && gameId > 0 ? initialResidents[gameId] : null);
+	const [selectedGameId, setSelectedGameId] = useState<number | null>(gameId);
+	const [residents, setResidents] = useState<ResidentsType[number] | null>(initialResidents && gameId ? initialResidents[gameId] : null);
 
 	const link = `&creator=${encodeURIComponent(creator)}
 		&type=${encodeURIComponent(type)}
@@ -31,15 +31,15 @@ const TradingPostPage = () =>
 		&comment=${encodeURIComponent(comment)}
 	`;
 
-	const changeGame = (event: ElementSelectType) : void =>
+	const changeGame = (event: ElementSelectType): void =>
 	{
 		const gameId = Number(event.target.value);
 
 		setSelectedGameId(isNaN(gameId) ? null : Number(event.target.value));
-		setResidents(initialResidents && gameId != null && gameId > 0 ? initialResidents[gameId] : null);
-	}
+		setResidents(initialResidents && gameId ? initialResidents[gameId] : null);
+	};
 
-	const handleItemsLookup = async (query: string) : Promise<ACGameItemType[number]['all']['items']> =>
+	const handleItemsLookup = async (query: string): Promise<ACGameItemType[number]['all']['items']> =>
 	{
 		let callback = 'v1/acgame/catalog';
 
@@ -67,14 +67,14 @@ const TradingPostPage = () =>
 
 				return items.filter(item => item.tradeable);
 			})
-			.catch((error:any) =>
+			.catch((error: any) =>
 			{
 				console.error('Error attempting to get items.');
 				console.error(error);
 
 				return [];
-			})
-	}
+			});
+	};
 
 	return (
 		<div className='TradingPostPage'>
@@ -88,7 +88,7 @@ const TradingPostPage = () =>
 								Create a Listing
 							</Link>
 							<UserContext.Consumer>
-								{currentUser => currentUser && (
+								{currentUser => currentUser &&
 									<>
 										<Link to={`/trading-post/${encodeURIComponent(currentUser.id)}/all`}>
 											My Trades
@@ -100,7 +100,7 @@ const TradingPostPage = () =>
 											My Catalog
 										</Link>
 									</>
-								)}
+								}
 							</UserContext.Consumer>
 						</RequireUser>
 					}
@@ -145,24 +145,24 @@ const TradingPostPage = () =>
 							changeHandler={changeGame}
 							options={
 								([
-									{id: '', name: 'All Games'},
-									{id: '0', name: 'None'}
+									{ id: '', name: 'All Games' },
+									{ id: '0', name: 'None' },
 								] as any)
 									.concat(acgames
 										.filter(g => g.hasTown === true))
 							}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
 
-					{(selectedGameId != null && selectedGameId >= 0) && (
+					{!!selectedGameId &&
 						<RequireClientJS>
 							<Form.Group>
 								<Select
 									name='items'
 									label='Item(s)'
-									options={acItemsCatalog.length > 0 ? (selectedGameId === 0 ? acItemsCatalog : acgameCatalog.filter(item => item.tradeable)) : []}
-									optionsMapping={{value: 'id', label: 'name'}}
+									options={acItemsCatalog.length > 0 ? selectedGameId === 0 ? acItemsCatalog : acgameCatalog.filter(item => item.tradeable) : []}
+									optionsMapping={{ value: 'id', label: 'name' }}
 									value={items}
 									placeholder='Select item(s)...'
 									async
@@ -173,45 +173,45 @@ const TradingPostPage = () =>
 								/>
 							</Form.Group>
 						</RequireClientJS>
-					)}
+					}
 
-					{(selectedGameId != null && selectedGameId > constants.gameIds.ACGC && residents != null) && (
+					{selectedGameId && selectedGameId > constants.gameIds.ACGC && residents != null &&
 						<>
-						<Form.Group>
-							<Select
-								name='villagers'
-								label='Villager(s)'
-								multiple
-								placeholder='Select villager(s)...'
-								options={residents.filter((r:any) => r.isTown === true)}
-								optionsMapping={{value: 'id', label: 'name'}}
-								value={villagers}
-								size={15}
-							/>
-						</Form.Group>
+							<Form.Group>
+								<Select
+									name='villagers'
+									label='Villager(s)'
+									multiple
+									placeholder='Select villager(s)...'
+									options={residents.filter((r: any) => r.isTown === true)}
+									optionsMapping={{ value: 'id', label: 'name' }}
+									value={villagers}
+									size={15}
+								/>
+							</Form.Group>
 
-						<Form.Group>
-							<Text
-								name='bells'
-								type='number'
-								label='Bells'
-								value={bells}
-								max={constants.max.number}
-							/>
-						</Form.Group>
+							<Form.Group>
+								<Text
+									name='bells'
+									type='number'
+									label='Bells'
+									value={bells}
+									max={constants.max.number}
+								/>
+							</Form.Group>
 
-						<Form.Group>
-							<Text
-								name='comment'
-								label='Additional Info'
-								value={comment}
-								maxLength={constants.max.additionalInfo}
-							/>
-						</Form.Group>
+							<Form.Group>
+								<Text
+									name='comment'
+									label='Additional Info'
+									value={comment}
+									maxLength={constants.max.additionalInfo}
+								/>
+							</Form.Group>
 						</>
-					)}
+					}
 
-					{selectedGameId === 0 && (
+					{selectedGameId === 0 &&
 						<Form.Group>
 							<Text
 								name='bioLocation'
@@ -220,9 +220,9 @@ const TradingPostPage = () =>
 								maxLength={constants.max.location}
 							/>
 						</Form.Group>
-					)}
+					}
 
-					{(selectedGameId != null && selectedGameId >= 0) && (
+					{!!selectedGameId &&
 						<Form.Group>
 							<Switch
 								name='wishlist'
@@ -230,13 +230,13 @@ const TradingPostPage = () =>
 								value={wishlist}
 							/>
 						</Form.Group>
-					)}
+					}
 				</Search>
 
 				<Section>
 					<Grid name='listing' options={listings}>
 						{listings.map((listing, index) =>
-							<Listing key={index} listing={listing} />
+							<Listing key={index} listing={listing} />,
 						)}
 					</Grid>
 
@@ -251,9 +251,9 @@ const TradingPostPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {page, creator, type, gameId, bells, items, villagers, active, wishlist, bioLocation, comment}: {page?: string, creator?: string, type?: string, gameId?: string, bells?: string, items?: string, villagers?: string, active?: string, wishlist?: string, bioLocation?: string, comment?: string}) : Promise<TradingPostPageProps>
+export async function loadData(this: APIThisType, _: any, { page, creator, type, gameId, bells, items, villagers, active, wishlist, bioLocation, comment }: { page?: string, creator?: string, type?: string, gameId?: string, bells?: string, items?: string, villagers?: string, active?: string, wishlist?: string, bioLocation?: string, comment?: string }): Promise<TradingPostPageProps>
 {
 	const [acgames, returnValue, acgameCatalog, residents, acItemsCatalog] = await Promise.all([
 		this.query('v1/acgames'),
@@ -270,9 +270,9 @@ export async function loadData(this: APIThisType, _: any, {page, creator, type, 
 			bioLocation: bioLocation ? bioLocation : '',
 			comment: comment ? comment : '',
 		}),
-		items && gameId != '0' ? this.query('v1/acgame/catalog', {id: gameId, categoryName: 'all', sortBy: 'items'}) : [],
+		items && gameId != '0' ? this.query('v1/acgame/catalog', { id: gameId, categoryName: 'all', sortBy: 'items' }) : [],
 		this.query('v1/acgame/resident'),
-		items ? this.query('v1/catalog', {categoryName: 'all', sortBy: 'items'}) : [],
+		items ? this.query('v1/catalog', { categoryName: 'all', sortBy: 'items' }) : [],
 	]);
 
 	return {
@@ -316,6 +316,6 @@ type TradingPostPageProps = {
 	wishlist: ListingsType['wishlist']
 	bioLocation: ListingsType['bioLocation']
 	comment: ListingsType['comment']
-}
+};
 
 export default TradingPostPage;

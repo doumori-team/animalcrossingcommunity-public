@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, AvatarsType } from '@types';
 
-async function create(this: APIThisType, {backgroundId, colorationId, characterId, accentId, accentPosition}: createProps) : Promise<void>
+async function create(this: APIThisType, { backgroundId, colorationId, characterId, accentId, accentPosition }: createProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -11,19 +11,19 @@ async function create(this: APIThisType, {backgroundId, colorationId, characterI
 	}
 
 	// We can't have just a background or just foregrounds
-	if ((backgroundId && !characterId) || (!backgroundId && characterId))
+	if (backgroundId && !characterId || !backgroundId && characterId)
 	{
 		throw new UserError('incomplete-avatar');
 	}
 
-	const {backgrounds, colorations, accents, characters}: AvatarsType = await this.query('v1/avatars');
+	const { backgrounds, colorations, accents, characters }: AvatarsType = await this.query('v1/avatars');
 
 	const background = backgrounds.find(bg => bg.id === backgroundId);
 
 	if (!background ||
 		!characters.some(character => character.id === characterId) ||
-		(accentId && !accents.some(accent => accent.id === accentId)) ||
-		(colorationId && !colorations.some(coloration => coloration.id === colorationId))
+		accentId && !accents.some(accent => accent.id === accentId) ||
+		colorationId && !colorations.some(coloration => coloration.id === colorationId)
 	)
 	{
 		throw new UserError('avatar-permission');
@@ -36,7 +36,7 @@ async function create(this: APIThisType, {backgroundId, colorationId, characterI
 	}
 
 	// Nuke accent positioning if it's not positionable
-	if ((!accentId || !(accents.find(accent => accent.id === accentId)?.positionable)) && accentPosition)
+	if ((!accentId || !accents.find(accent => accent.id === accentId)?.positionable) && accentPosition)
 	{
 		accentPosition = null;
 	}
@@ -70,14 +70,14 @@ create.apiTypes = {
 		min: 1,
 		max: 4,
 	},
-}
+};
 
 type createProps = {
 	backgroundId: number
-	colorationId: number|null
+	colorationId: number | null
 	characterId: number
-	accentId: number|null
-	accentPosition: number|null
-}
+	accentId: number | null
+	accentPosition: number | null
+};
 
 export default create;

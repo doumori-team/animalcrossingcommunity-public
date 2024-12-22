@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, FeatureStatusType } from '@types';
 
-export default async function statuses(this: APIThisType) : Promise<FeatureStatusType[]>
+export default async function statuses(this: APIThisType): Promise<FeatureStatusType[]>
 {
 	if (!this.userId)
 	{

@@ -5,9 +5,9 @@ import * as APITypes from '@apiTypes';
 import * as db from '@db';
 import { APIThisType, NoticeType } from '@types';
 
-async function view_information(this: APIThisType, {id}: viewInformationProps) : Promise<NoticeType>
+async function view_information(this: APIThisType, { id }: viewInformationProps): Promise<NoticeType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'process-user-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -33,7 +33,7 @@ async function view_information(this: APIThisType, {id}: viewInformationProps) :
 	]);
 
 	return {
-		_notice: `Birthday: ${dateUtils.formatDate(birthDate)} ; Email: ${userData.email}`
+		_notice: `Birthday: ${dateUtils.formatDate(birthDate)} ; Email: ${userData.email}`,
 	};
 }
 
@@ -42,10 +42,10 @@ view_information.apiTypes = {
 		type: APITypes.userId,
 		required: true,
 	},
-}
+};
 
 type viewInformationProps = {
 	id: number
-}
+};
 
 export default view_information;

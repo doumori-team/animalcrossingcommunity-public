@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, ruleId, severityId, number, violation}: saveProps) : Promise<void>
+async function save(this: APIThisType, { id, ruleId, severityId, number, violation }: saveProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -23,7 +23,7 @@ async function save(this: APIThisType, {id, ruleId, severityId, number, violatio
 
 	if (!nodeId)
 	{
-		nodeId = await this.query('v1/admin/rule/node/create', {ruleId: ruleId, number: rule.number, name: rule.name, description: rule.description});
+		nodeId = await this.query('v1/admin/rule/node/create', { ruleId: ruleId, number: rule.number, name: rule.name, description: rule.description });
 	}
 
 	if (severityId)
@@ -48,7 +48,7 @@ async function save(this: APIThisType, {id, ruleId, severityId, number, violatio
 		content = `${severityId} ${violation}`;
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		if (id != null && id > 0)
 		{
@@ -103,7 +103,7 @@ async function save(this: APIThisType, {id, ruleId, severityId, number, violatio
 			}
 
 			// update thread with latest info
-			await this.query('v1/admin/rule/node/update', {nodeId: nodeId, content: `The rule violation has been updated with the following: ${content}`});
+			await this.query('v1/admin/rule/node/update', { nodeId: nodeId, content: `The rule violation has been updated with the following: ${content}` });
 		}
 		else
 		{
@@ -148,14 +148,14 @@ save.apiTypes = {
 		error: 'missing-violation',
 		length: constants.max.ruleViolation,
 	},
-}
+};
 
 type saveProps = {
-	id: number|null
+	id: number | null
 	ruleId: number
-	severityId: number|null
+	severityId: number | null
 	number: number
 	violation: string
-}
+};
 
 export default save;

@@ -1,7 +1,7 @@
 import * as db from '@db';
 import { APIThisType, UserLiteType } from '@types';
 
-export default async function users(this: APIThisType) : Promise<UserLiteType[]>
+export default async function users(this: APIThisType): Promise<UserLiteType[]>
 {
 	if (!this.userId)
 	{
@@ -9,7 +9,7 @@ export default async function users(this: APIThisType) : Promise<UserLiteType[]>
 	}
 
 	// Check paramters
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	// Perform queries
 	const users = await db.query(`
@@ -19,7 +19,8 @@ export default async function users(this: APIThisType) : Promise<UserLiteType[]>
 		GROUP BY block_user.block_user_id
 	`, this.userId);
 
-	return await Promise.all(users.map(async (user:any) => {
-		return await this.query('v1/user_lite', {id: user.block_user_id});
+	return await Promise.all(users.map(async (user: any) =>
+	{
+		return await this.query('v1/user_lite', { id: user.block_user_id });
 	}));
 }

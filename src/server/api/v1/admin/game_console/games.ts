@@ -3,9 +3,9 @@ import * as APITypes from '@apiTypes';
 import { UserError } from '@errors';
 import { APIThisType, GameType } from '@types';
 
-async function games(this: APIThisType, {id}: gamesProps) : Promise<GameType[]>
+async function games(this: APIThisType, { id }: gamesProps): Promise<GameType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'games-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'games-admin' });
 
 	if (!permissionGranted)
 	{
@@ -20,9 +20,10 @@ async function games(this: APIThisType, {id}: gamesProps) : Promise<GameType[]>
 		WHERE game_console.id = $1::int
 		ORDER BY game.sequence NULLS LAST, game.name
 	`, id);
-	
-	return await Promise.all(games.map(async (game:any) => {
-		return this.query('v1/admin/game/game', {id: game.id})
+
+	return await Promise.all(games.map(async (game: any) =>
+	{
+		return this.query('v1/admin/game/game', { id: game.id });
 	}));
 }
 
@@ -31,10 +32,10 @@ games.apiTypes = {
 		type: APITypes.gameConsoleId,
 		required: true,
 	},
-}
+};
 
 type gamesProps = {
 	id: number
-}
+};
 
 export default games;

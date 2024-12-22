@@ -3,7 +3,7 @@ import DOMPurify from 'dompurify';
 
 const HTMLPurify = ({
 	className,
-	html
+	html,
 }: HTMLPurifyProps) =>
 {
 	const [curHtml, setCurHtml] = useState<string>(html);
@@ -11,15 +11,15 @@ const HTMLPurify = ({
 	useEffect(() =>
 	{
 		setCurHtml(DOMPurify.sanitize(curHtml));
-	}, [])
+	}, []);
 
 	return (
 		<div
 			className={className}
-			dangerouslySetInnerHTML={{ __html: curHtml}}
+			dangerouslySetInnerHTML={{ __html: curHtml }}
 		/>
 	);
-}
+};
 
 type HTMLPurifyProps = {
 	className: string

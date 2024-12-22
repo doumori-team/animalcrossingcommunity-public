@@ -3,14 +3,14 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function follow(this: APIThisType, {id}: followProps) : Promise<void>
+async function follow(this: APIThisType, { id }: followProps): Promise<void>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	const [feature] = await db.query(`
 		SELECT id
@@ -50,10 +50,10 @@ follow.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type followProps = {
 	id: number
-}
+};
 
 export default follow;

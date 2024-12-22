@@ -8,7 +8,7 @@ import { APIThisType, TownType, PatternType } from '@types';
 
 const ChooseTownFlagPage = () =>
 {
-	const {towns, pattern} = useLoaderData() as ChooseTownFlagPageProps;
+	const { towns, pattern } = useLoaderData() as ChooseTownFlagPageProps;
 
 	const useTowns = towns.filter(t => t.game.id === pattern.gameId);
 
@@ -35,7 +35,7 @@ const ChooseTownFlagPage = () =>
 									label='Select town that will use this pattern'
 									optionsMapping={{
 										id: 'id',
-										name: (town:any) => <Keyboard name={town.name} gameId={town.game.id} />,
+										name: (town: any) => <Keyboard name={town.name} gameId={town.game.id} />,
 									}}
 								/>
 							</Form.Group>
@@ -45,21 +45,21 @@ const ChooseTownFlagPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ChooseTownFlagPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownFlagPageProps>
 {
 	const [towns, pattern] = await Promise.all([
 		this.query('v1/users/towns'),
-		this.query('v1/pattern', {id: id}),
+		this.query('v1/pattern', { id: id }),
 	]);
 
-	return {towns, pattern};
+	return { towns, pattern };
 }
 
 type ChooseTownFlagPageProps = {
 	towns: TownType[]
 	pattern: PatternType
-}
+};
 
 export default ChooseTownFlagPage;

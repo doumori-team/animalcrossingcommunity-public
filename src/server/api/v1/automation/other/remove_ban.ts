@@ -7,7 +7,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Remove all bans for a user
  */
-async function remove_ban(this: APIThisType, {username}: removeBanProps) : Promise<SuccessType>
+async function remove_ban(this: APIThisType, { username }: removeBanProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -42,7 +42,7 @@ async function remove_ban(this: APIThisType, {username}: removeBanProps) : Promi
 	`, user.id);
 
 	return {
-		_success: `The ban has been removed!`
+		_success: `The ban has been removed!`,
 	};
 }
 
@@ -52,10 +52,10 @@ remove_ban.apiTypes = {
 		required: true,
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type removeBanProps = {
 	username: string
-}
+};
 
 export default remove_ban;

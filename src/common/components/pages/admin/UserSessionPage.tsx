@@ -9,7 +9,7 @@ import { APIThisType, SessionType } from '@types';
 
 const UserSessionPage = () =>
 {
-	const {url, userSession, page, pageSize, totalCount} = useLoaderData() as UserSessionPageProps;
+	const { url, userSession, page, pageSize, totalCount } = useLoaderData() as UserSessionPageProps;
 
 	const link = `
 		&url=${encodeURIComponent(url)}
@@ -43,18 +43,18 @@ const UserSessionPage = () =>
 									Page: {url.url}
 								</div>
 
-								{url.params && (
+								{url.params &&
 									<div className='UserSessionPage_urlParams'>
 										Params: <pre>{url.params}</pre>
 									</div>
-								)}
+								}
 
-								{url.query && (
+								{url.query &&
 									<div className='UserSessionPage_urlQuery'>
 										Query: <pre>{url.query}</pre>
 									</div>
-								)}
-							</InnerSection>
+								}
+							</InnerSection>,
 						)}
 					</Grid>
 
@@ -69,9 +69,9 @@ const UserSessionPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}, {page, url}: {page?: string, url?: string}) : Promise<UserSessionPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }, { page, url }: { page?: string, url?: string }): Promise<UserSessionPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/session/session', {
@@ -96,6 +96,6 @@ type UserSessionPageProps = {
 	page: SessionType['page']
 	pageSize: SessionType['pageSize']
 	url: SessionType['url']
-}
+};
 
 export default UserSessionPage;

@@ -11,8 +11,8 @@ import { APIThisType, UserListingsType, UserOffersType, ListingType } from '@typ
 
 const UserListingPage = () =>
 {
-	const {listings, offers, selectedUserId, totalListingsCount, listingsPage,
-		listingsPageSize, totalOffersCount, offersPage, offersPageSize} = getData(useAsyncValue()) as UserListingPageProps;
+	const { listings, offers, selectedUserId, totalListingsCount, listingsPage,
+		listingsPageSize, totalOffersCount, offersPage, offersPageSize } = getData(useAsyncValue()) as UserListingPageProps;
 
 	const link = `trading-post/${encodeURIComponent(selectedUserId)}/all`;
 
@@ -23,24 +23,24 @@ const UserListingPage = () =>
 					name='Trading Post'
 					links={
 						<>
-						<Link to={`/trading-post/add`}>
-							Create a Listing
-						</Link>
-						<UserContext.Consumer>
-							{currentUser => currentUser && (
-								<>
-									<Link to={`/trading-post/${encodeURIComponent(currentUser.id)}/all`}>
-										My Trades
-									</Link>
-									<Link to={`/ratings/${encodeURIComponent(currentUser.id)}/${constants.rating.types.trade}`}>
-										My Trade Ratings
-									</Link>
-									<Link to={`/catalog/${encodeURIComponent(currentUser.id)}`}>
-										My Catalog
-									</Link>
-								</>
-							)}
-						</UserContext.Consumer>
+							<Link to={`/trading-post/add`}>
+								Create a Listing
+							</Link>
+							<UserContext.Consumer>
+								{currentUser => currentUser &&
+									<>
+										<Link to={`/trading-post/${encodeURIComponent(currentUser.id)}/all`}>
+											My Trades
+										</Link>
+										<Link to={`/ratings/${encodeURIComponent(currentUser.id)}/${constants.rating.types.trade}`}>
+											My Trade Ratings
+										</Link>
+										<Link to={`/catalog/${encodeURIComponent(currentUser.id)}`}>
+											My Catalog
+										</Link>
+									</>
+								}
+							</UserContext.Consumer>
 						</>
 					}
 				/>
@@ -51,11 +51,11 @@ const UserListingPage = () =>
 					</h1>
 
 					<Grid name='listing' options={listings}>
-						{listings.map((listing:ListingType) =>
+						{listings.map((listing: ListingType) =>
 							<Listing
 								key={listing.id}
 								listing={listing}
-							/>
+							/>,
 						)}
 					</Grid>
 
@@ -74,19 +74,21 @@ const UserListingPage = () =>
 					</h1>
 
 					<Grid name='offer' options={offers}>
-						{offers.map((listing:ListingType) => {
+						{offers.map((listing: ListingType) =>
+						{
 							const offer = listing.offers.accepted &&
 								listing.offers.accepted.user.id === selectedUserId ?
 								listing.offers.accepted :
 								listing.offers.list.find(o => o.user.id === selectedUserId);
 
-							if (offer == null)
+							if (!offer)
 							{
 								return null;
 							}
 
 							return <div key={offer.id}
-								className='UserListingPage_listingOffer'>
+								className='UserListingPage_listingOffer'
+							>
 								<Listing
 									listing={listing}
 								/>
@@ -109,20 +111,20 @@ const UserListingPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {listingsPage, offersPage}: {listingsPage?: string, offersPage?: string}) : Promise<any>
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { listingsPage, offersPage }: { listingsPage?: string, offersPage?: string }): Promise<any>
 {
 	const selectedUserId = Number(userId);
 
 	return Promise.all([
-		this.query('v1/users/listings', {id: selectedUserId, page: listingsPage ? listingsPage : 1,}),
-		this.query('v1/users/offers', {id: selectedUserId, page: offersPage ? offersPage : 1,}),
+		this.query('v1/users/listings', { id: selectedUserId, page: listingsPage ? listingsPage : 1 }),
+		this.query('v1/users/offers', { id: selectedUserId, page: offersPage ? offersPage : 1 }),
 		selectedUserId,
 	]);
 }
 
-function getData(data:any) : UserListingPageProps
+function getData(data: any): UserListingPageProps
 {
 	const [listings, offers, selectedUserId] = data;
 
@@ -149,6 +151,6 @@ type UserListingPageProps = {
 	totalOffersCount: UserOffersType['count']
 	offersPage: UserOffersType['page']
 	offersPageSize: UserOffersType['pageSize']
-}
+};
 
 export default UserListingPage;

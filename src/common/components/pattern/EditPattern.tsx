@@ -15,19 +15,46 @@ const EditPattern = ({
 	pattern,
 	acgames,
 	townId,
-	userId
+	characterId,
+	userId,
 }: EditPatternProps) =>
 {
-	const [qrData, setQrData] = useState<any|null>(null);
+	const [qrData, setQrData] = useState<any | null>(null);
 	const [paletteId, setPaletteId] = useState<number>(1);
 	const [errors, setErrors] = useState<string[]>([]);
 	const [patternName, setPatternName] = useState<string>('');
 
+	const exclusive = acgames.length === 1;
+
+	const initialGameId = () =>
+	{
+		if (pattern)
+		{
+			return pattern.gameId;
+		}
+
+		if (qrData)
+		{
+			return constants.gameIds.ACNL;
+		}
+
+		if (exclusive)
+		{
+			return acgames[0].id;
+		}
+		return constants.gameIds.ACNH;
+	};
+
 	let callback = '/pattern/:id';
 
-	if (townId != null && townId > 0 && userId != null)
+	// If character ID is set, assume this is a door pattern and not a town flag
+	// Will only save to the character db, but still redirect back to the town
+	// If no character ID, save to the down (by ID) and not "0"
+	const saveTownId = characterId ? 0 : townId;
+
+	if (townId && userId)
 	{
-		callback = `/profile/${encodeURIComponent(userId)}/towns`;
+		callback = `/profile/${encodeURIComponent(userId)}/town/${townId}`;
 	}
 
 	// use third-party library to read uploaded QR code
@@ -35,7 +62,7 @@ const EditPattern = ({
 	{
 		const file = (e as any).target.files[0];
 
-		if (typeof file == 'undefined')
+		if (typeof file === 'undefined')
 		{
 			return;
 		}
@@ -50,26 +77,26 @@ const EditPattern = ({
 
 		const fileReader = new FileReader();
 
-		fileReader.onload = function(theFile:any)
+		fileReader.onload = function (theFile: any)
 		{
-			const image:any = new Image();
+			const image: any = new Image();
 
-			image.onload = function(this:any)
+			image.onload = function (this: any)
 			{
 				const canvas = document.createElement('canvas');
 				canvas.width = this.width;
 				canvas.height = this.height;
-				const ctx:any = canvas.getContext('2d');
+				const ctx: any = canvas.getContext('2d');
 				ctx.drawImage(image, 0, 0);
 				const imageData = ctx.getImageData(0, 0, this.width, this.height);
 
-				const data = jsQR(imageData.data, imageData.width, imageData.height, {inversionAttempts: 'dontInvert'});
+				const data = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
 
 				try
 				{
 					prepareQRData(data);
 				}
-				catch (e:any)
+				catch (e: any)
 				{
 					console.error(e);
 					setErrors(e.identifiers);
@@ -80,9 +107,9 @@ const EditPattern = ({
 		};
 
 		fileReader.readAsDataURL(file);
-	}
+	};
 
-	const prepareQRData = (data:any) =>
+	const prepareQRData = (data: any) =>
 	{
 		if (!data)
 		{
@@ -91,7 +118,7 @@ const EditPattern = ({
 
 		let qrData = data.binaryData;
 
-		qrData = qrData.map((id:any) =>
+		qrData = qrData.map((id: any) =>
 		{
 			if (isNaN(id))
 			{
@@ -112,9 +139,9 @@ const EditPattern = ({
 		setPaletteId(returnVal.paletteId);
 		setErrors([]);
 		setPatternName(returnVal.patternName);
-	}
+	};
 
-	const decodedQRCode = (qrData:any) =>
+	const decodedQRCode = (qrData: any) =>
 	{
 		// Decode name
 		const nameEncoded = [...qrData].splice(0, 42);
@@ -124,7 +151,7 @@ const EditPattern = ({
 		{
 			let char = nameEncoded[i];
 
-			if (nameEncoded[i+1] === 0 && char !== 0)
+			if (nameEncoded[i + 1] === 0 && char !== 0)
 			{
 				name += String.fromCharCode(char);
 			}
@@ -139,12 +166,12 @@ const EditPattern = ({
 
 		for (let i = 0; i < paletteEncoded.length; i++)
 		{
-			let hex = paletteEncoded[i].toString(16), paletteHexdec:number|string = '';
+			let hex = paletteEncoded[i].toString(16), paletteHexdec: number | string = '';
 
 			// 145-158
-			if (hex.substr(1) === 'f')
+			if (hex.substring(1) === 'f')
 			{
-				paletteHexdec = parseInt(hex.substr(0, 1), 16) + 144;
+				paletteHexdec = parseInt(hex.substring(0, 1), 16) + 144;
 			}
 			// 144
 			else if (hex === 'f')
@@ -158,7 +185,7 @@ const EditPattern = ({
 			// 1-143
 			else
 			{
-				let second = hex.substr(1, 1), first = hex.substr(0, 1);
+				let second = hex.substring(1, 1), first = hex.substring(0, 1);
 
 				for (let x = 0; x <= 143; x++)
 				{
@@ -194,7 +221,7 @@ const EditPattern = ({
 
 		// Decode data
 		const dataEncoded = [...qrData].splice(108, 512);
-		let formData:any = [], index = 0;
+		let formData: any = [], index = 0;
 
 		for (let i = 0; i < constants.pattern.paletteLength; i++)
 		{
@@ -202,15 +229,15 @@ const EditPattern = ({
 		}
 
 		// row by row
-		for (let y = 0;  y < constants.pattern.paletteLength; y++)
+		for (let y = 0; y < constants.pattern.paletteLength; y++)
 		{
 			for (let x = 0; x < constants.pattern.paletteLength; x += 2)
 			{
 				let hex = dataEncoded[index].toString(16);
 				index++;
 
-				let first = hex.substr(0, 1);
-				let second = hex.substr(1, 1);
+				let first = hex.substring(0, 1);
+				let second = hex.substring(1, 1);
 
 				if (hex.length === 1)
 				{
@@ -235,14 +262,14 @@ const EditPattern = ({
 
 				if (paletteIndex === 15)
 				{
-					formData[x+1][y] = '#ffffff';
+					formData[x + 1][y] = '#ffffff';
 				}
 				else
 				{
-					formData[x+1][y] = (nlColors as any)[palette[paletteIndex]];
+					formData[x + 1][y] = (nlColors as any)[palette[paletteIndex]];
 				}
 
-				if (typeof formData[x][y] == 'undefined' || typeof formData[x+1][y] == 'undefined')
+				if (typeof formData[x][y] === 'undefined' || typeof formData[x + 1][y] === 'undefined')
 				{
 					throw new UserError('bad-format');
 				}
@@ -254,16 +281,42 @@ const EditPattern = ({
 			paletteId: paletteId,
 			patternName: name,
 		};
-	}
+	};
+
+	const allPatternPalettes = utils.getPatternPalettes();
+	const patternPalettes = exclusive ?
+		Object.fromEntries(
+			Object.entries(allPatternPalettes).filter(([key, _]) => key === `${acgames[0].id}`),
+		) :
+		allPatternPalettes;
+
+	const allPatternColors = utils.getPatternColors();
+	const patternColors = exclusive ?
+		Object.fromEntries(
+			Object.entries(allPatternColors).filter(([key, _]) => key === `${acgames[0].id}`),
+		) :
+		allPatternColors;
+
+	const allPatternColorInfo = utils.getPatternColorInfo();
+	const patternColorInfo = exclusive ?
+		Object.fromEntries(
+			Object.entries(allPatternColorInfo).filter(([key, _]) => key === `${acgames[0].id}`),
+		) :
+		allPatternColorInfo;
 
 	return (
-		<section className="EditPattern">
+		<section className='EditPattern'>
+			<h1>
+				{pattern ? `Edit an ${pattern.gameShortName} Pattern` : 'Create a Pattern'}
+			</h1>
+
 			{errors.map(
 				(identifier, index) =>
-					(<ErrorMessage identifier={identifier} key={index} />)
+					<ErrorMessage identifier={identifier} key={index} />,
 			)}
 			<Form action='v1/pattern/save' callback={callback} showButton>
-				<input type='hidden' name='townId' value={townId ? townId : 0} />
+				<input type='hidden' name='townId' value={saveTownId ? saveTownId : 0} />
+				<input type='hidden' name='characterId' value={characterId ? characterId : 0} />
 				<input type='hidden' name='id' value={pattern ? pattern.id : 0} />
 
 				<Form.Group>
@@ -283,6 +336,7 @@ const EditPattern = ({
 						value={pattern && pattern.published ? true : false}
 					/>
 				</Form.Group>
+
 				<Form.Group>
 					<Text
 						name='designId'
@@ -291,11 +345,11 @@ const EditPattern = ({
 						pattern={constants.regexes.designId}
 						maxLength={17}
 						minLength={17}
-						value={pattern && pattern.designId != null ? pattern.designId : ''}
+						value={pattern && pattern.designId ? pattern.designId : ''}
 					/>
 				</Form.Group>
 
-				{!pattern && (
+				{!pattern &&
 					<RequireClientJS>
 						<div className='EditPattern_upload'>
 							<h3>Upload QR code:</h3>
@@ -305,10 +359,10 @@ const EditPattern = ({
 							<input type='file' accept='image/*' onChange={scanFile} />
 						</div>
 					</RequireClientJS>
-				)}
+				}
 
 				<RequireClientJS fallback={<ErrorMessage identifier='javascript-required' />}>
-					{qrData ? (
+					{qrData ?
 						<PatternMaker
 							key={Math.random()}
 							data={qrData}
@@ -316,34 +370,34 @@ const EditPattern = ({
 							gamePalettes={utils.getPatternPalettes() as PatternPalettesType[number]}
 							gameColors={utils.getPatternColors() as PatternColorsType[number]}
 							acgames={acgames}
-							initialGameId={constants.gameIds.ACNL}
+							initialGameId={initialGameId()}
 							initialPaletteId={paletteId}
 							gameColorInfo={utils.getPatternColorInfo() as PatternColorInfoType[number]}
 						/>
-					) : (
+						:
 						<PatternMaker
 							key='main'
 							data={pattern ? pattern.data : null}
 							initialDataUrl={pattern ? pattern.dataUrl : ''}
-							gamePalettes={utils.getPatternPalettes() as PatternPalettesType[number]}
-							gameColors={utils.getPatternColors() as PatternColorsType[number]}
+							gamePalettes={patternPalettes as PatternPalettesType[number]}
+							gameColors={patternColors as PatternColorsType[number]}
 							acgames={acgames}
-							// if creating a new pattern, start with AC:NH
-							initialGameId={pattern ? pattern.gameId : constants.gameIds.ACNH}
+							initialGameId={initialGameId()}
 							initialPaletteId={pattern ? pattern.paletteId : 1}
-							gameColorInfo={utils.getPatternColorInfo() as PatternColorInfoType[number]}
+							gameColorInfo={patternColorInfo as PatternColorInfoType[number]}
 						/>
-					)}
+					}
 				</RequireClientJS>
 			</Form>
 		</section>
 	);
-}
+};
 
 type EditPatternProps = {
 	acgames: ACGameType[]
-	pattern?: PatternType|null
+	pattern?: PatternType | null
 	townId?: number
+	characterId?: number
 	userId?: number
 };
 

@@ -9,7 +9,7 @@ import { APIThisType, SupportTicketType, EmojiSettingType, AccountUserType } fro
 
 const SupportTicketPage = () =>
 {
-	const {supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory} = useLoaderData() as SupportTicketPageProps;
+	const { supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory } = useLoaderData() as SupportTicketPageProps;
 
 	return (
 		<div className='SupportTicketPage'>
@@ -35,19 +35,19 @@ const SupportTicketPage = () =>
 					Created: {supportTicket.formattedCreated}
 				</div>
 
-				{supportTicket.userTicketId && (
+				{supportTicket.userTicketId &&
 					<div className='SupportTicketPage_supportTicketUT'>
 						UT: <Link to={`/user-ticket/${encodeURIComponent(supportTicket.userTicketId)}`}>
 							{supportTicket.userTicketId}
 						</Link>
 					</div>
-				)}
+				}
 
-				{supportTicket.ban && (
+				{supportTicket.ban &&
 					<div className='SupportTicketPage_supportTicketBan'>
 						Ban Length (w/ST): {supportTicket.ban.description}
 					</div>
-				)}
+				}
 
 				<RequirePermission permission='process-support-tickets' silent>
 					<div className='SupportTicketPage_supportTicketStaffOnly'>
@@ -63,23 +63,23 @@ const SupportTicketPage = () =>
 				<h3>Messages: </h3>
 
 				<div className='SupportTicketPage_messages'>
-					{supportTicket.messages.length > 0 ? (
+					{supportTicket.messages.length > 0 ?
 						supportTicket.messages.map(message =>
 							<div key={message.id} className={`SupportTicketPage_message ${message.staffOnly && 'staff'}`}>
 								<div className='SupportTicketPage_messageHeader'>
 									<div className='SupportTicketPage_messageBy'>
-										{message.user ? (
+										{message.user ?
 											<>
-											Message By: <Link to={`/profile/${encodeURIComponent(message.user.id)}`}>
-												{message.user.username}
-											</Link>
+												Message By: <Link to={`/profile/${encodeURIComponent(message.user.id)}`}>
+													{message.user.username}
+												</Link>
 											</>
-										) : 'Staff Response'} on {message.formattedDate}<RequirePermission permission='process-support-tickets' silent> (Staff Only: {message.staffOnly ? 'Yes' : 'No'})</RequirePermission>
+											: 'Staff Response'} on {message.formattedDate}<RequirePermission permission='process-support-tickets' silent> (Staff Only: {message.staffOnly ? 'Yes' : 'No'})</RequirePermission>
 									</div>
 								</div>
 
 								<div className='SupportTicketPage_message'>
-									{(message.user && userEmojiSettings != null) ? <Markup
+									{message.user && userEmojiSettings ? <Markup
 										text={message.message}
 										format={message.format ?
 											message.format :
@@ -92,11 +92,11 @@ const SupportTicketPage = () =>
 											'markdown'}
 									/>}
 								</div>
-							</div>
+							</div>,
 						)
-					) : (
+						:
 						'No messages have been posted.'
-					)}
+					}
 				</div>
 			</div>
 
@@ -122,11 +122,12 @@ const SupportTicketPage = () =>
 								label='Status'
 								name='status'
 								value={supportTicket.status}
-								options={constants.supportTicket.statuses.map(s => {
+								options={constants.supportTicket.statuses.map(s =>
+								{
 									return {
 										value: s,
 										label: s,
-									}
+									};
 								})}
 							/>
 						</Form.Group>
@@ -137,7 +138,7 @@ const SupportTicketPage = () =>
 								value={true}
 							/>
 						</Form.Group>
-						{usernameHistory.length > 0 && (
+						{usernameHistory.length > 0 &&
 							<Form.Group>
 								<label>Delete Specific Username History:</label>
 								{usernameHistory.map(history =>
@@ -148,10 +149,10 @@ const SupportTicketPage = () =>
 											value={history.id}
 											label={`${history.username} (${dateUtils.formatDateTime(history.changed)})`}
 										/>
-									</div>
+									</div>,
 								)}
 							</Form.Group>
-						)}
+						}
 					</RequirePermission>
 
 					<Form.Group>
@@ -169,31 +170,31 @@ const SupportTicketPage = () =>
 			</Section>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<SupportTicketPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportTicketPageProps>
 {
 	const [supportTicket, currentUserEmojiSettings] = await Promise.all([
-		this.query('v1/support_ticket', {id: id}),
+		this.query('v1/support_ticket', { id: id }),
 		this.query('v1/settings/emoji'),
 	]);
 
 	const [userEmojiSettings, usernameHistory] = await Promise.all([
 		supportTicket.messages.length > 0 ?
 			this.query('v1/settings/emoji', {
-				userIds: supportTicket.messages.filter((m:any) => m.user).map((m:any) => m.user.id)
+				userIds: supportTicket.messages.filter((m: any) => m.user).map((m: any) => m.user.id),
 			}) : null,
-		this.query('v1/users/username_history', {id: supportTicket.user.id}),
+		this.query('v1/users/username_history', { id: supportTicket.user.id }),
 	]);
 
-	return {supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory};
+	return { supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory };
 }
 
 type SupportTicketPageProps = {
 	supportTicket: SupportTicketType
-	userEmojiSettings: EmojiSettingType[]|null
+	userEmojiSettings: EmojiSettingType[] | null
 	currentUserEmojiSettings: EmojiSettingType[]
 	usernameHistory: AccountUserType['username_history']
-}
+};
 
 export default SupportTicketPage;

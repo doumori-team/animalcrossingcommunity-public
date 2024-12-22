@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function reset(this: APIThisType, {username}: resetProps) : Promise<SuccessType>
+async function reset(this: APIThisType, { username }: resetProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -38,7 +38,7 @@ async function reset(this: APIThisType, {username}: resetProps) : Promise<Succes
 	`, user.id);
 
 	return {
-		_success: `The user's purchases have been reset.`
+		_success: `The user's purchases have been reset.`,
 	};
 }
 
@@ -47,10 +47,10 @@ reset.apiTypes = {
 		type: APITypes.string,
 		required: true,
 	},
-}
+};
 
 type resetProps = {
 	username: string
-}
+};
 
 export default reset;

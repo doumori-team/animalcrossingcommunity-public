@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { APIThisType, FeatureCategoryType } from '@types';
 
-export default async function categories(this: APIThisType) : Promise<FeatureCategoryType[]>
+export default async function categories(this: APIThisType): Promise<FeatureCategoryType[]>
 {
 	if (!this.userId)
 	{

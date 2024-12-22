@@ -6,9 +6,9 @@ import { APIThisType } from '@types';
 /*
  * Indicates a rule is going to expire.
  */
-async function expire(this: APIThisType, {id}: expireProps) : Promise<void>
+async function expire(this: APIThisType, { id }: expireProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-rules-admin'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
 
 	if (!permissionGranted)
 	{
@@ -28,7 +28,7 @@ async function expire(this: APIThisType, {id}: expireProps) : Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		await query(`
 			UPDATE rule
@@ -68,10 +68,10 @@ expire.apiTypes = {
 		type: APITypes.ruleId,
 		required: true,
 	},
-}
+};
 
 type expireProps = {
 	id: number
-}
+};
 
 export default expire;

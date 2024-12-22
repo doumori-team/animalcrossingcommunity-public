@@ -16,7 +16,7 @@ import React from 'react';
  */
 const Alert = ({
 	type = 'info',
-	children
+	children,
 }: AlertProps) =>
 {
 	let className = 'Alert';
@@ -42,7 +42,7 @@ const Alert = ({
 			{children}
 		</div>
 	);
-}
+};
 
 type AlertProps = {
 	type?: 'error' | 'success' | 'info' | 'warning'

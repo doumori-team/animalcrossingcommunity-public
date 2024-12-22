@@ -8,7 +8,7 @@ import { APIThisType, UserGroupType } from '@types';
  * parameters:
  *  display - string - whether to display in a recursive manner (needed for permissions admin)
  */
-async function user_groups(this: APIThisType, {display}: userGroupsProps): Promise<UserGroupType[]>
+async function user_groups(this: APIThisType, { display }: userGroupsProps): Promise<UserGroupType[]>
 {
 	const userGroups = await db.query(`
 		SELECT
@@ -30,28 +30,29 @@ async function user_groups(this: APIThisType, {display}: userGroupsProps): Promi
 /*
  * Recursively get children groups of each group.
  */
-function getChildGroups(userGroups:any, parentId:number|null)
+function getChildGroups(userGroups: any, parentId: number | null)
 {
 	return userGroups
-		.filter((ug:any) => ug.parent_id === parentId)
-		.map((userGroup:any) => {
-		return {
-			id: userGroup.id,
-			identifier: userGroup.identifier,
-			name: userGroup.name,
-			groups: getChildGroups(userGroups, userGroup.id),
-		};
-	});
+		.filter((ug: any) => ug.parent_id === parentId)
+		.map((userGroup: any) =>
+		{
+			return {
+				id: userGroup.id,
+				identifier: userGroup.identifier,
+				name: userGroup.name,
+				groups: getChildGroups(userGroups, userGroup.id),
+			};
+		});
 }
 
 user_groups.apiTypes = {
 	display: {
 		type: APITypes.string,
 	},
-}
+};
 
 type userGroupsProps = {
 	display?: 'recursive'
-}
+};
 
 export default user_groups;

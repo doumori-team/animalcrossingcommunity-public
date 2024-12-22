@@ -11,8 +11,8 @@ import { APIThisType, ACGameType, ResidentsType, ACGameItemType } from '@types';
 
 const AddListingPage = () =>
 {
-	const {acgames, selectedGameId, acgameCatalog, residents, selectedType,
-		acItemsCatalog} = useLoaderData() as AddListingPageProps;
+	const { acgames, selectedGameId, acgameCatalog, residents, selectedType,
+		acItemsCatalog } = useLoaderData() as AddListingPageProps;
 
 	return (
 		<div className='AddListingPage'>
@@ -21,7 +21,7 @@ const AddListingPage = () =>
 					name='Create a Listing'
 					links={
 						<UserContext.Consumer>
-							{currentUser => currentUser && (
+							{currentUser => currentUser &&
 								<>
 									<Link to={`/trading-post/${encodeURIComponent(currentUser.id)}/all`}>
 										My Trades
@@ -33,7 +33,7 @@ const AddListingPage = () =>
 										My Catalog
 									</Link>
 								</>
-							)}
+							}
 						</UserContext.Consumer>
 					}
 				/>
@@ -61,7 +61,7 @@ const AddListingPage = () =>
 					</div>
 				</Section>
 
-				{(selectedType === constants.tradingPost.tradeTypes.game && acgames != null) && (
+				{selectedType === constants.tradingPost.tradeTypes.game && !!acgames &&
 					<Section>
 						<h3>What game is this for?</h3>
 
@@ -71,9 +71,9 @@ const AddListingPage = () =>
 							reloadDocument
 						/>
 					</Section>
-				)}
+				}
 
-				{(selectedGameId > 0 || selectedType === constants.tradingPost.tradeTypes.real) && (
+				{(selectedGameId > 0 || selectedType === constants.tradingPost.tradeTypes.real) &&
 					<Section>
 						<EditListing
 							key={selectedGameId}
@@ -84,13 +84,13 @@ const AddListingPage = () =>
 							acItemsCatalog={acItemsCatalog}
 						/>
 					</Section>
-				)}
+				}
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {type, gameId}: {type: string, gameId: string}) : Promise<AddListingPageProps>
+export async function loadData(this: APIThisType, { type, gameId }: { type: string, gameId: string }): Promise<AddListingPageProps>
 {
 	const selectedGameId = Number(gameId || 0);
 	const selectedType = String(type || '');
@@ -102,21 +102,21 @@ export async function loadData(this: APIThisType, {type, gameId}: {type: string,
 
 	const [acgames, acgameCatalog, residents, acItemsCatalog] = await Promise.all([
 		selectedType === constants.tradingPost.tradeTypes.game ? this.query('v1/acgames') : null,
-		selectedGameId > 0 ? this.query('v1/acgame/catalog', {id: selectedGameId, categoryName: 'all', sortBy: 'items'}) : null,
-		selectedGameId > 0 ? this.query('v1/acgame/resident', {id: selectedGameId}) : null,
-		selectedType === constants.tradingPost.tradeTypes.real ? this.query('v1/catalog', {categoryName: 'all', sortBy: 'items'}) : null,
+		selectedGameId > 0 ? this.query('v1/acgame/catalog', { id: selectedGameId, categoryName: 'all', sortBy: 'items' }) : null,
+		selectedGameId > 0 ? this.query('v1/acgame/resident', { id: selectedGameId }) : null,
+		selectedType === constants.tradingPost.tradeTypes.real ? this.query('v1/catalog', { categoryName: 'all', sortBy: 'items' }) : null,
 	]);
 
-	return {acgames, selectedGameId, acgameCatalog, residents, selectedType, acItemsCatalog};
+	return { acgames, selectedGameId, acgameCatalog, residents, selectedType, acItemsCatalog };
 }
 
 type AddListingPageProps = {
-	acgames: ACGameType[]|null
+	acgames: ACGameType[] | null
 	selectedGameId: number
-	acgameCatalog: ACGameItemType[number]['all']['items']|null
+	acgameCatalog: ACGameItemType[number]['all']['items'] | null
 	residents: ResidentsType[number]
 	selectedType: string
-	acItemsCatalog: ACGameItemType[number]['all']['items']|null
-}
+	acItemsCatalog: ACGameItemType[number]['all']['items'] | null
+};
 
 export default AddListingPage;

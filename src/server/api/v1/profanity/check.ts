@@ -6,7 +6,7 @@ import { APIThisType } from '@types';
 /*
  * Check whether given text contains a filtered word.
  */
-export default async function check(this: APIThisType, {text}: checkProps) : Promise<void>
+export default async function check(this: APIThisType, { text }: checkProps): Promise<void>
 {
 	if (text === null || utils.realStringLength(text) === 0)
 	{
@@ -27,15 +27,16 @@ export default async function check(this: APIThisType, {text}: checkProps) : Pro
 	const startsWith = '(^|\\s)';
 	const endsWith = '(?=\\s|$)';
 
-	const filteredWords = words.filter((fw:any) => {
+	const filteredWords = words.filter((fw: any) =>
+	{
 		const noWildCardWord = fw.word.replaceAll('*', '');
 
 		// checks for (example): hell, *hell, hell*, *hell*
 		if (
-			(fw.word.startsWith('*') && fw.word.endsWith('*') && text.match(RegExp(noWildCardWord, 'i'))) ||
-			(fw.word.startsWith('*') && text.match(RegExp(`${noWildCardWord}${endsWith}`, 'i'))) ||
-			(fw.word.endsWith('*') && text.match(RegExp(`${startsWith}${noWildCardWord}`, 'i'))) ||
-			(!(fw.word.startsWith('*') || fw.word.endsWith('*')) && text.match(RegExp(`${startsWith}${noWildCardWord}${endsWith}`, 'i')))
+			fw.word.startsWith('*') && fw.word.endsWith('*') && text.match(RegExp(noWildCardWord, 'i')) ||
+			fw.word.startsWith('*') && text.match(RegExp(`${noWildCardWord}${endsWith}`, 'i')) ||
+			fw.word.endsWith('*') && text.match(RegExp(`${startsWith}${noWildCardWord}`, 'i')) ||
+			!(fw.word.startsWith('*') || fw.word.endsWith('*')) && text.match(RegExp(`${startsWith}${noWildCardWord}${endsWith}`, 'i'))
 		)
 		{
 			return fw;
@@ -44,11 +45,11 @@ export default async function check(this: APIThisType, {text}: checkProps) : Pro
 
 	if (filteredWords.length > 0)
 	{
-		const uniqueWords = [...new Set(filteredWords.map((fw:any) => fw.word.replaceAll('*', '')))];
+		const uniqueWords = [...new Set(filteredWords.map((fw: any) => fw.word.replaceAll('*', '')))];
 		throw new ProfanityError(uniqueWords.join(', '));
 	}
 }
 
 type checkProps = {
 	text: any
-}
+};

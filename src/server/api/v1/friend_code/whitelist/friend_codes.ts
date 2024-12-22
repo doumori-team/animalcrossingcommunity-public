@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, WhitelistFriendCodesType } from '@types';
 
-async function friend_codes(this: APIThisType, {sortBy, page, gameId, groupBy}: friendCodesProps) : Promise<WhitelistFriendCodesType>
+async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }: friendCodesProps): Promise<WhitelistFriendCodesType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -17,11 +17,11 @@ async function friend_codes(this: APIThisType, {sortBy, page, gameId, groupBy}: 
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	// Perform queries
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
 	let query = `
 		SELECT
@@ -56,7 +56,7 @@ async function friend_codes(this: APIThisType, {sortBy, page, gameId, groupBy}: 
 	`;
 
 	const [friendCodes, games] = await Promise.all([
-		((groupBy === 'game' && gameId != null && gameId > 0) || groupBy === 'all') ? db.query(query, pageSize, offset, this.userId, gameId) : [],
+		groupBy === 'game' && gameId != null && gameId > 0 || groupBy === 'all' ? db.query(query, pageSize, offset, this.userId, gameId) : [],
 		db.query(`
 			SELECT
 				game.id,
@@ -71,24 +71,26 @@ async function friend_codes(this: APIThisType, {sortBy, page, gameId, groupBy}: 
 			JOIN friend_code ON (friend_code.game_id = game.id)
 			WHERE game_console.is_enabled AND game.is_enabled AND friend_code.user_id = $1::int
 			ORDER BY game_console.is_legacy NULLS FIRST, game_console.sequence, game.sequence, game.name
-		`, this.userId)
+		`, this.userId),
 	]);
 
 	return <WhitelistFriendCodesType>{
-		results: await Promise.all(friendCodes.map(async (friendCode:any) => {
-			return this.query('v1/friend_code', {id: friendCode.id})
+		results: await Promise.all(friendCodes.map(async (friendCode: any) =>
+		{
+			return this.query('v1/friend_code', { id: friendCode.id });
 		})),
 		count: friendCodes.length > 0 ? Number(friendCodes[0].count) : 0,
 		page: page,
 		pageSize: pageSize,
-		games: games.map((game:any) => {
+		games: games.map((game: any) =>
+		{
 			return {
 				id: game.id,
 				name: game.name,
 				pattern: game.pattern,
 				placeholder: game.placeholder,
 				consoleName: game.console_name,
-				acGameId: game.acgame_id
+				acGameId: game.acgame_id,
 			};
 		}),
 	};
@@ -114,13 +116,13 @@ friend_codes.apiTypes = {
 		includes: ['all', 'game'],
 		required: true,
 	},
-}
+};
 
 type friendCodesProps = {
 	page: number
 	sortBy: 'username' | 'date'
-	gameId: number|null
+	gameId: number | null
 	groupBy: 'all' | 'game'
-}
+};
 
 export default friend_codes;

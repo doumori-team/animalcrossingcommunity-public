@@ -3,14 +3,14 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, {headerIds}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { headerIds }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		const [status] = await Promise.all([
 			this.query('v1/status'),
@@ -20,7 +20,8 @@ async function save(this: APIThisType, {headerIds}: saveProps) : Promise<Success
 			`, this.userId),
 		]);
 
-		await Promise.all(headerIds.map(async (headerId) => {
+		await Promise.all(headerIds.map(async (headerId) =>
+		{
 			const [siteHeader] = await query(`
 				SELECT permission
 				FROM site_header
@@ -55,10 +56,10 @@ save.apiTypes = {
 	headerIds: {
 		type: APITypes.array,
 	},
-}
+};
 
 type saveProps = {
 	headerIds: any[]
-}
+};
 
 export default save;

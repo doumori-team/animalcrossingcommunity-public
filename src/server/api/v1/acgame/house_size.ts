@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, HouseSizeType } from '@types';
 
-async function house_size(this: APIThisType, {id}: houseSizeProps) : Promise<HouseSizeType[]>
+async function house_size(this: APIThisType, { id }: houseSizeProps): Promise<HouseSizeType[]>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -26,7 +26,7 @@ async function house_size(this: APIThisType, {id}: houseSizeProps) : Promise<Hou
 
 	if (houseSizes)
 	{
-		houseSizes = await Promise.all(houseSizes.map(async (houseSizeObj:any) =>
+		houseSizes = await Promise.all(houseSizes.map(async (houseSizeObj: any) =>
 		{
 			return {
 				groupId: houseSizeObj.id,
@@ -52,10 +52,10 @@ house_size.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type houseSizeProps = {
 	id: number
-}
+};
 
 export default house_size;

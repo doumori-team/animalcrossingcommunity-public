@@ -7,7 +7,7 @@ import { APIThisType, TicketType, SupportTicketType } from '@types';
 
 const TicketsPage = () =>
 {
-	const {tickets, supportTickets} = useLoaderData() as TicketsPageProps;
+	const { tickets, supportTickets } = useLoaderData() as TicketsPageProps;
 
 	return (
 		<div className='TicketsPage'>
@@ -44,7 +44,7 @@ const TicketsPage = () =>
 							<div className='TicketsPage_ticketDate'>
 								Date: {ticket.formattedClosed}
 							</div>
-						</div>
+						</div>,
 					)}
 				</Grid>
 			</Section>
@@ -62,13 +62,13 @@ const TicketsPage = () =>
 							<div className='TicketsPage_ticketDate'>
 								Date: {ticket.formattedCreated}
 							</div>
-						</div>
+						</div>,
 					)}
 				</Grid>
 			</Section>
 		</div>
 	);
-}
+};
 
 export async function loadData(this: APIThisType)
 {
@@ -77,12 +77,12 @@ export async function loadData(this: APIThisType)
 		this.query('v1/users/support_tickets'),
 	]);
 
-	return {tickets, supportTickets};
+	return { tickets, supportTickets };
 }
 
 type TicketsPageProps = {
 	tickets: TicketType[]
 	supportTickets: SupportTicketType[]
-}
+};
 
 export default TicketsPage;

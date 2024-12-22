@@ -1,6 +1,6 @@
 import React from 'react';
 
-import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
 import { constants } from '@utils';
 import { EmojiSettingType, ElementClickButtonType } from '@types';
 
@@ -11,15 +11,18 @@ const EmojiButton = ({
 	keyHint,
 	icon,
 	type,
-	emojiSettings
+	emojiSettings,
 }: EmojiButtonProps) =>
 {
 	const tooltip = keyHint ? `${name} (${keyHint})` : name;
 
 	const interactivityAttributes =
 		tag ?
-			{ onClick: (event:ElementClickButtonType) => {event.preventDefault(); clickHandler(tag);} }
-		:
+			{ onClick: (event: ElementClickButtonType) =>
+			{
+				event.preventDefault(); clickHandler(tag);
+			} }
+			:
 			{ disabled: true }
 	;
 
@@ -37,12 +40,13 @@ const EmojiButton = ({
 
 	return (
 		<button className='EmojiButton'
-				title={tooltip}
-				{...interactivityAttributes}>
+			title={tooltip}
+			{...interactivityAttributes}
+		>
 			<img src={`${constants.AWS_URL}/images/emoji/${src}${icon}.png`} alt={name} />
 		</button>
 	);
-}
+};
 
 type EmojiButtonProps = {
 	tag: string
@@ -53,7 +57,7 @@ type EmojiButtonProps = {
 	keyHint?: string // name of the tag, displayed on hover
 	icon: string // keypress (if any) to , displayed on hover
 	type: string // name of image to show on the button
-	emojiSettings: EmojiSettingType[]|undefined // type from emoji.json
+	emojiSettings: EmojiSettingType[] | undefined // type from emoji.json
 };
 
 export default EmojiButton;

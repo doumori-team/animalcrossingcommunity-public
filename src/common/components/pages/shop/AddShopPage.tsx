@@ -9,7 +9,7 @@ import { APIThisType, ACGameType } from '@types';
 
 const AddShopPage = () =>
 {
-	const {acgames} = useLoaderData() as AddShopPageProps;
+	const { acgames } = useLoaderData() as AddShopPageProps;
 
 	return (
 		<div className='AddShopPage'>
@@ -31,19 +31,19 @@ const AddShopPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddShopPageProps>
+export async function loadData(this: APIThisType): Promise<AddShopPageProps>
 {
 	const [acgames] = await Promise.all([
 		this.query('v1/acgames'),
 	]);
 
-	return {acgames};
+	return { acgames };
 }
 
 type AddShopPageProps = {
 	acgames: ACGameType[]
-}
+};
 
 export default AddShopPage;

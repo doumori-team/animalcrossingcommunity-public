@@ -17,7 +17,7 @@ import React, { useState, useEffect } from 'react';
  */
 const RequireClientJS = ({
 	children,
-	fallback
+	fallback,
 }: RequireClientJSProps) =>
 {
 	const [clientActive, setClientActive] = useState<boolean>(false);
@@ -25,7 +25,7 @@ const RequireClientJS = ({
 	useEffect(() =>
 	{
 		setClientActive(true);
-	}, [])
+	}, []);
 
 	if (clientActive)
 	{
@@ -35,7 +35,7 @@ const RequireClientJS = ({
 	{
 		return fallback || null;
 	}
-}
+};
 
 type RequireClientJSProps = {
 	children?: React.ReactNode

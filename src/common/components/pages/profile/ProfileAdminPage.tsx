@@ -10,8 +10,8 @@ import { APIThisType, PermissionType, UserGroupType, BanLengthType, UserType } f
 
 const ProfileAdminPage = () =>
 {
-	const {permissions, userGroups, banLength} = useLoaderData() as ProfileAdminPageProps;
-	const {user} = useOutletContext() as {user: UserType};
+	const { permissions, userGroups, banLength } = useLoaderData() as ProfileAdminPageProps;
+	const { user } = useOutletContext() as { user: UserType };
 
 	return (
 		<RequirePermission permission='process-user-tickets'>
@@ -58,40 +58,40 @@ const ProfileAdminPage = () =>
 								label='User Group'
 								value={user.group.id}
 								options={userGroups}
-								optionsMapping={{value: 'id', label: 'name'}}
+								optionsMapping={{ value: 'id', label: 'name' }}
 								key={user.group.id}
 							/>
 						</Form.Group>
 					</Form>
 
-					{permissions != null && (
+					{permissions != null &&
 						<Permission
 							permissions={permissions}
 							id={user.id}
 							action='v1/admin/users/permission/save'
 						/>
-					)}
+					}
 				</RequirePermission>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ProfileAdminPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileAdminPageProps>
 {
 	const [permissions, userGroups, banLength] = await Promise.all([
-		this.query('v1/users/permissions', {id}),
+		this.query('v1/users/permissions', { id }),
 		this.query('v1/user_groups'),
-		this.query('v1/users/ban_length', {id}),
+		this.query('v1/users/ban_length', { id }),
 	]);
 
-	return {permissions, userGroups, banLength};
+	return { permissions, userGroups, banLength };
 }
 
 type ProfileAdminPageProps = {
-	permissions: PermissionType|null
+	permissions: PermissionType | null
 	userGroups: UserGroupType[]
-	banLength: BanLengthType|null
-}
+	banLength: BanLengthType | null
+};
 
 export default ProfileAdminPage;

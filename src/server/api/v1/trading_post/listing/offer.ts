@@ -6,9 +6,9 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, OfferType, ACGameItemType } from '@types';
 
-async function offer(this: APIThisType, {id}: offerProps) : Promise<OfferType>
+async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -55,7 +55,7 @@ async function offer(this: APIThisType, {id}: offerProps) : Promise<OfferType>
 		throw new UserError('no-such-offer');
 	}
 
-	let catalogItems:ACGameItemType[number]['all']['items'] = [], realCatalogItems:ACGameItemType[number]['all']['items'] = [];
+	let catalogItems: ACGameItemType[number]['all']['items'] = [], realCatalogItems: ACGameItemType[number]['all']['items'] = [];
 
 	// some older ACC 1 trades allowed GC-Real World
 	if (offer.game_id === constants.gameIds.ACGC || !offer.game_id)
@@ -80,7 +80,7 @@ async function offer(this: APIThisType, {id}: offerProps) : Promise<OfferType>
 			FROM listing_offer_catalog_item
 			WHERE listing_offer_catalog_item.listing_offer_id = $1::int
 		`, offer.id),
-		this.userId ? this.query('v1/users/bio', {id: offer.user_id}) : null,
+		this.userId ? this.query('v1/users/bio', { id: offer.user_id }) : null,
 		db.query(`
 			SELECT
 				listing_offer.user_id
@@ -93,12 +93,12 @@ async function offer(this: APIThisType, {id}: offerProps) : Promise<OfferType>
 			FROM listing_offer_resident
 			WHERE listing_offer_resident.listing_offer_id = $1::int
 		`, offer.id),
-		this.query('v1/user', {id: offer.user_id}),
-		this.query('v1/users/ratings', {id: offer.user_id}),
-		offer.rating_id ? this.query('v1/rating', {id: offer.rating_id}) : null,
+		this.query('v1/user', { id: offer.user_id }),
+		this.query('v1/users/ratings', { id: offer.user_id }),
+		offer.rating_id ? this.query('v1/rating', { id: offer.rating_id }) : null,
 	]);
 
-	let character:any = null;
+	let character: any = null;
 
 	if (offer.character_id > 0)
 	{
@@ -112,35 +112,36 @@ async function offer(this: APIThisType, {id}: offerProps) : Promise<OfferType>
 		};
 	}
 
-	var address:string|null = null;
+	let address: string | null = null;
 
 	// if Offer Accepted and user is the offer's user
 	// OR if In Progress and user is listing's user OR offer's user
-	if ((offer.listing_status === listingStatuses.offerAccepted && this.userId === offer.user_id) ||
-		(offer.listing_status === listingStatuses.inProgress &&
-			(this.userId === offerAccepted?.user_id || this.userId === offer.creator_id)))
+	if (offer.listing_status === listingStatuses.offerAccepted && this.userId === offer.user_id ||
+		offer.listing_status === listingStatuses.inProgress &&
+			(this.userId === offerAccepted?.user_id || this.userId === offer.creator_id))
 	{
 		address = (await accounts.getUserData(offer.user_id)).address;
 	}
 
-	const offerResidentIds = offerResidents.map((or:any) => or.resident_id);
+	const offerResidentIds = offerResidents.map((or: any) => or.resident_id);
 
 	return <OfferType>{
 		id: offer.id,
-		sequence: Number(offer.sequence)-1,
-		user: {...user, ...userRatings},
+		sequence: Number(offer.sequence) - 1,
+		user: { ...user, ...userRatings },
 		formattedDate: dateUtils.formatDateTime(offer.created),
 		status: offer.status,
 		bells: Number(offer.bells),
-		items: items.map((item:any) => {
+		items: items.map((item: any) =>
+		{
 			return {
 				id: item.catalog_item_id,
 				quantity: item.quantity,
 				secretCode: item.secret_code,
-				name: catalogItems.concat(realCatalogItems).find((ci:any) => ci.id === item.catalog_item_id)?.name,
+				name: catalogItems.concat(realCatalogItems).find((ci: any) => ci.id === item.catalog_item_id)?.name,
 			};
 		}),
-		residents: offerResidentIds.length === 0 ? [] : (await ACCCache.get(constants.cacheKeys.residents))[offer.game_id].filter((r:any) => offerResidentIds.includes(r.id)),
+		residents: offerResidentIds.length === 0 ? [] : (await ACCCache.get(constants.cacheKeys.residents))[offer.game_id].filter((r: any) => offerResidentIds.includes(r.id)),
 		comment: offer.comment,
 		rating: rating,
 		character: character,
@@ -158,10 +159,10 @@ offer.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type offerProps = {
 	id: number
-}
+};
 
 export default offer;

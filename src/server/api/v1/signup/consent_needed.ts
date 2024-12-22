@@ -5,7 +5,7 @@ import { UserError } from '@errors';
 import * as db from '@db';
 import { APIThisType, SuccessType } from '@types';
 
-async function consent_needed(this: APIThisType, {id, email}: consentNeededProps) : Promise<SuccessType>
+async function consent_needed(this: APIThisType, { id, email }: consentNeededProps): Promise<SuccessType>
 {
 	if (this.userId)
 	{
@@ -46,10 +46,10 @@ async function consent_needed(this: APIThisType, {id, email}: consentNeededProps
 	return {
 		_success: 'We have sent your parent / guardian an email. If they give us permission, we will give them instructions to help you finish signing up.',
 		_useCallback: true,
-	}
+	};
 }
 
-function getEmailText(id:string, age:number, orgEmail:string) : string
+function getEmailText(id: string, age: number, orgEmail: string): string
 {
 	const vbnewline = '<br/>';
 
@@ -88,7 +88,7 @@ function getEmailText(id:string, age:number, orgEmail:string) : string
 
 	email += `Note: This is a one-time email as a result of your child requesting consent with ACC. You will not receive additional emails from ACC unless your child makes additional requests for consent, or if you decide to give consent, in which we will send one additional email to complete the process.`;
 
-	return '<span style="font-family: Verdana; font-size: 11px;">'+origSendTo+email+'</span>';
+	return '<span style="font-family: Verdana; font-size: 11px;">' + origSendTo + email + '</span>';
 }
 
 consent_needed.apiTypes = {
@@ -103,11 +103,11 @@ consent_needed.apiTypes = {
 		profanity: true,
 		required: true,
 	},
-}
+};
 
 type consentNeededProps = {
 	id: string
 	email: string
-}
+};
 
 export default consent_needed;

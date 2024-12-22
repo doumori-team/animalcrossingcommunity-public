@@ -4,7 +4,7 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, UserDonationsType } from '@types';
 
-async function donations(this: APIThisType, {id}: donationsType) : Promise<UserDonationsType>
+async function donations(this: APIThisType, { id }: donationsType): Promise<UserDonationsType>
 {
 	const currentUser = this.userId === id;
 	let viewProfiles = true, accForumsPerm = true;
@@ -12,8 +12,8 @@ async function donations(this: APIThisType, {id}: donationsType) : Promise<UserD
 	if (!currentUser)
 	{
 		[viewProfiles, accForumsPerm] = await Promise.all([
-			this.query('v1/permission', {permission: 'view-profiles'}),
-			this.query('v1/node/permission', {permission: 'read', nodeId: constants.boardIds.accForums}),
+			this.query('v1/permission', { permission: 'view-profiles' }),
+			this.query('v1/node/permission', { permission: 'read', nodeId: constants.boardIds.accForums }),
 		]);
 
 		if (!(viewProfiles || accForumsPerm))
@@ -23,7 +23,7 @@ async function donations(this: APIThisType, {id}: donationsType) : Promise<UserD
 	}
 
 	const [
-		[donations], [perks], [monthlyPerks]
+		[donations], [perks], [monthlyPerks],
 	] = await Promise.all([
 		db.query(`
 			SELECT COALESCE(sum(donation), 0) AS donations
@@ -56,10 +56,10 @@ donations.apiTypes = {
 		type: APITypes.userId,
 		default: true,
 	},
-}
+};
 
 type donationsType = {
 	id: number
-}
+};
 
 export default donations;

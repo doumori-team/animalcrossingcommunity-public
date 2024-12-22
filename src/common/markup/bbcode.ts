@@ -1,14 +1,14 @@
 import { escapeHtml, stringAt } from './utils.ts';
-import emojiDefs from 'common/markup/emoji.json' assert { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
 import { convertForUrl } from 'common/utils/utils.ts';
 import * as constants from 'common/utils/constants.ts';
 import { regexes } from 'common/utils/constants.ts';
 import { EmojiSettingType, UserType } from '@types';
 
 type BBCodeThisType = {
-	currentUser: UserType|null
-	emojiSettings: EmojiSettingType[]|undefined
-}
+	currentUser: UserType | null
+	emojiSettings: EmojiSettingType[] | undefined
+};
 
 const TOKENS = {
 	PLAINTEXT: Symbol('plaintext'),
@@ -85,12 +85,12 @@ const TOKENS = {
 	FEEDBACK_POSITIVE: 'feedback_positive',
 	FEEDBACK_NEGATIVE: 'feedback_negative',
 	FEEDBACK_NEUTRAL: 'feedback_neutral',
-}
+};
 
 const LEXEMES = {
 	// The specification here that the match for spaces should be case-insensitive is a holdover from ACC1.
 	// It doesn't actually do anything, obviously, but I think it's hilarious.
-	[TOKENS.DOUBLE_SPACE]: /  /i,
+	[TOKENS.DOUBLE_SPACE]: / {2}/i,
 	[TOKENS.LINE_BREAK]: /\r?\n/,
 	[TOKENS.BOLD_START]: /\[b\]/,
 	[TOKENS.BOLD_END]: /\[\/b\]/,
@@ -105,9 +105,9 @@ const LEXEMES = {
 	[TOKENS.BLOCK_START]: /\[bl\]/,
 	[TOKENS.BLOCK_END]: /\[\/bl\]/,
 	[TOKENS.HORIZONTAL_RULE]: /\[hr\](?:\[\/hr\])?/,
-	[TOKENS.LINK_START]: /\[link=([^\[]*)\]/,
+	[TOKENS.LINK_START]: /\[link=([^[]*)\]/,
 	[TOKENS.LINK_END]: /\[\/link\]/,
-	[TOKENS.COLOUR_START]: /\[colou?r=([^\[]*)\]/,
+	[TOKENS.COLOUR_START]: /\[colou?r=([^[]*)\]/,
 	[TOKENS.COLOUR_END]: /\[\/colou?r\]/,
 	[TOKENS.SPOILER_START]: /\[spoiler\]/,
 	[TOKENS.SPOILER_END]: /\[\/spoiler\]/,
@@ -115,24 +115,24 @@ const LEXEMES = {
 	[TOKENS.CODE_START]: /\[code\]/,
 	[TOKENS.CODE_END]: /\[\/code\]/,
 	// EMOTES START
-	[TOKENS.SMILE]: /:\)|\<:\)|\[face_happy\]|\[fface_happy\]/,
-	[TOKENS.FROWNING_FACE]: /:\(|\<:\(|\[face_sad\]|\[fface_sad\]/,
-	[TOKENS.GRIN]: /:D|\<:D|\[face_grin\]|\[fface_grin\]/,
-	[TOKENS.SMILING_FACE_WITH_TWO_HEARTS]: /:x|\<:x|\[face_love\]|\[fface_love\]/,
-	[TOKENS.SHIFTY]: /;\\|\<;\\|\[face_mischief\]|\[fface_mischief\]/,
-	[TOKENS.SUNGLASSES]: /B-\)|\<B-\)|\[face_cool\]|\[fface_cool\]/,
-	[TOKENS.SMILING_IMP]: /]:\)|\<]:\)|\[face_devil\]|\[fface_devil\]/,
-	[TOKENS.STUCK_OUT_TONGUE]: /:p|\<:p|\:P|\<:P|\[face_silly\]|\[fface_silly\]/,
-	[TOKENS.RAGE]: /X-\(|\<X-\(|\[face_angry\]|\[fface_angry\]/,
-	[TOKENS.LAUGHING]: /:\^O|\<:\^O|\[face_laugh\]|\[fface_laugh\]/,
-	[TOKENS.WINK]: /;\)|\<;\)|\[face_wink\]|\[fface_wink\]/,
-	[TOKENS.BLUSH]: /:8}|\<:8}|\[face_blush\]|\[fface_blush\]/,
-	[TOKENS.CRY]: /:_\||\<:_\||\[face_cry\]|\[fface_cry\]/,
-	[TOKENS.CONFUSED]: /\?:\||\<\?:\||\[face_confused\]|\[fface_confused\]/,
-	[TOKENS.ASTONISHED]: /:O|\<:O|\[face_shocked\]|\[fface_shocked\]/,
-	[TOKENS.NEUTRAL_FACE]: /:\||\<:\||\[face_plain\]|\[fface_plain\]/,
-	[TOKENS.NAUSEATED_FACE]: /:&|\<:&|\[face_sick\]|\[fface_sick\]/,
-	[TOKENS.ROLL_EYES]: /:'|\<:'|\[face_rolleyes\]|\[fface_rolleyes\]/,
+	[TOKENS.SMILE]: /:\)|<:\)|\[face_happy\]|\[fface_happy\]/,
+	[TOKENS.FROWNING_FACE]: /:\(|<:\(|\[face_sad\]|\[fface_sad\]/,
+	[TOKENS.GRIN]: /:D|<:D|\[face_grin\]|\[fface_grin\]/,
+	[TOKENS.SMILING_FACE_WITH_TWO_HEARTS]: /:x|<:x|\[face_love\]|\[fface_love\]/,
+	[TOKENS.SHIFTY]: /;\\|<;\\|\[face_mischief\]|\[fface_mischief\]/,
+	[TOKENS.SUNGLASSES]: /B-\)|<B-\)|\[face_cool\]|\[fface_cool\]/,
+	[TOKENS.SMILING_IMP]: /]:\)|<]:\)|\[face_devil\]|\[fface_devil\]/,
+	[TOKENS.STUCK_OUT_TONGUE]: /:p|<:p|:P|<:P|\[face_silly\]|\[fface_silly\]/,
+	[TOKENS.RAGE]: /X-\(|<X-\(|\[face_angry\]|\[fface_angry\]/,
+	[TOKENS.LAUGHING]: /:\^O|<:\^O|\[face_laugh\]|\[fface_laugh\]/,
+	[TOKENS.WINK]: /;\)|<;\)|\[face_wink\]|\[fface_wink\]/,
+	[TOKENS.BLUSH]: /:8}|<:8}|\[face_blush\]|\[fface_blush\]/,
+	[TOKENS.CRY]: /:_\||<:_\||\[face_cry\]|\[fface_cry\]/,
+	[TOKENS.CONFUSED]: /\?:\||<\?:\||\[face_confused\]|\[fface_confused\]/,
+	[TOKENS.ASTONISHED]: /:O|<:O|\[face_shocked\]|\[fface_shocked\]/,
+	[TOKENS.NEUTRAL_FACE]: /:\||<:\||\[face_plain\]|\[fface_plain\]/,
+	[TOKENS.NAUSEATED_FACE]: /:&|<:&|\[face_sick\]|\[fface_sick\]/,
+	[TOKENS.ROLL_EYES]: /:'|<:'|\[face_rolleyes\]|\[fface_rolleyes\]/,
 	[TOKENS.RESETTI]: /\(X0|\[ac_resetti\]/,
 	[TOKENS.BLANCA]: /:#|\[ac_blanca\]/,
 	[TOKENS.GYROID]: /{\|=0|\[ac_gyroid\]/,
@@ -163,7 +163,7 @@ const LEXEMES = {
 	[TOKENS.FEEDBACK_POSITIVE]: /\[acc_positive\]/,
 	[TOKENS.FEEDBACK_NEGATIVE]: /\[acc_negative\]/,
 	[TOKENS.FEEDBACK_NEUTRAL]: /\[acc_neutral\]/,
-}
+};
 
 // The parameters to these functions are the same as the yield values of *lexer()
 // (other than the token ID itself).
@@ -184,7 +184,8 @@ const PARSERS = {
 	[TOKENS.BLOCK_START]: () => '<blockquote>',
 	[TOKENS.BLOCK_END]: () => '</blockquote>',
 	[TOKENS.HORIZONTAL_RULE]: () => '<hr>',
-	[TOKENS.LINK_START]: (_:any, url:string) => {
+	[TOKENS.LINK_START]: (_: any, url: string) =>
+	{
 		if (!url)
 		{
 			return '';
@@ -202,11 +203,12 @@ const PARSERS = {
 		return `<a href="/leaving?url=${url}">`;
 	},
 	[TOKENS.LINK_END]: () => '</a>',
-	[TOKENS.COLOUR_START]: (_:any, color:string) => `<font color="${color}">`,
+	[TOKENS.COLOUR_START]: (_: any, color: string) => `<font color="${color}">`,
 	[TOKENS.COLOUR_END]: () => '</font>',
 	[TOKENS.SPOILER_START]: () => '<span class="spoiler">',
 	[TOKENS.SPOILER_END]: () => '</span>',
-	[TOKENS.USER_TAG]: function (_:any, username:string) {
+	[TOKENS.USER_TAG]: function (_: any, username: string)
+	{
 		if (this.currentUser)
 		{
 			return `<a href="/profile/${convertForUrl(username)}">@${username}</a>`;
@@ -217,55 +219,199 @@ const PARSERS = {
 	[TOKENS.CODE_START]: () => '',
 	[TOKENS.CODE_END]: () => '',
 	// EMOTES START
-	[TOKENS.SMILE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SMILE); },
-	[TOKENS.FROWNING_FACE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.FROWNING_FACE); },
-	[TOKENS.GRIN]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.GRIN); },
-	[TOKENS.SMILING_FACE_WITH_TWO_HEARTS]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SMILING_FACE_WITH_TWO_HEARTS); },
-	[TOKENS.SHIFTY]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SHIFTY); },
-	[TOKENS.SUNGLASSES]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SUNGLASSES); },
-	[TOKENS.SMILING_IMP]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SMILING_IMP); },
-	[TOKENS.STUCK_OUT_TONGUE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.STUCK_OUT_TONGUE); },
-	[TOKENS.RAGE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.RAGE); },
-	[TOKENS.LAUGHING]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.LAUGHING); },
-	[TOKENS.WINK]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.WINK); },
-	[TOKENS.BLUSH]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.BLUSH); },
-	[TOKENS.CRY]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.CRY); },
-	[TOKENS.CONFUSED]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.CONFUSED); },
-	[TOKENS.ASTONISHED]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.ASTONISHED); },
-	[TOKENS.NEUTRAL_FACE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.NEUTRAL_FACE); },
-	[TOKENS.NAUSEATED_FACE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.NAUSEATED_FACE); },
-	[TOKENS.ROLL_EYES]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.ROLL_EYES); },
-	[TOKENS.RESETTI]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.RESETTI); },
-	[TOKENS.BLANCA]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.BLANCA); },
-	[TOKENS.GYROID]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.GYROID); },
-	[TOKENS.SERENA]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SERENA); },
-	[TOKENS.KK]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.KK); },
-	[TOKENS.NAT]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.NAT); },
-	[TOKENS.OWNER]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.OWNER); },
-	[TOKENS.ADMIN]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.ADMIN); },
-	[TOKENS.MOD]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.MOD); },
-	[TOKENS.SCOUT]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.SCOUT); },
-	[TOKENS.RESEARCHER]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.RESEARCHER); },
-	[TOKENS.DEV]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.DEV); },
-	[TOKENS.HC]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.HC); },
-	[TOKENS.BIRTHDAY]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.BIRTHDAY); },
-	[TOKENS.NEWBIE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.NEWBIE); },
-	[TOKENS.BUDDY]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.BUDDY); },
-	[TOKENS.UNFLAG]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.UNFLAG); },
-	[TOKENS.FLAG]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.FLAG); },
-	[TOKENS.EDIT]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.EDIT); },
-	[TOKENS.MESSAGE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.MESSAGE); },
-	[TOKENS.REPORT]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.REPORT); },
-	[TOKENS.IDEA]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.IDEA); },
-	[TOKENS.TRADE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.TRADE); },
-	[TOKENS.WIFI]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.WIFI); },
-	[TOKENS.LOCK]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.LOCK); },
-	[TOKENS.STICKY]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.STICKY); },
-	[TOKENS.HELP_BUTTON]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.HELP_BUTTON); },
-	[TOKENS.FEEDBACK_POSITIVE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.FEEDBACK_POSITIVE); },
-	[TOKENS.FEEDBACK_NEGATIVE]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.FEEDBACK_NEGATIVE); },
-	[TOKENS.FEEDBACK_NEUTRAL]: function (this: BBCodeThisType) { return getEmojiSrc(this.emojiSettings, TOKENS.FEEDBACK_NEUTRAL); },
-}
+	[TOKENS.SMILE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SMILE);
+	},
+	[TOKENS.FROWNING_FACE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.FROWNING_FACE);
+	},
+	[TOKENS.GRIN]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.GRIN);
+	},
+	[TOKENS.SMILING_FACE_WITH_TWO_HEARTS]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SMILING_FACE_WITH_TWO_HEARTS);
+	},
+	[TOKENS.SHIFTY]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SHIFTY);
+	},
+	[TOKENS.SUNGLASSES]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SUNGLASSES);
+	},
+	[TOKENS.SMILING_IMP]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SMILING_IMP);
+	},
+	[TOKENS.STUCK_OUT_TONGUE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.STUCK_OUT_TONGUE);
+	},
+	[TOKENS.RAGE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.RAGE);
+	},
+	[TOKENS.LAUGHING]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.LAUGHING);
+	},
+	[TOKENS.WINK]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.WINK);
+	},
+	[TOKENS.BLUSH]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.BLUSH);
+	},
+	[TOKENS.CRY]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.CRY);
+	},
+	[TOKENS.CONFUSED]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.CONFUSED);
+	},
+	[TOKENS.ASTONISHED]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.ASTONISHED);
+	},
+	[TOKENS.NEUTRAL_FACE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.NEUTRAL_FACE);
+	},
+	[TOKENS.NAUSEATED_FACE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.NAUSEATED_FACE);
+	},
+	[TOKENS.ROLL_EYES]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.ROLL_EYES);
+	},
+	[TOKENS.RESETTI]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.RESETTI);
+	},
+	[TOKENS.BLANCA]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.BLANCA);
+	},
+	[TOKENS.GYROID]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.GYROID);
+	},
+	[TOKENS.SERENA]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SERENA);
+	},
+	[TOKENS.KK]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.KK);
+	},
+	[TOKENS.NAT]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.NAT);
+	},
+	[TOKENS.OWNER]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.OWNER);
+	},
+	[TOKENS.ADMIN]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.ADMIN);
+	},
+	[TOKENS.MOD]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.MOD);
+	},
+	[TOKENS.SCOUT]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.SCOUT);
+	},
+	[TOKENS.RESEARCHER]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.RESEARCHER);
+	},
+	[TOKENS.DEV]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.DEV);
+	},
+	[TOKENS.HC]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.HC);
+	},
+	[TOKENS.BIRTHDAY]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.BIRTHDAY);
+	},
+	[TOKENS.NEWBIE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.NEWBIE);
+	},
+	[TOKENS.BUDDY]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.BUDDY);
+	},
+	[TOKENS.UNFLAG]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.UNFLAG);
+	},
+	[TOKENS.FLAG]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.FLAG);
+	},
+	[TOKENS.EDIT]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.EDIT);
+	},
+	[TOKENS.MESSAGE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.MESSAGE);
+	},
+	[TOKENS.REPORT]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.REPORT);
+	},
+	[TOKENS.IDEA]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.IDEA);
+	},
+	[TOKENS.TRADE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.TRADE);
+	},
+	[TOKENS.WIFI]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.WIFI);
+	},
+	[TOKENS.LOCK]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.LOCK);
+	},
+	[TOKENS.STICKY]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.STICKY);
+	},
+	[TOKENS.HELP_BUTTON]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.HELP_BUTTON);
+	},
+	[TOKENS.FEEDBACK_POSITIVE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.FEEDBACK_POSITIVE);
+	},
+	[TOKENS.FEEDBACK_NEGATIVE]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.FEEDBACK_NEGATIVE);
+	},
+	[TOKENS.FEEDBACK_NEUTRAL]: function (this: BBCodeThisType)
+	{
+		return getEmojiSrc(this.emojiSettings, TOKENS.FEEDBACK_NEUTRAL);
+	},
+};
 
 const TAG_PAIRINGS = new Map([
 	[TOKENS.BOLD_END, TOKENS.BOLD_START],
@@ -292,13 +438,13 @@ const PAIRED_TAGS = [...TAG_PAIRINGS.values()];
 // [TOKENS.BOLD_START, '[b]']
 // [TOKENS.LINK_START, '[link=https://example.com/]', 'https://example.com/']
 // These arrays are used as arguments to the parser functions above.
-function *lexer(text:string)
+function *lexer(text: string)
 {
 	let unmatched = '';
 	const tokenCount = {}; // State used to keep track of opening/closing tags and insert missing ones
 	let ignoringBreaks = false; // State used to ignore line breaks immediately after a closing [/bq]
 
-	for (var i = 0; i < text.length; i++)
+	for (let i = 0; i < text.length; i++)
 	{
 		const char = text.charAt(i);
 
@@ -342,7 +488,7 @@ function *lexer(text:string)
 
 			if (matches)
 			{
-				let endIsNonWordChar = null, lastCharacter:string|undefined = '';
+				let endIsNonWordChar = null, lastCharacter: string | undefined = '';
 
 				if (token === TOKENS.USER_TAG)
 				{
@@ -354,7 +500,7 @@ function *lexer(text:string)
 					if (!endIsNonWordChar)
 					{
 						// if text hasn't ended yet, check if we're at the end of the text
-						if ((i+1) !== text.length)
+						if (i + 1 !== text.length)
 						{
 							// we aren't, keep matching
 							break;
@@ -447,7 +593,7 @@ function *lexer(text:string)
 	}
 }
 
-function getEmojiSrc(emojiSettings: EmojiSettingType[]|undefined, markup:any) : string
+function getEmojiSrc(emojiSettings: EmojiSettingType[] | undefined, markup: any): string
 {
 	const defs = { ...emojiDefs[0], ...emojiDefs[1] };
 
@@ -466,13 +612,13 @@ function getEmojiSrc(emojiSettings: EmojiSettingType[]|undefined, markup:any) : 
 	return `<img src='${constants.AWS_URL}/images/emoji/${src}${(defs as any)[markup]}.png' />`;
 }
 
-export default function parser(input:any, options:any, html:any = false)
+export default function parser(input: any, options: any, html: any = false)
 {
 	const output = [];
 
 	for (let [token, ...matches] of lexer(input))
 	{
-		output.push(PARSERS[token as any] ? PARSERS[token as any].apply(options, matches as any) : (html ? matches[0] : escapeHtml((matches as any)[0])));
+		output.push(PARSERS[token as any] ? PARSERS[token as any].apply(options, matches as any) : html ? matches[0] : escapeHtml((matches as any)[0]));
 	}
 
 	return output.join('');

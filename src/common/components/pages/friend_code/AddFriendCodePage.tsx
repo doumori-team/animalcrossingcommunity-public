@@ -8,7 +8,7 @@ import { APIThisType, CharacterType, GamesType } from '@types';
 
 const AddFriendCodePage = () =>
 {
-	const {games, characters} = useLoaderData() as AddFriendCodePageProps;
+	const { games, characters } = useLoaderData() as AddFriendCodePageProps;
 
 	return (
 		<div className='AddFriendCodePage'>
@@ -22,21 +22,21 @@ const AddFriendCodePage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddFriendCodePageProps>
+export async function loadData(this: APIThisType): Promise<AddFriendCodePageProps>
 {
 	const [games, characters] = await Promise.all([
 		this.query('v1/games'),
 		this.query('v1/users/characters'),
 	]);
 
-	return {games, characters};
+	return { games, characters };
 }
 
 type AddFriendCodePageProps = {
 	games: GamesType[]
 	characters: CharacterType[]
-}
+};
 
 export default AddFriendCodePage;

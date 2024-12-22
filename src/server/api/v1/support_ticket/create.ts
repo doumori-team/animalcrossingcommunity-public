@@ -4,9 +4,9 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserLiteType, BanLengthType, MarkupStyleType } from '@types';
 
-async function create(this: APIThisType, {title, message, username, staffOnly, banLengthId, userTicketId, format}: createProps) : Promise<{id: number}>
+async function create(this: APIThisType, { title, message, username, staffOnly, banLengthId, userTicketId, format }: createProps): Promise<{ id: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'submit-support-tickets'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'submit-support-tickets' });
 
 	if (!permissionGranted)
 	{
@@ -19,11 +19,11 @@ async function create(this: APIThisType, {title, message, username, staffOnly, b
 	}
 
 	// Check parameters
-	const user:UserLiteType = await this.query('v1/user_lite', {id: this.userId});
+	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
 	let userId = this.userId;
 
-	const processSupportTickets:boolean = await this.query('v1/permission', {permission: 'process-support-tickets'});
+	const processSupportTickets: boolean = await this.query('v1/permission', { permission: 'process-support-tickets' });
 
 	if (processSupportTickets)
 	{
@@ -56,7 +56,7 @@ async function create(this: APIThisType, {title, message, username, staffOnly, b
 			}
 
 			// only record ban length if it changed
-			const currentBan:BanLengthType|null = await this.query('v1/users/ban_length', {id: userId});
+			const currentBan: BanLengthType | null = await this.query('v1/users/ban_length', { id: userId });
 
 			if (currentBan)
 			{
@@ -84,7 +84,7 @@ async function create(this: APIThisType, {title, message, username, staffOnly, b
 	}
 
 	// Perform queries
-	const supportTicketId = await db.transaction(async (query:any) =>
+	const supportTicketId = await db.transaction(async (query: any) =>
 	{
 		const [supportTicket] = await query(`
 			INSERT INTO support_ticket (title, user_id, user_ticket_id, ban_length_id, staff_only) VALUES
@@ -103,14 +103,14 @@ async function create(this: APIThisType, {title, message, username, staffOnly, b
 			WHERE id = $2::int
 		`, banLengthId, userId);
 
-		return supportTicket.id
+		return supportTicket.id;
 	});
 
 	if (!staffOnly)
 	{
 		await this.query('v1/notification/create', {
 			id: supportTicketId,
-			type: constants.notification.types.supportTicketProcessed
+			type: constants.notification.types.supportTicketProcessed,
 		});
 	}
 
@@ -154,16 +154,16 @@ create.apiTypes = {
 		includes: ['markdown', 'bbcode', 'plaintext'],
 		required: true,
 	},
-}
+};
 
 type createProps = {
 	title: string
 	message: string
 	username: string
 	staffOnly: boolean
-	banLengthId: number|null
-	userTicketId: number|null
+	banLengthId: number | null
+	userTicketId: number | null
 	format: MarkupStyleType
-}
+};
 
 export default create;

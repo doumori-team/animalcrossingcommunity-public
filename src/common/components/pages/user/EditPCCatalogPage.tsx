@@ -8,7 +8,7 @@ import { APIThisType, CatalogItemsType, UserCatalogCategoryType, GroupItemType }
 
 const EditPCCatalogPage = () =>
 {
-	const {catalogItems, catalog, by, category, userId, catalogCategories, name} = useLoaderData() as EditPCCatalogPageProps;
+	const { catalogItems, catalog, by, category, userId, catalogCategories, name } = useLoaderData() as EditPCCatalogPageProps;
 
 	return (
 		<RequirePermission permission='modify-user-catalog'>
@@ -27,9 +27,9 @@ const EditPCCatalogPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {by, name, category}: {by?: string, name?: string, category?: string}) : Promise<EditPCCatalogPageProps>
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditPCCatalogPageProps>
 {
 	const selectedUserId = Number(userId);
 
@@ -38,12 +38,12 @@ export async function loadData(this: APIThisType, {userId}: {userId: string}, {b
 	category = category ? utils.convertForUrl(category) : '';
 
 	const [catalogCategories, catalogItems, catalog] = await Promise.all([
-		this.query('v1/users/catalog/pc/category', {id: selectedUserId}),
-		this.query('v1/users/catalog/pc', {id: userId}),
-		this.query('v1/acgame/catalog', {id: constants.gameIds.ACPC, categoryName: category, sortBy: by, name: name}),
+		this.query('v1/users/catalog/pc/category', { id: selectedUserId }),
+		this.query('v1/users/catalog/pc', { id: userId }),
+		this.query('v1/acgame/catalog', { id: constants.gameIds.ACPC, categoryName: category, sortBy: by, name: name }),
 	]);
 
-	return {catalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name};
+	return { catalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
 
 type EditPCCatalogPageProps = {
@@ -54,6 +54,6 @@ type EditPCCatalogPageProps = {
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
 	name: string
-}
+};
 
 export default EditPCCatalogPage;

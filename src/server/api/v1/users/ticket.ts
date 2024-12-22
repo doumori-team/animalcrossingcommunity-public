@@ -7,7 +7,7 @@ import { APIThisType, TicketType } from '@types';
 /*
  * Grabs user-friendly information on a user ticket.
  */
-async function ticket(this: APIThisType, {id}: ticketProps) : Promise<TicketType>
+async function ticket(this: APIThisType, { id }: ticketProps): Promise<TicketType>
 {
 	if (!this.userId)
 	{
@@ -43,12 +43,12 @@ async function ticket(this: APIThisType, {id}: ticketProps) : Promise<TicketType
 	}
 
 	// Only yourself AND closed ones
-	if (userTicket.violator_id !== this.userId || (userTicket.rule_violation_id === null && userTicket.rule_id === null))
+	if (userTicket.violator_id !== this.userId || userTicket.rule_violation_id === null && userTicket.rule_id === null)
 	{
 		throw new UserError('permission');
 	}
 
-	const types = constants.userTicket.types
+	const types = constants.userTicket.types;
 
 	const [ruleViolation, rule, messages, node, user, messageUser, [banLength]] = await Promise.all([
 		userTicket.rule_violation_id ? db.query(`
@@ -72,8 +72,8 @@ async function ticket(this: APIThisType, {id}: ticketProps) : Promise<TicketType
 			JOIN node ON (node_revision.node_id = node.id)
 			WHERE node_revision.id = $1::int
 		`, userTicket.reference_id) : null,
-		this.query('v1/user', {id: userTicket.violator_id}),
-		this.query('v1/user_lite', {id: this.userId}),
+		this.query('v1/user', { id: userTicket.violator_id }),
+		this.query('v1/user_lite', { id: this.userId }),
 		db.query(`
 			SELECT ban_length.description
 			FROM user_ban_length
@@ -82,11 +82,11 @@ async function ticket(this: APIThisType, {id}: ticketProps) : Promise<TicketType
 		`, userTicket.id),
 		this.query('v1/notification/destroy', {
 			id: userTicket.id,
-			type: constants.notification.types.ticketProcessed
+			type: constants.notification.types.ticketProcessed,
 		}),
 		this.query('v1/notification/destroy', {
 			id: userTicket.id,
-			type: constants.notification.types.modminUTPost
+			type: constants.notification.types.modminUTPost,
 		}),
 	]);
 
@@ -105,14 +105,15 @@ async function ticket(this: APIThisType, {id}: ticketProps) : Promise<TicketType
 			url: userTicket.reference_url,
 			text: userTicket.reference_text,
 			format: userTicket.reference_format,
-			parentId: node && node[0] ? (userTicket.type_identifier === types.post ? node[0].parent_node_id : node[0].node_id) : null,
+			parentId: node && node[0] ? userTicket.type_identifier === types.post ? node[0].parent_node_id : node[0].node_id : null,
 		},
 		updatedContent: userTicket.updated_text,
 		action: {
 			name: userTicket.action_name,
 			identifier: userTicket.action_identifier,
 		},
-		messages: messages.map((message:any) => {
+		messages: messages.map((message: any) =>
+		{
 			return {
 				id: message.id,
 				user: message.user_id === this.userId ? messageUser : null,
@@ -130,10 +131,10 @@ ticket.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type ticketProps = {
 	id: number
-}
+};
 
 export default ticket;

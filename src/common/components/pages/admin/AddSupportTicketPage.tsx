@@ -9,7 +9,7 @@ import { APIThisType, UserTicketBanLengthType, EmojiSettingType } from '@types';
 
 const AddSupportTicketPage = () =>
 {
-	const {banLengths, currentUserEmojiSettings} = useLoaderData() as AddSupportTicketPageProps;
+	const { banLengths, currentUserEmojiSettings } = useLoaderData() as AddSupportTicketPageProps;
 
 	return (
 		<div className='AddSupportTicketPage'>
@@ -58,8 +58,8 @@ const AddSupportTicketPage = () =>
 								<Select
 									label='Current Ban Length'
 									name='banLengthId'
-									options={[{id: null, description: 'Not Banned'} as any].concat(banLengths)}
-									optionsMapping={{value: 'id', label: 'description'}}
+									options={[{ id: null, description: 'Not Banned' } as any].concat(banLengths)}
+									optionsMapping={{ value: 'id', label: 'description' }}
 								/>
 							</Form.Group>
 
@@ -76,21 +76,21 @@ const AddSupportTicketPage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AddSupportTicketPageProps>
+export async function loadData(this: APIThisType): Promise<AddSupportTicketPageProps>
 {
 	const [banLengths, currentUserEmojiSettings] = await Promise.all([
 		this.query('v1/user_ticket/ban_lengths'),
 		this.query('v1/settings/emoji'),
 	]);
 
-	return {banLengths, currentUserEmojiSettings};
+	return { banLengths, currentUserEmojiSettings };
 }
 
 type AddSupportTicketPageProps = {
 	banLengths: UserTicketBanLengthType[]
 	currentUserEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default AddSupportTicketPage;

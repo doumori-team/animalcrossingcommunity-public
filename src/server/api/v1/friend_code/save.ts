@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {id, gameId, code, characterId}: saveProps) : Promise<{id: number, userId: number}>
+async function save(this: APIThisType, { id, gameId, code, characterId }: saveProps): Promise<{ id: number, userId: number }>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -90,7 +90,7 @@ async function save(this: APIThisType, {id, gameId, code, characterId}: saveProp
 	}
 
 	// Perform queries
-	const friendCodeUserId  = await db.transaction(async (query:any) =>
+	const friendCodeUserId = await db.transaction(async (query: any) =>
 	{
 		let friendCodeUserId;
 
@@ -122,7 +122,7 @@ async function save(this: APIThisType, {id, gameId, code, characterId}: saveProp
 		}
 		else
 		{
-			await this.query('v1/user_lite', {id: this.userId});
+			await this.query('v1/user_lite', { id: this.userId });
 
 			const [newFriendCode] = await query(`
 				INSERT INTO friend_code (user_id, game_id, friend_code)
@@ -156,13 +156,14 @@ async function save(this: APIThisType, {id, gameId, code, characterId}: saveProp
 
 			// If character used in trade, update that friend code
 			await Promise.all([
-				listings.map(async(listing:any) => {
+				listings.map(async(listing: any) =>
+				{
 					await query(`
 						UPDATE listing_offer
 						SET friend_code = $2
 						WHERE id = $1::int
 					`, listing.id, code);
-				})
+				}),
 			]);
 		}
 
@@ -193,13 +194,13 @@ save.apiTypes = {
 		type: APITypes.characterId,
 		nullable: true,
 	},
-}
+};
 
 type saveProps = {
 	id: number
 	code: string
 	gameId: number
-	characterId: number|null
-}
+	characterId: number | null
+};
 
 export default save;

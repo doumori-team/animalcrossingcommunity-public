@@ -15,6 +15,6 @@ const TOSPage = () =>
 			<p>These Terms of Service constitute a living document, in that the staff reserves the right to modify the Terms of Service as needed. Changes to the Terms of Service will be posted in the Announcements, and your continued use of the site after such an announcement will be considered an agreement to the new Terms of Service as they are posted on the site.</p>
 		</ContentBox>
 	);
-}
+};
 
 export default TOSPage;

@@ -7,7 +7,7 @@ import { APIThisType, SuccessType, UserType } from '@types';
 /*
  * Add / Remove bells to yourself.
  */
-async function bells(this: APIThisType, {action, amount}: bellsProps) : Promise<SuccessType>
+async function bells(this: APIThisType, { action, amount }: bellsProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -27,11 +27,11 @@ async function bells(this: APIThisType, {action, amount}: bellsProps) : Promise<
 	}
 
 	// Perform queries
-	let showBells:number|string = amount;
+	let showBells: number | string = amount;
 
 	if (action === 'remove')
 	{
-		const user:UserType = await this.query('v1/user', {id: this.userId});
+		const user: UserType = await this.query('v1/user', { id: this.userId });
 
 		amount = user.nonFormattedTotalBells - amount;
 
@@ -54,10 +54,10 @@ async function bells(this: APIThisType, {action, amount}: bellsProps) : Promise<
 		`, this.userId, amount, 'amount');
 	}
 
-	await db.regenerateTopBells({userId: this.userId});
+	await db.regenerateTopBells({ userId: this.userId });
 
 	const [updatedUser] = await Promise.all([
-		this.query('v1/user', {id: this.userId}),
+		this.query('v1/user', { id: this.userId }),
 	]);
 
 	if (action === 'add')
@@ -88,11 +88,11 @@ bells.apiTypes = {
 		max: 10000000,
 		min: 1,
 	},
-}
+};
 
 type bellsProps = {
 	action: 'add' | 'remove'
 	amount: number
-}
+};
 
 export default bells;

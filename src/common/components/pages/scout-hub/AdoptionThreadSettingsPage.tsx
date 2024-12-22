@@ -9,7 +9,7 @@ import { APIThisType, AdoptionBTSettingsType } from '@types';
 
 const AdoptionThreadSettingsPage = () =>
 {
-	const {settings} = useLoaderData() as AdoptionThreadSettingsPageProps;
+	const { settings } = useLoaderData() as AdoptionThreadSettingsPageProps;
 
 	return (
 		<div className='AdoptionThreadSettingsPage'>
@@ -18,11 +18,11 @@ const AdoptionThreadSettingsPage = () =>
 					name='Adoption Buddy Thread Settings'
 					links={
 						<>
-						<Link to={`/scout-hub`}>Scout Hub</Link>
-						<Link to={`/scout-hub/new-members`}>New Members</Link>
-						<Link to={`/scout-hub/adoption/${constants.boardIds.adopteeBT}`}>
-							Adoptee BT
-						</Link>
+							<Link to={`/scout-hub`}>Scout Hub</Link>
+							<Link to={`/scout-hub/new-members`}>New Members</Link>
+							<Link to={`/scout-hub/adoption/${constants.boardIds.adopteeBT}`}>
+								Adoptee BT
+							</Link>
 						</>
 					}
 				/>
@@ -64,7 +64,7 @@ const AdoptionThreadSettingsPage = () =>
 								label='List of Users'
 								placeholder='List of users'
 								options={settings.users}
-								optionsMapping={{value: 'id', label: 'username'}}
+								optionsMapping={{ value: 'id', label: 'username' }}
 								multiple
 							/>
 						</Form.Group>
@@ -73,19 +73,19 @@ const AdoptionThreadSettingsPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AdoptionThreadSettingsPageProps>
+export async function loadData(this: APIThisType): Promise<AdoptionThreadSettingsPageProps>
 {
 	const [settings] = await Promise.all([
 		this.query('v1/scout_hub/adoption/settings'),
 	]);
 
-	return {settings};
+	return { settings };
 }
 
 type AdoptionThreadSettingsPageProps = {
 	settings: AdoptionBTSettingsType
-}
+};
 
 export default AdoptionThreadSettingsPage;

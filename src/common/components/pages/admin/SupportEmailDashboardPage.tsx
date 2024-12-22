@@ -9,8 +9,8 @@ import { APIThisType, SupportEmailsType } from '@types';
 
 const SupportEmailDashboardPage = () =>
 {
-	const {totalCount, supportEmails, page, pageSize, fromUser, fromEmail,
-		toUser, toEmail, startDate, endDate, read, forUser} = useLoaderData() as SupportEmailDashboardPageProps;
+	const { totalCount, supportEmails, page, pageSize, fromUser, fromEmail,
+		toUser, toEmail, startDate, endDate, read, forUser } = useLoaderData() as SupportEmailDashboardPageProps;
 
 	const link = `&fromUser=${encodeURIComponent(fromUser)}
 		&fromEmail=${encodeURIComponent(fromEmail)}
@@ -116,25 +116,25 @@ const SupportEmailDashboardPage = () =>
 									</Link>
 								</div>
 
-								{supportEmail.fromUser && (
+								{supportEmail.fromUser &&
 									<div className='SupportEmailDashboardPage_fromUser'>
-										From: {supportEmail.fromUser.id && (
+										From: {supportEmail.fromUser.id &&
 											<Link to={`/profile/${encodeURIComponent(supportEmail.fromUser.id)}`}>
 												{supportEmail.fromUser.username}
 											</Link>
-										)} {supportEmail.fromUser.email && `<${supportEmail.fromUser.email}>`}
+										} {supportEmail.fromUser.email && `<${supportEmail.fromUser.email}>`}
 									</div>
-								)}
+								}
 
-								{supportEmail.toUser && (
+								{supportEmail.toUser &&
 									<div className='SupportEmailDashboardPage_toUser'>
-										To: {supportEmail.toUser.id && (
+										To: {supportEmail.toUser.id &&
 											<Link to={`/profile/${encodeURIComponent(supportEmail.toUser.id)}`}>
 												{supportEmail.toUser.username}
 											</Link>
-										)} {supportEmail.toUser.email && `<${supportEmail.toUser.email}>`}
+										} {supportEmail.toUser.email && `<${supportEmail.toUser.email}>`}
 									</div>
-								)}
+								}
 
 								<div className='SupportEmailDashboardPage_subject'>
 									Subject: {supportEmail.subject}
@@ -147,7 +147,7 @@ const SupportEmailDashboardPage = () =>
 								<div className='SupportEmailDashboardPage_read'>
 									Read: {supportEmail.read ? 'Yes' : 'No'}
 								</div>
-							</div>
+							</div>,
 						)}
 					</Grid>
 
@@ -162,9 +162,9 @@ const SupportEmailDashboardPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser}: {page?: string, fromUser?: string, fromEmail?: string, toUser?: string, toEmail?: string, startDate?: string, endDate?: string, read?: string, forUser?: string}) : Promise<SupportEmailDashboardPageProps>
+export async function loadData(this: APIThisType, _: any, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: { page?: string, fromUser?: string, fromEmail?: string, toUser?: string, toEmail?: string, startDate?: string, endDate?: string, read?: string, forUser?: string }): Promise<SupportEmailDashboardPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/support_emails', {
@@ -209,6 +209,6 @@ type SupportEmailDashboardPageProps = {
 	endDate: SupportEmailsType['endDate']
 	read: SupportEmailsType['read']
 	forUser: SupportEmailsType['forUser']
-}
+};
 
 export default SupportEmailDashboardPage;

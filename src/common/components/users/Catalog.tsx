@@ -19,7 +19,7 @@ const Catalog = ({
 	name,
 	catalogCategories,
 	begLink,
-	saveAction
+	saveAction,
 }: CatalogProps) =>
 {
 	const encodedBy = encodeURIComponent(sortBy);
@@ -45,16 +45,18 @@ const Catalog = ({
 			<Section>
 				<div className='Catalog_header'>
 					<Link to={`${link}?category=all&by=${encodedBy}`}
-						className={selectedCategory === 'all' ? 'Catalog_all selected' : 'Catalog_all'}>
+						className={selectedCategory === 'all' ? 'Catalog_all selected' : 'Catalog_all'}
+					>
 						All Items
 					</Link>
 
-					{characterId && (
+					{characterId &&
 						<Link to={`${link}?category=museum&by=${encodedBy}`}
-							className={selectedCategory === 'museum' ? 'Catalog_museum selected' : 'Catalog_museum'}>
+							className={selectedCategory === 'museum' ? 'Catalog_museum selected' : 'Catalog_museum'}
+						>
 							All Museum
 						</Link>
-					)}
+					}
 
 					<ReactRouterDom.Form action={link} method='get' className='Catalog_search'>
 						<input type='hidden' name='category' value='all' />
@@ -75,7 +77,8 @@ const Catalog = ({
 				</div>
 
 				<div className='Catalog_categories'>
-					{catalogCategories.map((category) => {
+					{catalogCategories.map((category) =>
+					{
 						const convertedName = utils.convertForUrl(category.categoryName);
 						let className = 'CategoryName';
 
@@ -88,7 +91,8 @@ const Catalog = ({
 							<Link
 								key={category.categoryName}
 								className={className}
-								to={`${link}?category=${convertedName}&by=${encodedBy}`}>
+								to={`${link}?category=${convertedName}&by=${encodedBy}`}
+							>
 								{category.count === category.total &&
 									<img
 										src={`${constants.AWS_URL}/images/catalog/icon_star7.gif`}
@@ -101,30 +105,30 @@ const Catalog = ({
 				</div>
 			</Section>
 
-			{utils.realStringLength(selectedCategory) > 0 && (
+			{utils.realStringLength(selectedCategory) > 0 &&
 				<div className='Catalog_categoryItems'>
 					<RequireUser id={userId} silent>
 						<div className='Catalog_links'>
-							{edit ? (
+							{edit ?
 								<Link to={`${orgLink}${params}&by=${encodedBy}`}>
 									View
 								</Link>
-							) : (
+								:
 								<Link to={`${orgLink}/edit${params}&by=${encodedBy}`}>
 									Edit
 								</Link>
-							)}
+							}
 						</div>
 					</RequireUser>
 
-					{edit ? (
+					{edit ?
 						<div className='Catalog_legend'>
 							<h3>Legend:</h3>
 							<div>I = Inventory</div>
 							<div>W = Wishlist</div>
 							<div>M = Museum</div>
 						</div>
-					) : (
+						:
 						<div className='Catalog_legend'>
 							<h3>Legend:</h3>
 
@@ -140,34 +144,37 @@ const Catalog = ({
 								Inventory & Wishlist
 							</div>
 						</div>
-					)}
+					}
 
 					<div className='Catalog_sort'>
 						<h3>Sort by:</h3>
 						<Link
 							className={sortBy === 'theme' ? 'Catalog_sortLink selected' : 'Catalog_sortLink'}
-							to={`${link}${params}&by=theme`}>
+							to={`${link}${params}&by=theme`}
+						>
 							Theme / Series
 						</Link>
 						{' | '}
 						<Link
 							className={sortBy === 'alphabetical' ? 'Catalog_sortLink selected' : 'Catalog_sortLink'}
-							to={`${link}${params}&by=alphabetical`}>
+							to={`${link}${params}&by=alphabetical`}
+						>
 							Alphabetically
 						</Link>
-						{characterId && (
+						{characterId &&
 							<>
 								{' | '}
 								<Link
 									className={sortBy === 'catalog' ? 'Catalog_sortLink selected' : 'Catalog_sortLink'}
-									to={`${link}${params}&by=catalog`}>
+									to={`${link}${params}&by=catalog`}
+								>
 									Nook's Catalog Order
 								</Link>
 							</>
-						)}
+						}
 					</div>
 
-					{edit && (
+					{edit &&
 						<div className='Catalog_setAll'>
 							<SelectAllCheckbox
 								label='Set All to Inventory'
@@ -175,9 +182,9 @@ const Catalog = ({
 								checked
 							/>
 						</div>
-					)}
+					}
 
-					{edit ? (
+					{edit ?
 						<Form
 							action={String(saveAction || '')}
 							callback={`${link}${params}&by=${encodedBy}`}
@@ -195,19 +202,19 @@ const Catalog = ({
 								/>
 							</RequireClientJS>
 						</Form>
-					) : (
+						:
 						<CatalogCategory
 							sortBy={sortBy}
 							catalogItems={catalogItems}
 							acgameCatalog={catalog}
 							name={name}
 						/>
-					)}
+					}
 				</div>
-			)}
+			}
 		</div>
 	);
-}
+};
 
 type CatalogProps = {
 	catalogItems: CatalogItemsType[]

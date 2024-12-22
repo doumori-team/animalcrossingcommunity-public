@@ -10,11 +10,11 @@ import { APIThisType, ACGameType, ServiceType, ShopsType, ElementSelectType } fr
 
 const ShopsPage = () =>
 {
-	const {totalCount, shops, page, pageSize, acgames, shopServices, gameId,
-		services, fee, vacation} = useLoaderData() as ShopsPageProps;
+	const { totalCount, shops, page, pageSize, acgames, shopServices, gameId,
+		services, fee, vacation } = useLoaderData() as ShopsPageProps;
 
-	const [selectedGameId, setSelectedGameId] = useState<number|null>(gameId);
-	const [selectedServices, setSelectedServices] = useState<ServiceType[]>(gameId != null && gameId > 0 ? shopServices.filter(s => s.games.some(g => g.id === gameId)) : []);
+	const [selectedGameId, setSelectedGameId] = useState<number | null>(gameId);
+	const [selectedServices, setSelectedServices] = useState<ServiceType[]>(gameId ? shopServices.filter(s => s.games.some(g => g.id === gameId)) : []);
 
 	const link = `&services=${encodeURIComponent(services.join(','))}
 		&fee=${encodeURIComponent(fee)}
@@ -22,13 +22,13 @@ const ShopsPage = () =>
 		&gameId=${encodeURIComponent(String(selectedGameId || ''))}
 	`;
 
-	const changeGame = (event: ElementSelectType) : void =>
+	const changeGame = (event: ElementSelectType): void =>
 	{
 		const newGameId = Number(event.target.value);
 
 		setSelectedGameId(newGameId);
 		setSelectedServices(newGameId > 0 ? shopServices.filter(s => s.games.some(g => g.id === gameId)) : []);
-	}
+	};
 
 	return (
 		<div className='ShopsPage'>
@@ -38,17 +38,17 @@ const ShopsPage = () =>
 					description="Looking for some help in your game? Order something from a shop! They'd be happy to assist."
 					links={
 						<>
-						<RequireUser permission='modify-shops' silent>
-							<Link to='/shops/add'>
-								Create a Shop
+							<RequireUser permission='modify-shops' silent>
+								<Link to='/shops/add'>
+									Create a Shop
+								</Link>
+							</RequireUser>
+							<Link to='/shops/threads'>
+								Orders, Applications & Other Threads
 							</Link>
-						</RequireUser>
-						<Link to='/shops/threads'>
-							Orders, Applications & Other Threads
-						</Link>
-						<Link to='/shops?mine=true'>
-							My Shops
-						</Link>
+							<Link to='/shops?mine=true'>
+								My Shops
+							</Link>
 						</>
 					}
 				/>
@@ -61,12 +61,12 @@ const ShopsPage = () =>
 							value={selectedGameId}
 							options={
 								[
-									{id: 0, name: 'All Games'},
+									{ id: 0, name: 'All Games' },
 								]
 									.concat(acgames
 										.filter(g => g.hasTown === true))
 							}
-							optionsMapping={{value: 'id', label: 'name'}}
+							optionsMapping={{ value: 'id', label: 'name' }}
 							placeholder='Choose an Animal Crossing game...'
 							changeHandler={changeGame}
 						/>
@@ -92,7 +92,7 @@ const ShopsPage = () =>
 						/>
 					</Form.Group>
 
-					{(selectedGameId != null && selectedGameId > 0) && (
+					{!!selectedGameId &&
 						<Form.Group>
 							<Select
 								label='Service(s)'
@@ -100,17 +100,17 @@ const ShopsPage = () =>
 								multiple
 								value={selectedServices.length > 0 ? selectedServices : []}
 								options={shopServices}
-								optionsMapping={{value: 'id', label: 'name'}}
+								optionsMapping={{ value: 'id', label: 'name' }}
 								placeholder='Choose a service...'
 							/>
 						</Form.Group>
-					)}
+					}
 				</Search>
 
 				<Section>
 					<Grid name='shop' options={shops}>
 						{shops.map((shop, index) =>
-							<Shop key={index} shop={shop} />
+							<Shop key={index} shop={shop} />,
 						)}
 					</Grid>
 
@@ -125,16 +125,16 @@ const ShopsPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, services, fee, vacation, gameId, mine}: {page?: string, services?: string, fee?: string, vacation?: string, gameId?: string, mine?: string})
+export async function loadData(this: APIThisType, _: any, { page, services, fee, vacation, gameId, mine }: { page?: string, services?: string, fee?: string, vacation?: string, gameId?: string, mine?: string })
 {
 	const [acgames, shopServices, returnValue] = await Promise.all([
 		this.query('v1/acgames'),
 		this.query('v1/shop/services'),
 		this.query('v1/shops', {
 			page: page ? page : 1,
-			services: services ? services: '',
+			services: services ? services : '',
 			fee: fee ? fee : 'both',
 			vacation: vacation ? vacation : 'both',
 			gameId: gameId ? gameId : '',
@@ -167,6 +167,6 @@ type ShopsPageProps = {
 	fee: ShopsType['fee']
 	vacation: ShopsType['vacation']
 	gameId: ShopsType['gameId']
-}
+};
 
 export default ShopsPage;

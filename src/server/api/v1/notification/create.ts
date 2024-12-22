@@ -5,7 +5,7 @@ import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
 import { APIThisType, UserType, ListingType } from '@types';
 
-async function create(this: APIThisType, {id, type}: createProps) : Promise<void>
+async function create(this: APIThisType, { id, type }: createProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -30,14 +30,14 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		throw new UserError('bad-format');
 	}
 
-	const user:UserType = await this.query('v1/user', {id: this.userId});
+	const user: UserType = await this.query('v1/user', { id: this.userId });
 
 	const types = constants.notification.types;
-	let userIds:number[] = [];
+	let userIds: number[] = [];
 	let useReferenceId = referenceId;
 	let description = '';
 	let multiDescription = '';
-	let childReferenceId:number|null = null;
+	let childReferenceId: number | null = null;
 
 	if (
 		[
@@ -45,11 +45,11 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			types.FT,
 			types.FB,
 			types.usernameTag,
-			types.announcement
+			types.announcement,
 		].includes(type)
 	)
 	{
-		let nodeId = referenceId, childNode:any;
+		let nodeId = referenceId, childNode: any;
 
 		if (type === types.PT)
 		{
@@ -173,8 +173,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				FROM user_node_permission
 				WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
 			`, nodeId, constants.nodePermissions.read))
-				.filter((u:any) => u.user_id !== childNode.user_id)
-				.map((u:any) => u.user_id);
+				.filter((u: any) => u.user_id !== childNode.user_id)
+				.map((u: any) => u.user_id);
 		}
 		else if ([types.FT, types.FB].includes(type))
 		{
@@ -211,8 +211,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			if (favoritedUsers.length > 0)
 			{
 				userIds = favoritedUsers
-					.filter((u:any) => u.user_id !== childNode.user_id)
-					.map((u:any) => u.user_id);
+					.filter((u: any) => u.user_id !== childNode.user_id)
+					.map((u: any) => u.user_id);
 			}
 		}
 		else if (type === types.usernameTag)
@@ -224,7 +224,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				return;
 			}
 
-			userIds = (await Promise.all(usernames.map(async (username:string) =>
+			userIds = (await Promise.all(usernames.map(async (username: string) =>
 			{
 				const [checkId] = await db.query(`
 					SELECT id
@@ -264,16 +264,16 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			types.listingContact,
 			types.listingCompleted,
 			types.listingFailed,
-			types.listingFeedback
+			types.listingFeedback,
 		].includes(type)
 	)
 	{
-		let listingId = referenceId, offer, listingComment:any;
+		let listingId = referenceId, offer, listingComment: any;
 
 		if (
 			[
 				types.listingOfferAccepted,
-				types.listingOfferRejected
+				types.listingOfferRejected,
 			].includes(type)
 		)
 		{
@@ -304,7 +304,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		}
 		else if (
 			[
-				types.listingComment
+				types.listingComment,
 			].includes(type)
 		)
 		{
@@ -328,12 +328,12 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			multiDescription = `There are multiple new comments on a trade`;
 		}
 
-		const listing:ListingType = await this.query('v1/trading_post/listing', {id: listingId});
+		const listing: ListingType = await this.query('v1/trading_post/listing', { id: listingId });
 		const offerStatuses = constants.tradingPost.offerStatuses;
 
 		if (
 			[
-				types.listingCancelled
+				types.listingCancelled,
 			].includes(type)
 		)
 		{
@@ -342,7 +342,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				userIds.push(listing.offers.accepted.user.id);
 			}
 
-			listing.offers.list.map(offer => {
+			listing.offers.list.map(offer =>
+			{
 				if ([offerStatuses.pending, offerStatuses.onHold].includes(offer.status))
 				{
 					userIds.push(offer.user.id);
@@ -356,7 +357,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		}
 		else if (
 			[
-				types.listingComment
+				types.listingComment,
 			].includes(type)
 		)
 		{
@@ -370,7 +371,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				userIds.push(listing.offers.accepted.user.id);
 			}
 
-			listing.offers.list.map(offer => {
+			listing.offers.list.map(offer =>
+			{
 				if (listingComment.user_id !== offer.user.id &&
 					[offerStatuses.pending, offerStatuses.onHold].includes(offer.status)
 				)
@@ -382,7 +384,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		else if (
 			[
 				types.listingOffer,
-				types.listingOfferCancelled
+				types.listingOfferCancelled,
 			].includes(type)
 		)
 		{
@@ -400,7 +402,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		else if (
 			[
 				types.listingOfferAccepted,
-				types.listingOfferRejected
+				types.listingOfferRejected,
 			].includes(type)
 		)
 		{
@@ -411,7 +413,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				types.listingContact,
 				types.listingCompleted,
 				types.listingFailed,
-				types.listingFeedback
+				types.listingFeedback,
 			].includes(type)
 		)
 		{
@@ -447,16 +449,16 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			types.scoutAdoption,
 			types.scoutThread,
 			types.scoutFeedback,
-			types.scoutBT
+			types.scoutBT,
 		].includes(type)
 	)
 	{
-		let nodeId = referenceId, childNode:any;
+		let nodeId = referenceId, childNode: any;
 
 		if (
 			[
 				types.scoutThread,
-				types.scoutBT
+				types.scoutBT,
 			].includes(type)
 		)
 		{
@@ -505,7 +507,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		if (
 			[
 				types.scoutAdoption,
-				types.scoutFeedback
+				types.scoutFeedback,
 			].includes(type)
 		)
 		{
@@ -531,8 +533,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				FROM user_node_permission
 				WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
 			`, nodeId, constants.nodePermissions.read))
-				.filter((u:any) => u.user_id !== childNode.user_id)
-				.map((u:any) => u.user_id);
+				.filter((u: any) => u.user_id !== childNode.user_id)
+				.map((u: any) => u.user_id);
 
 			// we don't want to grab whomever has access to the Adoptee BT, only scouts
 			// Note: final access is checked in v1/notification
@@ -543,8 +545,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 					JOIN users ON (user_group.id = users.user_group_id)
 					WHERE user_group.identifier = $1
 				`, constants.staffIdentifiers.scout))
-					.filter((u:any) => u.id !== childNode.user_id)
-					.map((u:any) => u.id)
+					.filter((u: any) => u.id !== childNode.user_id)
+					.map((u: any) => u.id),
 			);
 		}
 	}
@@ -557,7 +559,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 	else if (
 		[
 			types.supportEmail,
-			types.donationReminder
+			types.donationReminder,
 		].includes(type)
 	)
 	{
@@ -571,7 +573,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			types.modminUT,
 			types.modminUTMany,
 			types.modminUTPost,
-			types.modminUTDiscussion
+			types.modminUTDiscussion,
 		].includes(type)
 	)
 	{
@@ -633,8 +635,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = $1
 			`, constants.staffIdentifiers.mod))
-				.filter((u:any) => u.id !== userTicket.assignee_id)
-				.map((u:any) => u.id);
+				.filter((u: any) => u.id !== userTicket.assignee_id)
+				.map((u: any) => u.id);
 
 			description = `${user.username} has submitted a UT`;
 		}
@@ -656,18 +658,18 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		else if (type === types.modminUTPost)
 		{
 			if (!
-				[
-					constants.staffIdentifiers.admin,
-					constants.staffIdentifiers.mod,
-					constants.staffIdentifiers.owner
-				].includes(child.identifier)
+			[
+				constants.staffIdentifiers.admin,
+				constants.staffIdentifiers.mod,
+				constants.staffIdentifiers.owner,
+			].includes(child.identifier)
 			)
 			{
 				if (
 					[
 						constants.staffIdentifiers.mod,
 						constants.staffIdentifiers.admin,
-						constants.staffIdentifiers.owner
+						constants.staffIdentifiers.owner,
 					].includes(userTicket.identifier)
 				)
 				{
@@ -680,7 +682,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			}
 			else if (!child.staff_only && [
 				constants.userTicket.statuses.closed,
-				constants.userTicket.statuses.inUserDiscussion
+				constants.userTicket.statuses.inUserDiscussion,
 			].includes(userTicket.status))
 			{
 				userIds.push(userTicket.violator_id);
@@ -696,8 +698,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = ANY($1)
 			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.filter((u:any) => u.id !== userTicket.assignee_id)
-				.map((u:any) => u.id);
+				.filter((u: any) => u.id !== userTicket.assignee_id)
+				.map((u: any) => u.id);
 
 			description = `${user.username} has moved a UT to discussion`;
 		}
@@ -710,8 +712,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = ANY($1)
 			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.filter((u:any) => u.id !== userTicket.assignee_id)
-				.map((u:any) => u.id);
+				.filter((u: any) => u.id !== userTicket.assignee_id)
+				.map((u: any) => u.id);
 		}
 	}
 	else if (type === types.ticketProcessed)
@@ -735,7 +737,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 	else if (
 		[
 			types.supportTicket,
-			types.supportTicketProcessed
+			types.supportTicketProcessed,
 		].includes(type)
 	)
 	{
@@ -775,11 +777,11 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		}
 
 		if (!
-			[
-				constants.staffIdentifiers.admin,
-				constants.staffIdentifiers.mod,
-				constants.staffIdentifiers.owner
-			].includes(child ? child.identifier : user.group.identifier)
+		[
+			constants.staffIdentifiers.admin,
+			constants.staffIdentifiers.mod,
+			constants.staffIdentifiers.owner,
+		].includes(child ? child.identifier : user.group.identifier)
 		)
 		{
 			description = `${user.username} has posted on a ST`;
@@ -791,7 +793,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = ANY($1)
 			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.map((u:any) => u.id);
+				.map((u: any) => u.id);
 		}
 		else
 		{
@@ -804,7 +806,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		[
 			types.feature,
 			types.featurePost,
-			types.followFeature
+			types.followFeature,
 		].includes(type)
 	)
 	{
@@ -844,7 +846,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			throw new UserError('no-such-feature');
 		}
 
-		if (type == types.feature)
+		if (type === types.feature)
 		{
 			description = `${user.username} has created feature '${feature.title}'`;
 
@@ -858,10 +860,10 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				constants.staffIdentifiers.researcherTL,
 				constants.staffIdentifiers.researcher,
 				constants.staffIdentifiers.devTL,
-				constants.staffIdentifiers.dev
+				constants.staffIdentifiers.dev,
 			]))
-				.filter((u:any) => u.id !== feature.created_user_id)
-				.map((u:any) => u.id);
+				.filter((u: any) => u.id !== feature.created_user_id)
+				.map((u: any) => u.id);
 		}
 		else
 		{
@@ -890,10 +892,10 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 					constants.staffIdentifiers.devTL,
 					constants.staffIdentifiers.dev,
 					constants.staffIdentifiers.scout,
-					constants.staffIdentifiers.mod
+					constants.staffIdentifiers.mod,
 				], featureId))
-					.filter((u:any) => u.id !== feature.created_user_id)
-					.map((u:any) => u.id);
+					.filter((u: any) => u.id !== feature.created_user_id)
+					.map((u: any) => u.id);
 			}
 			else
 			{
@@ -902,14 +904,14 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 					FROM followed_feature
 					WHERE feature_id = $1::int
 				`, featureId))
-					.filter((u:any) => u.user_id !== this.userId)
-					.map((u:any) => u.user_id);
+					.filter((u: any) => u.user_id !== this.userId)
+					.map((u: any) => u.user_id);
 			}
 		}
 	}
 	else if (
 		[
-			types.giftBellShop
+			types.giftBellShop,
 		].includes(type)
 	)
 	{
@@ -939,7 +941,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 	}
 	else if (
 		[
-			types.giftDonation
+			types.giftDonation,
 		].includes(type)
 	)
 	{
@@ -1027,8 +1029,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			FROM user_node_permission
 			WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
 		`, useReferenceId, constants.nodePermissions.read))
-			.filter((u:any) => u.user_id !== this.userId)
-			.map((u:any) => u.user_id);
+			.filter((u: any) => u.user_id !== this.userId)
+			.map((u: any) => u.user_id);
 	}
 	else if (type === types.shopEmployee)
 	{
@@ -1083,7 +1085,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			JOIN shop_user_role ON (shop_user_role.shop_role_id = shop_role_service.shop_role_id OR shop_user_role.shop_role_id = shop_role_default_service.shop_role_id)
 			JOIN shop_user ON (shop_user.id = shop_user_role.shop_user_id)
 			WHERE shop_user.active = true AND shop_order.id = $1
-		`, referenceId)).map((u:any) => u.user_id);
+		`, referenceId)).map((u: any) => u.user_id);
 	}
 	else if (type === types.shopApplication)
 	{
@@ -1134,7 +1136,8 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			`, referenceId),
 		]);
 
-		owners.concat(contacts).map((u:any) => {
+		owners.concat(contacts).map((u: any) =>
+		{
 			if (!userIds.includes(u.user_id))
 			{
 				userIds.push(u.user_id);
@@ -1166,7 +1169,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			WHERE email_notifications = true
 		`);
 
-		let globalNotification:any = {
+		let globalNotification: any = {
 			identifier: type,
 			reference_id: useReferenceId,
 			description: description,
@@ -1174,7 +1177,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 
 		globalNotification.url = utils.getGlobalNotificationReferenceLink(globalNotification);
 
-		await Promise.all(emailUsers.map(async (emailUser:any) =>
+		await Promise.all(emailUsers.map(async (emailUser: any) =>
 		{
 			try
 			{
@@ -1214,7 +1217,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 				SELECT user_id
 				FROM notification
 				WHERE user_id = ANY($1) AND reference_id = $2 AND reference_type_id = $3
-			`, chunkedUserIds, useReferenceId, notificationType.id)).map((n:any) => n.user_id);
+			`, chunkedUserIds, useReferenceId, notificationType.id)).map((n: any) => n.user_id);
 
 			// if notification already exists for that object and type, re-notify them with latest
 			if (existingNotificationUserIds.length > 0)
@@ -1262,11 +1265,11 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 		WHERE users.id = ANY($1) AND users.email_notifications = true
 	`, userIds);
 
-	await Promise.all(accountSettings.map(async (user:any) =>
+	await Promise.all(accountSettings.map(async (user: any) =>
 	{
 		const userId = user.id;
 
-		let userNotification:any = {
+		let userNotification: any = {
 			identifier: type,
 			reference_id: useReferenceId,
 			description: description,
@@ -1312,7 +1315,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			userCheck = permissionGranted.length > 0;
 		}
 
-		let extra:any = {
+		let extra: any = {
 			post: null,
 		};
 
@@ -1320,7 +1323,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 			[
 				constants.notification.types.PT,
 				constants.notification.types.FT,
-				constants.notification.types.usernameTag
+				constants.notification.types.usernameTag,
 			].includes(userNotification.identifier)
 		)
 		{
@@ -1417,7 +1420,7 @@ async function create(this: APIThisType, {id, type}: createProps) : Promise<void
 	}));
 }
 
-function getEmailText(notification:any, userId:number) : string
+function getEmailText(notification: any, userId: number): string
 {
 	const vbnewline = '<br/>';
 
@@ -1430,7 +1433,7 @@ function getEmailText(notification:any, userId:number) : string
 
 	email += `Note: You have set 'Email Notifications' on. If you no longer wish to receive notification emails, log in to ${constants.SITE_URL} and update your account settings.`;
 
-	return '<span style="font-family: Verdana; font-size: 11px;">'+origSendTo+email+'</span>';
+	return '<span style="font-family: Verdana; font-size: 11px;">' + origSendTo + email + '</span>';
 }
 
 create.apiTypes = {
@@ -1440,11 +1443,11 @@ create.apiTypes = {
 		default: '',
 		required: true,
 	},
-}
+};
 
 type createProps = {
 	id: any
 	type: string
-}
+};
 
 export default create;

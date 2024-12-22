@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -31,7 +31,7 @@ async function destroy(this: APIThisType, {id}: destroyProps) : Promise<void>
 	}
 
 	// Delete from any trades
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		let [friendCodeCharacter] = await query(`
 			SELECT character_id
@@ -60,10 +60,10 @@ destroy.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: number
-}
+};
 
 export default destroy;

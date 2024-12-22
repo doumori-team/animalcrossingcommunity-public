@@ -8,8 +8,8 @@ import { APIThisType, UserCatalogCategoryType, CatalogItemsType, GroupItemType }
 
 const CharacterCatalogPage = () =>
 {
-	const {catalogItems, acgameCatalog, by, category, userId,
-		selectedCharacterId, catalogCategories, name} = useLoaderData() as CharacterCatalogPageProps;
+	const { catalogItems, acgameCatalog, by, category, userId,
+		selectedCharacterId, catalogCategories, name } = useLoaderData() as CharacterCatalogPageProps;
 
 	return (
 		<RequirePermission permission='view-towns'>
@@ -28,9 +28,9 @@ const CharacterCatalogPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId, characterId}: {userId: string, characterId: string}, {by, name, category} : {by?: string, name?: string, category?: string}) : Promise<CharacterCatalogPageProps>
+export async function loadData(this: APIThisType, { userId, characterId }: { userId: string, characterId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<CharacterCatalogPageProps>
 {
 	const selectedCharacterId = Number(characterId);
 	const selectedUserId = Number(userId);
@@ -41,19 +41,19 @@ export async function loadData(this: APIThisType, {userId, characterId}: {userId
 	category = category ? utils.convertForUrl(category) : '';
 
 	const [character, catalogCategories, catalogItems] = await Promise.all([
-		utils.realStringLength(category) > 0 ? this.query('v1/character', {id: selectedCharacterId}) : null,
-		this.query('v1/character/catalog/category', {characterId: selectedCharacterId}),
-		utils.realStringLength(category) > 0 ? this.query('v1/character/catalog', {id: selectedCharacterId}) : null,
+		utils.realStringLength(category) > 0 ? this.query('v1/character', { id: selectedCharacterId }) : null,
+		this.query('v1/character/catalog/category', { characterId: selectedCharacterId }),
+		utils.realStringLength(category) > 0 ? this.query('v1/character/catalog', { id: selectedCharacterId }) : null,
 	]);
 
 	if (character)
 	{
 		[acgameCatalog] = await Promise.all([
-			this.query('v1/acgame/catalog', {id: character.game.id, categoryName: category, sortBy: by, name: name}),
+			this.query('v1/acgame/catalog', { id: character.game.id, categoryName: category, sortBy: by, name: name }),
 		]);
 	}
 
-	return {selectedCharacterId, acgameCatalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name};
+	return { selectedCharacterId, acgameCatalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
 
 type CharacterCatalogPageProps = {
@@ -65,6 +65,6 @@ type CharacterCatalogPageProps = {
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
 	name: string
-}
+};
 
 export default CharacterCatalogPage;

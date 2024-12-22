@@ -15,29 +15,29 @@ const EditPoll = ({
 	duration,
 	isMultipleChoice,
 	isEnabled,
-	options
+	options,
 }: EditPollProps) =>
 {
 	const [curOptions, setCurOptions] = useState<any>(options ? options : [
 		{ description: '' },
-		{ description: '' }
+		{ description: '' },
 	]);
 
-	const addOption = () : void =>
+	const addOption = (): void =>
 	{
 		let newOptions = [...curOptions];
 		newOptions.push({ description: '' });
 
 		setCurOptions(newOptions);
-	}
+	};
 
-	const deleteOption = (index: number) : void =>
+	const deleteOption = (index: number): void =>
 	{
 		let newOptions = [...curOptions];
 		newOptions.splice(index, 1);
 
 		setCurOptions(newOptions);
-	}
+	};
 
 	return (
 		<div className='EditPoll'>
@@ -107,7 +107,8 @@ const EditPoll = ({
 
 				<RequireClientJS fallback={
 					<ErrorMessage identifier='javascript-required' />
-				}>
+				}
+				>
 					<InnerSection>
 						<div className='EditPoll_links'>
 							<Button
@@ -117,12 +118,12 @@ const EditPoll = ({
 							/>
 						</div>
 
-						{curOptions.map((option:any, index:any) =>
+						{curOptions.map((option: any, index: any) =>
 							<div key={index} className='EditPoll_option'>
 								<Form.Group>
 									<Text
 										name='options'
-										label={`Option #${index+1}`}
+										label={`Option #${index + 1}`}
 										value={option.description}
 										maxLength={constants.max.pollOption}
 									/>
@@ -133,14 +134,14 @@ const EditPoll = ({
 									label='Delete Option'
 									className='Form_button'
 								/>
-							</div>
+							</div>,
 						)}
 					</InnerSection>
 				</RequireClientJS>
-			 </Form>
+			</Form>
 		</div>
 	);
-}
+};
 
 type EditPollProps = {
 	id?: PollType['id']

@@ -4,7 +4,7 @@ import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { APIThisType, UserType } from '@types';
 
-async function save(this: APIThisType, {user, action}: saveProps) : Promise<void>
+async function save(this: APIThisType, { user, action }: saveProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -12,9 +12,9 @@ async function save(this: APIThisType, {user, action}: saveProps) : Promise<void
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const userBlock:UserType = await this.query('v1/user', {username: user});
+	const userBlock: UserType = await this.query('v1/user', { username: user });
 
 	if ([
 		constants.staffIdentifiers.owner,
@@ -38,7 +38,7 @@ async function save(this: APIThisType, {user, action}: saveProps) : Promise<void
 	}
 
 	// Check if user already has whitelisted user
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		const [checkId] = await query(`
 			SELECT user_id, block_user_id
@@ -82,11 +82,11 @@ save.apiTypes = {
 		includes: ['add', 'remove'],
 		required: true,
 	},
-}
+};
 
 type saveProps = {
 	user: string
 	action: 'add' | 'remove'
-}
+};
 
 export default save;

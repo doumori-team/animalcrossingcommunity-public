@@ -1,16 +1,16 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
-import { APIThisType,  } from '@types';
+import { APIThisType } from '@types';
 
-async function clear(this: APIThisType, {notificationIds}: clearProps) : Promise<void>
+async function clear(this: APIThisType, { notificationIds }: clearProps): Promise<void>
 {
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
 	notificationIds = await Promise.all(notificationIds.map(async (id) =>
 	{
@@ -49,10 +49,10 @@ clear.apiTypes = {
 		type: APITypes.array,
 		required: true,
 	},
-}
+};
 
 type clearProps = {
 	notificationIds: any[]
-}
+};
 
 export default clear;

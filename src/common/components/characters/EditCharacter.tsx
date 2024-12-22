@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { constants } from '@utils';
+import { constants, utils } from '@utils';
 import { CharacterType, CharacterGameType, TownType } from '@types';
 import { Form, Check, Text } from '@form';
 import { EditKeyboard, Keyboard } from '@layout';
@@ -8,14 +8,15 @@ import { EditKeyboard, Keyboard } from '@layout';
 const EditCharacter = ({
 	character,
 	town,
-	gameInfo
+	gameInfo,
 }: EditCharacterProps) =>
 {
-	const {info, houseSizes, bedLocations, faces} = gameInfo as CharacterGameType;
+	const { info, houseSizes, bedLocations, faces, paintColors, monuments } = gameInfo as CharacterGameType;
+	const gameAbbrev = utils.getIconDirectoryFromGameID(town.game.id);
 
 	return (
 		<div className='EditCharacter'>
-			<Form action='v1/character/save' callback='/profile/:userId/towns' showButton>
+			<Form action='v1/character/save' callback={`/profile/:userId/town/${town.id}`} showButton>
 				<input type='hidden' name='id' value={character ? character.id : 0} />
 				<input type='hidden' name='townId' value={town.id} />
 
@@ -43,19 +44,19 @@ const EditCharacter = ({
 							type='number'
 							name='bells'
 							label='Bells'
-							value={character && character.bells != null ? character.bells : 0}
+							value={character?.bells ?? 0}
 							max={constants.max.number}
 						/>
 					</Form.Group>
 
-					{info.id === constants.gameIds.ACNH && (
+					{info.id === constants.gameIds.ACNH &&
 						<>
 							<Form.Group>
 								<Text
 									type='number'
 									name='nookMiles'
 									label='Nook Miles'
-									value={character && character.nookMiles !=null ? character.nookMiles : 0}
+									value={character?.nookMiles ?? 0}
 									max={constants.max.number}
 								/>
 							</Form.Group>
@@ -86,24 +87,61 @@ const EditCharacter = ({
 								/>
 							</Form.Group>
 						</>
-					)}
+					}
 
 					<Form.Group>
 						<Text
 							type='number'
 							name='debt'
 							label='Nook Debt'
-							value={character && character.debt != null ? character.debt : 0}
+							value={character?.debt ?? 0}
 							max={constants.max.number}
 						/>
 					</Form.Group>
 
+					{info.id === constants.gameIds.ACGC &&
+						<Form.Group>
+							<Check
+								options={monuments}
+								name='monumentId'
+								defaultValue={character?.monument ? [character.monument.id] : [0]}
+								label='Train Station Monument'
+							/>
+						</Form.Group>
+					}
+
+					{bedLocations.length > 0 &&
+						<Form.Group>
+							<Check
+								options={bedLocations}
+								name='bedLocationId'
+								defaultValue={character ? [character.bedLocation.id] : [0]}
+								imageLocation='character'
+								useImageFilename
+								hideName
+								label={info.id === constants.gameIds.ACWW ? 'Bed Location' : 'House Location'}
+							/>
+						</Form.Group>
+					}
+
+					{(info.id === constants.gameIds.ACGC || info.id === constants.gameIds.ACCF) &&
+						<Form.Group>
+							<Check
+								options={paintColors}
+								name='paintId'
+								defaultValue={character?.paint ? [character.paint.id] : [0]}
+								label='Roof Color'
+							/>
+						</Form.Group>
+					}
+
 					<Form.Group>
 						<label>House Size:</label>
 
-						{houseSizes.map(hs => {
+						{houseSizes.map(hs =>
+						{
 							const foundHouseSize = character ?
-								character.houseSizes.find(chs => chs.groupId == hs.groupId) :
+								character.houseSizes.find(chs => chs.groupId === hs.groupId) :
 								false;
 
 							return (
@@ -125,48 +163,34 @@ const EditCharacter = ({
 						<Text
 							type='number'
 							name='hraScore'
-							value={character && character.hraScore != null ? character.hraScore : 0}
+							value={character?.hraScore ?? 0}
 							label={`${town.game.id <= constants.gameIds.ACCF ? 'HRA' : 'HHA'} Score`}
 							max={constants.max.number}
 						/>
 					</Form.Group>
 
-					{bedLocations.length > 0 && (
-						<Form.Group>
-							<Check
-								options={bedLocations}
-								name='bedLocationId'
-								defaultValue={character ? [character.bedLocation.id] : [0]}
-								imageLocation='character'
-								useImageFilename
-								hideName
-								label={info.id === constants.gameIds.ACGC ? 'House Location' : 'Bed Location'}
-							/>
-						</Form.Group>
-					)}
-
-					{faces.length > 0 && (
+					{faces.length > 0 &&
 						<Form.Group>
 							<Check
 								options={faces}
 								name='faceId'
 								defaultValue={character ? [character.face.id] : [0]}
-								imageLocation='character'
+								imageLocation={`games/${gameAbbrev}/humans/full`}
 								useImageFilename
 								hideName
 								label='Face'
 							/>
 						</Form.Group>
-					)}
+					}
 				</div>
 			</Form>
 		</div>
 	);
-}
+};
 
 type EditCharacterProps = {
 	character?: CharacterType
-	town: TownType|CharacterType['town']
+	town: TownType | CharacterType['town']
 	gameInfo: CharacterGameType
 };
 

@@ -10,7 +10,7 @@ import { APIThisType, UsersNewType } from '@types';
 
 const NewMembersPage = () =>
 {
-	const {newMembers, page, pageSize, totalCount} = useLoaderData() as NewMembersPageProps;
+	const { newMembers, page, pageSize, totalCount } = useLoaderData() as NewMembersPageProps;
 
 	return (
 		<div className='NewMembersPage'>
@@ -19,26 +19,26 @@ const NewMembersPage = () =>
 					name='New Members'
 					links={
 						<>
-						<Link to={`/scout-hub`}>Scout Hub</Link>
-						<Link to={`/scout-hub/new-members`}>New Members</Link>
-						<RequireGroup group={constants.staffIdentifiers.scout} silent>
-							<Link to={`/scout-hub/settings`}>Settings</Link>
-							<UserContext.Consumer>
-								{scout => scout && (
-									<Link to={`/scout-hub/ratings/${encodeURIComponent(scout.id)}`}>
-										Feedback
-									</Link>
-								)}
-							</UserContext.Consumer>
-						</RequireGroup>
-						<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
-							Adoptee BT
-						</Link>
-						<RequirePermission permission='adoption-bt-settings' silent>
-							<Link to={`/scout-hub/adoption/settings`}>
-								Adoptee BT Settings
+							<Link to={`/scout-hub`}>Scout Hub</Link>
+							<Link to={`/scout-hub/new-members`}>New Members</Link>
+							<RequireGroup group={constants.staffIdentifiers.scout} silent>
+								<Link to={`/scout-hub/settings`}>Settings</Link>
+								<UserContext.Consumer>
+									{scout => scout &&
+										<Link to={`/scout-hub/ratings/${encodeURIComponent(scout.id)}`}>
+											Feedback
+										</Link>
+									}
+								</UserContext.Consumer>
+							</RequireGroup>
+							<Link to={`/scout-hub/adoption/${encodeURIComponent(constants.boardIds.adopteeBT)}`}>
+								Adoptee BT
 							</Link>
-						</RequirePermission>
+							<RequirePermission permission='adoption-bt-settings' silent>
+								<Link to={`/scout-hub/adoption/settings`}>
+									Adoptee BT Settings
+								</Link>
+							</RequirePermission>
 						</>
 					}
 				/>
@@ -65,13 +65,13 @@ const NewMembersPage = () =>
 									Adoption Date: {user.adopted ? user.adopted : 'Not Adopted'}
 								</div>
 
-								{(user.adopted && user.scoutId != null) && (
+								{!!user.adopted && !!user.scoutId &&
 									<div className='NewMembersPage_adoptingScout'>
 										Adopted By: <Link to={`/profile/${encodeURIComponent(user.scoutId)}`}>
 											{user.scoutUsername}
 										</Link>
 									</div>
-								)}
+								}
 
 								<div className='NewMembersPage_actions'>
 									<RequirePermission permission='adoption-reassign' silent>
@@ -80,7 +80,7 @@ const NewMembersPage = () =>
 										</Link>
 									</RequirePermission>
 								</div>
-							</InnerSection>
+							</InnerSection>,
 						)}
 					</Grid>
 
@@ -94,9 +94,9 @@ const NewMembersPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page}: {page?: string}) : Promise<NewMembersPageProps>
+export async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<NewMembersPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/users/new', {
@@ -117,6 +117,6 @@ type NewMembersPageProps = {
 	totalCount: UsersNewType['totalCount']
 	page: UsersNewType['page']
 	pageSize: UsersNewType['pageSize']
-}
+};
 
 export default NewMembersPage;

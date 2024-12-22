@@ -7,11 +7,11 @@ import { APIThisType, ACGameItemType, GroupItemType } from '@types';
 /*
  * Fetches information about a game's catalog.
  */
-async function catalog(this: APIThisType, {id, categoryName, sortBy, name, query}: catalogProps) : Promise<GroupItemType[]|ACGameItemType[number]['all']['items']>
+async function catalog(this: APIThisType, { id, categoryName, sortBy, name, query }: catalogProps): Promise<GroupItemType[] | ACGameItemType[number]['all']['items']>
 {
 	const [viewTownsPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'view-towns'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'view-towns' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(viewTownsPerm || useTradingPostPerm))
@@ -27,7 +27,7 @@ async function catalog(this: APIThisType, {id, categoryName, sortBy, name, query
 		museum = true;
 	}
 
-	let acgameCategories:GroupItemType[]|ACGameItemType[number]['all']['items'] = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${id}_${categoryName}_${sortBy}`);
+	let acgameCategories: GroupItemType[] | ACGameItemType[number]['all']['items'] = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${id}_${categoryName}_${sortBy}`);
 
 	// Check parameters
 	if (categoryName !== 'all' && !acgameCategories)
@@ -38,33 +38,33 @@ async function catalog(this: APIThisType, {id, categoryName, sortBy, name, query
 	// Run calculations
 	if (museum)
 	{
-		const doesItemMatch = (item:any) => item.museum && item.genuine;
-		const doesGroupMatch = (group:any) => group.items.some(doesItemMatch);
+		const doesItemMatch = (item: any) => item.museum && item.genuine;
+		const doesGroupMatch = (group: any) => group.items.some(doesItemMatch);
 
-		acgameCategories = acgameCategories.filter((catalog:any) => catalog.groups.some(doesGroupMatch))
-			.map((catalog:any) => ({
+		acgameCategories = acgameCategories.filter((catalog: any) => catalog.groups.some(doesGroupMatch))
+			.map((catalog: any) => ({
 				...catalog,
 				groups: catalog.groups.filter(doesGroupMatch)
-					.map((group:any) => ({
+					.map((group: any) => ({
 						...group,
-						items: group.items.filter(doesItemMatch)
-					}))
+						items: group.items.filter(doesItemMatch),
+					})),
 			}));
 	}
 
 	if (utils.realStringLength(name) > 0)
 	{
-		const doesItemMatch = (item:any) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
-		const doesGroupMatch = (group:any) => group.items.some(doesItemMatch);
+		const doesItemMatch = (item: any) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
+		const doesGroupMatch = (group: any) => group.items.some(doesItemMatch);
 
-		return acgameCategories.filter((catalog:any) => catalog.groups.some(doesGroupMatch))
-			.map((catalog:any) => ({
+		return acgameCategories.filter((catalog: any) => catalog.groups.some(doesGroupMatch))
+			.map((catalog: any) => ({
 				...catalog,
 				groups: catalog.groups.filter(doesGroupMatch)
-					.map((group:any) => ({
+					.map((group: any) => ({
 						...group,
-						items: group.items.filter(doesItemMatch)
-					}))
+						items: group.items.filter(doesItemMatch),
+					})),
 			}));
 	}
 	// async Select (see TradingPost)
@@ -72,9 +72,9 @@ async function catalog(this: APIThisType, {id, categoryName, sortBy, name, query
 	{
 		// have direct match show first in the list
 		return (acgameCategories as ACGameItemType[number]['all']['items'])
-			.filter((item:any) => item.name.toLowerCase() === query.toLowerCase())
+			.filter((item: any) => item.name.toLowerCase() === query.toLowerCase())
 			.concat((acgameCategories as ACGameItemType[number]['all']['items'])
-				.filter((item:any) => item.name.toLowerCase() !== query.toLowerCase() && item.name.toLowerCase().includes(query.toLowerCase())));
+				.filter((item: any) => item.name.toLowerCase() !== query.toLowerCase() && item.name.toLowerCase().includes(query.toLowerCase())));
 	}
 
 	return acgameCategories;
@@ -106,7 +106,7 @@ catalog.apiTypes = {
 		default: '',
 		nullable: true,
 	},
-}
+};
 
 type catalogProps = {
 	id: number
@@ -114,6 +114,6 @@ type catalogProps = {
 	sortBy: 'theme' | 'catalog' | 'alphabetical' | 'items'
 	name: string
 	query: string
-}
+};
 
 export default catalog;

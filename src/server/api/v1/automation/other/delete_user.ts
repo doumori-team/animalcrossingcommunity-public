@@ -8,7 +8,7 @@ import { APIThisType, SuccessType } from '@types';
 /*
  * Delete user (test account)
  */
-async function delete_user(this: APIThisType, {username}: deleteUserProps) : Promise<SuccessType>
+async function delete_user(this: APIThisType, { username }: deleteUserProps): Promise<SuccessType>
 {
 	// You must be logged in and on a test site
 	if (constants.LIVE_SITE)
@@ -46,7 +46,7 @@ async function delete_user(this: APIThisType, {username}: deleteUserProps) : Pro
 	await accounts.deleteUser(user.id);
 
 	return {
-		_success: `The user has been deleted.`
+		_success: `The user has been deleted.`,
 	};
 }
 
@@ -56,10 +56,10 @@ delete_user.apiTypes = {
 		required: true,
 		length: constants.max.searchUsername,
 	},
-}
+};
 
 type deleteUserProps = {
 	username: string
-}
+};
 
 export default delete_user;

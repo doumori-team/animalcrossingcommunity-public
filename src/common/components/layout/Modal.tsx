@@ -13,12 +13,12 @@ const Modal = ({
 	children,
 	submitButtonImage,
 	submitButtonImageTitle,
-	updateFunction
+	updateFunction,
 }: ModalProps) =>
 {
 	const [show, setShow] = useState<boolean>(false);
 
-	const renderSubmitButton = (jsFallback?: React.ReactNode) : React.ReactNode =>
+	const renderSubmitButton = (jsFallback?: React.ReactNode): React.ReactNode =>
 	{
 		if (!jsFallback && submitButtonImage)
 		{
@@ -49,12 +49,13 @@ const Modal = ({
 				{submitButtonBody}
 			</Form>
 		);
-	}
+	};
 
 	return (
 		<RequireClientJS fallback={
 			renderSubmitButton(true)
-		}>
+		}
+		>
 			<div className={`Modal_container ${!show && 'Modal_containerHide'}`}>
 				<div className={`Modal ${!show && 'Modal_hide'}`}>
 					<div className='Modal_title'>{title}</div>
@@ -80,7 +81,7 @@ const Modal = ({
 			/>
 		</RequireClientJS>
 	);
-}
+};
 
 type ModalProps = {
 	title: string

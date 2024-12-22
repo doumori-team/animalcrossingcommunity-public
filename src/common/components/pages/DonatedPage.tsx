@@ -13,6 +13,6 @@ const DonatedPage = () =>
 			</ContentBox>
 		</div>
 	);
-}
+};
 
 export default DonatedPage;

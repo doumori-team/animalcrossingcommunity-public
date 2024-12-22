@@ -6,7 +6,7 @@ import {
 	TimeContext,
 	UserContext,
 	JackpotContext,
-	TreasureContext
+	TreasureContext,
 } from '@contexts';
 import SiteContent from '@/components/layout/SiteContent.js';
 import SiteHeader from '@/components/layout/SiteHeader.js';
@@ -24,21 +24,21 @@ import {
 	TreasureType,
 	LatestNotificationType,
 	BuddiesType,
-	SiteHeaderType
+	SiteHeaderType,
 } from '@types';
 
 const App = () =>
 {
-	const getZonedTimeNow = () : Date =>
+	const getZonedTimeNow = (): Date =>
 	{
 		return dateUtils.getCurrentDateTimezone();
-	}
+	};
 
 	const [time, setTime] = useState<Date>(getZonedTimeNow());
-	const {status, jackpot, treasure, notifications, buddies, siteHeader} = useLoaderData() as AppProps;
+	const { status, jackpot, treasure, notifications, buddies, siteHeader } = useLoaderData() as AppProps;
 	const location = useLocation() as LocationType;
 	const params = useParams();
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 
 	const userContext = useContext(UserContext);
 
@@ -46,7 +46,7 @@ const App = () =>
 	{
 		if (userContext)
 		{
-			let query:any = {};
+			let query: any = {};
 
 			for (const [key, value] of searchParams.entries())
 			{
@@ -58,14 +58,14 @@ const App = () =>
 				params: params,
 				query: query,
 			})
-			.catch((error:any) =>
+			.catch((error: any) =>
 			{
 				console.error(error);
 			});
 		}
-	}
+	};
 
-	const updateFavicon = () : void =>
+	const updateFavicon = (): void =>
 	{
 		let icon = `${constants.AWS_URL}/images/layout/favicon/`;
 
@@ -79,24 +79,25 @@ const App = () =>
 		}
 
 		(document.getElementById('acc-favicon') as HTMLLinkElement).href = icon;
-	}
+	};
 
 	const updateTitle = (): void =>
 	{
 		(iso as any).query(null, 'v1/title', {
 			pathname: location.pathname,
 		})
-		.then((data:string) =>
+		.then((data: string) =>
 		{
 			document.title = data;
 		})
-		.catch((error:any) =>
+		.catch((error: any) =>
 		{
 			console.error(error);
 		});
-	}
+	};
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		const intervalId = setInterval(() =>
 		{
 			setTime(getZonedTimeNow());
@@ -105,20 +106,21 @@ const App = () =>
 		return () => clearInterval(intervalId);
 	}, []);
 
-	useEffect(() => {
+	useEffect(() =>
+	{
 		updateSession();
 		updateFavicon();
 		updateTitle();
 	}, [location]);
 
 	return (
-		(status.banLength) ? (
+		status.banLength ?
 			<div className='App_banned'>
 				<ErrorMessage
 					message='You are currently banned from Animal Crossing Community. An email has been sent to your registered email address containing more details.'
 				/>
 			</div>
-		) : (
+			:
 			<UserContext.Provider value={status.user}>
 				<PermissionsContext.Provider value={status.permissions}>
 					<TimeContext.Provider value={time}>
@@ -143,13 +145,13 @@ const App = () =>
 					</TimeContext.Provider>
 				</PermissionsContext.Provider>
 			</UserContext.Provider>
-		)
-	);
-}
 
-function getSeasonsStyle({bg_colors, ui_colors, theme, bannerName, season, event}: SeasonsType) : {style: any, className: string}
+	);
+};
+
+function getSeasonsStyle({ bg_colors, ui_colors, theme, bannerName, season, event }: SeasonsType): { style: any, className: string }
 {
-	let style:any = {};
+	let style: any = {};
 	let className = `App App-${event}`;
 
 	style['--seasonal-color'] = ui_colors.default;
@@ -176,13 +178,13 @@ function getSeasonsStyle({bg_colors, ui_colors, theme, bannerName, season, event
 		style['--seasonal-color-buttons'] = ui_colors.lighter;
 	}
 
-	return {style, className};
+	return { style, className };
 }
 
 /* Generates an SVG file for the site's grassy background, filling in the seasonal colours.
  * parameters: colors - should be an array of four strings, each one being a CSS colour
  */
-function getGrassBackgroundSvg(colors:SeasonsType['bg_colors']) : string
+function getGrassBackgroundSvg(colors: SeasonsType['bg_colors']): string
 {
 	const svg = `
 	<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -232,14 +234,14 @@ function getGrassBackgroundSvg(colors:SeasonsType['bg_colors']) : string
 	return `data:image/svg+xml;utf8,${encodeURIComponent(svg.replace('\n','').replace('\t',''))}`;
 }
 
-export async function loadData(this: APIThisType, _:any, {debug}: {debug?: string}) : Promise<AppProps>
+export async function loadData(this: APIThisType, _: any, { debug }: { debug?: string }): Promise<AppProps>
 {
 	const [status, jackpot, treasure, notifications, buddies, siteHeader] = await Promise.all([
 		this.query('v1/status'),
 		this.query('v1/treasure/jackpot'),
 		this.query('v1/treasure'),
 		this.query('v1/notification/latest'),
-		this.query('v1/users/buddies', {online: true}),
+		this.query('v1/users/buddies', { online: true }),
 		this.query('v1/site_header'),
 	]);
 
@@ -261,10 +263,10 @@ type AppProps = {
 		season: SeasonsType
 	}
 	jackpot: string
-	treasure: TreasureType|null
+	treasure: TreasureType | null
 	notifications: LatestNotificationType
 	buddies: BuddiesType
 	siteHeader: SiteHeaderType[]
-}
+};
 
 export default App;

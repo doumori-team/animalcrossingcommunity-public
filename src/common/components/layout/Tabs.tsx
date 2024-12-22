@@ -9,50 +9,51 @@ const Tabs = ({
 	children,
 	defaultActiveKey,
 	onSelect,
-	fallback = <ErrorMessage identifier='javascript-required' />
+	fallback = <ErrorMessage identifier='javascript-required' />,
 }: TabsProps) =>
 {
-    const [selectedEventKey, setSelectedEventKey] = useState<string>(defaultActiveKey);
+	const [selectedEventKey, setSelectedEventKey] = useState<string>(defaultActiveKey);
 
-    const handleTabChange = (eventKey:string) : void =>
-    {
-        if (eventKey === selectedEventKey)
-        {
-            return;
-        }
+	const handleTabChange = (eventKey: string): void =>
+	{
+		if (eventKey === selectedEventKey)
+		{
+			return;
+		}
 
-        if (onSelect)
-        {
-            onSelect(eventKey);
-        }
+		if (onSelect)
+		{
+			onSelect(eventKey);
+		}
 
-        setSelectedEventKey(eventKey);
-    }
+		setSelectedEventKey(eventKey);
+	};
 
-    return (
-        <RequireClientJS fallback={fallback}>
-            <div className='Tabs'>
-                <div className='Tab_buttons'>
-                    {children.map((child:any) =>
-                        <Button
-                            key={child.props.eventKey}
-                            clickHandler={() => handleTabChange(child.props.eventKey)}
-                            className={`${selectedEventKey === child.props.eventKey ?
-                                'active' : ''} btn-${variant}`}
-                            label={child.props.title}
-                        />
-                    )}
-                </div>
-                {children.map((child:any) => {
-                    if (child.props.eventKey === selectedEventKey)
-                    {
-                        return child;
-                    }
-                })}
-            </div>
-        </RequireClientJS>
-    );
-}
+	return (
+		<RequireClientJS fallback={fallback}>
+			<div className='Tabs'>
+				<div className='Tab_buttons'>
+					{children.map((child: any) =>
+						<Button
+							key={child.props.eventKey}
+							clickHandler={() => handleTabChange(child.props.eventKey)}
+							className={`${selectedEventKey === child.props.eventKey ?
+								'active' : ''} btn-${variant}`}
+							label={child.props.title}
+						/>,
+					)}
+				</div>
+				{children.map((child: any) =>
+				{
+					if (child.props.eventKey === selectedEventKey)
+					{
+						return child;
+					}
+				})}
+			</div>
+		</RequireClientJS>
+	);
+};
 
 type TabsProps = {
 	defaultActiveKey: string
@@ -63,22 +64,22 @@ type TabsProps = {
 };
 
 const Tab = ({
-	children
+	children,
 }: TabProps) =>
 {
-    return (
-        <div className='Tab'>
-            {children}
-        </div>
-    );
-}
+	return (
+		<div className='Tab'>
+			{children}
+		</div>
+	);
+};
 
 Tabs.Tab = Tab;
 
 type TabProps = {
 	children: any
-    eventKey: string
-    title: string
+	eventKey: string
+	title: string
 };
 
 export default Tabs;

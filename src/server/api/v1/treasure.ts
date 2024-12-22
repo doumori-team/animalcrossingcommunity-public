@@ -5,18 +5,18 @@ import { APIThisType, TreasureType, UserType } from '@types';
 /*
  * Determines if user gets treasure.
  */
-export default async function treasure(this: APIThisType) : Promise<null|TreasureType>
+export default async function treasure(this: APIThisType): Promise<null | TreasureType>
 {
 	if (!this.userId)
 	{
 		return null;
 	}
 
-	let user:UserType;
+	let user: UserType;
 
 	try
 	{
-		user = await this.query('v1/user', {id: this.userId});
+		user = await this.query('v1/user', { id: this.userId });
 	}
 	catch
 	{
@@ -60,8 +60,8 @@ export default async function treasure(this: APIThisType) : Promise<null|Treasur
 		`, this.userId),
 	]);
 
-	jackpot = jackpot * Math.pow(2, (jackpotAmount/10000.0)-1);
-	wisp = wisp * Math.pow(1.75, (jackpotAmount/10000.0)-1);
+	jackpot = jackpot * Math.pow(2, jackpotAmount / 10000.0 - 1);
+	wisp = wisp * Math.pow(1.75, jackpotAmount / 10000.0 - 1);
 
 	let treasureType = 'amount', bells = 100, treasureTypeId = 1;
 	const dice = Math.random();
@@ -72,22 +72,22 @@ export default async function treasure(this: APIThisType) : Promise<null|Treasur
 		bells = 0;
 		treasureTypeId = 4;
 	}
-	else if (dice >= jackpot && dice <= (jackpot + tenThousand))
+	else if (dice >= jackpot && dice <= jackpot + tenThousand)
 	{
 		bells = 10000;
 		treasureTypeId = 3;
 	}
-	else if (dice >= (jackpot + tenThousand) && dice <= (jackpot + tenThousand + fiveThousand))
+	else if (dice >= jackpot + tenThousand && dice <= jackpot + tenThousand + fiveThousand)
 	{
 		bells = 5000;
 		treasureTypeId = 6;
 	}
-	else if (dice >= (jackpot + fiveThousand + tenThousand) && dice <= (jackpot + tenThousand + fiveThousand + thousand))
+	else if (dice >= jackpot + fiveThousand + tenThousand && dice <= jackpot + tenThousand + fiveThousand + thousand)
 	{
 		bells = 1000;
 		treasureTypeId = 2;
 	}
-	else if ((dice >= (jackpot + fiveThousand + tenThousand + thousand) && dice <= (jackpot + tenThousand + fiveThousand + thousand + wisp)) && missedBells.count > 0)
+	else if (dice >= jackpot + fiveThousand + tenThousand + thousand && dice <= jackpot + tenThousand + fiveThousand + thousand + wisp && missedBells.count > 0)
 	{
 		treasureType = 'wisp';
 		bells = 0;
@@ -100,7 +100,7 @@ export default async function treasure(this: APIThisType) : Promise<null|Treasur
 		RETURNING id
 	`, this.userId, bells, treasureType);
 
-	await db.regenerateTopBells({userId: this.userId});
+	await db.regenerateTopBells({ userId: this.userId });
 
 	return {
 		treasureTypeId,

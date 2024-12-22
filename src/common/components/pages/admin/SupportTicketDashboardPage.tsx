@@ -9,8 +9,8 @@ import { APIThisType, SupportTicketsType } from '@types';
 
 const SupportTicketDashboardPage = () =>
 {
-	const {username, userTicketId, supportTickets, page, pageSize, totalCount,
-		status} = useLoaderData() as SupportTicketDashboardPageProps;
+	const { username, userTicketId, supportTickets, page, pageSize, totalCount,
+		status } = useLoaderData() as SupportTicketDashboardPageProps;
 
 	const link = `&username=${encodeURIComponent(username)}
 		&userTicketId=${encodeURIComponent(String(userTicketId || ''))}
@@ -52,11 +52,12 @@ const SupportTicketDashboardPage = () =>
 							label='Status'
 							name='status'
 							value={status}
-							options={[{value: '', label: 'All Statuses'}].concat(constants.supportTicket.statuses.map(s => {
+							options={[{ value: '', label: 'All Statuses' }].concat(constants.supportTicket.statuses.map(s =>
+							{
 								return {
 									value: s,
 									label: s,
-								}
+								};
 							}))}
 						/>
 					</Form.Group>
@@ -86,24 +87,24 @@ const SupportTicketDashboardPage = () =>
 									Status: {supportTicket.status}
 								</div>
 
-								{supportTicket.userTicketId && (
+								{supportTicket.userTicketId &&
 									<div className='SupportTicketDashboardPage_supportTicketUT'>
 										UT: <Link to={`/user-ticket/${encodeURIComponent(supportTicket.userTicketId)}`}>
 											{supportTicket.userTicketId}
 										</Link>
 									</div>
-								)}
+								}
 
-								{supportTicket.ban && (
+								{supportTicket.ban &&
 									<div className='SupportTicketDashboardPage_supportTicketBan'>
 										Ban Length (w/ST): {supportTicket.ban.description}
 									</div>
-								)}
+								}
 
 								<div className='SupportTicketDashboardPage_supportTicketStaffOnly'>
 									Staff Only: {supportTicket.staffOnly ? 'Yes' : 'No'}
 								</div>
-							</div>
+							</div>,
 						)}
 					</Grid>
 
@@ -118,9 +119,9 @@ const SupportTicketDashboardPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _:any, {page, username, userTicketId, status}: {page?: string, username?: string, userTicketId?: string, status?: string}) : Promise<SupportTicketDashboardPageProps>
+export async function loadData(this: APIThisType, _: any, { page, username, userTicketId, status }: { page?: string, username?: string, userTicketId?: string, status?: string }): Promise<SupportTicketDashboardPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/support_tickets', {
@@ -150,6 +151,6 @@ type SupportTicketDashboardPageProps = {
 	username: SupportTicketsType['username']
 	userTicketId: SupportTicketsType['userTicketId']
 	status: SupportTicketsType['status']
-}
+};
 
 export default SupportTicketDashboardPage;

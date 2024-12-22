@@ -21,11 +21,11 @@ type UserType = {
 	allBells: string
 	missedBells: string
 	nonFormattedTotalBells: number
-	adoptionThreadId: number|null
-	scoutUsername: string|null
-	adopteeBuddyThreadId: number|null
-	awayStartDate: string|null
-	awayEndDate: string|null
+	adoptionThreadId: number | null
+	scoutUsername: string | null
+	adopteeBuddyThreadId: number | null
+	awayStartDate: string | null
+	awayEndDate: string | null
 	reviewTOS: boolean
 };
 

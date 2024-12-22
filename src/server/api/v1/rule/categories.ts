@@ -1,7 +1,7 @@
 import * as db from '@db';
 import { APIThisType, RuleCategoryType } from '@types';
 
-export default async function categories(this: APIThisType) : Promise<RuleCategoryType[]>
+export default async function categories(this: APIThisType): Promise<RuleCategoryType[]>
 {
 	return await db.query(`
 		SELECT

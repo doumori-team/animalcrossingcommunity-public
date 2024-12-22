@@ -9,24 +9,24 @@ const Switch = ({
 	value,
 	clickHandler,
 	variant = 'dark',
-	information
+	information,
 }: SwitchProps) =>
 {
-    return (
-        <div className={`Switch ${variant}`}>
-            <>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
-            <input
-                type='checkbox'
-                name={name}
-                defaultChecked={value}
-                value='true'
-                id={name}
-                aria-label={label}
-                onClick={clickHandler}
-            />
-        </div>
-    );
-}
+	return (
+		<div className={`Switch ${variant}`}>
+			<>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
+			<input
+				type='checkbox'
+				name={name}
+				defaultChecked={value}
+				value='true'
+				id={name}
+				aria-label={label}
+				onClick={clickHandler}
+			/>
+		</div>
+	);
+};
 
 type SwitchProps = {
 	label: string

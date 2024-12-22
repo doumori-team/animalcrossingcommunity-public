@@ -3,7 +3,7 @@ import { UserError } from '@errors';
 import { constants, dateUtils } from '@utils';
 import { APIThisType, ViewEmailType, NoticeType } from '@types';
 
-export default async function view_email(this: APIThisType) : Promise<ViewEmailType|NoticeType>
+export default async function view_email(this: APIThisType): Promise<ViewEmailType | NoticeType>
 {
 	// You must be on a test site
 	if (constants.LIVE_SITE)
@@ -21,8 +21,8 @@ export default async function view_email(this: APIThisType) : Promise<ViewEmailT
 	if (!latestEmail)
 	{
 		return {
-			_notice: 'No email was found.'
-		}
+			_notice: 'No email was found.',
+		};
 	}
 
 	return {
@@ -30,5 +30,5 @@ export default async function view_email(this: APIThisType) : Promise<ViewEmailT
 		from: latestEmail.from_email,
 		subject: latestEmail.subject,
 		body: latestEmail.body,
-	}
+	};
 }

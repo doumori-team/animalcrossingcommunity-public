@@ -2,7 +2,7 @@ import { UserError } from '@errors';
 import * as db from '@db';
 import { APIThisType, HeaderSettingType } from '@types';
 
-async function header(this: APIThisType) : Promise<HeaderSettingType[]>
+async function header(this: APIThisType): Promise<HeaderSettingType[]>
 {
 	if (!this.userId)
 	{
@@ -26,7 +26,7 @@ async function header(this: APIThisType) : Promise<HeaderSettingType[]>
 		this.query('v1/status'),
 	]);
 
-	return headers.filter((header:any) => header.permission === null || status.permissions.includes(header.permission));
+	return headers.filter((header: any) => header.permission === null || status.permissions.includes(header.permission));
 }
 
 export default header;

@@ -5,11 +5,11 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType } from '@types';
 
-async function save(this: APIThisType, {townId, id, tuneName, noteId0, noteId1, noteId2, noteId3,
+async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1, noteId2, noteId3,
 	noteId4, noteId5, noteId6, noteId7, noteId8, noteId9, noteId10, noteId11,
-	noteId12, noteId13, noteId14, noteId15}: saveProps) : Promise<number>
+	noteId12, noteId13, noteId14, noteId15 }: saveProps): Promise<number>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-tunes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-tunes' });
 
 	if (!permissionGranted)
 	{
@@ -43,7 +43,7 @@ async function save(this: APIThisType, {townId, id, tuneName, noteId0, noteId1, 
 
 	notes = notes.map((id) =>
 	{
-		if (!gameNotes[Number(id||0)])
+		if (!gameNotes[Number(id || 0)])
 		{
 			throw new UserError('bad-format');
 		}
@@ -124,11 +124,11 @@ save.apiTypes = {
 		profanity: true,
 	},
 	// nodeId0-15 is manually checked more easily above
-}
+};
 
 type saveProps = {
-	townId: number|null
-	id: number|null
+	townId: number | null
+	id: number | null
 	tuneName: string
 	noteId0: string
 	noteId1: string
@@ -146,6 +146,6 @@ type saveProps = {
 	noteId13: string
 	noteId14: string
 	noteId15: string
-}
+};
 
 export default save;

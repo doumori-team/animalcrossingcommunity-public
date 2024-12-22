@@ -8,7 +8,7 @@ import { APIThisType, UserBellShopItemType } from '@types';
 
 const BellShopRedeemedPage = () =>
 {
-	const {items} = useLoaderData() as BellShopRedeemedPageProps;
+	const { items } = useLoaderData() as BellShopRedeemedPageProps;
 
 	return (
 		<div className='BellShopRedeemedPage'>
@@ -19,20 +19,20 @@ const BellShopRedeemedPage = () =>
 					<Grid message='No items redeemed.' options={items}>
 						{items.map(item =>
 							<div className='BellShopRedeemedPage_item' key={item.id}>
-								{item.avatar && (
-									<Avatar { ...item.avatar } />
-								)}
+								{item.avatar &&
+									<Avatar {...item.avatar} />
+								}
 
 								<div className='BellShopRedeemedPage_name'>
 									{item.name}
 								</div>
 
-								{item.description && (
+								{item.description &&
 									<Markup
 										text={item.description}
 										format='markdown'
 									/>
-								)}
+								}
 
 								<div className='BellShopRedeemedPage_redeemed'>
 									Redeemed: {item.redeemed}
@@ -46,31 +46,31 @@ const BellShopRedeemedPage = () =>
 									Redeemed For: {item.price}
 								</div>
 
-								{item.redeemedBy && (
+								{item.redeemedBy &&
 									<div className='BellShopRedeemedPage_redeemedBy'>
 										Redeemed By: {item.redeemedBy}
 									</div>
-								)}
-							</div>
+								}
+							</div>,
 						)}
 					</Grid>
 				</Section>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<BellShopRedeemedPageProps>
+export async function loadData(this: APIThisType): Promise<BellShopRedeemedPageProps>
 {
 	const [items] = await Promise.all([
 		this.query('v1/users/bell_shop/items'),
 	]);
 
-	return {items};
+	return { items };
 }
 
 type BellShopRedeemedPageProps = {
 	items: UserBellShopItemType[]
-}
+};
 
 export default BellShopRedeemedPage;

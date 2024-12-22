@@ -5,11 +5,11 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, TownType, ResidentsType, PWPsType } from '@types';
 
-async function town(this: APIThisType, {id}: townProps) : Promise<TownType>
+async function town(this: APIThisType, { id }: townProps): Promise<TownType>
 {
 	const [viewTownsPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', {permission: 'view-towns'}),
-		this.query('v1/permission', {permission: 'use-trading-post'}),
+		this.query('v1/permission', { permission: 'view-towns' }),
+		this.query('v1/permission', { permission: 'use-trading-post' }),
 	]);
 
 	if (!(viewTownsPerm || useTradingPostPerm))
@@ -41,14 +41,20 @@ async function town(this: APIThisType, {id}: townProps) : Promise<TownType>
 			town.flag_id,
 			town.flag_creator_id,
 			town.flag_name,
-			town.flag_data_url
+			town.flag_data_url,
+			town.station_shape,
+			ac_game_paint.id AS paint_id,
+			paint.name AS paint_name,
+			paint.hex AS paint_hex
 		FROM town
 		JOIN ac_game ON (town.game_id = ac_game.id)
 		LEFT JOIN grass_shape ON (town.grass_shape_id = grass_shape.id)
 		LEFT JOIN ordinance ON (ordinance.id = town.ordinance_id)
 		LEFT JOIN hemisphere ON (hemisphere.id = town.hemisphere_id)
+		LEFT JOIN ac_game_paint ON (town.paint_id = ac_game_paint.id)
+		LEFT JOIN paint ON (ac_game_paint.paint_id = paint.id)
 		WHERE town.id = $1::int
-		GROUP BY town.id, ac_game.name, ac_game.shortname, grass_shape.name, ordinance.name, ac_game.map_x, ac_game.map_y, hemisphere.name
+		GROUP BY town.id, ac_game.name, ac_game.shortname, grass_shape.name, ordinance.name, ac_game.map_x, ac_game.map_y, hemisphere.name, ac_game_paint.id, paint.name, paint.hex
 	`, id);
 
 	if (!town)
@@ -56,8 +62,8 @@ async function town(this: APIThisType, {id}: townProps) : Promise<TownType>
 		throw new UserError('no-such-town');
 	}
 
-	const residents:ResidentsType[number] = (await ACCCache.get(constants.cacheKeys.residents))[town.game_id];
-	const gamePWPs:PWPsType[number] = (await ACCCache.get(constants.cacheKeys.pwps))[town.game_id];
+	const residents: ResidentsType[number] = (await ACCCache.get(constants.cacheKeys.residents))[town.game_id];
+	const gamePWPs: PWPsType[number] = (await ACCCache.get(constants.cacheKeys.pwps))[town.game_id];
 
 	const [fruit, nativeFruit, stores, pwps, townResidents, island, characters,
 		mapTiles, tuneCreator, museum, mapDesignData, flagCreator] = await Promise.all([
@@ -69,10 +75,10 @@ async function town(this: APIThisType, {id}: townProps) : Promise<TownType>
 		getIsland.bind(this)(town.id, residents),
 		getCharacters.bind(this)(town.id),
 		getMapTiles.bind(this)(town.id),
-		town.town_tune_creator_id ? this.query('v1/user_lite', {id: town.town_tune_creator_id}) : null,
+		town.town_tune_creator_id ? this.query('v1/user_lite', { id: town.town_tune_creator_id }) : null,
 		getMuseum.bind(this)(town.id, town.game_id),
 		getMapDesignData.bind(this)(town.id, town.game_id),
-		town.flag_creator_id ? this.query('v1/user_lite', {id: town.flag_creator_id}) : null,
+		town.flag_creator_id ? this.query('v1/user_lite', { id: town.flag_creator_id }) : null,
 	]);
 
 	return <TownType>{
@@ -112,11 +118,13 @@ async function town(this: APIThisType, {id}: townProps) : Promise<TownType>
 			id: town.town_tune_id,
 			name: town.town_tune_name,
 			creator: tuneCreator,
-			notes: town.town_tune_notes.match(/.{4}/g).map((hex:any) => parseInt(hex, 16)),
+			notes: town.town_tune_notes.match(/.{4}/g).map((hex: any) => parseInt(hex, 16)),
 			formattedDate: null,
 		} : null,
 		museum: museum,
 		mapDesignData: mapDesignData,
+		// we don't keep all the data necessary to edit the pattern on the town
+		// object in case it's deleted, so just make it non-editable
 		flag: town.flag_name ? {
 			id: town.flag_id,
 			name: town.flag_name,
@@ -129,10 +137,16 @@ async function town(this: APIThisType, {id}: townProps) : Promise<TownType>
 			isFavorite: null,
 			designId: null,
 		} : null,
+		stationShape: town.station_shape,
+		paint: town.paint_id ? {
+			id: town.paint_id,
+			name: town.paint_name,
+			hex: town.paint_hex,
+		} : null,
 	};
 }
 
-async function getFruit(this: APIThisType, id:number) : Promise<TownType['fruit']>
+async function getFruit(this: APIThisType, id: number): Promise<TownType['fruit']>
 {
 	return await db.query(`
 		SELECT
@@ -148,7 +162,7 @@ async function getFruit(this: APIThisType, id:number) : Promise<TownType['fruit'
 	`, id);
 }
 
-async function getNativeFruit(this: APIThisType, id:number) : Promise<TownType['nativeFruit']>
+async function getNativeFruit(this: APIThisType, id: number): Promise<TownType['nativeFruit']>
 {
 	const fruit = await db.query(`
 		SELECT
@@ -165,23 +179,24 @@ async function getNativeFruit(this: APIThisType, id:number) : Promise<TownType['
 
 	return {
 		all: fruit,
-		regular: fruit.filter((f:any) => f.group === 'regular'),
-		island1: fruit.filter((f:any) => f.group === 'island_1'),
-		island2: fruit.filter((f:any) => f.group === 'island_2'),
-		special: fruit.filter((f:any) => f.group === 'special'),
-		nativeFruitId: fruit.find((f:any) => f.group === 'regular')?.id,
-		islandFruitId1: fruit.find((f:any) => f.group === 'island_1')?.id,
-		islandFruitId2: fruit.find((f:any) => f.group === 'island_2')?.id,
-	}
+		regular: fruit.filter((f: any) => f.group === 'regular'),
+		island1: fruit.filter((f: any) => f.group === 'island_1'),
+		island2: fruit.filter((f: any) => f.group === 'island_2'),
+		special: fruit.filter((f: any) => f.group === 'special'),
+		nativeFruitId: fruit.find((f: any) => f.group === 'regular')?.id,
+		islandFruitId1: fruit.find((f: any) => f.group === 'island_1')?.id,
+		islandFruitId2: fruit.find((f: any) => f.group === 'island_2')?.id,
+	};
 }
 
-async function getStores(this: APIThisType, id:number) : Promise<TownType['stores']>
+async function getStores(this: APIThisType, id: number): Promise<TownType['stores']>
 {
 	const stores = await db.query(`
 		SELECT
 			store.id,
 			store.name,
-			store.store_group
+			store.store_group,
+			store.filename
 		FROM store
 		JOIN town_store ON (town_store.store_id = store.id)
 		WHERE town_store.town_id = $1::int
@@ -189,46 +204,46 @@ async function getStores(this: APIThisType, id:number) : Promise<TownType['store
 	`, id);
 
 	return {
-		others: stores.filter((s:any) => s.store_group === 'other'),
-		nook: stores.filter((s:any) => s.store_group === 'nook'),
-	}
+		others: stores.filter((s: any) => s.store_group === 'other'),
+		nook: stores.filter((s: any) => s.store_group === 'nook'),
+	};
 }
 
-async function getPublicWorkProjects(this: APIThisType, id:number, gamePWPs:PWPsType[number]) : Promise<TownType['pwps']>
+async function getPublicWorkProjects(this: APIThisType, id: number, gamePWPs: PWPsType[number]): Promise<TownType['pwps']>
 {
 	const townPWPs = (await db.query(`
 		SELECT
 			pwp_id
 		FROM town_public_work_project
 		WHERE town_public_work_project.town_id = $1::int
-	`, id)).map((tp:any) => tp.pwp_id);
+	`, id)).map((tp: any) => tp.pwp_id);
 
 	if (townPWPs.length === 0)
 	{
 		return [];
 	}
 
-	return gamePWPs.filter((p:any) => townPWPs.includes(p.id));
+	return gamePWPs.filter((p: any) => townPWPs.includes(p.id));
 }
 
-async function getResidents(this: APIThisType, id:number, residents:ResidentsType[number]) : Promise<TownType['residents']>
+async function getResidents(this: APIThisType, id: number, residents: ResidentsType[number]): Promise<TownType['residents']>
 {
 	const townResidentIds = (await db.query(`
 		SELECT
 			resident_id
 		FROM town_resident
 		WHERE town_resident.town_id = $1::int
-	`, id)).map((tr:any) => tr.resident_id);
+	`, id)).map((tr: any) => tr.resident_id);
 
 	if (townResidentIds.length === 0)
 	{
 		return [];
 	}
 
-	return residents.filter((r:any) => townResidentIds.includes(r.id) && r.isTown);
+	return residents.filter((r: any) => townResidentIds.includes(r.id) && r.isTown);
 }
 
-async function getIsland(this: APIThisType, id:number, residents:ResidentsType[number]) : Promise<TownType['island']>
+async function getIsland(this: APIThisType, id: number, residents: ResidentsType[number]): Promise<TownType['island']>
 {
 	let [island] = await db.query(`
 		SELECT
@@ -241,18 +256,18 @@ async function getIsland(this: APIThisType, id:number, residents:ResidentsType[n
 
 	if (island)
 	{
-		const resident = residents.find((r:any) => r.id === island.resident_id);
+		const resident = residents.find((r: any) => r.id === island.resident_id);
 		delete island.resident_id;
 
-		return {...island,
+		return { ...island,
 			resident: resident,
-		}
+		};
 	}
 
 	return null;
 }
 
-async function getCharacters(this: APIThisType, id:number) : Promise<TownType['characters']>
+async function getCharacters(this: APIThisType, id: number): Promise<TownType['characters']>
 {
 	const characters = await db.query(`
 		SELECT
@@ -261,12 +276,13 @@ async function getCharacters(this: APIThisType, id:number) : Promise<TownType['c
 		WHERE character.town_id = $1::int
 	`, id);
 
-	return await Promise.all(characters.map(async (character:any) => {
-		return this.query('v1/character', {id: character.id})
+	return await Promise.all(characters.map(async (character: any) =>
+	{
+		return this.query('v1/character', { id: character.id });
 	}));
 }
 
-async function getMapTiles(this: APIThisType, id:number) : Promise<TownType['mapTiles']>
+async function getMapTiles(this: APIThisType, id: number): Promise<TownType['mapTiles']>
 {
 	const [hexMapTiles] = await db.query(`
 		SELECT
@@ -277,20 +293,20 @@ async function getMapTiles(this: APIThisType, id:number) : Promise<TownType['map
 
 	if (hexMapTiles.map_tiles)
 	{
-		return hexMapTiles.map_tiles.match(/.{4}/g).map((hex:any) => parseInt(hex, 16));
+		return hexMapTiles.map_tiles.match(/.{4}/g).map((hex: any) => parseInt(hex, 16));
 	}
 
 	return [];
 }
 
-async function getMuseum(this: APIThisType, id:number, gameId:number) : Promise<TownType['museum']>
+async function getMuseum(this: APIThisType, id: number, gameId: number): Promise<TownType['museum']>
 {
 	let museum = [];
 
 	// all museum groups in the game with genuine (for artwork) items
 	const museumGroups = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_theme`))
-		.map((category:any) => category.groups).flat(2)
-		.filter((group:any) => group.items.some((item:any) => item.museum && item.genuine));
+		.map((category: any) => category.groups).flat(2)
+		.filter((group: any) => group.items.some((item: any) => item.museum && item.genuine));
 
 	// list of museum catalog item ids the character has
 	const characterCatalogItemIds = (await db.query(`
@@ -300,7 +316,7 @@ async function getMuseum(this: APIThisType, id:number, gameId:number) : Promise<
 		JOIN character ON (character.id = catalog_item.character_id)
 		WHERE character.town_id = $1::int AND catalog_item.in_museum = $2
 		GROUP BY catalog_item.catalog_item_id
-	`, id, true)).map((cci:any) => cci.catalog_item_id);
+	`, id, true)).map((cci: any) => cci.catalog_item_id);
 
 	for (let key in museumGroups)
 	{
@@ -308,15 +324,21 @@ async function getMuseum(this: APIThisType, id:number, gameId:number) : Promise<
 
 		museum.push({
 			name: group.groupName,
-			total: (group.items.filter((item:any) => item.genuine)).length,
-			count: (group.items.filter((item:any) => item.genuine && characterCatalogItemIds.includes(item.id))).length,
+			items: group.items.
+				filter((item: any) => item.genuine).
+				map((item: any) => ({
+					name: item.name,
+					owned: item.genuine && characterCatalogItemIds.includes(item.id),
+				})),
+			total: group.items.filter((item: any) => item.genuine).length,
+			count: group.items.filter((item: any) => item.genuine && characterCatalogItemIds.includes(item.id)).length,
 		});
 	}
 
 	return museum;
 }
 
-async function getMapDesignData(this: APIThisType, id:number, gameId:number) : Promise<TownType['mapDesignData']>
+async function getMapDesignData(this: APIThisType, id: number, gameId: number): Promise<TownType['mapDesignData']>
 {
 	if (gameId < constants.gameIds.ACNH)
 	{
@@ -357,7 +379,7 @@ async function getMapDesignData(this: APIThisType, id:number, gameId:number) : P
 
 	if (colorData.color_data)
 	{
-		mapDesignData['colorData'] = colorData.color_data.match(/.{4}/g).map((hex:any) => colors[parseInt(hex, 16)]);
+		mapDesignData['colorData'] = colorData.color_data.match(/.{4}/g).map((hex: any) => colors[parseInt(hex, 16)]);
 	}
 
 	const [cursorData] = await db.query(`
@@ -371,7 +393,8 @@ async function getMapDesignData(this: APIThisType, id:number, gameId:number) : P
 	{
 		const rectTypes = constants.town.rectTypes;
 
-		mapDesignData['cursorData'] = cursorData.cursor_data.match(/.{4}/g).map((pos:any) => {
+		mapDesignData['cursorData'] = cursorData.cursor_data.match(/.{4}/g).map((pos: any) =>
+		{
 			return (rectTypes as any)[parseInt(pos, 16)].value;
 		});
 	}
@@ -385,7 +408,7 @@ async function getMapDesignData(this: APIThisType, id:number, gameId:number) : P
 
 	if (flipData.flip_data)
 	{
-		mapDesignData['flipData'] = flipData.flip_data.match(/.{4}/g).map((hex:any) => colors[parseInt(hex, 16)]);
+		mapDesignData['flipData'] = flipData.flip_data.match(/.{4}/g).map((hex: any) => colors[parseInt(hex, 16)]);
 	}
 
 	const [imageData] = await db.query(`
@@ -397,7 +420,7 @@ async function getMapDesignData(this: APIThisType, id:number, gameId:number) : P
 
 	if (imageData.image_data)
 	{
-		mapDesignData['imageData'] = imageData.image_data.match(/.{4}/g).map((hex:any) => images[parseInt(hex, 16)] ? images[parseInt(hex, 16)] : String(parseInt(hex, 16)));
+		mapDesignData['imageData'] = imageData.image_data.match(/.{4}/g).map((hex: any) => images[parseInt(hex, 16)] ? images[parseInt(hex, 16)] : String(parseInt(hex, 16)));
 	}
 
 	return mapDesignData;
@@ -408,10 +431,10 @@ town.apiTypes = {
 		type: APITypes.number,
 		required: true,
 	},
-}
+};
 
 type townProps = {
 	id: number
-}
+};
 
 export default town;

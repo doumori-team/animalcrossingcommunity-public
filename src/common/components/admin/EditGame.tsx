@@ -8,26 +8,27 @@ const EditGame = ({
 	gameConsole,
 	game,
 	gameConsoles,
-	games
+	games,
 }: EditGameProps) =>
 {
-	var gamesSequence = games
+	let gamesSequence = games
 		.filter(item => item.sequence !== null)
-		.map(item => {
-			const text = (game && item.sequence == game.sequence)
+		.map(item =>
+		{
+			const text = game && item.sequence === game.sequence
 				? `Current Position`
-				: (!game || game.sequence === null || item.sequence < game.sequence)
+				: !game || game.sequence === null || item.sequence < game.sequence
 					? `Before ${item.name}`
 					: `After ${item.name}`;
 
-			return {sequence: item.sequence, text};
-	});
+			return { sequence: item.sequence, text };
+		});
 
 	if (!game || game.sequence === null)
 	{
 		gamesSequence.push({
 			sequence: gamesSequence.length + 1,
-			text: `(Last Prioritized Game)`
+			text: `(Last Prioritized Game)`,
 		});
 	}
 
@@ -46,7 +47,7 @@ const EditGame = ({
 						label='Game Console'
 						value={gameConsole ? gameConsole.id : ''}
 						options={gameConsoles}
-						optionsMapping={{value: 'id', label: 'name'}}
+						optionsMapping={{ value: 'id', label: 'name' }}
 					/>
 				</Form.Group>
 
@@ -98,17 +99,18 @@ const EditGame = ({
 						label='Sequence'
 						value={game && game.sequence ? game.sequence : 0}
 						options={gamesSequence.concat([
-							{sequence: 0, label: '(Sort Alphabetically)'} as any
+							{ sequence: 0, label: '(Sort Alphabetically)' } as any,
 						])}
 						optionsMapping={{
 							value: 'sequence',
-							label: (item:any) => {
-								if (item.hasOwnProperty('label'))
+							label: (item: any) =>
+							{
+								if (Object.prototype.hasOwnProperty.call(item, 'label'))
 								{
 									return item.label;
 								}
 
-								return `${item.sequence} - ${item.text}`
+								return `${item.sequence} - ${item.text}`;
 							},
 						}}
 					/>
@@ -121,10 +123,10 @@ const EditGame = ({
 						value={game ? game.isEnabled : true}
 					/>
 				</Form.Group>
-			 </Form>
+			</Form>
 		</div>
 	);
-}
+};
 
 type EditGameProps = {
 	gameConsole: GameConsoleType

@@ -11,17 +11,17 @@ import { APIThisType, UserAvatarType, AvatarsType, ElementSelectType } from '@ty
 
 const AvatarSettingsPage = () =>
 {
-	const {avatar, characters, accents, backgrounds, colorations,
-		characterTags, accentTags, backgroundTags} = useLoaderData() as AvatarSettingsPageProps;
+	const { avatar, characters, accents, backgrounds, colorations,
+		characterTags, accentTags, backgroundTags } = useLoaderData() as AvatarSettingsPageProps;
 
 	const [previewCharacter, setPreviewCharacter] = useState<AvatarsType['characters'][number]>(avatar.character.name !== 'Default' ? avatar.character : characters[0]);
-	const [previewAccent, setPreviewAccent] = useState<AvatarsType['accents'][number]|null>(avatar.character.name !== 'Default' ? avatar.accent : null);
+	const [previewAccent, setPreviewAccent] = useState<AvatarsType['accents'][number] | null>(avatar.character.name !== 'Default' ? avatar.accent : null);
 	const [previewAccentPosition, setPreviewAccentPosition] = useState<NonNullable<UserAvatarType['accentPosition']>>(avatar.accentPosition ? avatar.accentPosition : 4);
 	const [previewBackground, setPreviewBackground] = useState<AvatarsType['backgrounds'][number]>(avatar.character.name !== 'Default' ? avatar.background : backgrounds[0]);
-	const [previewColoration, setPreviewColoration] = useState<AvatarsType['colorations'][number]|null>(avatar.character.name !== 'Default' ? avatar.coloration : colorations[0]);
+	const [previewColoration, setPreviewColoration] = useState<AvatarsType['colorations'][number] | null>(avatar.character.name !== 'Default' ? avatar.coloration : colorations[0]);
 	const [useDefault, setUseDefault] = useState<boolean>(false);
 
-	const handleColorationChange = (event: ElementSelectType) : void =>
+	const handleColorationChange = (event: ElementSelectType): void =>
 	{
 		if (event.target.value === '')
 		{
@@ -32,12 +32,12 @@ const AvatarSettingsPage = () =>
 			const colorationId = Number(event.target.value);
 			const foundColoration = colorations.find(c => c.id === colorationId);
 
-			if (foundColoration != null)
+			if (foundColoration)
 			{
 				setPreviewColoration(foundColoration);
 			}
 		}
-	}
+	};
 
 	return (
 		<ContentBox>
@@ -89,17 +89,17 @@ const AvatarSettingsPage = () =>
 							<span className='AvatarSettingsPage_avatarContainer'>
 								<div>Preview:</div>
 
-								{useDefault ? (
-									<Avatar { ...constants.defaultAvatar } />
-								) : (
+								{useDefault ?
+									<Avatar {...constants.defaultAvatar} />
+									:
 									<Avatar
 										character={previewCharacter}
 										accent={previewAccent}
-										accentPosition={(previewAccent && previewAccent.positionable) ? previewAccentPosition : null}
+										accentPosition={previewAccent && previewAccent.positionable ? previewAccentPosition : null}
 										background={previewBackground}
 										coloration={previewBackground.colorable ? previewColoration : null}
 									/>
-								)}
+								}
 							</span>
 						</div>
 
@@ -119,7 +119,7 @@ const AvatarSettingsPage = () =>
 						</div>
 					</div>
 
-					{!useDefault && (
+					{!useDefault &&
 						<Tabs defaultActiveKey='character' variant='dark'>
 							<Tabs.Tab eventKey='character' title='Character'>
 								<input
@@ -147,7 +147,7 @@ const AvatarSettingsPage = () =>
 									elements={characters}
 									currElement={previewCharacter}
 									elementType='character'
-									onElementChange={(character:any) => setPreviewCharacter(character)}
+									onElementChange={(character: any) => setPreviewCharacter(character)}
 									tags={characterTags}
 								/>
 							</Tabs.Tab>
@@ -173,8 +173,8 @@ const AvatarSettingsPage = () =>
 									currElement={previewAccent}
 									elementType='accent'
 									currAccentPosition={previewAccentPosition}
-									onAccentPositionChange={(e:any) => setPreviewAccentPosition(Number(e.target.value))}
-									onElementChange={(accent:any) => setPreviewAccent(!accent ? null : accent)}
+									onAccentPositionChange={(e: any) => setPreviewAccentPosition(Number(e.target.value))}
+									onElementChange={(accent: any) => setPreviewAccent(!accent ? null : accent)}
 									tags={accentTags}
 								/>
 							</Tabs.Tab>
@@ -202,19 +202,19 @@ const AvatarSettingsPage = () =>
 									colorations={colorations}
 									currColoration={previewColoration}
 									onColorationChange={handleColorationChange}
-									onElementChange={(background:any) => setPreviewBackground(background)}
+									onElementChange={(background: any) => setPreviewBackground(background)}
 									tags={backgroundTags}
 								/>
 							</Tabs.Tab>
 						</Tabs>
-					)}
+					}
 				</Form>
 			</RequireClientJS>
 		</ContentBox>
 	);
-}
+};
 
-export async function loadData(this: APIThisType) : Promise<AvatarSettingsPageProps>
+export async function loadData(this: APIThisType): Promise<AvatarSettingsPageProps>
 {
 	const [avatar, avatars] = await Promise.all([
 		this.query('v1/users/avatar'),
@@ -229,7 +229,7 @@ export async function loadData(this: APIThisType) : Promise<AvatarSettingsPagePr
 		colorations: avatars.colorations,
 		characterTags: avatars.tags.characterTags,
 		accentTags: avatars.tags.accentTags,
-		backgroundTags: avatars.tags.backgroundTags
+		backgroundTags: avatars.tags.backgroundTags,
 	};
 }
 
@@ -242,6 +242,6 @@ type AvatarSettingsPageProps = {
 	characterTags: AvatarsType['tags']['characterTags']
 	accentTags: AvatarsType['tags']['accentTags']
 	backgroundTags: AvatarsType['tags']['backgroundTags']
-}
+};
 
 export default AvatarSettingsPage;

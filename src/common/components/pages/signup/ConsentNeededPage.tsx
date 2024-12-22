@@ -8,7 +8,7 @@ import { Form, Text } from '@form';
 
 const ConsentNeededPage = () =>
 {
-	const {id} = useParams();
+	const { id } = useParams();
 
 	return (
 		<div className='ConsentNeededPage'>
@@ -34,6 +34,6 @@ const ConsentNeededPage = () =>
 			</RequireGroup>
 		</div>
 	);
-}
+};
 
 export default ConsentNeededPage;

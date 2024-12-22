@@ -3,9 +3,9 @@ import { stringAt } from './utils.ts';
 import { convertForUrl } from 'common/utils/utils.ts';
 import { regexes } from 'common/utils/constants.ts';
 
-var TOKEN_TYPE = 'user_tag';
+let TOKEN_TYPE = 'user_tag';
 
-function tokenize(state:any, silent:any) : boolean
+function tokenize(state: any, silent: any): boolean
 {
 	if (silent)
 	{
@@ -21,7 +21,7 @@ function tokenize(state:any, silent:any) : boolean
 	}
 
 	const end = state.src.indexOf(' ', start);
-	const unmatched = (end > 0 ? state.src.slice(start, end) : state.src.slice(start));
+	const unmatched = end > 0 ? state.src.slice(start, end) : state.src.slice(start);
 
 	const matches = unmatched.match(RegExp(regexes.userTag));
 
@@ -59,7 +59,7 @@ function tokenize(state:any, silent:any) : boolean
 	return true;
 }
 
-function render(tokens:any, idx:any) : string
+function render(tokens: any, idx: any): string
 {
 	const token = tokens[idx];
 	const username = token.attrGet('username');
@@ -68,7 +68,7 @@ function render(tokens:any, idx:any) : string
 	return `<a href="/profile/${convertForUrl(username)}">@${username}</a>${lastCharacter}`;
 }
 
-export default function userTag(md:any) : void
+export default function userTag(md: any): void
 {
 	md.inline.ruler.after('emphasis', TOKEN_TYPE, tokenize);
 	md.renderer.rules[TOKEN_TYPE] = render;

@@ -4,27 +4,27 @@ const Grid = ({
 	name,
 	options,
 	children,
-	message
+	message,
 }: GridProps) =>
 {
 	return (
 		<>
-			{options.length > 0 ? (
+			{options.length > 0 ?
 				<div className='Grid'>
 					{children}
 				</div>
-			) : (
+				:
 				<div className='GridMessage'>
-					{message ? (
+					{message ?
 						message
-					) : (
+						:
 						`No ${name}s found.`
-					)}
+					}
 				</div>
-			)}
+			}
 		</>
 	);
-}
+};
 
 type GridProps = {
 	name?: string

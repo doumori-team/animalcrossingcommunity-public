@@ -7,9 +7,9 @@ import { APIThisType, UserOffersType } from '@types';
 /*
  * Retrieves trading post offers a specific user has given.
  */
-async function offers(this: APIThisType, {id, page}: offersProps) : Promise<UserOffersType>
+async function offers(this: APIThisType, { id, page }: offersProps): Promise<UserOffersType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-trading-post'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
 
 	if (!permissionGranted)
 	{
@@ -19,7 +19,7 @@ async function offers(this: APIThisType, {id, page}: offersProps) : Promise<User
 	const offerStatuses = constants.tradingPost.offerStatuses;
 
 	const pageSize = 24;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 
 	const results = await db.query(`
 		SELECT
@@ -32,8 +32,9 @@ async function offers(this: APIThisType, {id, page}: offersProps) : Promise<User
 		LIMIT $1::int OFFSET $2::int
 	`, pageSize, offset, id, [offerStatuses.pending, offerStatuses.onHold, offerStatuses.accepted]);
 
-	const offers = await Promise.all(results.map(async (offer:any) => {
-		return this.query('v1/trading_post/listing', {id: offer.listing_id})
+	const offers = await Promise.all(results.map(async (offer: any) =>
+	{
+		return this.query('v1/trading_post/listing', { id: offer.listing_id });
 	}));
 
 	return {
@@ -54,11 +55,11 @@ offers.apiTypes = {
 		required: true,
 		min: 1,
 	},
-}
+};
 
 type offersProps = {
 	id: number
 	page: number
-}
+};
 
 export default offers;

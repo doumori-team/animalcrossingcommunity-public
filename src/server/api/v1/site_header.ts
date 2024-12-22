@@ -1,7 +1,7 @@
 import * as db from '@db';
 import { APIThisType, SiteHeaderType } from '@types';
 
-async function site_header(this: APIThisType) : Promise<SiteHeaderType[]>
+async function site_header(this: APIThisType): Promise<SiteHeaderType[]>
 {
 	if (!this.userId)
 	{

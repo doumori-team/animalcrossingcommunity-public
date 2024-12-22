@@ -4,9 +4,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, FruitType } from '@types';
 
-async function fruit(this: APIThisType, {id}: fruitProps) : Promise<FruitType>
+async function fruit(this: APIThisType, { id }: fruitProps): Promise<FruitType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'modify-towns'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
 
 	if (!permissionGranted)
 	{
@@ -26,11 +26,11 @@ async function fruit(this: APIThisType, {id}: fruitProps) : Promise<FruitType>
 
 	return {
 		all: fruit,
-		regular: fruit.filter((f:any) => f.group === 'regular'),
-		island1: fruit.filter((f:any) => f.group === 'island_1'),
-		island2: fruit.filter((f:any) => f.group === 'island_2'),
-		special: fruit.filter((f:any) => f.group === 'special'),
-	}
+		regular: fruit.filter((f: any) => f.group === 'regular'),
+		island1: fruit.filter((f: any) => f.group === 'island_1'),
+		island2: fruit.filter((f: any) => f.group === 'island_2'),
+		special: fruit.filter((f: any) => f.group === 'special'),
+	};
 }
 
 fruit.apiTypes = {
@@ -38,10 +38,10 @@ fruit.apiTypes = {
 		type: APITypes.acgameId,
 		required: true,
 	},
-}
+};
 
 type fruitProps = {
 	id: number
-}
+};
 
 export default fruit;

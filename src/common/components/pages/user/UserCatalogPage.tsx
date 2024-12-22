@@ -8,8 +8,8 @@ import { LocationType, GroupItemType, APIThisType, CatalogItemsType, UserCatalog
 
 const UserCatalogPage = () =>
 {
-	const {catalogItems, catalog, catalogCategories} = getData(useAsyncValue()) as UserCatalogPageProps;
-	let {userId} = useParams();
+	const { catalogItems, catalog, catalogCategories } = getData(useAsyncValue()) as UserCatalogPageProps;
+	let { userId } = useParams();
 	const query = new URLSearchParams((useLocation() as LocationType).search);
 
 	let by = query.get('by');
@@ -37,9 +37,9 @@ const UserCatalogPage = () =>
 			</div>
 		</RequirePermission>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {userId}: {userId: string}, {by, name, category}: {by?: string, name?: string, category?: string}) : Promise<any>
+export async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<any>
 {
 	const selectedUserId = Number(userId);
 
@@ -48,23 +48,23 @@ export async function loadData(this: APIThisType, {userId}: {userId: string}, {b
 	category = category ? utils.convertForUrl(category) : '';
 
 	return Promise.all([
-		this.query('v1/users/catalog/category', {id: selectedUserId}),
-		utils.realStringLength(category) > 0 ? this.query('v1/users/catalog', {id: selectedUserId}) : null,
-		utils.realStringLength(category) > 0 ? this.query('v1/catalog', {categoryName: category, sortBy: by, name: name}) : null,
+		this.query('v1/users/catalog/category', { id: selectedUserId }),
+		utils.realStringLength(category) > 0 ? this.query('v1/users/catalog', { id: selectedUserId }) : null,
+		utils.realStringLength(category) > 0 ? this.query('v1/catalog', { categoryName: category, sortBy: by, name: name }) : null,
 	]);
 }
 
-function getData(data:any) : UserCatalogPageProps
+function getData(data: any): UserCatalogPageProps
 {
 	const [catalogCategories, catalogItems, catalog] = data;
 
-	return {catalog, catalogItems, catalogCategories};
+	return { catalog, catalogItems, catalogCategories };
 }
 
 type UserCatalogPageProps = {
 	catalog: GroupItemType[]
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
-}
+};
 
 export default UserCatalogPage;

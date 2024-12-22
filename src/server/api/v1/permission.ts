@@ -5,7 +5,7 @@ import { APIThisType } from '@types';
 /*
  * Determines whether or not a user has a specific site-wide permission.
  */
-async function permission(this: APIThisType, {permission}: permissionProps) : Promise<boolean>
+async function permission(this: APIThisType, { permission }: permissionProps): Promise<boolean>
 {
 	const [groupIds, userData] = await Promise.all([
 		db.getUserGroups(this.userId),
@@ -60,10 +60,10 @@ permission.apiTypes = {
 		type: APITypes.string,
 		required: true,
 	},
-}
+};
 
 type permissionProps = {
 	permission: string
-}
+};
 
 export default permission;

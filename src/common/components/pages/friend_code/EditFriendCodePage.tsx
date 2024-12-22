@@ -8,7 +8,7 @@ import { APIThisType, FriendCodeType, CharacterType } from '@types';
 
 const EditFriendCodePage = () =>
 {
-	const {friendCode, characters} = useLoaderData() as EditFriendCodePageProps;
+	const { friendCode, characters } = useLoaderData() as EditFriendCodePageProps;
 
 	return (
 		<div className='EditFriendCodePage'>
@@ -22,21 +22,21 @@ const EditFriendCodePage = () =>
 			</RequireUser>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {friendCodeId}: {friendCodeId: string}) : Promise<EditFriendCodePageProps>
+export async function loadData(this: APIThisType, { friendCodeId }: { friendCodeId: string }): Promise<EditFriendCodePageProps>
 {
 	const [friendCode, characters] = await Promise.all([
-		this.query('v1/friend_code', {id: friendCodeId}),
+		this.query('v1/friend_code', { id: friendCodeId }),
 		this.query('v1/users/characters'),
 	]);
 
-	return {friendCode, characters};
+	return { friendCode, characters };
 }
 
 type EditFriendCodePageProps = {
 	friendCode: FriendCodeType
 	characters: CharacterType[]
-}
+};
 
 export default EditFriendCodePage;

@@ -5,7 +5,7 @@ import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, UserAvatarsType, DataBackgroundType, DataCharacterType, DataColorationType, DataAccentType } from '@types';
 
-async function avatars(this: APIThisType, {page} : avatarsProps) : Promise<UserAvatarsType>
+async function avatars(this: APIThisType, { page }: avatarsProps): Promise<UserAvatarsType>
 {
 	if (!this.userId)
 	{
@@ -13,7 +13,7 @@ async function avatars(this: APIThisType, {page} : avatarsProps) : Promise<UserA
 	}
 
 	const pageSize = 25;
-	const offset = (page * pageSize) - pageSize;
+	const offset = page * pageSize - pageSize;
 	let results = [], count = 0;
 
 	const avatars = await db.query(`
@@ -33,12 +33,13 @@ async function avatars(this: APIThisType, {page} : avatarsProps) : Promise<UserA
 
 	if (avatars.length > 0)
 	{
-		const avatarBackgrounds:DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds);
-		const avatarCharacters:DataCharacterType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters);
-		const avatarColorations:DataColorationType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
-		const avatarAccents:DataAccentType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
+		const avatarBackgrounds: DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds);
+		const avatarCharacters: DataCharacterType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters);
+		const avatarColorations: DataColorationType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
+		const avatarAccents: DataAccentType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
 
-		results = avatars.map((avatar:any) => {
+		results = avatars.map((avatar: any) =>
+		{
 			return {
 				id: avatar.id,
 				background: avatar.background_id ? avatarBackgrounds[avatar.background_id] : null,
@@ -46,8 +47,8 @@ async function avatars(this: APIThisType, {page} : avatarsProps) : Promise<UserA
 				accent: avatar.accent_id ? avatarAccents[avatar.accent_id] : null,
 				accentPosition: avatar.accent_position ? avatar.accent_position : null,
 				coloration: avatar.coloration_id ? avatarColorations[avatar.coloration_id] : null,
-			}
-		})
+			};
+		});
 
 		count = Number(avatars[0].count);
 	}
@@ -66,10 +67,10 @@ avatars.apiTypes = {
 		required: true,
 		min: 1,
 	},
-}
+};
 
 type avatarsProps = {
 	page: number
-}
+};
 
 export default avatars;

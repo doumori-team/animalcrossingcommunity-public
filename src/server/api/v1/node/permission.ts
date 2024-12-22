@@ -10,12 +10,12 @@ import { APIThisType } from '@types';
  * Available only to the user themself, or to a user with the
  * 	'permission-admin' permission.
  */
-async function permission(this: APIThisType, {permission, userId, nodeId}: permissionProps) : Promise<boolean>
+async function permission(this: APIThisType, { permission, userId, nodeId }: permissionProps): Promise<boolean>
 {
 	// can bypass if we're looking at anonymous user
 	if (userId !== this.userId && userId !== 0 && this.userId !== undefined)
 	{
-		const isAdmin:boolean = await this.query('v1/permission', {permission: 'permission-admin'});
+		const isAdmin: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
 
 		if (!isAdmin)
 		{
@@ -49,7 +49,7 @@ async function permission(this: APIThisType, {permission, userId, nodeId}: permi
 			JOIN user_group ON (users.user_group_id = user_group.id)
 			WHERE users.id = $1::int
 		`, userId),
-		this.query('v1/permission', {permission: 'view-other-private-threads'}),
+		this.query('v1/permission', { permission: 'view-other-private-threads' }),
 		userId ? db.getUserGroups(userId) : [0],
 		db.query(`
 			SELECT id
@@ -201,12 +201,12 @@ permission.apiTypes = {
 		type: APITypes.nodeId,
 		required: true,
 	},
-}
+};
 
 type permissionProps = {
 	permission: 'lock' | 'read' | 'reply' | 'sticky' | 'admin-lock' | 'edit' | 'move' | 'add-users' | 'remove-users'
-	userId: number|null
+	userId: number | null
 	nodeId: number
-}
+};
 
 export default permission;

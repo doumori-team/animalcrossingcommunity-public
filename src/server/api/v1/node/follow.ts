@@ -7,9 +7,9 @@ import { APIThisType, NodeType, NodeLiteType } from '@types';
 /*
  * Toggle following a thread or board.
  */
-async function follow(this: APIThisType, {id}: followProps) : Promise<NodeType|null>
+async function follow(this: APIThisType, { id }: followProps): Promise<NodeType | null>
 {
-	const permission:boolean = await this.query('v1/node/permission', {permission: 'read', nodeId: id});
+	const permission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: id });
 
 	if (!permission)
 	{
@@ -21,7 +21,7 @@ async function follow(this: APIThisType, {id}: followProps) : Promise<NodeType|n
 		throw new UserError('login-needed');
 	}
 
-	const node:NodeLiteType = await this.query('v1/node/lite', {id: id})
+	const node: NodeLiteType = await this.query('v1/node/lite', { id: id });
 
 	if (!['board', 'thread'].includes(node.type) || [id, node.parentId].includes(constants.boardIds.privateThreads) || [id, node.parentId].includes(constants.boardIds.publicThreads) || [id].includes(constants.boardIds.accForums) || [id].includes(constants.boardIds.announcements) || [id, node.parentId].includes(constants.boardIds.shopThread) || [id, node.parentId].includes(constants.boardIds.adopteeThread))
 	{
@@ -44,8 +44,8 @@ async function follow(this: APIThisType, {id}: followProps) : Promise<NodeType|n
 				DELETE FROM followed_node
 				WHERE node_id = $1::int AND user_id = $2::int
 			`, id, this.userId),
-			this.query('v1/notification/destroy', {id: id, type: types.FT}),
-			this.query('v1/notification/destroy', {id: id, type: types.FB}),
+			this.query('v1/notification/destroy', { id: id, type: types.FT }),
+			this.query('v1/notification/destroy', { id: id, type: types.FB }),
 		]);
 	}
 	else
@@ -56,7 +56,7 @@ async function follow(this: APIThisType, {id}: followProps) : Promise<NodeType|n
 		`, id, this.userId);
 	}
 
-	return await this.query('v1/node/full', {id: id});
+	return await this.query('v1/node/full', { id: id });
 }
 
 follow.apiTypes = {
@@ -64,10 +64,10 @@ follow.apiTypes = {
 		type: APITypes.nodeId,
 		required: true,
 	},
-}
+};
 
 type followProps = {
 	id: number,
-}
+};
 
 export default follow;

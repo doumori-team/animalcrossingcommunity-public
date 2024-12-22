@@ -16,20 +16,20 @@ import {
 	TownType,
 	EmojiSettingType,
 	GamesType,
-	UserFriendCodesType
+	UserFriendCodesType,
 } from '@types';
 
 const ListingPage = () =>
 {
-	const {listing, characters, game, towns, friendCodes, userEmojiSettings,
-		currentUserEmojiSettings} = useLoaderData() as ListingPageProps;
+	const { listing, characters, game, towns, friendCodes, userEmojiSettings,
+		currentUserEmojiSettings } = useLoaderData() as ListingPageProps;
 
 	const encodedId = encodeURIComponent(listing.id);
 
 	let filteredCharacters = characters
 		.filter(c => listing.game ? c.game.id === listing.game.id : c);
 
-	if (listing.game && listing.game.id > constants.gameIds.ACGC && game != null)
+	if (listing.game && listing.game.id > constants.gameIds.ACGC && game)
 	{
 		const friendCodeCharacterIds = friendCodes
 			.filter(fc => fc.character && fc.character.game.id === game.id)
@@ -40,7 +40,8 @@ const ListingPage = () =>
 	}
 
 	const showRatings = Object.keys(constants.rating.configs)
-		.map(x => {
+		.map(x =>
+		{
 			return {
 				id: (constants.rating.configs as any)[x].id,
 				filename: (constants.rating.configs as any)[x].image,
@@ -58,7 +59,7 @@ const ListingPage = () =>
 								Create a Listing
 							</Link>
 							<UserContext.Consumer>
-								{currentUser => currentUser && (
+								{currentUser => currentUser &&
 									<>
 										<Link to={`/trading-post/${encodeURIComponent(currentUser.id)}/all`}>
 											My Trades
@@ -70,61 +71,61 @@ const ListingPage = () =>
 											My Catalog
 										</Link>
 									</>
-								)}
+								}
 							</UserContext.Consumer>
 						</RequireUser>
 					}
 				/>
 
 				<Section>
-					{!listing.game && (
+					{!listing.game &&
 						<RequireTestSite>
 							<ErrorMessage identifier='test-account-required' />
 						</RequireTestSite>
-					)}
+					}
 
 					<Listing listing={listing} />
 				</Section>
 
 				<div className='ListingPage_offers'>
-					{listing.offers.total > 0 ? (
+					{listing.offers.total > 0 ?
 						<div className='Grid'>
-							{listing.offers.accepted && (
+							{listing.offers.accepted &&
 								<Offer
 									offer={listing.offers.accepted}
 									listing={listing}
 								/>
-							)}
+							}
 
 							{listing.offers.list.map(offer =>
 								<Offer
 									key={offer.id}
 									offer={offer}
 									listing={listing}
-								/>
+								/>,
 							)}
 						</div>
-					) : (
+						:
 						'No offers made.'
-					)}
+					}
 				</div>
 
 				<UserContext.Consumer>
 					{currentUser => (currentUser?.id === listing.creator.id ||
-						currentUser?.id === listing.offers.accepted?.user.id) && (
+						currentUser?.id === listing.offers.accepted?.user.id) &&
 						<>
 							{(listing.status === constants.tradingPost.listingStatuses.offerAccepted ||
 								listing.status === constants.tradingPost.listingStatuses.inProgress) && (
-								listing.game ? (
+								listing.game ?
 									<Form action='v1/trading_post/listing/code'
 										callback={`/trading-post/${encodedId}`}
 										className='ListingPage_code'
-										showButton={(listing.game.id === constants.gameIds.ACGC && filteredCharacters.length > 0) || listing.game.id !== constants.gameIds.ACGC}
+										showButton={listing.game.id === constants.gameIds.ACGC && filteredCharacters.length > 0 || listing.game.id !== constants.gameIds.ACGC}
 									>
 										<input type='hidden' name='id' value={listing.id} />
 
 										<div className='ListingPage_option'>
-											{filteredCharacters.length > 0 ? (
+											{filteredCharacters.length > 0 ?
 												<Form.Group>
 													<RequireUser id={listing.offers.accepted?.user.id} silent>
 														<Select
@@ -136,31 +137,33 @@ const ListingPage = () =>
 															options={filteredCharacters}
 															optionsMapping={{
 																value: 'id',
-																label: (character:any) => {
+																label: (character: any) =>
+																{
 																	return (
 																		`${character.name} (${character.town.name})`
 																	);
-																}
+																},
 															}}
 															useReactSelect
 															option={
-																(value:any) => {
+																(value: any) =>
+																{
 																	const character = filteredCharacters.find(c => c.id === value);
 
-																	if (character == null)
+																	if (!character)
 																	{
 																		return null;
 																	}
 
 																	return (
 																		<>
-																		<Keyboard
-																			name={character.name}
-																			gameId={character.game.id}
-																		/> (<Keyboard
-																			name={character.town.name}
-																			gameId={character.game.id}
-																		/>)
+																			<Keyboard
+																				name={character.name}
+																				gameId={character.game.id}
+																			/> (<Keyboard
+																				name={character.town.name}
+																				gameId={character.game.id}
+																			/>)
 																		</>
 																	);
 																}
@@ -178,31 +181,33 @@ const ListingPage = () =>
 															options={filteredCharacters}
 															optionsMapping={{
 																value: 'id',
-																label: (character:any) => {
+																label: (character: any) =>
+																{
 																	return (
 																		`${character.name} (${character.town.name})`
 																	);
-																}
+																},
 															}}
 															useReactSelect
 															option={
-																(value:any) => {
+																(value: any) =>
+																{
 																	const character = filteredCharacters.find(c => c.id === value);
 
-																	if (character == null)
+																	if (!character)
 																	{
 																		return null;
 																	}
 
 																	return (
 																		<>
-																		<Keyboard
-																			name={character.name}
-																			gameId={character.game.id}
-																		/> (<Keyboard
-																			name={character.town.name}
-																			gameId={character.game.id}
-																		/>)
+																			<Keyboard
+																				name={character.name}
+																				gameId={character.game.id}
+																			/> (<Keyboard
+																				name={character.town.name}
+																				gameId={character.game.id}
+																			/>)
 																		</>
 																	);
 																}
@@ -210,35 +215,35 @@ const ListingPage = () =>
 														/>
 													</RequireUser>
 												</Form.Group>
-											) : (
-												towns.length === 0 ? (
+												:
+												towns.length === 0 ?
 													<>
 														{'You have no towns set up. '}
 														<Link to={`/profile/${encodeURIComponent(Number(currentUser?.id || 0))}/towns/add`}>{'Click here'}</Link>
 														{' to setup a town.'}
 													</>
-												) : (
-													characters.length > 0 ? (
+													:
+													characters.length > 0 ?
 														<>
 															{'None of your current characters are associated with a friend code. '}
 															<Link to={`/profile/${encodeURIComponent(Number(currentUser?.id || 0))}/friend-codes`}>{'Click here'}</Link>
 															{' to update your friend codes.'}
 														</>
-													) : (
+														:
 														<>
 															{'You have no characters set up. '}
 															<Link to={`/profile/${encodeURIComponent(Number(currentUser?.id || 0))}/characters/add`}>{'Click here'}</Link>
 															{' to add a new character.'}
 														</>
-													)
-												)
-											)}
+
+
+											}
 										</div>
 
-										{listing.game.id === constants.gameIds.ACGC ? (
-											filteredCharacters.length > 0 && (
+										{listing.game.id === constants.gameIds.ACGC ?
+											filteredCharacters.length > 0 &&
 												<div className='ListingPage_secretCode'>
-													{listing.character && (
+													{listing.character &&
 														<RequireUser id={listing.offers.accepted?.user.id} silent>
 															<h3 className='ListingPage_acceptedCharacter'>
 																Listing Creator's Character: <span>
@@ -256,25 +261,25 @@ const ListingPage = () =>
 															</h3>
 
 															<div className='ListingPage_items'>
-																{((listing.type === constants.tradingPost.listingTypes.sell && listing.offers.accepted != null) ?
+																{(listing.type === constants.tradingPost.listingTypes.sell && listing.offers.accepted ?
 																	listing.offers.accepted.items :
 																	listing.items)
 																	.map((item, index) =>
-																	<Form.Group key={index}>
-																		<Text
-																			name='secretCodes'
-																			value={item.secretCode ? item.secretCode : ''}
-																			label={`Secret Code for ${item.name}`}
-																			placeholder={constants.placeholders.secretCode}
-																			pattern={constants.regexes.secretCode}
-																		/>
-																	</Form.Group>
-																)}
+																		<Form.Group key={index}>
+																			<Text
+																				name='secretCodes'
+																				value={item.secretCode ? item.secretCode : ''}
+																				label={`Secret Code for ${item.name}`}
+																				placeholder={constants.placeholders.secretCode}
+																				pattern={constants.regexes.secretCode}
+																			/>
+																		</Form.Group>,
+																	)}
 															</div>
 														</RequireUser>
-													)}
+													}
 
-													{(listing.offers.accepted != null && listing.offers.accepted.character) && (
+													{!!listing.offers.accepted && !!listing.offers.accepted.character &&
 														<RequireUser id={listing.creator.id} silent>
 															<h3 className='ListingPage_acceptedCharacter'>
 																Accepted Offer's Character: <span>
@@ -296,24 +301,24 @@ const ListingPage = () =>
 																	listing.items :
 																	listing.offers.accepted.items)
 																	.map((item, index) =>
-																	<div key={index}>
-																		<Form.Group key={index}>
-																			<Text
-																				name='secretCodes'
-																				value={item.secretCode ? item.secretCode : ''}
-																				label={`Secret Code for ${item.name}`}
-																				placeholder={constants.placeholders.secretCode}
-																				pattern={constants.regexes.secretCode}
-																			/>
-																		</Form.Group>
-																	</div>
-																)}
+																		<div key={index}>
+																			<Form.Group key={index}>
+																				<Text
+																					name='secretCodes'
+																					value={item.secretCode ? item.secretCode : ''}
+																					label={`Secret Code for ${item.name}`}
+																					placeholder={constants.placeholders.secretCode}
+																					pattern={constants.regexes.secretCode}
+																				/>
+																			</Form.Group>
+																		</div>,
+																	)}
 															</div>
 														</RequireUser>
-													)}
+													}
 												</div>
-											)
-										) : (
+
+											:
 											<div className='ListingPage_codes'>
 												<h4 className='ListingPage_or'>OR</h4>
 												<Form.Group>
@@ -337,7 +342,7 @@ const ListingPage = () =>
 													</RequireUser>
 												</Form.Group>
 
-												{listing.game.id === constants.gameIds.ACNH && (
+												{listing.game.id === constants.gameIds.ACNH &&
 													<>
 														<h4 className='ListingPage_or'>OR</h4>
 														<Form.Group>
@@ -365,11 +370,11 @@ const ListingPage = () =>
 															</RequireUser>
 														</Form.Group>
 													</>
-												)}
+												}
 											</div>
-										)}
+										}
 									</Form>
-								) : (
+									:
 									<Form action='v1/trading_post/listing/address'
 										callback={`/trading-post/${encodedId}`}
 										className='ListingPage_address'
@@ -399,14 +404,14 @@ const ListingPage = () =>
 											</RequireUser>
 										</Form.Group>
 									</Form>
-								)
+
 							)}
 
-							{listing.status === constants.tradingPost.listingStatuses.inProgress && (
+							{listing.status === constants.tradingPost.listingStatuses.inProgress &&
 								<div className='ListingPage_inProgress'>
-									{listing.game && listing.game.id === constants.gameIds.ACGC ? (
-										(listing.offers.accepted?.items.some(item => item.secretCode) &&
-											listing.items.some(item => item.secretCode)) && (
+									{listing.game && listing.game.id === constants.gameIds.ACGC ?
+										listing.offers.accepted?.items.some(item => item.secretCode) &&
+											listing.items.some(item => item.secretCode) &&
 											<div className='ListingPage_secretCodes'>
 												<h3>Secret Codes</h3>
 												<RequireUser id={listing.offers.accepted.user.id} silent>
@@ -415,30 +420,30 @@ const ListingPage = () =>
 														listing.offers.accepted.items)
 														.filter(item => item.secretCode)
 														.map((item, index) =>
-														<div key={index}>
-															<label>Secret Code for {item.name}: </label>
-															<span>{item.secretCode}</span>
-														</div>
-													)}
+															<div key={index}>
+																<label>Secret Code for {item.name}: </label>
+																<span>{item.secretCode}</span>
+															</div>,
+														)}
 												</RequireUser>
 												<RequireUser id={listing.creator.id} silent>
 													{(listing.type === constants.tradingPost.listingTypes.sell ?
-													listing.offers.accepted.items :
-													listing.items)
+														listing.offers.accepted.items :
+														listing.items)
 														.filter(item => item.secretCode)
 														.map((item, index) =>
-														<div key={index}>
-															<label>Secret Code for {item.name}: </label>
-															<span>{item.secretCode}</span>
-														</div>
-													)}
+															<div key={index}>
+																<label>Secret Code for {item.name}: </label>
+																<span>{item.secretCode}</span>
+															</div>,
+														)}
 												</RequireUser>
 											</div>
-										)
-									) : (
-										listing.game ? (
-											(((listing.dodoCode || listing.friendCode) && currentUser?.id === listing.offers.accepted?.user.id) ||
-											((listing.offers.accepted?.dodoCode || listing.offers.accepted?.friendCode) && currentUser?.id === listing.creator.id)) && (
+
+										:
+										listing.game ?
+											((listing.dodoCode || listing.friendCode) && currentUser?.id === listing.offers.accepted?.user.id ||
+											(listing.offers.accepted?.dodoCode || listing.offers.accepted?.friendCode) && currentUser?.id === listing.creator.id) &&
 												<div className='ListingPage_codes'>
 													<RequireUser id={listing.offers.accepted?.user.id} silent>
 														<h3>Listing Creator's {listing.dodoCode ? 'Dodo Code' : 'Friend Code'}:</h3>
@@ -449,24 +454,26 @@ const ListingPage = () =>
 														{' '}{listing.offers.accepted?.dodoCode ? listing.offers.accepted?.dodoCode : listing.offers.accepted?.friendCode}
 													</RequireUser>
 												</div>
-											)
-										) : (
+
+											:
 											<div className='ListingPage_address'>
 												<RequireUser id={listing.offers.accepted?.user.id} silent>
 													<h3>Listing Creator's Address:</h3>
-													{listing.address.split("\n").map((i, key) => {
+													{listing.address.split('\n').map((i, key) =>
+													{
 														return <div key={key}>{i}</div>;
 													})}
 												</RequireUser>
 												<RequireUser id={listing.creator.id} silent>
 													<h3>Accepted Offer's Address:</h3>
-													{listing.offers.accepted?.address.split("\n").map((i, key) => {
+													{listing.offers.accepted?.address.split('\n').map((i, key) =>
+													{
 														return <div key={key}>{i}</div>;
 													})}
 												</RequireUser>
 											</div>
-										)
-									)}
+
+									}
 
 									<div className='ListingPage_status'>
 										<RequireUser id={listing.offers.accepted?.user.id} silent>
@@ -475,7 +482,7 @@ const ListingPage = () =>
 													Status
 												</div>
 												<div className='ListingPage_links'>
-													{!listing.offers.accepted?.completed && (
+													{!listing.offers.accepted?.completed &&
 														<Confirm
 															action='v1/trading_post/listing/completed'
 															callback={`/trading-post/${encodedId}`}
@@ -483,8 +490,8 @@ const ListingPage = () =>
 															label='Completed'
 															message='Are you sure you want to make your side of this trade as completed?'
 														/>
-													)}
-													{!listing.offers.accepted?.failed && (
+													}
+													{!listing.offers.accepted?.failed &&
 														<Confirm
 															action='v1/trading_post/listing/failed'
 															callback={`/trading-post/${encodedId}`}
@@ -492,25 +499,25 @@ const ListingPage = () =>
 															label='Failed'
 															message='Are you sure you want to make your side of this trade as failed?'
 														/>
-													)}
+													}
 												</div>
 											</div>
-											{listing.completed || listing.failed ? (
+											{listing.completed || listing.failed ?
 												<>
-												{listing.completed && (
-													<>
-													{listing.creator.username} has marked the trade as completed.
-													</>
-												)}
-												{listing.failed && (
-													<>
-													{listing.creator.username} has marked the trade as failed.
-													</>
-												)}
+													{listing.completed &&
+														<>
+															{listing.creator.username} has marked the trade as completed.
+														</>
+													}
+													{listing.failed &&
+														<>
+															{listing.creator.username} has marked the trade as failed.
+														</>
+													}
 												</>
-											) : (
+												:
 												'This trade is currently in progress.'
-											)}
+											}
 										</RequireUser>
 
 										<RequireUser id={listing.creator.id} silent>
@@ -519,7 +526,7 @@ const ListingPage = () =>
 													Status
 												</div>
 												<div className='ListingPage_links'>
-													{!listing.completed && (
+													{!listing.completed &&
 														<Confirm
 															action='v1/trading_post/listing/completed'
 															callback={`/trading-post/${encodedId}`}
@@ -527,43 +534,43 @@ const ListingPage = () =>
 															label='Completed'
 															message='Are you sure you want to make your side of this trade as completed?'
 														/>
-													)}
-													{!listing.failed && (
-															<Confirm
+													}
+													{!listing.failed &&
+														<Confirm
 															action='v1/trading_post/listing/failed'
 															callback={`/trading-post/${encodedId}`}
 															id={listing.id}
 															label='Failed'
 															message='Are you sure you want to make your side of this trade as failed?'
 														/>
-													)}
+													}
 												</div>
 											</div>
-											{listing.offers.accepted?.completed || listing.offers.accepted?.failed ? (
+											{listing.offers.accepted?.completed || listing.offers.accepted?.failed ?
 												<>
-												{listing.offers.accepted.completed && (
-													<>
-													{listing.offers.accepted.user.username} has marked the trade as completed.
-													</>
-												)}
-												{listing.offers.accepted.failed && (
-													<>
-													{listing.offers.accepted.user.username} has marked the trade as failed.
-													</>
-												)}
+													{listing.offers.accepted.completed &&
+														<>
+															{listing.offers.accepted.user.username} has marked the trade as completed.
+														</>
+													}
+													{listing.offers.accepted.failed &&
+														<>
+															{listing.offers.accepted.user.username} has marked the trade as failed.
+														</>
+													}
 												</>
-											) : (
+												:
 												'This trade is currently in progress.'
-											)}
+											}
 										</RequireUser>
 									</div>
 								</div>
-							)}
+							}
 
 							{[
 								constants.tradingPost.listingStatuses.completed,
-								constants.tradingPost.listingStatuses.failed
-							].includes(listing.status) && (
+								constants.tradingPost.listingStatuses.failed,
+							].includes(listing.status) &&
 								<div className='ListingPage_feedback'>
 									<h3>Submit Feedback</h3>
 
@@ -647,12 +654,12 @@ const ListingPage = () =>
 										</div>
 									</Form>
 								</div>
-							)}
+							}
 						</>
-					)}
+					}
 				</UserContext.Consumer>
 
-				{(listing.status === constants.tradingPost.listingStatuses.closed && listing.offers.accepted != null) && (
+				{listing.status === constants.tradingPost.listingStatuses.closed && !!listing.offers.accepted &&
 					<div className='ListingPage_ratings'>
 						<div className='ListingPage_listing'>
 							<Rating
@@ -666,13 +673,13 @@ const ListingPage = () =>
 							/>
 						</div>
 					</div>
-				)}
+				}
 
 				<div className='ListingPage_chat'>
 					<h3>Listing Chat:</h3>
 
 					<div className='ListingPage_comments'>
-						{listing.comments.length > 0 ? (
+						{listing.comments.length > 0 ?
 							listing.comments.map(comment =>
 								<div key={comment.id} className='ListingPage_comment'>
 									<div className='ListingPage_commentBy'>
@@ -681,19 +688,19 @@ const ListingPage = () =>
 											id={comment.id}
 										/>
 										<UserContext.Consumer>
-											{currentUser => (
-												currentUser ? (
+											{currentUser =>
+												currentUser ?
 													<>
-													Comment By: <Link to={`/profile/${encodeURIComponent(comment.user.id)}`}>
-														{comment.user.username}
-													</Link> on {comment.formattedDate}
+														Comment By: <Link to={`/profile/${encodeURIComponent(comment.user.id)}`}>
+															{comment.user.username}
+														</Link> on {comment.formattedDate}
 													</>
-												) : (
+													:
 													<>
-													Comment By: {comment.user.username} on {comment.formattedDate}
+														Comment By: {comment.user.username} on {comment.formattedDate}
 													</>
-												)
-											)}
+
+											}
 										</UserContext.Consumer>
 									</div>
 
@@ -706,14 +713,14 @@ const ListingPage = () =>
 											emojiSettings={userEmojiSettings?.filter(s => s.userId === comment.user.id)}
 										/>
 									</div>
-								</div>
+								</div>,
 							)
-						) : (
+							:
 							'No comments have been made.'
-						)}
+						}
 					</div>
 
-					{listing.status === constants.tradingPost.listingStatuses.open && (
+					{listing.status === constants.tradingPost.listingStatuses.open &&
 						<RequireUser silent>
 							<div className='ListingPage_makeComment'>
 								<Form
@@ -737,9 +744,9 @@ const ListingPage = () =>
 								</Form>
 							</div>
 						</RequireUser>
-					)}
+					}
 
-					{[constants.tradingPost.listingStatuses.offerAccepted, constants.tradingPost.listingStatuses.inProgress, constants.tradingPost.listingStatuses.completed].includes(listing.status) && (
+					{[constants.tradingPost.listingStatuses.offerAccepted, constants.tradingPost.listingStatuses.inProgress, constants.tradingPost.listingStatuses.completed].includes(listing.status) &&
 						<div className='ListingPage_makeComment'>
 							<RequireUser id={listing.offers.accepted?.user.id} silent>
 								<Form
@@ -785,17 +792,17 @@ const ListingPage = () =>
 								</Form>
 							</RequireUser>
 						</div>
-					)}
+					}
 				</div>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<ListingPageProps>
+export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ListingPageProps>
 {
 	const [listing, characters, games, towns, friendCodes, currentUserEmojiSettings] = await Promise.all([
-		this.query('v1/trading_post/listing', {id: id}),
+		this.query('v1/trading_post/listing', { id: id }),
 		this.query('v1/users/characters'),
 		this.query('v1/games'),
 		this.query('v1/users/towns'),
@@ -804,10 +811,10 @@ export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<
 	]);
 
 	const [userEmojiSettings] = await Promise.all([
-		listing.comments.length > 0 ? this.query('v1/settings/emoji', {userIds: listing.comments.map((c:any) => c.user.id)}) : null,
+		listing.comments.length > 0 ? this.query('v1/settings/emoji', { userIds: listing.comments.map((c: any) => c.user.id) }) : null,
 	]);
 
-	const game = listing.game ? games.find((game:any) => game.acGameId === listing.game.id) : null;
+	const game = listing.game ? games.find((game: any) => game.acGameId === listing.game.id) : null;
 
 	return {
 		listing,
@@ -823,11 +830,11 @@ export async function loadData(this: APIThisType, {id}: {id: string}) : Promise<
 type ListingPageProps = {
 	listing: ListingType
 	characters: CharacterType[]
-	game: GamesType|null,
+	game: GamesType | null,
 	towns: TownType[]
 	friendCodes: UserFriendCodesType['results']
-	userEmojiSettings: EmojiSettingType[]|null
+	userEmojiSettings: EmojiSettingType[] | null
 	currentUserEmojiSettings: EmojiSettingType[]
-}
+};
 
 export default ListingPage;

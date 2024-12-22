@@ -8,7 +8,8 @@ import { constants, dateUtils, utils } from '@utils';
 const handler = express();
 handler.set('views', new URL('../views', import.meta.url).pathname);
 
-handler.post('/*', async (request, response) => {
+handler.post('/*', async (request, response) =>
+{
 
 	if (utils.realStringLength(request.body.text) === 0)
 	{
@@ -17,11 +18,11 @@ handler.post('/*', async (request, response) => {
 	}
 
 	let dateMatches = request.body.headers.match(/Date: .*-0400/gm);
-	let recorded = (new Date()).toISOString();
+	let recorded = new Date().toISOString();
 
 	if (dateMatches)
 	{
-		recorded = (dateUtils.toDate(dateMatches[0].substring(6))).toISOString();
+		recorded = dateUtils.toDate(dateMatches[0].substring(6)).toISOString();
 	}
 
 	let subject = request.body.subject;
@@ -46,7 +47,7 @@ handler.post('/*', async (request, response) => {
 
 		fromUserId = user.id;
 	}
-	catch (error)
+	catch (_: any)
 	{
 		// error OR user doesn't exist
 	}

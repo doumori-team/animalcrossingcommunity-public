@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 // Provides toggle ability between subsections of a page
 
 const NavMenu = ({
-	children
+	children,
 }: NavMenuProps) =>
 {
 	return (
@@ -14,7 +14,7 @@ const NavMenu = ({
 			</ul>
 		</nav>
 	);
-}
+};
 
 /* Parameters:
  * 	- path: string representing the component to link to. Required.
@@ -23,7 +23,7 @@ const NavMenu = ({
 const Button = ({
 	path,
 	children,
-	index = false
+	index = false,
 }: ButtonProps) =>
 {
 	return (
@@ -35,11 +35,11 @@ const Button = ({
 				}
 				end={index}
 			>
-				{ children }
+				{children}
 			</NavLink>
 		</li>
 	);
-}
+};
 
 NavMenu.Button = Button;
 

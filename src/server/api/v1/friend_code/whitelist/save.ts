@@ -4,9 +4,9 @@ import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { APIThisType, SuccessType, UserLiteType } from '@types';
 
-async function save(this: APIThisType, {whiteListUser, action}: saveProps) : Promise<SuccessType>
+async function save(this: APIThisType, { whiteListUser, action }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted:boolean = await this.query('v1/permission', {permission: 'use-friend-codes'});
+	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
 
 	if (!permissionGranted)
 	{
@@ -19,9 +19,9 @@ async function save(this: APIThisType, {whiteListUser, action}: saveProps) : Pro
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', {id: this.userId});
+	await this.query('v1/user_lite', { id: this.userId });
 
-	const userWhiteList:UserLiteType = await this.query('v1/user_lite', {username: whiteListUser});
+	const userWhiteList: UserLiteType = await this.query('v1/user_lite', { username: whiteListUser });
 
 	if (userWhiteList.id === this.userId)
 	{
@@ -31,7 +31,7 @@ async function save(this: APIThisType, {whiteListUser, action}: saveProps) : Pro
 	const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
 
 	// Check if user already has whitelisted user
-	await db.transaction(async (query:any) =>
+	await db.transaction(async (query: any) =>
 	{
 		const [checkId] = await query(`
 			SELECT id
@@ -87,11 +87,11 @@ save.apiTypes = {
 		includes: ['add', 'remove'],
 		required: true,
 	},
-}
+};
 
 type saveProps = {
 	whiteListUser: string
 	action: 'add' | 'remove'
-}
+};
 
 export default save;

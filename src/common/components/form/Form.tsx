@@ -42,21 +42,21 @@ const Form = ({
 	updateFunction,
 	defaultSubmitImage,
 	imageTitle,
-	id
+	id,
 }: FormProps) =>
 {
 	const [errors, setErrors] = useState<string[]>([]);
 	const [success, setSuccess] = useState<string>('');
 	const [loading, setLoading] = useState<boolean>(false);
-	const [successTimeout, setSuccessTimeout] = useState<number|null>(null);
-	const [successImage, setSuccessImage] = useState<string|undefined>(defaultSubmitImage);
+	const [successTimeout, setSuccessTimeout] = useState<number | null>(null);
+	const [successImage, setSuccessImage] = useState<string | undefined>(defaultSubmitImage);
 
 	const navigate = useNavigate();
 	const location = useLocation() as LocationType;
 
 	const currentUri = location.pathname + location.search;
 
-	const showSuccessMessage = (message:string) : void =>
+	const showSuccessMessage = (message: string): void =>
 	{
 		if (successTimeout)
 		{
@@ -72,14 +72,14 @@ const Form = ({
 		}, 10 * 1000);
 
 		setSuccessTimeout(newSuccessTimeout);
-	}
+	};
 
-	const showNoticeMessage = (message: string) : void =>
+	const showNoticeMessage = (message: string): void =>
 	{
 		setSuccess(message);
-	}
+	};
 
-	const toggleSuccessImage = (image: string) : void =>
+	const toggleSuccessImage = (image: string): void =>
 	{
 		if (successTimeout)
 		{
@@ -95,13 +95,13 @@ const Form = ({
 		}, 5 * 1000);
 
 		setSuccessTimeout(newSuccessTimeout);
-	}
+	};
 
-	const handleSubmit = (event: React.FormEvent) : void =>
+	const handleSubmit = (event: React.FormEvent): void =>
 	{
 		event.preventDefault();
 
-		const target:any = event.target;
+		const target: any = event.target;
 
 		setLoading(true);
 
@@ -110,7 +110,7 @@ const Form = ({
 		params.delete('_callback_uri');
 
 		(iso as any).query(null, action, params)
-			.then((data:any) =>
+			.then((data: any) =>
 			{
 				setErrors([]);
 
@@ -120,7 +120,7 @@ const Form = ({
 					target.reset();
 				}
 
-				if (typeof data === 'object' && data.hasOwnProperty('_successImage') && defaultSubmitImage)
+				if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_successImage') && defaultSubmitImage)
 				{
 					toggleSuccessImage(data._successImage);
 
@@ -129,16 +129,16 @@ const Form = ({
 						navigate(generatePath(callback, data));
 					}
 				}
-				else if (typeof data === 'object' && data.hasOwnProperty('_success'))
+				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_success'))
 				{
-					if (data.hasOwnProperty('_callbackFirst') && callback)
+					if (Object.prototype.hasOwnProperty.call(data, '_callbackFirst') && callback)
 					{
 						navigate(generatePath(callback, data));
 					}
 
 					showSuccessMessage(data._success);
 
-					if (data.hasOwnProperty('_useCallback') && callback)
+					if (Object.prototype.hasOwnProperty.call(data, '_useCallback') && callback)
 					{
 						window.setTimeout(() =>
 						{
@@ -146,11 +146,11 @@ const Form = ({
 						}, 5 * 1000);
 					}
 				}
-				else if (typeof data === 'object' && data.hasOwnProperty('_notice'))
+				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_notice'))
 				{
 					showNoticeMessage(data._notice);
 				}
-				else if (typeof data === 'object' && data.hasOwnProperty('_logout'))
+				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_logout'))
 				{
 					showNoticeMessage(data._logout);
 
@@ -159,7 +159,7 @@ const Form = ({
 						navigate('/');
 					}, 5 * 1000);
 				}
-				else if (typeof data === 'object' && data.hasOwnProperty('_callback'))
+				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_callback'))
 				{
 					navigate(generatePath(data._callback, data));
 				}
@@ -188,32 +188,33 @@ const Form = ({
 
 				setLoading(false);
 			})
-			.catch((error:any) =>
+			.catch((error: any) =>
 			{
 				console.error(error);
 
 				if (typeof error === 'object')
 				{
-					if (error.hasOwnProperty('identifiers'))
+					if (Object.prototype.hasOwnProperty.call(error, 'identifiers'))
 					{
 						setErrors(error.identifiers);
 					}
-					else if (error.hasOwnProperty('message'))
+					else if (Object.prototype.hasOwnProperty.call(error, 'message'))
 					{
 						setErrors([error]);
 					}
 				}
 
 				setLoading(false);
-			})
-	}
+			});
+	};
 
 	return (
 		<form action={`/api/${action}`} method='post' encType='multipart/form-data' onSubmit={handleSubmit} className={className} id={id}>
 			<input type='hidden' name='_callback_uri' value={callback || currentUri} />
 			{messagesAtBottom && children}
 			<div key={String(loading)}>
-				{errors.map((error:any, index:any) => {
+				{errors.map((error: any, index: any) =>
+				{
 					if (typeof error === 'object')
 					{
 						return <ErrorMessage message={error.message} key={index} />;
@@ -225,13 +226,13 @@ const Form = ({
 				})}
 			</div>
 			{success &&
-				(<Alert type='success'>{success}</Alert>)
+				<Alert type='success'>{success}</Alert>
 			}
 			{!messagesAtBottom && children}
-			{successImage && (
+			{successImage &&
 				<input type='image' src={successImage} title={imageTitle} />
-			)}
-			{showButton && (
+			}
+			{showButton &&
 				<Button
 					label={buttonText}
 					type='submit'
@@ -239,13 +240,13 @@ const Form = ({
 					className='Form_button'
 					clickHandler={buttonClickHandler}
 				/>
-			)}
+			}
 		</form>
 	);
-}
+};
 
 const Group = ({
-	children
+	children,
 }: GroupProps) =>
 {
 	return (
@@ -253,7 +254,7 @@ const Group = ({
 			{children}
 		</div>
 	);
-}
+};
 
 Form.Group = Group;
 

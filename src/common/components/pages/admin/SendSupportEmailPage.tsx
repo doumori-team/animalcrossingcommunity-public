@@ -53,6 +53,6 @@ const SendSupportEmailPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
 export default SendSupportEmailPage;

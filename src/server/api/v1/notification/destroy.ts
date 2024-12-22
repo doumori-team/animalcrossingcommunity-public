@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
-async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<void>
+async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<void>
 {
 	if (!this.userId)
 	{
@@ -27,7 +27,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 			SELECT id
 			FROM notification_type
 			WHERE identifier like 'listing_%'
-		`)).map((lt:any) => lt.id);
+		`)).map((lt: any) => lt.id);
 	}
 	else
 	{
@@ -56,7 +56,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 			types.scoutClosed,
 			types.scoutFeedback,
 			types.scoutBT,
-			types.announcement
+			types.announcement,
 		].includes(type)
 	)
 	{
@@ -74,7 +74,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 	else if (
 		[
 			'listing',
-			types.listingFeedback
+			types.listingFeedback,
 		].includes(type)
 	)
 	{
@@ -95,7 +95,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 			types.modminUTMany,
 			types.modminUTPost,
 			types.modminUTDiscussion,
-			types.ticketProcessed
+			types.ticketProcessed,
 		].includes(type)
 	)
 	{
@@ -113,7 +113,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 	else if (
 		[
 			types.supportTicket,
-			types.supportTicketProcessed
+			types.supportTicketProcessed,
 		].includes(type)
 	)
 	{
@@ -132,7 +132,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 		[
 			types.feature,
 			types.featurePost,
-			types.followFeature
+			types.followFeature,
 		].includes(type)
 	)
 	{
@@ -150,7 +150,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 	}
 	else if (
 		[
-			types.supportEmail
+			types.supportEmail,
 		].includes(type)
 	)
 	{
@@ -169,7 +169,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 		[
 			types.giftBellShop,
 			types.giftDonation,
-			types.donationReminder
+			types.donationReminder,
 		].includes(type)
 	)
 	{
@@ -285,7 +285,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 			[
 				types.modminUT,
 				types.modminUTMany,
-				types.supportEmail
+				types.supportEmail,
 			].includes(type)
 		)
 		{
@@ -297,7 +297,7 @@ async function destroy(this: APIThisType, {id, type}: destroyProps) : Promise<vo
 		else if (
 			[
 				types.giftBellShop,
-				types.giftDonation
+				types.giftDonation,
 			].includes(type)
 		)
 		{
@@ -323,11 +323,11 @@ destroy.apiTypes = {
 		default: '',
 		required: true,
 	},
-}
+};
 
 type destroyProps = {
 	id: any
 	type: string
-}
+};
 
 export default destroy;

@@ -10,7 +10,7 @@ import { APIThisType, TunesType } from '@types';
 
 const TunesPage = () =>
 {
-	const {totalCount, tunes, page, name, creator, pageSize} = useLoaderData() as TunesPageProps;
+	const { totalCount, tunes, page, name, creator, pageSize } = useLoaderData() as TunesPageProps;
 
 	const link = `&creator=${encodeURIComponent(creator)}
 		&name=${encodeURIComponent(name)}
@@ -53,7 +53,7 @@ const TunesPage = () =>
 				<Section>
 					<Grid name='tune' options={tunes}>
 						{tunes.map((tune, index) =>
-							<Tune key={index} tune={tune} />
+							<Tune key={index} tune={tune} />,
 						)}
 					</Grid>
 
@@ -68,9 +68,9 @@ const TunesPage = () =>
 			</RequirePermission>
 		</div>
 	);
-}
+};
 
-export async function loadData(this: APIThisType, _: any, {page, name, creator}: {page?: string, name?: string, creator?: string}) : Promise<TunesPageProps>
+export async function loadData(this: APIThisType, _: any, { page, name, creator }: { page?: string, name?: string, creator?: string }): Promise<TunesPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/tunes', {
@@ -97,6 +97,6 @@ type TunesPageProps = {
 	name: TunesType['name']
 	creator: TunesType['creator']
 	pageSize: TunesType['pageSize']
-}
+};
 
 export default TunesPage;
