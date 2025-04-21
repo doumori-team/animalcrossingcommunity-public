@@ -88,7 +88,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				`, childNode.parent_node_id);
 
 				description = `${user.username} has posted on PT '${parent.title}'`;
-				multiDescription = `There are multiple new posts on PT '${parent.title}'`;
+				multiDescription = `There are %count% new posts on PT '${parent.title}'`;
 			}
 			else
 			{
@@ -132,13 +132,13 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			if (type === types.FT)
 			{
 				description = `${user.username} has posted on thread '${parent.title}'`;
-				multiDescription = `There are multiple new posts on thread '${parent.title}'`;
+				multiDescription = `There are %count% new posts on thread '${parent.title}'`;
 			}
 			else if (type === types.FB)
 			{
 				description = `${user.username} has created '${childNode.title}' on board '${parent.title}'`;
+				multiDescription = `There are %count% new threads on board '${parent.title}'`;
 				childReferenceId = childNode.id;
-				multiDescription = `There are multiple new threads on board '${parent.title}'`;
 			}
 		}
 
@@ -325,7 +325,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			useReferenceId = listingId;
 
 			description = `${user.username} has commented on a trade`;
-			multiDescription = `There are multiple new comments on a trade`;
+			multiDescription = `There are %count% new comments on a trade`;
 		}
 
 		const listing: ListingType = await this.query('v1/trading_post/listing', { id: listingId });
@@ -484,8 +484,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			}
 			else if (type === types.scoutBT)
 			{
+				multiDescription = `There are %count% new posts on the Adoptee BT`;
 				description = `${user.username} has posted on the Adoptee BT`;
-				multiDescription = `There are multiple new posts on the Adoptee BT`;
 			}
 		}
 
@@ -602,7 +602,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			useReferenceId = userTicketId;
 
 			description = `${user.username} has posted on a UT`;
-			multiDescription = `There are multiple new posts on a UT`;
+			multiDescription = `There are %count% new posts on a UT`;
 		}
 
 		const [userTicket] = await db.query(`
@@ -657,6 +657,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		}
 		else if (type === types.modminUTPost)
 		{
+			// if user who posted is not modmin
 			if (!
 			[
 				constants.staffIdentifiers.admin,
@@ -680,6 +681,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 					notifyAllModmins = true;
 				}
 			}
+			// if modmin sent back to user
 			else if (!child.staff_only && [
 				constants.userTicket.statuses.closed,
 				constants.userTicket.statuses.inUserDiscussion,
@@ -688,6 +690,12 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				userIds.push(userTicket.violator_id);
 
 				description = `You have received a new notification from the staff`;
+			}
+			// otherwise let all modmins know of new post
+			// (it's ok if modmin who posted is notified, notification will instant disappear)
+			else
+			{
+				notifyAllModmins = true;
 			}
 		}
 		else if (type === types.modminUTDiscussion)
@@ -712,7 +720,6 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = ANY($1)
 			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.filter((u: any) => u.id !== userTicket.assignee_id)
 				.map((u: any) => u.id);
 		}
 	}
@@ -785,7 +792,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		)
 		{
 			description = `${user.username} has posted on a ST`;
-			multiDescription = `There are multiple new posts on a ST`;
+			multiDescription = `There are %count% new posts on a ST`;
 
 			userIds = (await db.query(`
 				SELECT users.id
@@ -870,7 +877,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			if (type === types.featurePost)
 			{
 				description = `${user.username} has posted on feature '${feature.title}'`;
-				multiDescription = `There are multiple new posts on feature '${feature.title}'`;
+				multiDescription = `There are %count% new posts on feature '${feature.title}'`;
 			}
 			else
 			{
@@ -1017,7 +1024,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			useReferenceId = childNode.parent_node_id;
 
 			description = `${user.username} has posted on Shop Thread '${childNode.title}'`;
-			multiDescription = `There are multiple new posts on Shop Thread '${childNode.title}'`;
+			multiDescription = `There are %count% new posts on Shop Thread '${childNode.title}'`;
 		}
 		else
 		{
@@ -1187,10 +1194,9 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 					text: getEmailText(globalNotification, emailUser.id),
 				});
 			}
-			catch (error)
+			catch (error: any)
 			{
-				console.error('Error sending (global) email notification:');
-				console.error(error);
+				console.error('Error sending (global) email notification:', error);
 			}
 		}));
 
@@ -1223,12 +1229,13 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			if (existingNotificationUserIds.length > 0)
 			{
 				await db.query(`
-					INSERT INTO notification (user_id, reference_id, reference_type_id, description)
-					VALUES (unnest($1::int[]), $2::int, $3::int, $4)
+					INSERT INTO notification (user_id, reference_id, reference_type_id, description, count)
+					VALUES (unnest($1::int[]), $2::int, $3::int, $4, 1)
 					ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
 						notified = null,
 						description = EXCLUDED.description,
-						child_reference_id = EXCLUDED.child_reference_id
+						child_reference_id = EXCLUDED.child_reference_id,
+						count = COALESCE(notification.count, 0) + 1
 				`, existingNotificationUserIds, useReferenceId, notificationType.id, multiDescription);
 			}
 
@@ -1237,24 +1244,26 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			if (nonExistingNotificationUserIds.length > 0)
 			{
 				await db.query(`
-					INSERT INTO notification (user_id, reference_id, reference_type_id, description, child_reference_id)
-					VALUES (unnest($1::int[]), $2::int, $3::int, $4, $5)
+					INSERT INTO notification (user_id, reference_id, reference_type_id, description, child_reference_id, count)
+					VALUES (unnest($1::int[]), $2::int, $3::int, $4, $5, 1)
 					ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
 						notified = null,
 						description = EXCLUDED.description,
-						child_reference_id = EXCLUDED.child_reference_id
+						child_reference_id = EXCLUDED.child_reference_id,
+						count = COALESCE(notification.count, 0) + 1
 				`, nonExistingNotificationUserIds, useReferenceId, notificationType.id, description, childReferenceId);
 			}
 		}
 		else
 		{
 			await db.query(`
-				INSERT INTO notification (user_id, reference_id, reference_type_id, description)
-				VALUES (unnest($1::int[]), $2::int, $3::int, $4)
+				INSERT INTO notification (user_id, reference_id, reference_type_id, description, count)
+				VALUES (unnest($1::int[]), $2::int, $3::int, $4, 1)
 				ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
 					notified = null,
 					description = EXCLUDED.description,
-					child_reference_id = EXCLUDED.child_reference_id
+					child_reference_id = EXCLUDED.child_reference_id,
+					count = COALESCE(notification.count, 0) + 1
 			`, chunkedUserIds, useReferenceId, notificationType.id, description);
 		}
 	}
@@ -1412,10 +1421,9 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				text: getEmailText(userNotification, userId),
 			});
 		}
-		catch (error)
+		catch (error: any)
 		{
-			console.error('Error sending email notification:');
-			console.error(error);
+			console.error('Error sending email notification:', error);
 		}
 	}));
 }

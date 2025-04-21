@@ -1,7 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { ContentBox } from '@layout';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const FAQPage = () =>
 {
@@ -49,7 +51,7 @@ const FAQPage = () =>
 				</div>
 				<div id='user-tickets'>
 					<h3>What are the red alert markers for?</h3>
-					<p>Click on one of the pitfall seed icons around the site to send in a guideline violation report (User Ticket) regarding content produced by any user. An ACC Moderator will then review and process the User Ticket. ACC Moderators make sure that the <Link to='/guidelines'>Site Guidelines</Link> are obeyed, so if you think there's a post, pattern, profile, town tune, etc. that steps over the guidelines, you can send in a report.</p>
+					<p>Click on one of the pitfall seed icons around the site to send in a guideline violation report (User Ticket) regarding content produced by any user. An ACC Moderator will then review and process the User Ticket. ACC Moderators make sure that the <Link to='/guidelines'>Community Guidelines</Link> are obeyed, so if you think there's a post, pattern, profile, town tune, etc. that steps over the guidelines, you can send in a report.</p>
 				</div>
 				<div id='banned-word'>
 					<h3>Why is [INSERT WORD] a banned word?</h3>
@@ -69,7 +71,7 @@ const FAQPage = () =>
 				</div>
 				<div id='profile-removed'>
 					<h3>Why was part of my profile removed?</h3>
-					<p>Each person's profile is still a part of ACC and must follow ACC's <Link to='/guidelines'>Site Guidelines</Link>. Members are permitted to express their political and religious views in their "Other Stuff About Me" section, provided any religious or political statements are respectful and do not demean the beliefs or views of others. This privilege is meant to be used only to express your beliefs and not to attack other religions. If you use your profile to troll, flame, demean or attack someone's beliefs (religious, political, etc.) then you will receive a notification and the offending content will be removed. Members of the LGBT community are permitted to make discreet mention of their sexual orientation in their profile, provided any statements are non-explicit. Something along the lines of "I am LGBT, and would like to wifi with other LGBT members" would be permitted. </p>
+					<p>Each person's profile is still a part of ACC and must follow ACC's <Link to='/guidelines'>Community Guidelines</Link>. Members are permitted to express their political and religious views in their "Other Stuff About Me" section, provided any religious or political statements are respectful and do not demean the beliefs or views of others. This privilege is meant to be used only to express your beliefs and not to attack other religions. If you use your profile to troll, flame, demean or attack someone's beliefs (religious, political, etc.) then you will receive a notification and the offending content will be removed. Members of the LGBT community are permitted to make discreet mention of their sexual orientation in their profile, provided any statements are non-explicit. Something along the lines of "I am LGBT, and would like to wifi with other LGBT members" would be permitted. </p>
 				</div>
 				<div id='icons-def'>
 					<h3>What do the various icons next to a thread title mean (sticky, locked thread, favorite)?</h3>
@@ -91,7 +93,7 @@ const FAQPage = () =>
 				</div>
 				<div id='guideline'>
 					<h3>What if I don't agree with a certain guideline?</h3>
-					<p>The Site Guidelines are continuously under review and get updated on a regular basis so that they stay relevant. There may be guidelines that you do not agree with, but there are good reasons for each and every guideline. If you would like an explanation of any guideline, you are welcome to send a PT to one of the Moderators to ask for clarification.</p>
+					<p>The Community Guidelines are continuously under review and get updated on a regular basis so that they stay relevant. There may be guidelines that you do not agree with, but there are good reasons for each and every guideline. If you would like an explanation of any guideline, you are welcome to send a PT to one of the Moderators to ask for clarification.</p>
 				</div>
 				<div id='account-email'>
 					<h3>Can my family member create an account on ACC using the same email used on my account?</h3>

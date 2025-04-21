@@ -1,15 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 import ReactDomServer from 'react-dom/server';
 
 import { RequireUser } from '@behavior';
 import EditCharacter from '@/components/characters/EditCharacter.tsx';
 import { Keyboard, Section, Grid } from '@layout';
 import { APIThisType, TownType, CharacterGameType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddCharacterPage = () =>
+export const action = routerUtils.formAction;
+
+const AddCharacterPage = ({ loaderData }: { loaderData: AddCharacterPageProps }) =>
 {
-	const { towns, selectedTownId, characterGame, userId } = useLoaderData() as AddCharacterPageProps;
+	const { towns, selectedTownId, characterGame, userId } = loaderData;
 
 	const encodedId = encodeURIComponent(userId);
 	const town = characterGame ? towns.find(t => t.id === selectedTownId) : null;
@@ -67,7 +69,7 @@ const AddCharacterPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id, townId }: { id: string, townId?: string }): Promise<AddCharacterPageProps>
+async function loadData(this: APIThisType, { id, townId }: { id: string, townId?: string }): Promise<AddCharacterPageProps>
 {
 	const selectedTownId = Number(townId);
 	const userId = Number(id);
@@ -95,6 +97,8 @@ export async function loadData(this: APIThisType, { id, townId }: { id: string, 
 
 	return { towns, selectedTownId, characterGame, userId };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddCharacterPageProps = {
 	towns: TownType[]

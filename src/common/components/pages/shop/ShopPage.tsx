@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useAsyncValue } from 'react-router-dom';
+import { ReactNode, useState, use } from 'react';
+import { Link } from 'react-router';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
-import { constants, utils } from '@utils';
+import { constants, utils, routerUtils } from '@utils';
 import { RequireUser, RequirePermission, RequireClientJS } from '@behavior';
 import Shop from '@/components/shop/Shop.tsx';
 import { Header, Section, Tabs, Markup, ErrorMessage, ContentBox, ReportProblem, RequireLargeScreen } from '@layout';
@@ -21,10 +21,12 @@ import {
 	ElementInputType,
 } from '@types';
 
-const ShopPage = () =>
+export const action = routerUtils.formAction;
+
+const ShopPage = ({ loaderData }: { loaderData: Promise<ShopPageProps> }) =>
 {
 	const { shop, shopServices, currentUserEmojiSettings, shopRoles,
-		acGameCatalogs, acgames } = getData(useAsyncValue()) as ShopPageProps;
+		acGameCatalogs, acgames } = getData(use(loaderData));
 
 	const [gameId, setGameId] = useState<number | null>(null);
 	const [serviceId, setServiceId] = useState<string | null>(null);
@@ -78,7 +80,7 @@ const ShopPage = () =>
 		setQuantities(newQuantities);
 	};
 
-	const getOrderSection = (): React.ReactNode =>
+	const getOrderSection = (): ReactNode =>
 	{
 		if (shopServices.length === 0)
 		{
@@ -208,7 +210,7 @@ const ShopPage = () =>
 		}
 	};
 
-	const getApplySection = (): React.ReactNode =>
+	const getApplySection = (): ReactNode =>
 	{
 		if (shopRoles.length === 0)
 		{
@@ -299,7 +301,7 @@ const ShopPage = () =>
 		);
 	};
 
-	const getStatsSection = (): React.ReactNode =>
+	const getStatsSection = (): ReactNode =>
 	{
 		return (
 			<>
@@ -482,7 +484,7 @@ const ShopPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
 {
 	return Promise.all([
 		this.query('v1/shop', { id: id }),
@@ -501,6 +503,8 @@ function getData(data: any): ShopPageProps
 	return { shop, shopServices, currentUserEmojiSettings, shopRoles, acGameCatalogs, acgames };
 }
 
+export const loader = routerUtils.deferLoader(loadData);
+
 type ShopPageProps = {
 	shop: ShopType
 	shopServices: ServiceType[]
@@ -510,4 +514,4 @@ type ShopPageProps = {
 	acgames: ACGameType[]
 };
 
-export default ShopPage;
+export default routerUtils.LoadingFunction(ShopPage);

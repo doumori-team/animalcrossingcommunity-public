@@ -1,29 +1,22 @@
 import * as db from '@db';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, BuddiesType, UserLiteType } from '@types';
+import { APIThisType, BuddiesType } from '@types';
+import { UserError } from '@errors';
 
 async function buddies(this: APIThisType, { online }: buddiesProps): Promise<BuddiesType>
 {
-	if (!this.userId)
-	{
-		return {
-			buddies: [],
-			staff: [],
-		};
-	}
-
 	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-buddy-system' });
 
 	if (!permissionGranted)
 	{
-		return {
-			buddies: [],
-			staff: [],
-		};
+		throw new UserError('permission');
 	}
 
-	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
+	if (!this.userId)
+	{
+		throw new UserError('login-needed');
+	}
 
 	// Run queries
 	// see nodes/StatusIndicator.js
@@ -35,19 +28,19 @@ async function buddies(this: APIThisType, { online }: buddiesProps): Promise<Bud
 			JOIN user_account_cache ON (users.id = user_account_cache.id)
 			WHERE user_buddy.user_id = $1::int AND users.last_active_time > now() - interval '15 minutes'
 			ORDER BY users.last_active_time DESC
-		`, user.id) : db.query(`
+		`, this.userId) : db.query(`
 			SELECT user_buddy.buddy_user_id, user_account_cache.username, users.last_active_time
 			FROM user_buddy
 			JOIN users ON (user_buddy.buddy_user_id = users.id)
 			JOIN user_account_cache ON (users.id = user_account_cache.id)
 			WHERE user_buddy.user_id = $1::int
 			ORDER BY users.last_active_time DESC
-		`, user.id),
+		`, this.userId),
 		db.query(`
 			SELECT show_staff
 			FROM users
 			WHERE id = $1
-		`, user.id),
+		`, this.userId),
 	]);
 
 	let staff = [];

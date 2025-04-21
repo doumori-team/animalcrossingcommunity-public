@@ -18,8 +18,6 @@ async function save(this: APIThisType, { shopId, user, action, roles }: saveProp
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)

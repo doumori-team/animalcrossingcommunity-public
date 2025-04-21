@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import { ErrorMessage } from '@layout';
 import { UserContext } from 'common/contexts.ts';
@@ -43,7 +43,7 @@ const RequireGroup = ({
 type RequireGroupProps = {
 	group: string
 	silent?: boolean
-	children: React.ReactNode
+	children: ReactNode
 };
 
 export default RequireGroup;

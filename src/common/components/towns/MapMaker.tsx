@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Form } from '@form';
 import { TownType, MapTilesType } from '@types';

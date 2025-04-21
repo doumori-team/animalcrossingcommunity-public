@@ -1,3 +1,5 @@
+import { NodeCategoryType } from './nodeCategoryType';
+
 // based on v1/node/boards
 type NodeBoardType = {
 	id: number
@@ -10,6 +12,7 @@ type NodeBoardType = {
 	},
 	followed: boolean
 	boardType: string
+	forumCategory?: NodeCategoryType
 };
 
 export type { NodeBoardType };

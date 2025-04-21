@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Confirm, TextArea } from '@form';
 import { Header, Section, Markup } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, SupportEmailType } from '@types';
 
-const SupportEmailPage = () =>
+export const action = routerUtils.formAction;
+
+const SupportEmailPage = ({ loaderData }: { loaderData: SupportEmailPageProps }) =>
 {
-	const { supportEmail } = useLoaderData() as SupportEmailPageProps;
+	const { supportEmail } = loaderData;
 
 	const encodedId = encodeURIComponent(supportEmail.id);
 
@@ -102,7 +103,7 @@ const SupportEmailPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportEmailPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportEmailPageProps>
 {
 	const [supportEmail] = await Promise.all([
 		this.query('v1/support_email', { id: id }),
@@ -112,6 +113,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		supportEmail,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type SupportEmailPageProps = {
 	supportEmail: SupportEmailType

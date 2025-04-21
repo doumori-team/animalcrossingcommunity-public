@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Form, Text, TextArea, Select, Switch } from '@form';
 import { constants } from '@utils';
 import { RuleType, RuleCategoryType } from '@types';

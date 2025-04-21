@@ -1,10 +1,8 @@
-import React from 'react';
+import { createContext } from 'react';
 
-import { dateUtils } from '@utils';
-import { UserType, TreasureType } from '@types';
+import { UserType } from '@types';
 
-export const PermissionsContext = React.createContext<string[]>([]);
-export const TimeContext = React.createContext<Date>(dateUtils.getCurrentDateTimezone());
-export const UserContext = React.createContext<UserType | null>(null);
-export const JackpotContext = React.createContext<string>('0');
-export const TreasureContext = React.createContext<TreasureType | null>(null);
+export const PermissionsContext = createContext<string[]>([]);
+export const TimeContext = createContext<Date | null>(null);
+export const UserContext = createContext<UserType | null>(null);
+export const JackpotContext = createContext<string>('0');

@@ -18,8 +18,6 @@ async function apply(this: APIThisType, { id, roleId, text, format, gameIds }: a
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const [shop] = await db.query(`
 		SELECT id
 		FROM shop

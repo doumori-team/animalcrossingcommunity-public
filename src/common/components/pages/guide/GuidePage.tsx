@@ -1,14 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Confirm } from '@form';
 import { ContentBox, Header, Section, Markup } from '@layout';
 import { APIThisType, GuideType } from '@types';
+import { routerUtils } from '@utils';
 
-const GuidePage = () =>
+export const action = routerUtils.formAction;
+
+const GuidePage = ({ loaderData }: { loaderData: GuidePageProps }) =>
 {
-	const { guide } = useLoaderData() as GuidePageProps;
+	const { guide } = loaderData;
 
 	const encodedId = encodeURIComponent(guide.id);
 	const encodedGameId = encodeURIComponent(guide.game.id);
@@ -86,7 +88,7 @@ const GuidePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<GuidePageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<GuidePageProps>
 {
 	const [guide] = await Promise.all([
 		this.query('v1/guide', { id: id }),
@@ -94,6 +96,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { guide };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type GuidePageProps = {
 	guide: GuideType

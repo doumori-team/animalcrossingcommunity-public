@@ -65,7 +65,6 @@ async function save(this: APIThisType, { backgroundId, colorationId, characterId
 
 	return {
 		_success: 'Your avatar has been updated.',
-		_callbackFirst: true,
 	};
 }
 

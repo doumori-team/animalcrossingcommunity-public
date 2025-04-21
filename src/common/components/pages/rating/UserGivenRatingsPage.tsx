@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
-import { utils } from '@utils';
+import { utils, routerUtils } from '@utils';
 import { RequireUser } from '@behavior';
 import Rating from '@/components/ratings/Rating.tsx';
 import { Pagination, Header, Section, Grid } from '@layout';
 import { APIThisType, RatingsGivenType, UserLiteType } from '@types';
 
-const UserGivenRatingsPage = () =>
+export const action = routerUtils.formAction;
+
+const UserGivenRatingsPage = ({ loaderData }: { loaderData: UserGivenRatingsPageProps }) =>
 {
-	const { user, ratings, page, pageSize, totalCount, type } = useLoaderData() as UserGivenRatingsPageProps;
+	const { user, ratings, page, pageSize, totalCount, type } = loaderData;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -48,7 +49,7 @@ const UserGivenRatingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId, type }: { userId: string, type: string }, { page }: { page?: string }): Promise<UserGivenRatingsPageProps>
+async function loadData(this: APIThisType, { userId, type }: { userId: string, type: string }, { page }: { page?: string }): Promise<UserGivenRatingsPageProps>
 {
 	const [ratings, user] = await Promise.all([
 		this.query('v1/users/ratings_given', { id: userId, page: page ? page : 1, type: type }),
@@ -64,6 +65,8 @@ export async function loadData(this: APIThisType, { userId, type }: { userId: st
 		type: ratings.type,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserGivenRatingsPageProps = {
 	user: UserLiteType

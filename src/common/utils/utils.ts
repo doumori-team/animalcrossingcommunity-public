@@ -3,19 +3,17 @@
 // careful what dependencies you add.
 
 import * as constants from './constants.ts';
-
-import acgcMapTiles from '../maps/acgc.json' with { type: 'json' };
-import acwwMapTiles from '../maps/acww.json' with { type: 'json' };
-import accfMapTiles from '../maps/accf.json' with { type: 'json' };
-import acnlMapTiles from '../maps/acnl.json' with { type: 'json' };
-import townTunes from '../tunes/tunes.json' with { type: 'json' };
-import acgcPatterns from '../patterns/acgc.json' with { type: 'json' };
-import acwwPatterns from '../patterns/acww.json' with { type: 'json' };
-import accfPatterns from '../patterns/accf.json' with { type: 'json' };
-import acnlPatterns from '../patterns/acnl.json' with { type: 'json' };
-import acnhPatterns from '../patterns/acnh.json' with { type: 'json' };
-import acnhMaps from '../maps/acnh.json' with { type: 'json' };
-
+import acgcMapTiles from '../maps/acgc.json';
+import acwwMapTiles from '../maps/acww.json';
+import accfMapTiles from '../maps/accf.json';
+import acnlMapTiles from '../maps/acnl.json';
+import townTunes from '../tunes/tunes.json';
+import acgcPatterns from '../patterns/acgc.json';
+import acwwPatterns from '../patterns/acww.json';
+import accfPatterns from '../patterns/accf.json';
+import acnlPatterns from '../patterns/acnl.json';
+import acnhPatterns from '../patterns/acnh.json';
+import acnhMaps from '../maps/acnh.json';
 import {
 	UserTicketType,
 	TicketType,
@@ -29,6 +27,7 @@ import {
 	MapDesignerImagesType,
 	MapDesignerMapInfoType,
 	GrassShapeType,
+	AppLoadContextType,
 } from '@types';
 
 // For case-insensitive, diacritical mark ignoring, natural number sorting
@@ -65,6 +64,26 @@ export function realStringLength(string: any): number
 export function trimString(string: any): string
 {
 	return String(string || '').replace(/(^\s+|\s+$)/g, '');
+}
+
+/*
+ * Update generatePath to handle hashes.
+ */
+export function generateHashPath(initialPath: string, data: any, serverSide: boolean = false): string
+{
+	const [path, hash] = initialPath.split('?reload=:');
+
+	if (realStringLength(hash) > 0)
+	{
+		if (serverSide)
+		{
+			return `${path}#${data[hash]}`;
+		}
+
+		return `${path}?reload=${data[hash]}`;
+	}
+
+	return initialPath;
 }
 
 /*
@@ -279,14 +298,14 @@ export function getReferenceLink(ticket: UserTicketType | TicketType): string
 
 	if (type === types.thread)
 	{
-		if (ticket.reference.parentId != null)
+		if (ticket.reference.parentId !== null)
 		{
 			return `/forums/${encodeURIComponent(ticket.reference.parentId)}`;
 		}
 	}
 	else if (type === types.post || type === types.postImage)
 	{
-		if (ticket.reference.parentId != null)
+		if (ticket.reference.parentId !== null)
 		{
 			return `/forums/${encodeURIComponent(ticket.reference.parentId)}`;
 		}
@@ -297,7 +316,7 @@ export function getReferenceLink(ticket: UserTicketType | TicketType): string
 	}
 	else if (type === types.tune)
 	{
-		if (ticket.reference.text != null)
+		if (ticket.reference.text !== null)
 		{
 			return `/town-tunes?name=${encodeURIComponent(ticket.reference.text)}&creator=${encodeURIComponent(ticket.violator.username)}`;
 		}
@@ -312,14 +331,14 @@ export function getReferenceLink(ticket: UserTicketType | TicketType): string
 	}
 	else if (type === types.listingComment || type === types.offer)
 	{
-		if (ticket.reference.parentId != null)
+		if (ticket.reference.parentId !== null)
 		{
 			return `/trading-post/${encodeURIComponent(ticket.reference.parentId)}`;
 		}
 	}
 	else if ([types.shopName, types.shopDescription, types.shopShortDescription, types.shopImage, types.shopServiceName, types.shopServiceDescription, types.shopRoleName, types.shopRoleDescription].includes(type))
 	{
-		if (ticket.reference.parentId != null)
+		if (ticket.reference.parentId !== null)
 		{
 			return `/shop/${encodeURIComponent(ticket.reference.parentId)}`;
 		}
@@ -450,7 +469,7 @@ export function getNotificationReferenceLink(notification: any, userCheck: boole
 		].includes(type)
 	)
 	{
-		if (notification.child_reference_id)
+		if (notification.child_reference_id && notification?.count && notification.count === 1)
 		{
 			return `/forums/${encodeURIComponent(notification.child_reference_id)}`;
 		}
@@ -628,17 +647,19 @@ export function getRandomColor(): string
 	return '#' + (Math.random() * 0xFFFFFF << 0).toString(16);
 }
 
-export function startLog(request: any, location: string): string
+export function startLog({ location, request, context }: { location: string, request?: any, context?: AppLoadContextType }): string
 {
-	let ipAddresses: string | string[] = request.headers['x-forwarded-for'];
-	let protocol: string = request.headers['x-forwarded-proto'];
-	let httpVersion: string = request.httpVersion;
+	const useObject = request ?? context;
+
+	let ipAddresses: string | string[] = useObject.headers['x-forwarded-for'];
+	let protocol: string = useObject.headers['x-forwarded-proto'];
+	let httpVersion: string = useObject.httpVersion;
 	let tls = 'true';
 	let tlsVersion: string | string[] = 'unknown';
 
-	if (request.headers['cloudfront-viewer-address'])
+	if (useObject.headers['cloudfront-viewer-address'])
 	{
-		ipAddresses = request.headers['cloudfront-viewer-address'].split(':');
+		ipAddresses = useObject.headers['cloudfront-viewer-address'].split(':');
 
 		if (ipAddresses.length > 1)
 		{
@@ -647,19 +668,19 @@ export function startLog(request: any, location: string): string
 		}
 	}
 
-	if (request.headers['cloudfront-forwarded-proto'])
+	if (useObject.headers['cloudfront-forwarded-proto'])
 	{
-		protocol = request.headers['cloudfront-forwarded-proto'];
+		protocol = useObject.headers['cloudfront-forwarded-proto'];
 	}
 
-	if (request.headers['cloudfront-viewer-http-version'])
+	if (useObject.headers['cloudfront-viewer-http-version'])
 	{
-		httpVersion = request.headers['cloudfront-viewer-http-version'];
+		httpVersion = useObject.headers['cloudfront-viewer-http-version'];
 	}
 
-	if (request.headers['cloudfront-viewer-tls'])
+	if (useObject.headers['cloudfront-viewer-tls'])
 	{
-		tlsVersion = request.headers['cloudfront-viewer-tls'].split(':');
+		tlsVersion = useObject.headers['cloudfront-viewer-tls'].split(':');
 
 		if (tlsVersion.length === 3)
 		{
@@ -668,36 +689,31 @@ export function startLog(request: any, location: string): string
 		}
 	}
 
-	let log = `at=info method=${request.method} path="${request.url}" host=${request.headers['host']} request_id=${request.headers['x-request-id']} fwd="${ipAddresses}" protocol=${protocol} tls=${tls} tls_version=${tlsVersion} location=${location} http_version=${httpVersion} user_agent="${request.headers['user-agent']}" referer=${request.headers['referer']}`;
+	let log = `at=info method=${useObject.method} path="${useObject.url}" host=${useObject.headers['host']} request_id=${useObject.headers['x-request-id']} fwd="${ipAddresses}" protocol=${protocol} tls=${tls} tls_version=${tlsVersion} location=${location} http_version=${httpVersion} user_agent="${useObject.headers['user-agent']}" referer=${useObject.headers['referer']}`;
 
-	if (request.session.user)
+	if (useObject.session?.user)
 	{
-		log += ` user_id=${request.session.user}`;
+		log += ` user_id=${useObject.session.user}`;
 	}
 
-	if (request.session.username)
+	if (useObject.session?.username)
 	{
-		log += ` user_name=${request.session.username}`;
+		log += ` user_name=${useObject.session.username}`;
 	}
 
-	if (request.headers['cloudfront-viewer-country-name'])
+	if (useObject.headers['cloudfront-viewer-country-name'])
 	{
-		log += ` country_name=${request.headers['cloudfront-viewer-country-name']}`;
+		log += ` country_name=${useObject.headers['cloudfront-viewer-country-name']}`;
 	}
 
-	if (request.headers['x-host'])
+	if (useObject.headers['x-host'])
 	{
-		log += ` x_host=${request.headers['x-host']}`;
+		log += ` x_host=${useObject.headers['x-host']}`;
 	}
 
 	log += ` version=${constants.version}`;
 
 	return log;
-}
-
-export function isNumber(value: any): boolean
-{
-	return !isNaN(value);
 }
 
 /*
@@ -771,4 +787,23 @@ export function amenityIconUrl(name: string): string
 	return `${name.
 		toLowerCase().
 		replace(/\s+/g, '-')}.png`;
+}
+
+export function entriesToObject(entries: IterableIterator<[string, FormDataEntryValue] | [string, string]>): Record<string, any>
+{
+	const obj: Record<string, any> = {};
+
+	for (const [key, value] of entries)
+	{
+		if (Object.prototype.hasOwnProperty.call(obj, key))
+		{
+			obj[key] = [].concat(obj[key], value as any);
+		}
+		else
+		{
+			obj[key] = value;
+		}
+	}
+
+	return obj;
 }

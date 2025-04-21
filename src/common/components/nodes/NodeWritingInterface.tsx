@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Form, RichTextArea, Text, Select, Switch } from '@form';
 import { constants } from '@utils';
 import { EmojiSettingType, FileType, NodeBoardType, UserDonationsType, MarkupFormatType, MarkupStyleType } from '@types';
@@ -45,16 +43,11 @@ const NodeWritingInterface = ({
 	{
 		callback = `/${callbackPrefix}/${threadId}`; // Stay where we are after creating the post
 		title = 'Reply to this thread';
-	}
 
-	if (lastPage && parentType !== 'board')
-	{
-		callback += `/${encodeURIComponent(lastPage)}`;
-	}
-
-	if (parentType !== 'board')
-	{
-		callback += `?reload=`;
+		if (lastPage)
+		{
+			callback += `/${encodeURIComponent(lastPage)}?reload=:id`;
+		}
 	}
 
 	let threadTypes = [{ value: 'normal', label: 'Normal' }];
@@ -69,9 +62,16 @@ const NodeWritingInterface = ({
 		threadTypes.push({ value: 'admin', label: 'Lock' });
 	}
 
+	let postId = '';
+
+	if (typeof window !== 'undefined')
+	{
+		postId = window.location.hash.substring(1);
+	}
+
 	return (
 		<fieldset className='NodeWritingInterface' id='TextBox'>
-			<Form action='v1/node/create' callback={callback} showButton>
+			<Form action='v1/node/create' callback={callback} showButton formId={postId || String(parentId)}>
 				<div role='group'>
 					<h1 className='NodeWritingInterface_heading'>
 						{title}
@@ -89,7 +89,7 @@ const NodeWritingInterface = ({
 
 					{threadTypes.length > 1 &&
 						<Select
-							hideLabel
+							hideLabels
 							name='type'
 							options={threadTypes}
 							label='Select thread type'
@@ -102,7 +102,7 @@ const NodeWritingInterface = ({
 
 				{(parentType === 'board' || permissions.includes('edit')) &&
 					<Text
-						hideLabel
+						hideLabels
 						className='NodeWritingInterface_title'
 						name='title'
 						label='Title'
@@ -148,7 +148,6 @@ const NodeWritingInterface = ({
 				<RichTextArea
 					textName='text'
 					formatName='format'
-					key={Math.random()}
 					label={title}
 					textValue={parentContent?.text}
 					formatValue={parentContent ? parentContent.format : markupStyle}

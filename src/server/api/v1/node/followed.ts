@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
-import { APIThisType, FollowedNodesType, UserLiteType } from '@types';
+import { APIThisType, FollowedNodesType } from '@types';
 
 /*
  * Get followed threads
@@ -13,8 +13,6 @@ async function followed(this: APIThisType, { type, page }: followedProps): Promi
 	{
 		throw new UserError('login-needed');
 	}
-
-	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
 	const offset = page * constants.threadPageSize - constants.threadPageSize;
 
@@ -85,7 +83,7 @@ async function followed(this: APIThisType, { type, page }: followedProps): Promi
 			ORDER BY time DESC
 			FETCH FIRST 1 ROW ONLY
 		) last_revision ON true
-	`, constants.threadPageSize, offset, user.id, type, constants.nodePermissions.read, groupIds);
+	`, constants.threadPageSize, offset, this.userId, type, constants.nodePermissions.read, groupIds);
 
 	const [count, childNodes] = await db.getChildren(resultsQuery, this.query, this.userId);
 

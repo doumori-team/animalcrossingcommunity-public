@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Confirm } from '@form';
@@ -25,6 +24,7 @@ const FriendCode = ({
 						id={friendCode.id}
 						label='Delete'
 						message='Are you sure you want to delete this friend code?'
+						formId={`friend-code-destroy-${friendCode.id}`}
 					/>
 				</div>
 			</RequireUser>

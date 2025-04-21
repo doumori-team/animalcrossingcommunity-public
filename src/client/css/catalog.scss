@@ -1,8 +1,11 @@
+@use "mixins";
+@use "forms";
+
 .CatalogPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 		}
 	}
@@ -15,13 +18,13 @@
 				align-items: center;
 
 				.Catalog_all, .Catalog_search, .Catalog_museum {
-					margin: px2rem(10px);
+					margin: mixins.px2rem(10px);
 				}
 
 				.Catalog_all, .Catalog_museum {
-					@include contentbox();
+					@include mixins.contentbox();
 					text-align: center;
-					padding: px2rem(15px);
+					padding: mixins.px2rem(15px);
 				}
 
 				.Catalog_all.selected, .Catalog_museum.selected {
@@ -41,10 +44,10 @@
 
 					input[type='text'] {
 						@extend .GenericTextbox;
-						margin: 0 px2rem(4px);
-						width: px2rem(120px);
-						@include responsive(30rem) {
-							width: px2rem(200px);
+						margin: 0 mixins.px2rem(4px);
+						width: mixins.px2rem(120px);
+						@include mixins.responsive(30rem) {
+							width: mixins.px2rem(200px);
 						}
 					}
 
@@ -58,16 +61,16 @@
 			}
 
 			.Catalog_categories {
-				@include responsive(1rem) {
-					@include grid($col-width: 15rem);
+				padding-top: mixins.px2rem(10px);
+
+				@include mixins.responsive(1rem) {
+					@include mixins.grid($col-width: 15rem);
 				}
 
-				padding-top: px2rem(10px);
-
 				.CategoryName {
-					@include contentbox();
+					@include mixins.contentbox();
 					text-align: center;
-					padding: px2rem(15px);
+					padding: mixins.px2rem(15px);
 				}
 
 				.CategoryName.selected {
@@ -85,7 +88,7 @@
 			@extend .GenericSection;
 
 			.Catalog_links {
-				@include links(110px);
+				@include mixins.links(110px);
 			}
 
 			.Catalog_sort {
@@ -94,7 +97,7 @@
 				align-items: baseline;
 
 				.Catalog_sortLink {
-					padding: px2rem(2px);
+					padding: mixins.px2rem(2px);
 				}
 
 				.Catalog_sortLink.selected {
@@ -119,14 +122,14 @@
 				}
 
 				.CatalogCategory_groupItems {
-					@include responsive(1rem) {
-						@include grid($col-width: 10rem);
+					@include mixins.responsive(1rem) {
+						@include mixins.grid($col-width: 10rem);
 					}
 
 					.CatalogCategory_item {
-						@include contentbox();
+						@include mixins.contentbox();
 						text-align: center;
-						padding: px2rem(5px);
+						padding: mixins.px2rem(5px);
 
 						.CatalogCategory_itemName {
 							text-transform: capitalize;
@@ -154,20 +157,20 @@
 
 				.CatalogCategory_itemOption, .CatalogCategory_groupOption {
 					position: relative;
-					margin: px2rem(5px);
+					margin: mixins.px2rem(5px);
 
 					label {
 						background-color: #fff;
-						border: px2rem(1px) solid #ccc;
+						border: mixins.px2rem(1px) solid #ccc;
 						border-radius: 50%;
 						cursor: pointer;
-						height: px2rem(28px);
+						height: mixins.px2rem(28px);
 						left: 0;
 						position: absolute;
 						top: 0;
-						width: px2rem(28px);
-						font-size: px2rem(16px);
-						padding: px2rem(3px) px2rem(0px) px2rem(2px) px2rem(0px);
+						width: mixins.px2rem(28px);
+						font-size: mixins.px2rem(16px);
+						padding: mixins.px2rem(3px) mixins.px2rem(0px) mixins.px2rem(2px) mixins.px2rem(0px);
 					}
 
 					input[type="checkbox"] {
@@ -182,7 +185,7 @@
 
 				.CatalogCategory_groupToggle {
 					label {
-						padding-left: px2rem(10px);
+						padding-left: mixins.px2rem(10px);
 						font-weight: normal;
 					}
 				}
@@ -204,7 +207,7 @@
 		p {
 			transform: inherit !important;
 			@extend .HeaderText;
-			width: px2rem(165px) !important;
+			width: mixins.px2rem(165px) !important;
 		}
 	}
 }
@@ -224,14 +227,14 @@
 
 		&.InventoryItem {
 			background-color: #feec96;
-			padding-left: px2rem(15px);
-			padding-right: px2rem(15px);
+			padding-left: mixins.px2rem(15px);
+			padding-right: mixins.px2rem(15px);
 		}
 
 		&.WishlistItem {
 			background-color: #4DBAAD;
-			padding-left: px2rem(20px);
-			padding-right: px2rem(20px);
+			padding-left: mixins.px2rem(20px);
+			padding-right: mixins.px2rem(20px);
 		}
 
 		&.InventoryItem.WishlistItem {

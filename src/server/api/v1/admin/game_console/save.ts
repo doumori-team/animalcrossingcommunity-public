@@ -17,7 +17,7 @@ async function save(this: APIThisType, { id, name, sequence, isLegacy, isEnabled
 	// Save information
 	const result = await db.transaction(async (query: any) =>
 	{
-		if (id != null && id > 0)
+		if (id > 0)
 		{
 			// Obtain previous sequence number for this game_console
 			const [previousConsoleInfo] = await query(`
@@ -131,7 +131,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-game-console-name',
 		length: constants.max.gameName,
 		profanity: true,
 	},
@@ -151,7 +150,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	name: string
 	sequence: number
 	isLegacy: boolean

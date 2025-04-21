@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Renders an icon from Font Awesome (https://fontawesome.com/),
 // who provide modern vector icons for the web - all for free.
 //

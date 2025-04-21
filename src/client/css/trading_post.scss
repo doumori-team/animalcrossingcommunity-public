@@ -1,8 +1,11 @@
+@use "mixins";
+@use "forms";
+
 .TradingPostPage {
     .Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 		}
     }
@@ -11,8 +14,8 @@
 .AddListingPage {
     .Section {
         .AddListingPage_links {
-            @include responsive(1rem) {
-                @include grid($col-width: 15rem);
+            @include mixins.responsive(1rem) {
+                @include mixins.grid($col-width: 15rem);
             }
 
             a {
@@ -25,8 +28,8 @@
         }
 
         .Grid {
-            @include responsive(1rem) {
-                @include grid($col-width: 15rem);
+            @include mixins.responsive(1rem) {
+                @include mixins.grid($col-width: 15rem);
             }
         }
     }
@@ -40,16 +43,17 @@
     @extend .GenericInnerSection;
 
     .Listing_links {
-        @include links(130px);
+        @include mixins.links(130px);
     }
 
     .Listing_name {
         display: flex;
+        align-items: center;
     }
 
     .Listing_offer {
-        margin-top: px2rem(10px);
-        margin-bottom: px2rem(10px);
+        margin-top: mixins.px2rem(10px);
+        margin-bottom: mixins.px2rem(10px);
         background: var(--seasonal-color-lighter);
         padding: 1rem;
     }
@@ -64,7 +68,7 @@
 
 .Offer {
     .Offer_links {
-        @include links(130px);
+        @include mixins.links(130px);
     }
 
     .Offer_name {
@@ -72,8 +76,8 @@
     }
 
     .Offer_offer {
-        margin-top: px2rem(10px);
-        margin-bottom: px2rem(10px);
+        margin-top: mixins.px2rem(10px);
+        margin-bottom: mixins.px2rem(10px);
         background: var(--seasonal-color-lighter);
         padding: 1rem;
     }
@@ -96,8 +100,8 @@
 
     .ListingPage_offers {
         .Grid {
-            @include responsive(1rem) {
-                @include grid($col-width: 20rem);
+            @include mixins.responsive(1rem) {
+                @include mixins.grid($col-width: 20rem);
             }
         }
 
@@ -108,8 +112,8 @@
 
     .ListingPage_code {
         .ListingPage_secretCode {
-            margin-top: px2rem(10px);
-            margin-bottom: px2rem(10px);
+            margin-top: mixins.px2rem(10px);
+            margin-bottom: mixins.px2rem(10px);
         }
 
         .ListingPage_codes {
@@ -132,11 +136,11 @@
 
                 .ListingPage_statusName {
                     font-weight: bold;
-                    font-size: px2rem(15px);
+                    font-size: mixins.px2rem(15px);
                 }
 
                 .ListingPage_links {
-                    @include links(130px);
+                    @include mixins.links(130px);
                 }
             }
         }
@@ -144,8 +148,8 @@
 
     .ListingPage_feedback {
         .ListingPage_ratingOptions {
-            @include responsive(1rem) {
-                @include grid($col-width: 20rem);
+            @include mixins.responsive(1rem) {
+                @include mixins.grid($col-width: 20rem);
             }
         }
     }
@@ -160,27 +164,47 @@
 
     .ListingPage_chat {
         .ListingPage_comments {
-            margin-bottom: px2rem(30px);
+            margin-bottom: mixins.px2rem(30px);
 
             > .ListingPage_comment {
                 @extend .GenericInnerSection;
 
                 margin-top: 5px;
                 margin-bottom: 5px;
+                word-break: break-word;
 
                 .ListingPage_commentBy {
                     display: flex;
                     white-space: break-spaces;
+                    align-items: center;
+
+                    .ReportProblem {
+                        input {
+                            padding-left: 0;
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+@include mixins.responsive(48rem) {
+	.ListingPage {
+		.ListingPage_commentBy {
+			.ReportProblem {
+				input {
+					height: mixins.px2rem(14px);
+				}
+			}
+		}
+	}
+}
+
 .UserListingPage {
     .Grid {
-        @include responsive(1rem) {
-            @include grid($col-width: 20rem);
+        @include mixins.responsive(1rem) {
+            @include mixins.grid($col-width: 20rem);
         }
 
         > .UserListingPage_listingOffer {

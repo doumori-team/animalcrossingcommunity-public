@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 const ContentBox = ({
 	children,
@@ -12,7 +12,7 @@ const ContentBox = ({
 };
 
 type ContentBoxProps = {
-	children: React.ReactNode | string
+	children: ReactNode | string
 };
 
 export default ContentBox;

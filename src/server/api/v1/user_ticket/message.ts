@@ -41,7 +41,7 @@ async function message(this: APIThisType, { id, message, staffOnly, format }: me
 
 	if (!staffOnly)
 	{
-		await this.query('v1/profanity/check', { text: message });
+		await db.profanityCheck(message);
 	}
 
 	// Perform queries

@@ -1,11 +1,15 @@
+@use "colors";
+@use "mixins";
+@use "forms";
+
 .UserTownsPage {
 	margin-top: 0.5rem;
 
 	.Grid {
 		grid-auto-rows: 1fr;
 
-		@include responsive(40rem) {
-			@include grid($col-width: 18rem);
+		@include mixins.responsive(40rem) {
+			@include mixins.grid($col-width: 18rem);
 		}
 
 		// space town summaries apart when grid styling doesn't apply
@@ -19,7 +23,7 @@
 
 .EditTown {
 	.EditTown_name {
-		margin-bottom: px2rem(20px);
+		margin-bottom: mixins.px2rem(20px);
 	}
 
 	.EditTown_nativeFruit {
@@ -27,14 +31,14 @@
 	}
 
 	.FormGroup {
-		margin-top: px2rem(20px);
-		margin-bottom: px2rem(20px);
+		margin-top: mixins.px2rem(20px);
+		margin-bottom: mixins.px2rem(20px);
 	}
 }
 
 .Town, .EditTown {
 	li ul li {
-		padding-left: px2rem(25px);
+		padding-left: mixins.px2rem(25px);
 	}
 
 	.Town_name, .EditTown_name {
@@ -43,7 +47,7 @@
 		.Town_gameName, .EditTown_gameName {
 			display: block;
 			font-weight: normal;
-			font-size: px2rem(14px);
+			font-size: mixins.px2rem(14px);
 		}
 	}
 
@@ -89,7 +93,7 @@
 		padding: 0.5em 0.6em;
 
 		input {
-			max-height: px2rem(15px);
+			max-height: mixins.px2rem(15px);
 			z-index: 1;
 			position: relative;
 		}
@@ -102,7 +106,7 @@
 
 .Town {
 	.Town_links {
-		@include links(90px);
+		@include mixins.links(90px);
 	}
 
 	.Town_button {
@@ -116,7 +120,7 @@
 	}
 
 	.TownPanelContainer {
-		@include responsive(40rem) {
+		@include mixins.responsive(40rem) {
 			display: flex;
 			align-items: flex-start;
 			justify-content: space-between;
@@ -127,7 +131,7 @@
 			display: flex;
 			flex-direction: column;
 
-			@include responsive(40rem) {
+			@include mixins.responsive(40rem) {
 				width: 50%;
 
 				&.TownRightPanel {
@@ -164,7 +168,7 @@
 	.Town_map.Town_map_accf,
 	.Town_map.Town_map_acnl,
 	.Town_map.Town_map_acnh img {
-		border: px2rem(1px) solid $color-interface-foreground;
+		border: mixins.px2rem(1px) solid colors.$color-interface-foreground;
 		border-radius: 0.3333rem;
 	}
 
@@ -214,8 +218,8 @@
 	}
 
 	.Grid {
-		@include responsive(40rem) {
-			@include grid($col-width: 15rem);
+		@include mixins.responsive(40rem) {
+			@include mixins.grid($col-width: 15rem);
 		}
 	}
 
@@ -228,16 +232,16 @@
 		flex-wrap: wrap;
 		flex-direction: row;
 		margin: 0.5rem 0 0 0;
-		gap: px2rem(5px);
+		gap: mixins.px2rem(5px);
 
 		.museumItem {
-			width: px2rem(32px);
-			height: px2rem(32px);
+			width: mixins.px2rem(32px);
+			height: mixins.px2rem(32px);
 		}
 
 		.publicWork {
-			width: px2rem(64px);
-			height: px2rem(64px);
+			width: mixins.px2rem(64px);
+			height: mixins.px2rem(64px);
 		}
 
 		.museumItem, .publicWork {
@@ -306,7 +310,7 @@
 				margin: 0.5rem 0 0 0;
 
 				img {
-					max-height: px2rem(64px);
+					max-height: mixins.px2rem(64px);
 				}
 
 				.Town_roofColorContainer {
@@ -315,8 +319,8 @@
 					align-items: center;
 
 					.Town_roofColorThumbnail {
-						width: px2rem(32px);
-						height: px2rem(32px);
+						width: mixins.px2rem(32px);
+						height: mixins.px2rem(32px);
 						border: 1px solid black;
 					}
 				}
@@ -331,7 +335,7 @@
 
 			.Town_villagerIcon, .Town_fruitIcon {
 				img {
-					width: px2rem(32px);
+					width: mixins.px2rem(32px);
 
 					&.invert {
 						filter: invert(0.7);
@@ -348,14 +352,14 @@
 
 .AddTownPage {
 	.Grid {
-		@include responsive(1rem) {
-			@include grid($col-width: 15rem);
+		@include mixins.responsive(1rem) {
+			@include mixins.grid($col-width: 15rem);
 		}
 	}
 }
 
 .Town_note {
-	margin-top: px2rem(10px);
+	margin-top: mixins.px2rem(10px);
 	font-style: italic;
 }
 
@@ -363,18 +367,18 @@
 	height: 100%;
 
 	.TownSummary_content {
-		background: $color-interface-background;
+		background: colors.$color-interface-background;
 		padding: 0.5rem;
 		border: 1px solid #999999;
-		border-radius: px2rem(3px);
+		border-radius: mixins.px2rem(3px);
 		height: 100%;
 
 		h4 {
-			margin-bottom: px2rem(5px);
+			margin-bottom: mixins.px2rem(5px);
 		}
 
 		.TownSummary_links {
-			@include links(90px);
+			@include mixins.links(90px);
 		}
 
 		.TownSummary_nameContainer {
@@ -383,8 +387,8 @@
 
 			.TownSummary_townIcon {
 				img {
-					width: px2rem(32px);
-					margin-right: px2rem(5px);
+					width: mixins.px2rem(32px);
+					margin-right: mixins.px2rem(5px);
 				}
 			}
 
@@ -396,7 +400,7 @@
 				.TownSummary_gameName {
 					display: block;
 					font-weight: normal;
-					font-size: px2rem(14px);
+					font-size: mixins.px2rem(14px);
 				}
 			}
 
@@ -415,7 +419,7 @@
 
 				.TownSummary_characterIcon {
 					img {
-						width: px2rem(32px);
+						width: mixins.px2rem(32px);
 
 						&.invert {
 							filter: invert(0.7);
@@ -439,7 +443,7 @@
 				display: inline-block;
 
 				img {
-					width: px2rem(32px);
+					width: mixins.px2rem(32px);
 				}
 			}
 		}

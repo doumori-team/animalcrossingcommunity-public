@@ -1,17 +1,18 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Header, Pagination, Section, Grid } from '@layout';
 import { UserContext } from '@contexts';
 import Rating from '@/components/ratings/Rating.tsx';
 import TotalRatings from '@/components/ratings/TotalRatings.tsx';
 import { APIThisType, RatingsReceivedType, UserRatingType } from '@types';
 
-const ScoutRatingsPage = () =>
+export const action = routerUtils.formAction;
+
+const ScoutRatingsPage = ({ loaderData }: { loaderData: ScoutRatingsPageProps }) =>
 {
-	const { ratings, page, pageSize, totalCount, user } = useLoaderData() as ScoutRatingsPageProps;
+	const { ratings, page, pageSize, totalCount, user } = loaderData;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -70,7 +71,7 @@ const ScoutRatingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string })
+async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string })
 {
 	const [ratings, user] = await Promise.all([
 		this.query('v1/users/ratings_received', {
@@ -89,6 +90,8 @@ export async function loadData(this: APIThisType, { userId }: { userId: string }
 		user: user,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ScoutRatingsPageProps = {
 	ratings: RatingsReceivedType['results']

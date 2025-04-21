@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 const InnerSection = ({
 	children,
@@ -12,7 +12,7 @@ const InnerSection = ({
 };
 
 type InnerSectionProps = {
-	children: React.ReactNode | string
+	children: ReactNode | string
 };
 
 export default InnerSection;

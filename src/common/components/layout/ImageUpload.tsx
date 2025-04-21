@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 
 import { RequirePermission, RequireClientJS } from '@behavior';
 import ErrorMessage from '@/components/layout/ErrorMessage.tsx';
 import { Alert, Button } from '@form';
-import * as iso from 'common/iso.js';
+import { iso } from 'common/iso.ts';
 import { constants } from '@utils';
 
 const ImageUpload = ({
@@ -50,11 +50,12 @@ const ImageUpload = ({
 
 		setLoading(true);
 
-		let params = new FormData();
-		params.append('directory', directory);
-		params.append('fileName', file.name);
+		const params = {
+			directory,
+			fileName: file.name,
+		};
 
-		(iso as any).query(null, 'v1/guide/upload_image', params)
+		(await iso).query(null, 'v1/guide/upload_image', params)
 			.then(async (s3PresignedUrl: string) =>
 			{
 				try
@@ -66,20 +67,16 @@ const ImageUpload = ({
 					setFile(null);
 					setLoading(false);
 				}
-				catch (e)
+				catch (error: any)
 				{
-					console.error('Error attempting to upload.');
-					console.error(e);
+					console.error('Error attempting to upload.', error);
 
 					setErrors(['bad-format']);
 					setLoading(false);
 				}
 			})
-			.catch((error: any) =>
+			.catch((_: any) =>
 			{
-				console.error('Error attempting to get presigned url.');
-				console.error(error);
-
 				setErrors(['bad-format']);
 				setLoading(false);
 			});

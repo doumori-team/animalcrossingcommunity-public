@@ -1,17 +1,20 @@
+@use "mixins";
+@use "forms";
+
 .MapMaker, .MapDesigner {
 	@extend .GenericSection;
 }
 
 .MapPalette {
-	@include contentbox($background: #ba8759);
+	@include mixins.contentbox($background: #ba8759);
 	padding: 1rem;
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 }
 
 .MapMaker {
 	.MapMaker_grid {
-		@include responsive(40rem) {
-			@include grid($col-width: 36rem);
+		@include mixins.responsive(40rem) {
+			@include mixins.grid($col-width: 36rem);
 		}
 	}
 
@@ -30,12 +33,12 @@
 	}
 
 	.Map img, .MapPalette img {
-		border: px2rem(2px) solid black;
+		border: mixins.px2rem(2px) solid black;
 		cursor: pointer;
 	}
 
 	.Map img.selected, .MapPalette img.selected {
-		border: px2rem(2px) solid red;
+		border: mixins.px2rem(2px) solid red;
 	}
 
 	.MapPalette {
@@ -44,20 +47,20 @@
 		}
 
 		.PaletteGroups {
-			@include responsive(1rem) {
-				@include grid($col-width: 5rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 5rem);
 			}
 		}
 
 		img {
-			width: px2rem(64px);
+			width: mixins.px2rem(64px);
 		}
 	}
 }
 
 .MapDesigner {
 	.MapDesigner_grid {
-		@include responsive(40rem) {
+		@include mixins.responsive(40rem) {
 			display: grid;
 			grid-gap: 0.5rem;
 			grid-template-areas: 'left right';
@@ -66,27 +69,27 @@
 
 	.MapPalette {
 		.MapPaletter_palettes {
-			@include responsive(1rem) {
-				@include grid($col-width: 2rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 2rem);
 			}
 
 			.paletteInterface {
-				width: px2rem(31px);
-				height: px2rem(31px);
+				width: mixins.px2rem(31px);
+				height: mixins.px2rem(31px);
 
-				@include contentbox();
+				@include mixins.contentbox();
 			}
 
 			.paletteInterface.selected {
-				border: px2rem(1px) solid #000 !important;
+				border: mixins.px2rem(1px) solid #000 !important;
 			}
 		}
 	}
 
 	.MapDesigner_imageSection {
 		.Check {
-			@include responsive(1rem) {
-				@include grid($col-width: 2rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 2rem);
 			}
 		}
 
@@ -107,5 +110,5 @@
 }
 
 .MapMakerPage_description {
-	margin-bottom: px2rem(10px);
+	margin-bottom: mixins.px2rem(10px);
 }

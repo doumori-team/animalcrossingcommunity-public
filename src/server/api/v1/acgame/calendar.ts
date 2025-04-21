@@ -6,7 +6,6 @@ import { ACCCache } from '@cache';
 import {
 	APIThisType,
 	CalendarType,
-	UserLiteType,
 	ACGameYearsType,
 	EventsType,
 	ResidentsType,
@@ -40,13 +39,6 @@ async function calendar(this: APIThisType, { requester, gameId, month, year, deb
 		throw new UserError('bad-format');
 	}
 
-	let user: UserLiteType | null = null;
-
-	if (this.userId)
-	{
-		user = await this.query('v1/user_lite', { id: this.userId });
-	}
-
 	let currentDate: Date | number = dateUtils.getCurrentDate();
 
 	if (requester === 'homepage' && !constants.LIVE_SITE && utils.realStringLength(debug) > 0)
@@ -71,13 +63,21 @@ async function calendar(this: APIThisType, { requester, gameId, month, year, deb
 
 	let hemisphere: string | null = null;
 
-	// if no game, or homepage, use settings to get current game if possible
+	// if no game, use settings to get current game if possible. 
 	if (!gameId || requester === 'homepage')
 	{
 		let setting: any = null;
 
-		if (user)
+		if (this.userId)
 		{
+			let args = [this.userId];
+
+			if (gameId)
+			{
+				args.push(gameId);
+			}
+
+			// verify that settings exist for this game ID, otherwise just get newest
 			[setting] = await db.query(`
 				SELECT
 					calendar_setting.id,
@@ -88,9 +88,10 @@ async function calendar(this: APIThisType, { requester, gameId, month, year, deb
 				JOIN ac_game ON (ac_game.id = calendar_setting.game_id)
 				LEFT JOIN hemisphere ON (hemisphere.id = calendar_setting.hemisphere_id)
 				WHERE calendar_setting.user_id = $1::int AND calendar_setting.homepage = true
+				${gameId ? ' AND calendar_setting.game_id = $2::int' : ''}
 				ORDER BY calendar_setting.game_id ASC
-				LIMIT 1
-			`, user.id);
+				${gameId ? '' : ' LIMIT 1'}
+			`, ...args);
 
 			gameId = setting?.game_id;
 		}
@@ -686,7 +687,7 @@ calendar.apiTypes = {
 
 type calendarProps = {
 	requester: 'homepage' | 'calendar'
-	gameId: number | null
+	gameId: number
 	month: number
 	year: number
 	debug: string

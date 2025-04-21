@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 /* An alert is a message that comes up to let the user know that
  * something has happened. For example, that an error has occurred, or that
@@ -46,7 +46,7 @@ const Alert = ({
 
 type AlertProps = {
 	type?: 'error' | 'success' | 'info' | 'warning'
-	children: React.ReactNode | string
+	children: ReactNode | string
 };
 
 export default Alert;

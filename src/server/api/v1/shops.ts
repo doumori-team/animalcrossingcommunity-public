@@ -59,7 +59,7 @@ async function shops(this: APIThisType, { page, services, fee, vacation, gameId,
 		`;
 	}
 
-	if (gameId != null && gameId > 0)
+	if (gameId > 0)
 	{
 		query += `
 			JOIN shop_ac_game ON (shop_ac_game.shop_id = shop.id)
@@ -113,7 +113,7 @@ async function shops(this: APIThisType, { page, services, fee, vacation, gameId,
 		wheres.push(`shop_default_service_shop.shop_default_service_id = ANY($` + paramIndex + `)`);
 	}
 
-	if (gameId != null && gameId > 0)
+	if (gameId > 0)
 	{
 		params[paramIndex] = gameId;
 
@@ -217,7 +217,7 @@ type shopsProps = {
 	page: number
 	fee: string
 	vacation: string
-	gameId: number | null
+	gameId: number
 	services: any[]
 	mine: boolean
 };

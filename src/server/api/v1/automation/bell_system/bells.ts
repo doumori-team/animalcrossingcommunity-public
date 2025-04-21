@@ -64,14 +64,12 @@ async function bells(this: APIThisType, { action, amount }: bellsProps): Promise
 	{
 		return {
 			_success: `Congratulations! You have redeemed your ${amount.toLocaleString()} Bells, bringing your total to ${updatedUser.bells} Bells!`,
-			_callbackFirst: true,
 		};
 	}
 	else
 	{
 		return {
 			_success: `Oh no! You have lost ${showBells.toLocaleString()} Bells, bringing your total to ${updatedUser.bells} Bells!`,
-			_callbackFirst: true,
 		};
 	}
 }

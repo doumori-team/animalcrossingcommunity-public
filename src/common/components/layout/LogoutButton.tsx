@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@form';
 
 /* Button which logs the user out of their session, if they currently have one

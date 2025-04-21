@@ -205,7 +205,7 @@ permission.apiTypes = {
 
 type permissionProps = {
 	permission: 'lock' | 'read' | 'reply' | 'sticky' | 'admin-lock' | 'edit' | 'move' | 'add-users' | 'remove-users'
-	userId: number | null
+	userId: number | APIThisType['userId']
 	nodeId: number
 };
 

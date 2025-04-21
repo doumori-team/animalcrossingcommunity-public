@@ -1,11 +1,171 @@
-import React, { useState } from 'react';
-import { useNavigate, generatePath, useLocation } from 'react-router-dom';
+import { ReactNode, useState, useEffect } from 'react';
+import { useNavigate, generatePath, useLocation, useFetcher, redirect, useActionData, redirectDocument } from 'react-router';
 
 import { ErrorMessage } from '@layout';
 import Alert from '@/components/form/Alert.tsx';
 import Button from '@/components/form/Button.tsx';
-import * as iso from 'common/iso.js';
-import { LocationType, ClickHandlerType } from '@types';
+import { iso } from 'common/iso.ts';
+import { LocationType, ClickHandlerType, AppLoadContextType } from '@types';
+import { utils, constants } from '@utils';
+import * as errors from 'common/errors.ts';
+
+export async function action(request: any, context: AppLoadContextType): Promise<any>
+{
+	const formData: FormData = await request.formData();
+
+	const callback = String(formData.get('_callback') || '');
+	const callbackUri = String(callback || formData.get('_callback_uri'));
+	formData.delete('_callback_uri');
+	formData.delete('_callback');
+
+	const action = String(formData.get('_action'));
+	formData.delete('_action');
+
+	const defaultSubmitImage = String(formData.get('_defaultSubmitImage') || '');
+	formData.delete('_defaultSubmitImage');
+
+	const updateFunction = Boolean(formData.get('_updateFunction') === 'true' || false);
+	formData.delete('_updateFunction');
+
+	const formId = String(formData.get('_formId'));
+	formData.delete('_formId');
+
+	const formSubmissionId = Math.random();
+
+	const params = utils.entriesToObject(formData.entries());
+
+	if (!constants.LIVE_SITE)
+	{
+		console.info('Inside Form Action');
+		console.info(action);
+		console.info(params);
+	}
+
+	try
+	{
+		const data: any = await (await iso).query(context.session?.user, action, params);
+
+		if (!constants.LIVE_SITE)
+		{
+			console.info(data);
+		}
+
+		if (typeof data === 'object')
+		{
+			if (updateFunction)
+			{
+				return {
+					data,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(data, '_successImage') && defaultSubmitImage)
+			{
+				return {
+					_successImage: data._successImage,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(data, '_redirect'))
+			{
+				// no good way to do this server side
+				return {
+					_redirect: data._redirect,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(data, '_success') &&
+					!Object.prototype.hasOwnProperty.call(data, '_successImage')
+			)
+			{
+				return {
+					_success: data._success,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(data, '_notice'))
+			{
+				return {
+					_notice: data._notice,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(data, '_logout'))
+			{
+				return {
+					_logout: data._logout,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(data, '_callback'))
+			{
+				return redirect(generatePath(data._callback));
+			}
+
+			const path = utils.generateHashPath(callbackUri, data, true);
+
+			if (utils.realStringLength(callback) === 0)
+			{
+				return redirectDocument(generatePath(path, data));
+			}
+
+			return redirect(generatePath(path, data));
+		}
+
+		if (utils.realStringLength(callback) === 0)
+		{
+			return redirectDocument(callbackUri);
+		}
+
+		return redirect(callbackUri);
+	}
+	catch (error: any)
+	{
+		console.error('Form Action Error:', error);
+		console.error('API operation:', action);
+		console.error('Request body:', params);
+
+		if (typeof error === 'object')
+		{
+			if (error.name === 'ProfanityError')
+			{
+				return {
+					errors: [{ name:'ProfanityError', message: `${(errors.ERROR_MESSAGES as any)[error.identifier].message} ${error.words}` }],
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(error, 'identifiers'))
+			{
+				return {
+					errors: error.identifiers,
+					formId,
+					formSubmissionId,
+				};
+			}
+			else if (Object.prototype.hasOwnProperty.call(error, 'message'))
+			{
+				return {
+					errors: [error],
+					formId,
+					formSubmissionId,
+				};
+			}
+		}
+
+		return {
+			errors: ['bad-format'],
+			formId,
+			formSubmissionId,
+		};
+	}
+};
 
 /* A component to be used instead of the normal HTML <form>, so that it passes
  * through the defined API. The only reason NOT to use this instead of the
@@ -36,184 +196,143 @@ const Form = ({
 	children,
 	className,
 	showButton = false,
-	messagesAtBottom,
+	messagesAtBottom = false,
 	buttonText = 'Submit',
 	buttonClickHandler,
 	updateFunction,
 	defaultSubmitImage,
 	imageTitle,
 	id,
+	formId,
 }: FormProps) =>
 {
-	const [errors, setErrors] = useState<string[]>([]);
-	const [success, setSuccess] = useState<string>('');
-	const [loading, setLoading] = useState<boolean>(false);
-	const [successTimeout, setSuccessTimeout] = useState<number | null>(null);
-	const [successImage, setSuccessImage] = useState<string | undefined>(defaultSubmitImage);
-
 	const navigate = useNavigate();
 	const location = useLocation() as LocationType;
+	const fetcher = useFetcher();
 
+	// data returning from action function if SSR
+	const actionData = useActionData();
+
+	// otherwise other Forms on same page will render the same return
+	const data = actionData && [formId, action].includes(actionData?.formId) ? actionData : fetcher.data;
+
+	const [success, setSuccess] = useState<string>(data?._success ?? '');
+	const [successTimeout, setSuccessTimeout] = useState<number | null>(null);
+	const [successCallbackTimeout, setSuccessCallbackTimeout] = useState<number | null>(null);
+	const [successImage, setSuccessImage] = useState<FormProps['defaultSubmitImage']>(data?._successImage ?? defaultSubmitImage);
+	const [successImageTimeout, setSuccessImageTimeout] = useState<number | null>(null);
+	const [logoutTimeout, setLogoutTimeout] = useState<number | null>(null);
+
+	const loading = fetcher.state !== 'idle';
 	const currentUri = location.pathname + location.search;
 
-	const showSuccessMessage = (message: string): void =>
+	useEffect(() =>
 	{
-		if (successTimeout)
+		if (data?._success)
 		{
-			window.clearTimeout(successTimeout);
-		}
-
-		setSuccess(message);
-
-		const newSuccessTimeout = window.setTimeout(() =>
-		{
-			setSuccess('');
-			setSuccessTimeout(null);
-		}, 10 * 1000);
-
-		setSuccessTimeout(newSuccessTimeout);
-	};
-
-	const showNoticeMessage = (message: string): void =>
-	{
-		setSuccess(message);
-	};
-
-	const toggleSuccessImage = (image: string): void =>
-	{
-		if (successTimeout)
-		{
-			window.clearTimeout(successTimeout);
-		}
-
-		setSuccessImage(image);
-
-		const newSuccessTimeout = window.setTimeout(() =>
-		{
-			setSuccessImage(defaultSubmitImage);
-			setSuccessTimeout(null);
-		}, 5 * 1000);
-
-		setSuccessTimeout(newSuccessTimeout);
-	};
-
-	const handleSubmit = (event: React.FormEvent): void =>
-	{
-		event.preventDefault();
-
-		const target: any = event.target;
-
-		setLoading(true);
-
-		const params = new FormData(target);
-		const callback = String(params.get('_callback_uri') || '');
-		params.delete('_callback_uri');
-
-		(iso as any).query(null, action, params)
-			.then((data: any) =>
+			if (successTimeout)
 			{
-				setErrors([]);
+				window.clearTimeout(successTimeout);
+			}
 
-				// clear data from form
-				if (target)
+			if (successCallbackTimeout)
+			{
+				window.clearTimeout(successCallbackTimeout);
+			}
+
+			setSuccess(data?._success);
+
+			const newSuccessTimeout = window.setTimeout(() =>
+			{
+				setSuccess('');
+				setSuccessTimeout(null);
+			}, 10 * 1000);
+
+			setSuccessTimeout(newSuccessTimeout);
+
+			if (callback)
+			{
+				const newSuccessCallbackTimeout = window.setTimeout(() =>
 				{
-					target.reset();
-				}
+					const path = utils.generateHashPath(callback, data?.data);
+					const filteredData = data?.data ? Object.fromEntries(Object.entries(data?.data).filter(([key]) => !key.startsWith('_'))) : {};
 
-				if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_successImage') && defaultSubmitImage)
-				{
-					toggleSuccessImage(data._successImage);
-
-					if (callback)
+					if (Object.keys(filteredData).length === 0)
 					{
-						navigate(generatePath(callback, data));
-					}
-				}
-				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_success'))
-				{
-					if (Object.prototype.hasOwnProperty.call(data, '_callbackFirst') && callback)
-					{
-						navigate(generatePath(callback, data));
-					}
-
-					showSuccessMessage(data._success);
-
-					if (Object.prototype.hasOwnProperty.call(data, '_useCallback') && callback)
-					{
-						window.setTimeout(() =>
-						{
-							navigate(generatePath(callback, data));
-						}, 5 * 1000);
-					}
-				}
-				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_notice'))
-				{
-					showNoticeMessage(data._notice);
-				}
-				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_logout'))
-				{
-					showNoticeMessage(data._logout);
-
-					window.setTimeout(() =>
-					{
-						navigate('/');
-					}, 5 * 1000);
-				}
-				else if (typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, '_callback'))
-				{
-					navigate(generatePath(data._callback, data));
-				}
-				else if (updateFunction && typeof data === 'object')
-				{
-					updateFunction(data);
-				}
-				else if (callback)
-				{
-					if (typeof data === 'object')
-					{
-						if (callback.includes('?reload='))
-						{
-							navigate(`${callback}${data.id}`);
-						}
-						else
-						{
-							navigate(generatePath(callback, data));
-						}
+						navigate(path);
 					}
 					else
 					{
-						navigate(callback);
+						navigate(generatePath(path, filteredData));
 					}
-				}
 
-				setLoading(false);
-			})
-			.catch((error: any) =>
+				}, 5 * 1000);
+
+				setSuccessCallbackTimeout(newSuccessCallbackTimeout);
+			}
+		}
+
+		if (data?._successImage)
+		{
+			if (successImageTimeout)
 			{
-				console.error(error);
+				window.clearTimeout(successImageTimeout);
+			}
 
-				if (typeof error === 'object')
-				{
-					if (Object.prototype.hasOwnProperty.call(error, 'identifiers'))
-					{
-						setErrors(error.identifiers);
-					}
-					else if (Object.prototype.hasOwnProperty.call(error, 'message'))
-					{
-						setErrors([error]);
-					}
-				}
+			setSuccessImage(data?._successImage);
 
-				setLoading(false);
-			});
-	};
+			const newSuccessImageTimeout = window.setTimeout(() =>
+			{
+				setSuccessImage(defaultSubmitImage);
+				setSuccessImageTimeout(null);
+			}, 10 * 1000);
+
+			setSuccessImageTimeout(newSuccessImageTimeout);
+		}
+
+		if (typeof data?.data === 'object' && Object.keys(data?.data).length > 0 && updateFunction)
+		{
+			updateFunction(data?.data);
+		}
+
+		if (data?._redirect)
+		{
+			window.location.href = data._redirect;
+		}
+
+		if (data?._logout)
+		{
+			if (logoutTimeout)
+			{
+				window.clearTimeout(logoutTimeout);
+			}
+
+			// no good way to do this server side
+			const xhr = new XMLHttpRequest;
+			xhr.open('POST', '/auth/logout');
+			xhr.send();
+
+			const newLogoutTimeout = window.setTimeout(() =>
+			{
+				navigate('/', { replace: true });
+			}, 5 * 1000);
+
+			setLogoutTimeout(newLogoutTimeout);
+
+		}
+	}, [data?.formSubmissionId]);
 
 	return (
-		<form action={`/api/${action}`} method='post' encType='multipart/form-data' onSubmit={handleSubmit} className={className} id={id}>
-			<input type='hidden' name='_callback_uri' value={callback || currentUri} />
-			{messagesAtBottom && children}
+		<fetcher.Form method='post' encType='multipart/form-data' className={className} id={id} key={formId || action} role='form'>
+			<input type='hidden' name='_callback_uri' value={currentUri} />
+			<input type='hidden' name='_callback' value={callback} />
+			<input type='hidden' name='_action' value={action} />
+			<input type='hidden' name='_defaultSubmitImage' value={defaultSubmitImage} />
+			<input type='hidden' name='_updateFunction' value={updateFunction ? 'true' : 'false'} />
+			<input type='hidden' name='_formId' value={formId || action} />
+			{!messagesAtBottom && children}
 			<div key={String(loading)}>
-				{errors.map((error: any, index: any) =>
+				{data?.errors?.map((error: any, index: any) =>
 				{
 					if (typeof error === 'object')
 					{
@@ -228,7 +347,13 @@ const Form = ({
 			{success &&
 				<Alert type='success'>{success}</Alert>
 			}
-			{!messagesAtBottom && children}
+			{data?._notice &&
+				<Alert type='info'>{data?._notice}</Alert>
+			}
+			{data?._logout &&
+				<Alert type='info'>{data?._logout}</Alert>
+			}
+			{messagesAtBottom && children}
 			{successImage &&
 				<input type='image' src={successImage} title={imageTitle} />
 			}
@@ -241,7 +366,7 @@ const Form = ({
 					clickHandler={buttonClickHandler}
 				/>
 			}
-		</form>
+		</fetcher.Form>
 	);
 };
 
@@ -259,13 +384,13 @@ const Group = ({
 Form.Group = Group;
 
 type GroupProps = {
-	children: React.ReactNode
+	children: ReactNode
 };
 
 type FormProps = {
 	action: string
 	callback?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	className?: string
 	messagesAtBottom?: boolean
 	showButton?: boolean
@@ -275,6 +400,7 @@ type FormProps = {
 	defaultSubmitImage?: string
 	imageTitle?: string
 	id?: string
+	formId?: string
 };
 
 export default Form;

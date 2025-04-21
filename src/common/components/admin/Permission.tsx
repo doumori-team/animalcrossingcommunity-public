@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment, ReactNode } from 'react';
 
 import { RequireLargeScreen } from '@layout';
 import { Form, Checkbox } from '@form';
@@ -53,10 +53,10 @@ const Permission = ({
 	);
 };
 
-function renderBoards(boards: PermissionType['forum']['boards'], indent: number): React.ReactNode
+function renderBoards(boards: PermissionType['forum']['boards'], indent: number): ReactNode
 {
 	return boards.map(board =>
-		<React.Fragment key={board.id}>
+		<Fragment key={board.id}>
 			<div className={`Permission_forumPermission indent_${indent}`}>
 				<div className='Permission_forumPermissionName'>
 					{board.name}
@@ -73,14 +73,14 @@ function renderBoards(boards: PermissionType['forum']['boards'], indent: number)
 								checked={typePerm.granted}
 								value={`${board.id}_${typePerm.id}`}
 								label={typePerm.identifier}
-								hideLabel
+								hideLabels
 							/>
 						</div>,
 					)}
 			</div>
 
 			{renderBoards(board.boards, indent + 1)}
-		</React.Fragment>,
+		</Fragment>,
 	);
 }
 

@@ -1,18 +1,19 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import EditListing from '@/components/trading_post/EditListing.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { UserError } from '@errors';
 import { UserContext } from '@contexts';
 import { Header, Section, ACGameButtons } from '@layout';
 import { APIThisType, ACGameType, ResidentsType, ACGameItemType } from '@types';
 
-const AddListingPage = () =>
+export const action = routerUtils.formAction;
+
+const AddListingPage = ({ loaderData }: { loaderData: AddListingPageProps }) =>
 {
 	const { acgames, selectedGameId, acgameCatalog, residents, selectedType,
-		acItemsCatalog } = useLoaderData() as AddListingPageProps;
+		acItemsCatalog } = loaderData;
 
 	return (
 		<div className='AddListingPage'>
@@ -90,7 +91,7 @@ const AddListingPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { type, gameId }: { type: string, gameId: string }): Promise<AddListingPageProps>
+async function loadData(this: APIThisType, { type, gameId }: { type: string, gameId: string }): Promise<AddListingPageProps>
 {
 	const selectedGameId = Number(gameId || 0);
 	const selectedType = String(type || '');
@@ -109,6 +110,8 @@ export async function loadData(this: APIThisType, { type, gameId }: { type: stri
 
 	return { acgames, selectedGameId, acgameCatalog, residents, selectedType, acItemsCatalog };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddListingPageProps = {
 	acgames: ACGameType[] | null

@@ -24,7 +24,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 	}
 
 	// Check parameters
-	const gameId = Number(gamePaletteId.substring(0, gamePaletteId.indexOf('-')) || 0);
+	const gameId = Number(gamePaletteId.substring(0, gamePaletteId.indexOf('-')));
 
 	if (isNaN(gameId))
 	{
@@ -44,9 +44,9 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 
 	// Don't allow saving as a door pattern or house flag if this isn't a GC or CF pattern.
 	if (checkId.id !== constants.gameIds.ACGC &&
-			checkId.id !== constants.gameIds.ACCF &&
-			characterId != null &&
-			characterId != 0)
+		checkId.id !== constants.gameIds.ACCF &&
+		characterId !== 0
+	)
 	{
 		throw new UserError('bad-format');
 	}
@@ -60,7 +60,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 
 	const colors = utils.getPatternColors(gameId);
 
-	data = (data as any[]).map(rgb =>
+	data = (data as string[]).map(rgb =>
 	{
 		let id = (colors as PatternColorsType[number]).indexOf(rgb);
 
@@ -95,6 +95,8 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 
 	palette = palette.map(id =>
 	{
+		id = Number(id);
+
 		if (isNaN(id) || !colors[id])
 		{
 			throw new UserError('bad-format');
@@ -109,7 +111,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 	}
 
 	// If saving a door pattern, check perms
-	if (characterId != null && characterId > 0)
+	if (characterId > 0)
 	{
 		const [character] = await db.query(`
 			SELECT town.user_id
@@ -118,14 +120,14 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 			WHERE character.id = $1::int
 		`, characterId);
 
-		if (character.user_id != this.userId)
+		if (character.user_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
 	}
 
 	// If saving a town flag, check perms
-	if (townId != null && townId > 0)
+	if (townId > 0)
 	{
 		const [town] = await db.query(`
 			SELECT town.user_id
@@ -133,7 +135,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 			WHERE town.id = $1::int
 		`, townId);
 
-		if (town.user_id != this.userId)
+		if (town.user_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
@@ -143,79 +145,88 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
 	const [qrCodeUrl] = await Promise.all([
-		createQRCode.bind(this)(gameId, patternName, user.username, 'ACC', palette, originalData, (colors as PatternColorsType[number]), (utils.getPatternColors(constants.gameIds.ACNL) as PatternColorsType[number])),
+		createQRCode(
+			gameId,
+			patternName,
+			user.username,
+			'ACC',
+			palette,
+			originalData,
+			(colors as PatternColorsType[number]),
+			(utils.getPatternColors(constants.gameIds.ACNL) as PatternColorsType[number]),
+		),
 	]);
 
-	if (id != null && id > 0)
+	const patternId = await db.transaction(async (query: any) =>
 	{
-		let [checkPattern] = await db.query(`
-			SELECT pattern.creator_id, pattern.published, pattern.game_id
-			FROM pattern
-			WHERE pattern.id = $1::int
-		`, id);
-
-		if (!checkPattern)
+		if (id > 0)
 		{
-			throw new UserError('no-such-pattern');
+			let [checkPattern] = await query(`
+				SELECT pattern.creator_id, pattern.published, pattern.game_id
+				FROM pattern
+				WHERE pattern.id = $1::int
+			`, id);
+
+			// Don't allow changing the game ID of an existing pattern.
+			if (checkPattern.game_id !== gameId)
+			{
+				throw new UserError('bad-format');
+			}
+
+			if (checkPattern.creator_id !== this.userId)
+			{
+				throw new UserError('permission');
+			}
+
+			if (checkPattern.published)
+			{
+				throw new UserError('pattern-published');
+			}
+
+			await query(`
+				UPDATE pattern
+				SET name = $1, published = $3::bool, design_id = $8, data = $4, data_url = $5, game_id = $6::int, palette_id = $7::int, qr_code_url = $9
+				WHERE id = $2::int
+			`, patternName, id, published, data, dataUrl, gameId, paletteId, designId, qrCodeUrl);
+		}
+		else
+		{
+			const [newPattern] = await query(`
+				INSERT INTO pattern (name, creator_id, published, design_id, data, data_url, game_id, palette_id, qr_code_url)
+				VALUES ($1, $2::int, $3::bool, $8, $4, $5, $6::int, $7::int, $9)
+				RETURNING id
+			`, patternName, this.userId, published, data, dataUrl, gameId, paletteId, designId, qrCodeUrl);
+
+			id = newPattern.id;
 		}
 
-		// Don't allow changing the game ID of an existing pattern.
-		if (checkPattern.game_id !== gameId)
+		// Right now the frontend offers no reason for this to ever receive both a character ID and a town ID,
+		// but in the interest of keeping the API stupid, attempt both non-exclusively
+		if (characterId > 0)
 		{
-			throw new UserError('bad-format');
+			await query(`
+				UPDATE character
+				SET door_pattern_id = $1::int, door_pattern_data_url = $3, door_pattern_creator_id = $4, door_pattern_name = $5
+				WHERE id = $2::int
+			`, id, characterId, dataUrl, this.userId, patternName);
 		}
 
-		if (checkPattern.creator_id != this.userId)
+		if (townId > 0)
 		{
-			throw new UserError('permission');
+			await query(`
+				UPDATE town
+				SET flag_id = $1::int, flag_data_url = $3, flag_creator_id = $4, flag_name = $5
+				WHERE id = $2::int
+			`, id, townId, dataUrl, this.userId, patternName);
 		}
 
-		if (checkPattern.published)
-		{
-			throw new UserError('pattern-published');
-		}
-
-		await db.query(`
-			UPDATE pattern
-			SET name = $1, published = $3::bool, design_id = $8, data = $4, data_url = $5, game_id = $6::int, palette_id = $7::int, qr_code_url = $9
-			WHERE id = $2::int
-		`, patternName, id, published, data, dataUrl, gameId, paletteId, designId, qrCodeUrl);
-	}
-	else
-	{
-		const [newPattern] = await db.query(`
-			INSERT INTO pattern (name, creator_id, published, design_id, data, data_url, game_id, palette_id, qr_code_url)
-			VALUES ($1, $2::int, $3::bool, $8, $4, $5, $6::int, $7::int, $9)
-			RETURNING id
-		`, patternName, this.userId, published, data, dataUrl, gameId, paletteId, designId, qrCodeUrl);
-
-		id = newPattern.id;
-	}
-
-	// Right now the frontend offers no reason for this to ever receive both a character ID and a town ID,
-	// but in the interest of keeping the API stupid, attempt both non-exclusively
-	if (characterId != null && characterId > 0)
-	{
-		await db.query(`
-			UPDATE character
-			SET door_pattern_id = $1::int, door_pattern_data_url = $3, door_pattern_creator_id = $4, door_pattern_name = $5
-			WHERE id = $2::int
-		`, id, characterId, dataUrl, this.userId, patternName);
-	}
-
-	if (townId != null && townId > 0)
-	{
-		await db.query(`
-			UPDATE town
-			SET flag_id = $1::int, flag_data_url = $3, flag_creator_id = $4, flag_name = $5
-			WHERE id = $2::int
-		`, id, townId, dataUrl, this.userId, patternName);
-	}
+		return id;
+	});
 
 	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 
 	return {
-		id: id,
+		id: patternId,
 	};
 }
 
@@ -232,7 +243,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
  * 	colors - array - current game colors
  * 	nlColors - array - NL & QR Code colors
  */
-async function createQRCode(gameId: number, patternName: string, author: string, townName: string, palette: any[], data: any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): Promise<string | null | void | Promise<string>>
+export async function createQRCode(gameId: number, patternName: string, author: string, townName: string, palette: any[], data: any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): Promise<string | null | void | Promise<string>>
 {
 	if (!canCreateQRCode(gameId, data, colors, nlColors))
 	{
@@ -386,10 +397,10 @@ async function createQRCode(gameId: number, patternName: string, author: string,
 			mode: 'byte',
 		}]);
 	}
-	catch (e)
+	catch (e: any)
 	{
 		// we don't want to stop the pattern from being created if QR code fails
-		console.error(e);
+		console.error('QRCode.toDataURL error:', e);
 	}
 
 	return null;
@@ -528,7 +539,6 @@ save.apiTypes = {
 	patternName: {
 		type: APITypes.string,
 		required: true,
-		error: 'missing-pattern-name',
 		length: constants.max.patternName,
 		profanity: true,
 	},
@@ -558,19 +568,23 @@ save.apiTypes = {
 		type: APITypes.townId,
 		nullable: true,
 	},
+	characterId: {
+		type: APITypes.characterId,
+		nullable: true,
+	},
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	patternName: string
 	published: boolean
 	designId: string | null
-	data: any[] | string
+	data: string[] | number[] | string
 	dataUrl: string
 	gamePaletteId: string
-	palette: any[]
-	townId: number | null
-	characterId: number | null
+	palette: string[] | number[]
+	townId: number
+	characterId: number
 };
 
 export default save;

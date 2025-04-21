@@ -30,7 +30,7 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 			FROM feature_status
 			WHERE feature_status.id = $1
 		`, statusId) : null,
-		categoryId != null && categoryId > 0 ? db.query(`
+		categoryId !== null && categoryId > 0 ? db.query(`
 			SELECT
 				feature_category.id
 			FROM feature_category
@@ -38,12 +38,12 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 		`, categoryId) : null,
 	]);
 
-	if (status != null && status.length === 0)
+	if (status !== null && status.length === 0)
 	{
 		throw new UserError('no-such-feature-status');
 	}
 
-	if (category != null && category.length === 0)
+	if (category !== null && category.length === 0)
 	{
 		throw new UserError('no-such-feature-category');
 	}
@@ -51,23 +51,6 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 	if (!managePermission)
 	{
 		assignedUsers = [];
-	}
-
-	if (!Array.isArray(assignedUsers))
-	{
-		if (assignedUsers)
-		{
-			if (utils.realStringLength(assignedUsers) > constants.max.addMultipleUsers)
-			{
-				throw new UserError('bad-format');
-			}
-
-			assignedUsers = assignedUsers.split(',').map((username: any) => username.trim());
-		}
-		else
-		{
-			assignedUsers = [];
-		}
 	}
 
 	const assignedUserIds = await Promise.all(assignedUsers.map(async (username: any) =>
@@ -88,7 +71,7 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 
 	let successMessage = false;
 
-	if (id != null && id > 0)
+	if (id !== null && id > 0)
 	{
 		if (!(managePermission || claimPermission))
 		{
@@ -205,14 +188,13 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 	if (successMessage)
 	{
 		return {
-			id: Number(id || 0),
+			id: Number(id),
 			_success: 'This feature / bug has been submitted. Thank you for letting us know!',
-			_useCallback: true,
 		};
 	}
 
 	return {
-		id: Number(id || 0),
+		id: Number(id),
 	};
 }
 
@@ -268,7 +250,10 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
-	// assignedUsers custom check above
+	assignedUsers: {
+		type: APITypes.array,
+		length: constants.max.addMultipleUsers,
+	},
 	staffDescription: {
 		type: APITypes.string,
 		default: '',
@@ -293,7 +278,7 @@ type saveProps = {
 	isExploit: boolean
 	staffOnly: boolean
 	readOnly: boolean
-	assignedUsers: any
+	assignedUsers: string[]
 	staffDescription: string | null
 	staffDescriptionFormat: string | null
 };

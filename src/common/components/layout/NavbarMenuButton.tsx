@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { ReactNode, useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router';
 
 import { RequireClientJS } from '@behavior';
 import SiteMenu from '@/components/layout/SiteMenu.tsx';
@@ -25,7 +25,7 @@ const NavbarMenuButton = ({
 	const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
 	const location = useLocation() as LocationType;
-	const ref = useRef<any>();
+	const ref = useRef<any>(null);
 
 	let className = 'NavbarMenuButton';
 
@@ -85,7 +85,7 @@ const NavbarMenuButton = ({
 };
 
 type NavbarMenuButtonProps = {
-	children: React.ReactNode
+	children: ReactNode
 	fallbackLink: string
 	buddies?: BuddiesType
 };

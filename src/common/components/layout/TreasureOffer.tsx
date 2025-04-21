@@ -1,33 +1,31 @@
-import React from 'react';
-
 import { Form } from '@form';
-import { TreasureContext } from '@contexts';
+import { TreasureType } from '@types';
 
 const TreasureOffer = ({
+	treasure,
 	size,
 }: TreasureOfferProps) =>
 {
 	return (
 		<div className='TreasureOffer'>
-			<TreasureContext.Consumer>
-				{treasure => treasure !== null &&
-					<Form action='v1/treasure/claim' messagesAtBottom={false}>
-						<input type='hidden' name='id' value={treasure.id} />
+			{treasure !== null &&
+				<Form action='v1/treasure/claim' messagesAtBottom formId={`treasure-claim=${treasure.id}`}>
+					<input type='hidden' name='id' value={treasure.id} />
 
-						<input
-							type='image'
-							src={`/images/bells/treasure_${size}_${treasure.treasureTypeId}.png`}
-							aria-label='Treasure Offer'
-							alt='Treasure Offer'
-						/>
-					</Form>
-				}
-			</TreasureContext.Consumer>
+					<input
+						type='image'
+						src={`/images/bells/treasure_${size}_${treasure.treasureTypeId}.png`}
+						aria-label='Treasure Offer'
+						alt='Treasure Offer'
+					/>
+				</Form>
+			}
 		</div>
 	);
 };
 
 type TreasureOfferProps = {
+	treasure: TreasureType | null
 	size: string
 };
 

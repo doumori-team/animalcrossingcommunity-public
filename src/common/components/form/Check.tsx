@@ -1,10 +1,10 @@
-import React from 'react';
+import { Fragment } from 'react';
 
 import { utils, constants } from '@utils';
 import { ClickHandlerType } from '@types';
 
 const Check = ({
-	hideLabel = false,
+	hideLabels = false,
 	options,
 	defaultValue,
 	multiple = false,
@@ -32,7 +32,7 @@ const Check = ({
 
 	return (
 		<>
-			{!hideLabel &&
+			{!hideLabels &&
 				<label htmlFor={name}>{label}:</label>
 			}
 			<div className='Check'>
@@ -41,14 +41,14 @@ const Check = ({
 					const key = `${name}_${option.id}`;
 
 					return (
-						<React.Fragment key={key}>
+						<Fragment key={key}>
 							<input
 								type={multiple ? 'checkbox' : 'radio'}
 								name={name}
 								id={key}
 								value={option.id}
 								className='Check_input'
-								defaultChecked={defaultValue.includes(option.id)}
+								defaultChecked={defaultValue?.includes(option.id)}
 								required={required}
 								onClick={onChangeHandler}
 								aria-label={label}
@@ -68,7 +68,7 @@ const Check = ({
 									<span>{option.name}</span>
 								}
 							</label>
-						</React.Fragment>
+						</Fragment>
 					);
 				})}
 			</div>
@@ -98,7 +98,7 @@ type CheckProps = {
 		name: any
 		filename?: string
 	}
-	hideLabel?: boolean
+	hideLabels?: boolean
 };
 
 export default Check;

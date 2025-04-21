@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Form, Check, Text, TextArea } from '@form';
 import { constants } from '@utils';
 import { SeverityType, ViolationType } from '@types';

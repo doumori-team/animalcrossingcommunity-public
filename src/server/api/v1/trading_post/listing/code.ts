@@ -66,7 +66,7 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 	// Perform queries
 	await db.transaction(async (query: any) =>
 	{
-		if (characterId != null && characterId > 0)
+		if (characterId > 0)
 		{
 			await query(`
 				UPDATE listing_offer
@@ -223,7 +223,7 @@ code.apiTypes = {
 
 type codeProps = {
 	id: number
-	characterId: number | null
+	characterId: number
 	secretCodes: any[]
 	friendCode: string
 	dodoCode: string

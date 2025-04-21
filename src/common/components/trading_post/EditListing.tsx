@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { constants } from '@utils';
 import { ACGameItemType, ElementInputType, ResidentsType } from '@types';
@@ -14,15 +14,15 @@ const EditListing = ({
 	acItemsCatalog,
 }: EditListingProps) =>
 {
-	const [items, setItems] = useState<number[]>([]);
+	const [items, setItems] = useState<string[]>([]);
 	const [quantities, setQuantities] = useState<number[]>([]);
 
-	const changeItems = (newItems: number[]): void =>
+	const changeItems = (newItems: string[]): void =>
 	{
 		// map old quantities to new quantity indexes
 		let newQuantities: number[] = [];
 
-		newItems.map((itemId: number, index: number) =>
+		newItems.map((itemId: string, index: number) =>
 		{
 			let itemIndex = items.findIndex(id => id === itemId);
 
@@ -113,7 +113,7 @@ const EditListing = ({
 								<Form.Group key={index}>
 									<Text
 										type='number'
-										label={`${catalogItems.find((item: any) => item.id === itemId)?.name} Quantity`}
+										label={`${catalogItems.find(item => item.id === itemId)?.name} Quantity`}
 										name='quantities'
 										value={quantities[index]}
 										changeHandler={(e) => changeQuantity(index, e)}

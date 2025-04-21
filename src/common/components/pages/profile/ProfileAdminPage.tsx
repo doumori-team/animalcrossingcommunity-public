@@ -1,16 +1,17 @@
-import React from 'react';
-import { useLoaderData, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import { utils } from '@utils';
+import { utils, routerUtils } from '@utils';
 import { Form, Select } from '@form';
 import Permission from '@/components/admin/Permission.tsx';
 import { Header, Section } from '@layout';
 import { APIThisType, PermissionType, UserGroupType, BanLengthType, UserType } from '@types';
 
-const ProfileAdminPage = () =>
+export const action = routerUtils.formAction;
+
+const ProfileAdminPage = ({ loaderData }: { loaderData: ProfileAdminPageProps }) =>
 {
-	const { permissions, userGroups, banLength } = useLoaderData() as ProfileAdminPageProps;
+	const { permissions, userGroups, banLength } = loaderData;
 	const { user } = useOutletContext() as { user: UserType };
 
 	return (
@@ -64,7 +65,7 @@ const ProfileAdminPage = () =>
 						</Form.Group>
 					</Form>
 
-					{permissions != null &&
+					{permissions !== null &&
 						<Permission
 							permissions={permissions}
 							id={user.id}
@@ -77,7 +78,7 @@ const ProfileAdminPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileAdminPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileAdminPageProps>
 {
 	const [permissions, userGroups, banLength] = await Promise.all([
 		this.query('v1/users/permissions', { id }),
@@ -87,6 +88,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { permissions, userGroups, banLength };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ProfileAdminPageProps = {
 	permissions: PermissionType | null

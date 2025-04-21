@@ -1,7 +1,8 @@
+import { faker } from '@faker-js/faker/locale/en';
+
 import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
-import { faker } from '@faker-js/faker/locale/en';
 import { ACCCache } from '@cache';
 import { APIThisType, SuccessType, ACGameItemType } from '@types';
 
@@ -46,7 +47,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 	{
 		// Create Shop
 
-		console.log('Creating shop');
+		console.info('Creating shop');
 
 		const shopName = faker.company.name();
 		const shopShortDescription = faker.company.catchPhrase();
@@ -135,7 +136,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 		// Add Services
 
-		console.log('Creating services');
+		console.info('Creating services');
 
 		// Get more info
 		const [shopServices, [ownerRole]] = await Promise.all([
@@ -198,7 +199,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 		// Add Roles, Users
 
-		console.log('Creating roles');
+		console.info('Creating roles');
 
 		const numberOfDepartments = faker.number.int(4);
 		let roleIds = [], shopEmployeeIds = [];
@@ -335,7 +336,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 		// Shop Orders
 
-		console.log('Creating orders');
+		console.info('Creating orders');
 
 		const numberOfOrders = faker.number.int(10);
 
@@ -578,7 +579,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 		// Shop Applications
 
-		console.log('Creating applications');
+		console.info('Creating applications');
 
 		const numberOfApplications = faker.number.int(10);
 
@@ -615,7 +616,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 		// Shop Threads
 
-		console.log('Creating shop threads');
+		console.info('Creating shop threads');
 
 		const numberOfThreads = faker.number.int(10);
 

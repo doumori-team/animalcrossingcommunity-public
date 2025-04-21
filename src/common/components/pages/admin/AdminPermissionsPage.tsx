@@ -1,15 +1,18 @@
-import React from 'react';
-import { Link, useLoaderData, useParams } from 'react-router-dom';
+import { ReactNode, Fragment } from 'react';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Section, Header } from '@layout';
 import Permission from '@/components/admin/Permission.tsx';
 import { APIThisType, PermissionType, UserGroupType } from '@types';
+import { routerUtils } from '@utils';
 
-const AdminPermissionsPage = () =>
+export const action = routerUtils.formAction;
+
+const AdminPermissionsPage = ({ loaderData, params }: { loaderData: AdminPermissionsPageProps, params: Params }) =>
 {
-	const { permissions, userGroups } = useLoaderData() as AdminPermissionsPageProps;
-	const { id } = useParams() as { id: string };
+	const { permissions, userGroups } = loaderData;
+	const { id } = params;
 
 	const selectedUserGroupId = Number(id || -1);
 
@@ -44,7 +47,7 @@ const AdminPermissionsPage = () =>
 	);
 };
 
-function renderGroups(userGroups: UserGroupType[] | undefined, indent: number, selectedUserGroupId: number): React.ReactNode
+function renderGroups(userGroups: UserGroupType[] | undefined, indent: number, selectedUserGroupId: number): ReactNode
 {
 	if (!userGroups)
 	{
@@ -52,7 +55,7 @@ function renderGroups(userGroups: UserGroupType[] | undefined, indent: number, s
 	}
 
 	return userGroups.map(userGroup =>
-		<React.Fragment key={userGroup.id}>
+		<Fragment key={userGroup.id}>
 			<li className={`AdminPermissionsPage_userGroup indent_${indent}`}>
 				<Link to={`/admin/permissions/${encodeURIComponent(userGroup.id)}`}
 					key={userGroup.id}
@@ -64,11 +67,11 @@ function renderGroups(userGroups: UserGroupType[] | undefined, indent: number, s
 			</li>
 
 			{renderGroups(userGroup.groups, indent + 1, selectedUserGroupId)}
-		</React.Fragment>,
+		</Fragment>,
 	);
 }
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminPermissionsPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminPermissionsPageProps>
 {
 	const selectedUserGroupId = Number(id || -1);
 
@@ -81,6 +84,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { permissions, userGroups };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdminPermissionsPageProps = {
 	permissions: PermissionType

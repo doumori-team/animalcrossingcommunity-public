@@ -120,7 +120,7 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 			WHERE node_revision_file.node_revision_id = $1::int
 			ORDER BY file.sequence ASC
 		`, result.revision_id) : null,
-		!loadingNode && result.type === 'thread' && this.userId && conciseMode > 2 ? db.query(`
+		!loadingNode && result.type === 'thread' && this.userId ? db.query(`
 			SELECT
 				(
 					SELECT count(*) AS count

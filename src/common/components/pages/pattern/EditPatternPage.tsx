@@ -1,14 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import EditPattern from '@/components/pattern/EditPattern.tsx';
 import { Header, Section } from '@layout';
 import { APIThisType, ACGameType, PatternType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditPatternPage = () =>
+export const action = routerUtils.formAction;
+
+const EditPatternPage = ({ loaderData }: { loaderData: EditPatternPageProps }) =>
 {
-	const { pattern, acgames } = useLoaderData() as EditPatternPageProps;
+	const { pattern, acgames } = loaderData;
 
 	return (
 		<div className='EditPatternPage'>
@@ -34,7 +36,7 @@ const EditPatternPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditPatternPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditPatternPageProps>
 {
 	const pattern = await this.query('v1/pattern', { id }) as PatternType;
 	const acgames = await Promise.all([
@@ -43,6 +45,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { acgames, pattern };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditPatternPageProps = {
 	acgames: ACGameType[]

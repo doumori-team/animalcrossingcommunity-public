@@ -1,15 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import Catalog from '@/components/users/Catalog.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { APIThisType, UserCatalogCategoryType, CatalogItemsType, GroupItemType } from '@types';
 
-const EditCharacterCatalogPage = () =>
+export const action = routerUtils.formAction;
+
+const EditCharacterCatalogPage = ({ loaderData }: { loaderData: EditCharacterCatalogPageProps }) =>
 {
 	const { catalogItems, acgameCatalog, by, category, userId,
-		selectedCharacterId, catalogCategories, name } = useLoaderData() as EditCharacterCatalogPageProps;
+		selectedCharacterId, catalogCategories, name } = loaderData;
 
 	return (
 		<RequireUser id={userId} permission='modify-towns'>
@@ -31,7 +30,7 @@ const EditCharacterCatalogPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId, characterId }: { userId: string, characterId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditCharacterCatalogPageProps>
+async function loadData(this: APIThisType, { userId, characterId }: { userId: string, characterId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditCharacterCatalogPageProps>
 {
 	const selectedCharacterId = Number(characterId);
 	const selectedUserId = Number(userId);
@@ -52,6 +51,8 @@ export async function loadData(this: APIThisType, { userId, characterId }: { use
 
 	return { selectedCharacterId, acgameCatalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditCharacterCatalogPageProps = {
 	selectedCharacterId: number

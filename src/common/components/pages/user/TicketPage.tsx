@@ -1,14 +1,15 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { Form, RichTextArea } from '@form';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { Header, Markup } from '@layout';
 import { APIThisType, EmojiSettingType, TicketType } from '@types';
 
-const TicketPage = () =>
+export const action = routerUtils.formAction;
+
+const TicketPage = ({ loaderData }: { loaderData: TicketPageProps }) =>
 {
-	const { ticket, ticketUserEmojiSettings } = useLoaderData() as TicketPageProps;
+	const { ticket, ticketUserEmojiSettings } = loaderData;
 
 	const referenceLink = utils.getReferenceLink(ticket);
 	const encodedId = encodeURIComponent(ticket.id);
@@ -144,7 +145,7 @@ const TicketPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id?: string }): Promise<TicketPageProps>
+async function loadData(this: APIThisType, { id }: { id?: string }): Promise<TicketPageProps>
 {
 	const [ticket] = await Promise.all([
 		this.query('v1/users/ticket', { id: id }),
@@ -156,6 +157,8 @@ export async function loadData(this: APIThisType, { id }: { id?: string }): Prom
 
 	return { ticket, ticketUserEmojiSettings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type TicketPageProps = {
 	ticket: TicketType

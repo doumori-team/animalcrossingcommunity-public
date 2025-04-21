@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { ReactNode } from 'react';
+import { NavLink } from 'react-router';
 
 // Provides toggle ability between subsections of a page
 
@@ -46,11 +46,11 @@ NavMenu.Button = Button;
 type ButtonProps = {
 	path: string
 	index?: boolean
-	children?: React.ReactNode
+	children?: ReactNode
 };
 
 type NavMenuProps = {
-	children?: React.ReactNode
+	children?: ReactNode
 };
 
 export default NavMenu;

@@ -64,7 +64,7 @@ save.apiTypes = {
 
 type saveProps = {
 	patternId: number
-	id: number | null
+	id: number
 };
 
 export default save;

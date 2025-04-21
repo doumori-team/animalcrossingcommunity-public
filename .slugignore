@@ -6,10 +6,13 @@ CODEOWNERS
 .gitignore
 .gitattributes
 Vagrantfile
-Procfile.local
 jsconfig.json
 /ci/update-init-scripts.sh
 /ci/local.sh
 /db/init/*
 /db/update_old/*
 app.json
+/.github/*
+eslint.config.js
+vitest.config.ts
+/tests/*

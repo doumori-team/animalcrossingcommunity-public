@@ -9,6 +9,7 @@ type AccountSettingType = {
 	shopDNC: boolean
 	southernHemisphere: boolean
 	stayForever: boolean
+	consolidateCalendars: boolean
 };
 
 export type { AccountSettingType };

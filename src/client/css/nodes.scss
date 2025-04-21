@@ -1,29 +1,34 @@
+@use "sass:math";
+@use "colors";
+@use "mixins";
+@use "forms";
+
 .Node {
 	padding: 1rem;
 	background: white;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid #aaa;
 
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 }
 
 .Node-admin, .Node-owner {
-	border-left: 0.3333rem solid $color-admin;
+	border-left: 0.3333rem solid colors.$color-admin;
 }
 
 .Node-mod {
-	border-left: 0.3333rem solid $color-mod;
+	border-left: 0.3333rem solid colors.$color-mod;
 }
 
 .Node-scout {
-	border-left: 0.3333rem solid $color-scout;
+	border-left: 0.3333rem solid colors.$color-scout;
 }
 
 .Node-researcher, .Node-researcher-TL {
-	border-left: 0.3333rem solid $color-researcher;
+	border-left: 0.3333rem solid colors.$color-researcher;
 }
 
 .Node-dev, .Node-dev-TL {
-	border-left: 0.3333rem solid $color-dev;
+	border-left: 0.3333rem solid colors.$color-dev;
 }
 
 .Node-admin-locked .Node_main {
@@ -37,13 +42,15 @@
 }
 
 .Node-admin-locked {
-	border-left: 0.5rem solid $color-admin;
-	border-right: 0.5rem solid $color-admin;
+	border-left: 0.5rem solid colors.$color-admin;
+	border-right: 0.5rem solid colors.$color-admin;
+	padding: 1rem 0.5rem;
 }
 
 .Node-sticky {
-	border-left: 0.5rem solid $color-researcher;
-	border-right: 0.5rem solid $color-researcher;
+	border-left: 0.5rem solid colors.$color-researcher;
+	border-right: 0.5rem solid colors.$color-researcher;
+	padding: 1rem 0.5rem;
 }
 
 .Node-unread {
@@ -52,6 +59,10 @@
 
 .Node_main {
 	word-break: break-word;
+
+	> :last-child p {
+		margin-bottom: 0;
+	}
 }
 
 .Node_main > :first-child {
@@ -71,9 +82,15 @@
 		color: #8ab4f8;
 		text-decoration: underline;
 		cursor: pointer;
-		margin-bottom: px2rem(10px);
+		margin-bottom: mixins.px2rem(10px);
 		text-shadow: none;
 		box-shadow: none;
+	}
+
+	.Node_controls {
+		display: flex;
+		align-items: center;
+		gap: mixins.px2rem(8px);
 	}
 }
 
@@ -83,7 +100,7 @@
 	align-items: center;
 	margin: 0;
 	word-break: break-word;
-	gap: px2rem(3px);
+	gap: mixins.px2rem(3px);
 
 	a:hover {
 		text-decoration: underline;
@@ -96,6 +113,8 @@
 
 .Node_metadata {
 	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 
 	img, form {
 		padding-left: 2px;
@@ -131,7 +150,7 @@
 
 	.Accordion .AccordionFallback {
 		background: #fff;
-		padding: px2rem(12px);
+		padding: mixins.px2rem(12px);
 		font-size: 0.875rem;
 	}
 }
@@ -140,18 +159,30 @@
 	display: flex;
 	margin: 1rem 0;
 	padding: 0.6rem 1.0rem;
-	border-radius: px2rem(3px);
-	border: px2rem(1px) solid #9c846d;
-	background: $color-signature-background;
+	border-radius: mixins.px2rem(3px);
+	border: mixins.px2rem(1px) solid #9c846d;
+	background: colors.$color-signature-background;
 
-	font-size: px2rem(12px);
+	font-size: mixins.px2rem(12px);
 	line-height: 1.4;
-	color: $color-signature-text;
+	color: colors.$color-signature-text;
 
 	white-space: pre-wrap;
 
 	.Markup .spoiler {
-		color: $color-signature-background;
+		color: colors.$color-signature-background;
+	}
+
+	/*
+	 * Add a low-priority 1 em margin to the signature contents, which most browsers already apply by default.
+	 * This gets overridden by the media query that sets the margin to 0 for large screen sizes
+	 */
+	p {
+		margin: 1em 0;
+	}
+
+	.ReportProblem {
+		align-content: center;
 	}
 }
 
@@ -161,23 +192,29 @@
 .PostAuthorInfo_lastactive,
 .PostAuthorInfo_title {
 	display: block;
-	font-size: px2rem(12px);
+	font-size: mixins.px2rem(12px);
 	line-height: 1.4;
 	color: #333;
+
+	.PostAuthorInfo_lastactive_mobileHint {
+		display: inline;
+	}
 }
 
 .PostAuthorInfo_title {
 	display: flex;
+	align-items: center;
+	margin-left: mixins.px2rem(5px);
 
 	.ReportProblem {
 		input {
-			max-height: px2rem(15px);
+			max-height: mixins.px2rem(15px);
 		}
 	}
 }
 
 .PostAuthorInfo_username {
-	font-size: px2rem(20px);
+	font-size: mixins.px2rem(20px);
 	font-weight: bold;
 	display: flex;
 	align-items: center;
@@ -191,6 +228,12 @@
 
 .PostAuthorInfo_lastactive {
 	font-size: 0.7rem !important;
+	display: flex;
+	align-items: center;
+
+	img[src*="/icons/"] {
+		padding-left: 0;
+	}
 }
 
 .Avatar {
@@ -209,107 +252,107 @@
 }
 
 .Avatar[data-bg-coloration='blue'] {
-	background-color: $color-avatar-blue;
+	background-color: colors.$color-avatar-blue;
 }
 
 .Avatar[data-bg-coloration='green'] {
-	background-color: $color-avatar-green;
+	background-color: colors.$color-avatar-green;
 }
 
 .Avatar[data-bg-coloration='hot-pink'] {
-	background-color: $color-avatar-hot-pink;
+	background-color: colors.$color-avatar-hot-pink;
 }
 
 .Avatar[data-bg-coloration='indigo'] {
-	background-color: $color-avatar-indigo;
+	background-color: colors.$color-avatar-indigo;
 }
 
 .Avatar[data-bg-coloration='light-blue'] {
-	background-color: $color-avatar-light-blue;
+	background-color: colors.$color-avatar-light-blue;
 }
 
 .Avatar[data-bg-coloration='mint'] {
-	background-color: $color-avatar-mint;
+	background-color: colors.$color-avatar-mint;
 }
 
 .Avatar[data-bg-coloration='orange'] {
-	background-color: $color-avatar-orange;
+	background-color: colors.$color-avatar-orange;
 }
 
 .Avatar[data-bg-coloration='pink'] {
-	background-color: $color-avatar-pink;
+	background-color: colors.$color-avatar-pink;
 }
 
 .Avatar[data-bg-coloration='purple'] {
-	background-color: $color-avatar-purple;
+	background-color: colors.$color-avatar-purple;
 }
 
 .Avatar[data-bg-coloration='red'] {
-	background-color: $color-avatar-red;
+	background-color: colors.$color-avatar-red;
 }
 
 .Avatar[data-bg-coloration='teal'] {
-	background-color: $color-avatar-teal;
+	background-color: colors.$color-avatar-teal;
 }
 
 .Avatar[data-bg-coloration='yellow'] {
-	background-color: $color-avatar-yellow;
+	background-color: colors.$color-avatar-yellow;
 }
 
 .Avatar[data-bg-coloration='black'] {
-	background-color: $color-avatar-black;
+	background-color: colors.$color-avatar-black;
 }
 
 .Avatar[data-bg-coloration='brown'] {
-	background-color: $color-avatar-brown;
+	background-color: colors.$color-avatar-brown;
 }
 
 .Avatar[data-bg-coloration='dark-green'] {
-	background-color: $color-avatar-dark-green;
+	background-color: colors.$color-avatar-dark-green;
 }
 
 .Avatar[data-bg-coloration='graphite'] {
-	background-color: $color-avatar-graphite;
+	background-color: colors.$color-avatar-graphite;
 }
 
 .Avatar[data-bg-coloration='gray'] {
-	background-color: $color-avatar-gray;
+	background-color: colors.$color-avatar-gray;
 }
 
 .Avatar[data-bg-coloration='magenta'] {
-	background-color: $color-avatar-magenta;
+	background-color: colors.$color-avatar-magenta;
 }
 
 .Avatar[data-bg-coloration='white'] {
-	background-color: $color-avatar-white;
+	background-color: colors.$color-avatar-white;
 }
 
 .Avatar[data-bg-coloration='alien'] {
-	background-image: $color-avatar-alien;
+	background-image: colors.$color-avatar-alien;
 }
 
 .Avatar[data-bg-coloration='flare'] {
-	background-image: $color-avatar-flare;
+	background-image: colors.$color-avatar-flare;
 }
 
 .Avatar[data-bg-coloration='frost'] {
-	background-image: $color-avatar-frost;
+	background-image: colors.$color-avatar-frost;
 }
 
 .Avatar[data-bg-coloration='gold'] {
-	background-image: $color-avatar-gold;
+	background-image: colors.$color-avatar-gold;
 }
 
 .Avatar[data-bg-coloration='halloween'] {
-	background-image: $color-avatar-halloween;
+	background-image: colors.$color-avatar-halloween;
 }
 
 .Avatar[data-bg-coloration='lemon-drop'] {
-	background-image: $color-avatar-lemon-drop;
+	background-image: colors.$color-avatar-lemon-drop;
 }
 
 .Avatar[data-bg-coloration='twilight'] {
-	background-image: $color-avatar-twilight;
+	background-image: colors.$color-avatar-twilight;
 }
 
 .Avatar_character {
@@ -327,26 +370,26 @@
 }
 
 .Avatar[data-accent-position='1'] .Avatar_accent {
-	top: px2rem(3px);
-	left: px2rem(3px);
+	top: mixins.px2rem(3px);
+	left: mixins.px2rem(3px);
 	transform-origin: top left;
 }
 
 .Avatar[data-accent-position='2'] .Avatar_accent {
-	top: px2rem(3px);
-	right: px2rem(3px);
+	top: mixins.px2rem(3px);
+	right: mixins.px2rem(3px);
 	transform-origin: top right;
 }
 
 .Avatar[data-accent-position='3'] .Avatar_accent {
-	bottom: px2rem(3px);
-	left: px2rem(3px);
+	bottom: mixins.px2rem(3px);
+	left: mixins.px2rem(3px);
 	transform-origin: bottom left;
 }
 
 .Avatar[data-accent-position='4'] .Avatar_accent {
-	bottom: px2rem(3px);
-	right: px2rem(3px);
+	bottom: mixins.px2rem(3px);
+	right: mixins.px2rem(3px);
 	transform-origin: bottom right;
 }
 
@@ -359,7 +402,16 @@
 	opacity: 0.5;
 }
 
-@include responsive(48rem) {
+.Node_dotSeparator {
+	display: inline-block;
+	padding: 0 mixins.px2rem(4px);
+
+	&:last-child {
+		display: none;
+	}
+}
+
+@include mixins.responsive(48rem) {
 	/* Basic layout */
 	.Node {
 		background: transparent;
@@ -372,13 +424,15 @@
 	}
 
 	.Node-admin-locked .Node_main {
-		border-left: 0.5rem solid $color-admin;
-		border-right: 0.5rem solid $color-admin;
+		border-left: 0.5rem solid colors.$color-admin;
+		border-right: 0.5rem solid colors.$color-admin;
+		padding: 1rem 0.5rem;
 	}
 
 	.Node-sticky .Node_main {
-		border-left: 0.5rem solid $color-researcher;
-		border-right: 0.5rem solid $color-researcher;
+		border-left: 0.5rem solid colors.$color-researcher;
+		border-right: 0.5rem solid colors.$color-researcher;
+		padding: 1rem 0.5rem;
 	}
 
 	.Node-unread .Node_main {
@@ -386,9 +440,12 @@
 	}
 
 	.Node_main {
-		@include contentbox;
+		@include mixins.contentbox;
 		padding: 1rem;
-		line-height: 1.7em;
+
+		.Node_forumCategory & {
+			background: var(--seasonal-color-lighter);
+		}
 
 		.PostAuthorInfo + & {
 			margin-left: 9.25rem;
@@ -396,7 +453,7 @@
 	}
 
 	.PostAuthorInfo {
-		width: px2rem(130px);
+		width: mixins.px2rem(130px);
 		float: left;
 	}
 
@@ -423,6 +480,25 @@
 				}
 			}
 
+			.Node_signature {
+				.ReportProblem {
+					align-content: flex-start;
+
+					input {
+						/* 
+						 * Explanation: Signatures have a text size of 12px and a line height of unitless 1.4, or (1.4 * fontsize).
+						 * The line height being larger means there is empty space within the element above and below the text,
+						 * which has a height of (lineHeight - fontSize) / 2, or (1.4 * fontSize - fontSize) / 2, or (0.2 * fontSize).
+						 * When the report button's height is the same as the font size, we can give it top padding according to this formula to match how the text looks,
+						 * aligning the report button with the top line of the signature text regardless if the text has one line or many.
+						 * (On small screens this is irrelevant because applying a 1 em margin to both elements aligns them without any of this)
+						 */
+						height: mixins.px2rem(12px);
+						margin-top: calc(0.2* mixins.px2rem(12px));
+					}
+				}
+			}
+
 			.PostAuthorInfo + & {
 				margin-left: 1rem;
 			}
@@ -438,22 +514,30 @@
 	.PostAuthorInfo_username,
 	.PostAuthorInfo_lastactive,
 	.PostAuthorInfo_userTitle {
-		width: px2rem(130px);
+		width: mixins.px2rem(130px);
 		padding: 0.3333em 0.25rem;
 		margin-top: 0.1875rem;
 
-		@include contentbox(#666, #fff);
+		@include mixins.contentbox(#666, #fff);
 
 		text-shadow: -1px -1px rgba(0,0,0,0.15);
 		text-align: right;
-		font-size: px2rem(9px);
+		font-size: mixins.px2rem(9px);
 		font-weight: normal;
 		white-space: pre;
 		text-overflow: ellipsis;
+
+		.PostAuthorInfo_lastactive_mobileHint {
+			display: none;
+		}
+	}
+
+	.PostAuthorInfo_lastactive {
+		justify-content: flex-end;
 	}
 
 	.PostAuthorInfo_username {
-		font-size: px2rem(14px);
+		font-size: mixins.px2rem(14px);
 		text-align: center;
 		display: block;
 
@@ -465,23 +549,24 @@
 	.PostAuthorInfo_userTitle {
 		display: flex;
 		justify-content: end;
+		align-items: center;
 
 		.ReportProblem {
 			input {
-				max-height: px2rem(15px);
+				max-height: mixins.px2rem(12px);
 			}
 		}
 	}
 
 	.Avatar {
 		float: none;
-		width: px2rem(130px);
-		height: px2rem(130px);
-		padding: px2rem(math.div(130px - 110px - 2px, 2)); // 110px is the largest dimension of the avatar character image
+		width: mixins.px2rem(130px);
+		height: mixins.px2rem(130px);
+		padding: mixins.px2rem(math.div(130px - 110px - 2px, 2)); // 110px is the largest dimension of the avatar character image
 		margin-right: 0;
 		overflow: hidden;
 
-		@include contentbox(#808080);
+		@include mixins.contentbox(#808080);
 	}
 
 	.Avatar[data-accent-position] .Avatar_accent {
@@ -489,43 +574,43 @@
 	}
 
 	.Avatar[data-accent-position='1'] .Avatar_accent {
-		top: px2rem(5px);
-		left: px2rem(5px);
+		top: mixins.px2rem(5px);
+		left: mixins.px2rem(5px);
 	}
 
 	.Avatar[data-accent-position='2'] .Avatar_accent {
-		top: px2rem(5px);
-		right: px2rem(5px);
+		top: mixins.px2rem(5px);
+		right: mixins.px2rem(5px);
 	}
 
 	.Avatar[data-accent-position='3'] .Avatar_accent {
-		bottom: px2rem(5px);
-		left: px2rem(5px);
+		bottom: mixins.px2rem(5px);
+		left: mixins.px2rem(5px);
 	}
 
 	.Avatar[data-accent-position='4'] .Avatar_accent {
-		bottom: px2rem(5px);
-		right: px2rem(5px);
+		bottom: mixins.px2rem(5px);
+		right: mixins.px2rem(5px);
 	}
 
 	.Node-admin .PostAuthorInfo_username, .Node-owner .PostAuthorInfo_username {
-		background-color: $color-admin;
+		background-color: colors.$color-admin;
 	}
 
 	.Node-mod .PostAuthorInfo_username {
-		background-color: $color-mod;
+		background-color: colors.$color-mod;
 	}
 
 	.Node-scout .PostAuthorInfo_username {
-		background-color: $color-scout;
+		background-color: colors.$color-scout;
 	}
 
 	.Node-researcher .PostAuthorInfo_username, .Node-researcher-TL .PostAuthorInfo_username {
-		background-color: $color-researcher;
+		background-color: colors.$color-researcher;
 	}
 
 	.Node-dev .PostAuthorInfo_username, .Node-dev-TL .PostAuthorInfo_username {
-		background-color: $color-dev;
+		background-color: colors.$color-dev;
 	}
 }
 
@@ -552,7 +637,7 @@
 	.spoiler:active, .spoiler::selection, .spoiler:focus, .spoiler:hover, .spoiler:visited {
 		color: black !important;
 
-		@include responsive(48rem) {
+		@include mixins.responsive(48rem) {
 			color: #555 !important;
 		}
 	}
@@ -622,12 +707,16 @@
 
 .Node_button {
 	@extend .GenericSubmitButton;
-	max-height: px2rem(35px);
+	max-height: mixins.px2rem(35px);
 }
 
 .Node_titleLine {
 	display: flex;
 	justify-content: space-between;
+
+	input[type="checkbox"] {
+		margin: 0;
+	}
 
 	.Node_followed {
 		display: flex;
@@ -636,7 +725,7 @@
 
 	.Node_postedBy, .Node_latestPost, .Node_followed, .Node_board {
 		a, span {
-			@media only screen and (max-width: px2rem(800px)) {
+			@media only screen and (max-width: mixins.px2rem(800px)) {
 				display: block;
 			}
 		}
@@ -646,6 +735,17 @@
 .Node_secondLine, .Node_thirdLine {
 	display: flex;
 	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: mixins.px2rem(8px);
+	padding-top: mixins.px2rem(8px);
+
+	a {
+		font-weight: 500;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
 }
 
 .FollowedNodePage {
@@ -683,8 +783,8 @@
 }
 
 .NodeWritingInterface, .FeatureWritingInterface {
-	@include contentbox($background: var(--seasonal-color-dark), $color: #333);
-	margin-top: px2rem(5px);
+	@include mixins.contentbox($background: var(--seasonal-color-dark), $color: #333);
+	margin-top: mixins.px2rem(5px);
 
 	div[role='group'] {
 		display: flex;
@@ -701,7 +801,7 @@
 		border: none; outline: none;
 		border-radius: 0.25rem;
 
-		padding: px2rem(10px);
+		padding: mixins.px2rem(10px);
 		background: #fff;
 		color: #555;
 	}
@@ -719,9 +819,9 @@
 		label {
 			font-weight: bold;
 			margin: 0.5rem;
-			font-size: px2rem(17px);
+			font-size: mixins.px2rem(17px);
 			line-height: 1.0;
-			@include inset-text;
+			@include mixins.inset-text;
 		}
 
 		.FontAwesomeIcon {
@@ -737,9 +837,9 @@
 .RichTextArea_file label,
 .NodeWritingInterface label[for=shopId] {
 	margin: 0.5rem;
-	font-size: px2rem(17px);
+	font-size: mixins.px2rem(17px);
 	line-height: 1.6;
-	@include inset-text;
+	@include mixins.inset-text;
 }
 
 .NodeWritingInterface label {
@@ -749,14 +849,14 @@
 .NodeHistoryPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 
 			.NodeHistoryPage_node {
-				@include contentbox($background: white);
+				@include mixins.contentbox($background: white);
 				padding: 1rem;
-				font-size: px2rem(14px);
+				font-size: mixins.px2rem(14px);
 			}
 		}
 	}
@@ -775,10 +875,22 @@
 }
 
 .Node_boardActions {
-	margin-top: px2rem(2px);
-	padding: px2rem(4px);
+	margin-top: mixins.px2rem(2px);
+	padding: mixins.px2rem(4px);
+	display: flex;
+	align-items: flex-end;
 
 	background-color: var(--seasonal-color-dark);
 	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
 	border: 1px solid rgba(0,0,0,0.7);
+}
+
+.Node_unreadIndicator {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	img {
+		height: mixins.px2rem(24px);
+	}
 }

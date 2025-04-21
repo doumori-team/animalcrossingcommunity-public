@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import { KeyboardEvent, ReactNode, useState, useRef } from 'react';
 import axios from 'axios';
-import PhotoAlbum from 'react-photo-album';
+import { ColumnsPhotoAlbum } from 'react-photo-album';
 import Compressor from 'compressorjs';
+import 'react-photo-album/columns.css';
 
 import * as markup from 'common/markup.ts';
 import { RequireClientJS, RequirePermission } from '@behavior';
@@ -9,10 +10,10 @@ import MarkupButton from '@/components/form/MarkupButton.tsx';
 import Select from '@/components/form/Select.tsx';
 import { constants } from '@utils';
 import EmojiButton from '@/components/form/EmojiButton.tsx';
-import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json';
 import { EmojiSettingType, FileType, MarkupFormatType, FileInProcessType, ElementClickButtonType, MarkupStyleType } from '@types';
 import { ErrorMessage, Tabs, PhotoSlideshow, PhotoGallery, Markup, FontAwesomeIcon } from '@layout';
-import * as iso from 'common/iso.js';
+import { iso } from 'common/iso.ts';
 import { UserContext } from '@contexts';
 import Text from '@/components/form/Text.tsx';
 import Form from '@/components/form/Form.tsx';
@@ -53,7 +54,7 @@ const RichTextArea = ({
 		setCurTextValue(textareaRef.current?.value);
 	};
 
-	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) =>
+	const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) =>
 	{
 		// Check to see if Ctrl or Cmd was held
 		if (event.ctrlKey || event.metaKey)
@@ -237,10 +238,11 @@ const RichTextArea = ({
 
 	const uploadImage = async (file: any) =>
 	{
-		let params = new FormData();
-		params.append('imageExtension', file.type.replace(/(.*)\//g, ''));
+		const params = {
+			imageExtension: file.type.replace(/(.*)\//g, ''),
+		};
 
-		return await (iso as any).query(null, 'v1/users/upload_image', params)
+		return await (await iso).query(null, 'v1/users/upload_image', params)
 			.then(async ({ s3PresignedUrl, fileName }: { s3PresignedUrl: string, fileName: string }) =>
 			{
 				try
@@ -249,20 +251,16 @@ const RichTextArea = ({
 
 					return fileName;
 				}
-				catch (e)
+				catch (error: any)
 				{
-					console.error('Error attempting to upload.');
-					console.error(e);
+					console.error('Error attempting to upload.', error);
 
 					setErrors(['bad-format']);
 					setLoading(false);
 				}
 			})
-			.catch((error: any) =>
+			.catch((_: any) =>
 			{
-				console.error('Error attempting to get presigned url.');
-				console.error(error);
-
 				setErrors(['bad-format']);
 				setLoading(false);
 			});
@@ -278,7 +276,7 @@ const RichTextArea = ({
 		setNodeFiles(newFiles);
 	};
 
-	const getQuickMarkupButtons = (): React.ReactNode =>
+	const getQuickMarkupButtons = (): ReactNode =>
 	{
 		return (
 			<div className='RichTextArea_quickMarkupButtons'>
@@ -407,7 +405,7 @@ const RichTextArea = ({
 		);
 	};
 
-	const getMarkupStyle = (): React.ReactNode =>
+	const getMarkupStyle = (): ReactNode =>
 	{
 		return (
 			<div className='RichTextArea_markupStyle'>
@@ -426,15 +424,12 @@ const RichTextArea = ({
 		);
 	};
 
-	const renderPhoto = ({ photo, layoutOptions, imageProps: { alt, style, ...restImageProps } }: any) =>
+	const renderPhoto = (imageProps: any, photo: any, width: any) =>
 	{
-		const [caption, setCaption] = useState<string>(photo.description);
-
 		return (
 			<div
 				style={{
-					width: style?.width,
-					padding: `${layoutOptions.padding - 2}px`,
+					width: width,
 					paddingBottom: 0,
 				}}
 				className='RichTextArea_file'
@@ -448,36 +443,35 @@ const RichTextArea = ({
 					x
 				</button>
 				<img
-					alt={alt} style={{ ...style, width: '100%', padding: 0, paddingBottom: `5px` }} {...restImageProps}
+					style={{ width: '100%', padding: 0, paddingBottom: `5px` }} {...imageProps}
 				/>
 				<Form.Group>
 					<Text
 						label='Caption'
-						name={`fileCaptions[${photo.index}]`}
+						name='fileCaptions'
 						maxLength={constants.max.imageCaption}
 						required
-						value={caption}
-						changeHandler={(e) => setCaption(e.target.value)}
+						value={photo.description}
 					/>
 				</Form.Group>
 				<input
 					type='hidden'
-					name={`fileIds[${photo.index}]`}
+					name='fileIds'
 					value={photo.fileId}
 				/>
 				<input
 					type='hidden'
-					name={`fileNames[${photo.index}]`}
+					name='fileNames'
 					value={photo.name}
 				/>
 				<input
 					type='hidden'
-					name={`fileWidths[${photo.index}]`}
+					name='fileWidths'
 					value={photo.width}
 				/>
 				<input
 					type='hidden'
-					name={`fileHeights[${photo.index}]`}
+					name='fileHeights'
 					value={photo.height}
 				/>
 			</div>
@@ -550,7 +544,7 @@ const RichTextArea = ({
 						</RequireClientJS>
 					}
 				</div>
-				{characterCount && curTextValue != null &&
+				{characterCount &&
 					<RequireClientJS>
 						(Character count: {curTextValue.length} / {maxLength} max)
 					</RequireClientJS>
@@ -633,8 +627,7 @@ const RichTextArea = ({
 			{nodeFiles.length > 0 &&
 				<UserContext.Consumer>
 					{currentUser => currentUser &&
-						<PhotoAlbum
-							layout='columns'
+						<ColumnsPhotoAlbum
 							photos={(nodeFiles as any).map((file: FileType, index: number) =>
 							{
 								return {
@@ -652,7 +645,11 @@ const RichTextArea = ({
 							spacing={5}
 							padding={0}
 							columns={4}
-							renderPhoto={renderPhoto}
+							render={{
+								image: (props: any, { photo, width }: any) =>
+									renderPhoto(props, photo, width)
+								,
+							}}
 						/>
 					}
 				</UserContext.Consumer>

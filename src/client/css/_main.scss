@@ -1,43 +1,41 @@
-@use "sass:math";
+@use "fonts.scss";
+@use "normalize.scss";
+@use "colors.scss";
+@use "mixins.scss";
 
-@import "fonts.scss";
-@import "normalize.scss";
-@import "colors.scss";
-@import "mixins.scss";
-
-$breakpoint-fullsize: 81.25rem;
-
-@import "forms.scss";
-@import "layout.scss";
-@import "nodes.scss";
-@import "profile.scss";
-@import "towns.scss";
-@import "characters.scss";
-@import "tunes.scss";
-@import "patterns.scss";
-@import "friend-codes.scss";
-@import "admin.scss";
-@import "trading_post.scss";
-@import "polls.scss";
-@import "catalog.scss";
-@import "map_maker.scss";
-@import "ratings.scss";
-@import "features.scss";
-@import "buddies.scss";
-@import "guides.scss";
-@import "calendar.scss";
-@import "settings.scss";
-@import "legal.scss";
-@import "home.scss";
-@import "user.scss";
-@import "automation.scss";
-@import "scout-hub.scss";
-@import "bell_shop.scss";
-@import "shops.scss";
+@use "forms.scss";
+@use "layout.scss";
+@use "nodes.scss";
+@use "profile.scss";
+@use "towns.scss";
+@use "characters.scss";
+@use "tunes.scss";
+@use "patterns.scss";
+@use "friend-codes.scss";
+@use "admin.scss";
+@use "trading_post.scss";
+@use "polls.scss";
+@use "catalog.scss";
+@use "map_maker.scss";
+@use "ratings.scss";
+@use "features.scss";
+@use "buddies.scss";
+@use "guides.scss";
+@use "calendar.scss";
+@use "settings.scss";
+@use "legal.scss";
+@use "home.scss";
+@use "user.scss";
+@use "automation.scss";
+@use "scout-hub.scss";
+@use "bell_shop.scss";
+@use "shops.scss";
+@use "staff.scss";
+@use "test_site.scss";
 
 /* Miscellaneous and/or temporary styles go below here */
 
-.App_banned, .RouteError {
+.App_banned {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -46,33 +44,58 @@ $breakpoint-fullsize: 81.25rem;
 	height: 100%;
 }
 
-.StaffPage {
-	.StaffPage_role {
-		font-weight: bold;
-	}
-}
-
-.StaffRolesPage {
-	.StaffRolesPage_section {
-		.StaffRolesPage_apply, .StaffRolesPage_responsibilities, .StaffRolesPage_recruitment {
-			li {
-				list-style-type: disc;
-				list-style-position: inside;
-
-				padding-top: px2rem(5px);
-				padding-bottom: px2rem(5px);
-			}
-		}
-
-		.StaffRolesPage_responsibilityTitle, .StaffRolesPage_recruitmentTitle {
-			font-weight: bold;
-		}
-	}
-}
-
 // hide informational on smaller screens
-@media only screen and (max-width: px2rem(1214px)) {
+@media only screen and (max-width: mixins.px2rem(1214px)) {
 	.informational-icon {
 		display: none;
+	}
+}
+
+.ErrorBoundary {
+	/* Body styles */
+	text-align: center;
+	padding: 20px;
+	font: 20px Helvetica, sans-serif;
+	color: #333;
+	background-image: url("https://cdn-s3.animalcrossingcommunity.com/images/layout/character_pattern_background.png");
+
+	/* Media query for body padding */
+	@media (min-width: 768px) {
+	  padding-top: 150px;
+	}
+
+	h1 {
+	  font-size: 50px;
+	}
+
+	article {
+	  display: block;
+	  text-align: left;
+	  max-width: 650px;
+	  margin: 0 auto;
+	  border: 5px solid sandybrown;
+	  border-radius: 10px;
+	  padding: 1em;
+	  background-color: papayawhip;
+	}
+
+	a {
+	  color: #dc8100;
+	  text-decoration: none;
+	}
+
+	a:hover {
+	  color: #333;
+	  text-decoration: none;
+	}
+
+	p:nth-child(2) {
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	}
+
+	.wilbur {
+		width: 225px;
 	}
 }

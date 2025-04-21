@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
-import { useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
 
 import { RequirePermission, RequireClientJS } from '@behavior';
 import { Header, Section } from '@layout';
 import { Form, Text, TextArea, Select, Check } from '@form';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { ErrorMessage } from '@layout';
 import { APIThisType, NodeBoardType, ElementTextAreaType } from '@types';
 
-const AdminBoardPage = () =>
+export const action = routerUtils.formAction;
+
+const AdminBoardPage = ({ loaderData }: { loaderData: AdminBoardPageProps }) =>
 {
-	const { boards } = useLoaderData() as AdminBoardPageProps;
+	const { boards } = loaderData;
 	const [, setBoard] = useState<NodeBoardType | null>(null);
 	const [parentBoardId, setParentBoardId] = useState<NodeBoardType['parentId'] | null>(null);
 	const [title, setTitle] = useState<NodeBoardType['title']>('');
@@ -131,7 +132,7 @@ const AdminBoardPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AdminBoardPageProps>
+async function loadData(this: APIThisType): Promise<AdminBoardPageProps>
 {
 	const [boards] = await Promise.all([
 		this.query('v1/node/boards'),
@@ -139,6 +140,8 @@ export async function loadData(this: APIThisType): Promise<AdminBoardPageProps>
 
 	return { boards };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdminBoardPageProps = {
 	boards: NodeBoardType[]

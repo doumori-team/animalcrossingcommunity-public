@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditFriendCode from '@/components/friend_codes/EditFriendCode.tsx';
 import { Section } from '@layout';
 import { APIThisType, CharacterType, GamesType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddFriendCodePage = () =>
+export const action = routerUtils.formAction;
+
+const AddFriendCodePage = ({ loaderData }: { loaderData: AddFriendCodePageProps }) =>
 {
-	const { games, characters } = useLoaderData() as AddFriendCodePageProps;
+	const { games, characters } = loaderData;
 
 	return (
 		<div className='AddFriendCodePage'>
@@ -24,7 +24,7 @@ const AddFriendCodePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AddFriendCodePageProps>
+async function loadData(this: APIThisType): Promise<AddFriendCodePageProps>
 {
 	const [games, characters] = await Promise.all([
 		this.query('v1/games'),
@@ -33,6 +33,8 @@ export async function loadData(this: APIThisType): Promise<AddFriendCodePageProp
 
 	return { games, characters };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddFriendCodePageProps = {
 	games: GamesType[]

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { utils, constants } from '@utils';
 import { TownType } from '@types';
 

@@ -1,3 +1,7 @@
+@use "layout";
+@use "mixins";
+@use "forms";
+
 .HomePage_title {
 	font-size: 1.75em;
 	text-align: center;
@@ -15,20 +19,6 @@
 
 	// Image sizing based on screen width
 	height: auto;
-	@include responsive(1050px) {
-		height: 260px;
-	}
-
-	&_foreground {
-		width: 100%;
-		height: 100%;
-		display: block;
-
-		@include responsive(1050px) {
-			width: auto;
-			display: unset;
-		}
-	}
 
 	background-size: auto 100%;
 
@@ -38,29 +28,44 @@
 	// Background image, with Retina version
 	background-image: var(--banner-background);
 
-	@media only screen and (min-device-pixel-ratio: 2) {
-		background-image: var(--banner-background-2x);
-	}
-
 	// This is the same as the outline on `@include contentbox`, but only on the bottom
 	border-bottom: 1px solid rgba(0,0,0,0.7);
 	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset;
+
+	@include mixins.responsive(1050px) {
+		height: 260px;
+	}
+
+	&_foreground {
+		width: 100%;
+		height: 100%;
+		display: block;
+
+		@include mixins.responsive(1050px) {
+			width: auto;
+			display: unset;
+		}
+	}
+
+	@media only screen and (min-device-pixel-ratio: 2) {
+		background-image: var(--banner-background-2x);
+	}
 }
 
 .HomePage_events {
 	.HomePage_eventGameSection {
 		.HomePage_gameName {
 			text-align: center;
-			font-size: px2rem(25px);
+			font-size: mixins.px2rem(25px);
 			font-weight: bold;
 		}
 
 		.HomePage_categorySections {
 			.HomePage_categorySection {
 				.HomePage_categoryName {
-					font-size: px2rem(20px);
+					font-size: mixins.px2rem(20px);
 					text-decoration: underline;
-					padding-bottom: px2rem(5px);
+					padding-bottom: mixins.px2rem(5px);
 				}
 
 				.HomePage_eventSections {
@@ -70,14 +75,14 @@
 					}
 
 					&.grid {
-						@include responsive(1rem) {
-							@include grid($col-width: 5rem);
+						@include mixins.responsive(1rem) {
+							@include mixins.grid($col-width: 5rem);
 						}
 					}
 
 					.HomePage_eventSection {
-						padding-bottom: px2rem(5px);
-						padding-top: px2rem(5px);
+						padding-bottom: mixins.px2rem(5px);
+						padding-top: mixins.px2rem(5px);
 
 						.HomePage_eventName {
 							text-transform: capitalize;
@@ -89,13 +94,28 @@
 						}
 					}
 				}
+
+				.HomePage_eventSection_consolidatedEventContainer {
+					display: flex;
+					gap: mixins.px2rem(8);
+				}
+
+				.HomePage_eventSections_consolidatedCreaturesHeader {
+					text-align: center;
+					font-weight: bold;
+				}
 			}
+		}
+
+		&.HomePage_eventGameSection_consolidated .HomePage_categoryName {
+			text-align: center;
+			margin-top: mixins.px2rem(8px);
 		}
 	}
 }
 
 .HomePage {
-	$sidebar-flex: px2rem(733px);
+	$sidebar-flex: mixins.px2rem(733px);
 
 	.HomePage_main {
 		> .ContentBox {
@@ -108,13 +128,13 @@
 		}
 
 		.SideBar {
-			flex: 0 1 px2rem(340px);
+			flex: 0 1 mixins.px2rem(340px);
 		}
 	}
 
 	.SideBar {
-		@include responsive($navbar-breakpoint) {
-			margin-left: px2rem(10px);
+		@include mixins.responsive(layout.$navbar-breakpoint) {
+			margin-left: mixins.px2rem(10px);
 		}
 	}
 
@@ -129,7 +149,7 @@
 			width: 100%;
 			flex: 1 1 50%;
 
-			@include responsive(px2rem(1300px)) {
+			@include mixins.responsive(mixins.px2rem(1300px)) {
 				margin-bottom: 0;
 			}
 		}
@@ -148,20 +168,20 @@
 		}
 
 		.SideBar {
-			@include responsive($sidebar-flex) {
-				max-width: px2rem(350px);
-			}
-
 			flex: 0 1 $sidebar-flex;
 
+			@include mixins.responsive($sidebar-flex) {
+				max-width: mixins.px2rem(350px);
+			}
+
 			> .ContentBox {
-				@include responsive(px2rem(1300px)) {
-					margin-bottom: px2rem(12px);
+				@include mixins.responsive(mixins.px2rem(1300px)) {
+					margin-bottom: mixins.px2rem(12px);
 				}
 			}
 
 			> .ContentBox:last-child {
-				@include responsive(px2rem(1300px)) {
+				@include mixins.responsive(mixins.px2rem(1300px)) {
 					margin-bottom: 0;
 				}
 			}
@@ -181,30 +201,30 @@
 	display: flex;
 	justify-content: center;
 
-	@media only screen and (max-width: px2rem(720px)) {
+	@media only screen and (max-width: mixins.px2rem(720px)) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
 		grid-gap: .5rem;
 	}
 
 	a {
-		margin-left: px2rem(5px);
-		margin-right: px2rem(5px);
+		margin-left: mixins.px2rem(5px);
+		margin-right: mixins.px2rem(5px);
 
 		.HomePage_button {
 			border-radius: .3333em;
 			background-color: var(--seasonal-color-buttons);
-			padding: px2rem(10px);
+			padding: mixins.px2rem(10px);
 			border: 0.125rem solid var(--seasonal-color-dark);
-			width: px2rem(220px);
+			width: mixins.px2rem(220px);
 			display: flex;
 			justify-content: center;
 
-			@media only screen and (max-width: px2rem(720px)) {
+			@media only screen and (max-width: mixins.px2rem(720px)) {
 				height: 100%;
 			}
 
-			@media only screen and (max-width: px2rem(975px)) {
+			@media only screen and (max-width: mixins.px2rem(975px)) {
 				width: 100%;
 			}
 
@@ -219,11 +239,11 @@
 	position: absolute;
 	color: white;
 
-	top: px2rem(130px);
+	top: mixins.px2rem(130px);
 	transform: translate(-212%, 0%);
-	font-size: px2rem(25px);
+	font-size: mixins.px2rem(25px);
 
-	@media only screen and (max-width: px2rem(1050px)) {
+	@media only screen and (max-width: mixins.px2rem(1050px)) {
 		font-size: 3.7vw;
 		transform: translate(-29%, -540%);
 		top: unset;

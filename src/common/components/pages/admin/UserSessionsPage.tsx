@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text } from '@form';
 import { Pagination, Header, Search, Section, Grid, InnerSection } from '@layout';
-import { constants, dateUtils, utils } from '@utils';
+import { constants, dateUtils, utils, routerUtils } from '@utils';
 import { APIThisType, SessionsType } from '@types';
 
-const UserSessionsPage = () =>
+export const action = routerUtils.formAction;
+
+const UserSessionsPage = ({ loaderData }: { loaderData: UserSessionsPageProps }) =>
 {
 	const { username, startDate, endDate, url, sessions, page, pageSize,
-		totalCount } = useLoaderData() as UserSessionsPageProps;
+		totalCount } = loaderData;
 
 	const link = `&username=${encodeURIComponent(username)}
 		&startDate=${encodeURIComponent(startDate)}
@@ -100,7 +101,7 @@ const UserSessionsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, username, startDate, endDate, url }: { page?: string, username?: string, startDate?: string, endDate?: string, url?: string }): Promise<UserSessionsPageProps>
+async function loadData(this: APIThisType, _: any, { page, username, startDate, endDate, url }: { page?: string, username?: string, startDate?: string, endDate?: string, url?: string }): Promise<UserSessionsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/session/sessions', {
@@ -123,6 +124,8 @@ export async function loadData(this: APIThisType, _: any, { page, username, star
 		url: returnValue.url,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserSessionsPageProps = {
 	sessions: SessionsType['results']

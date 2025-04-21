@@ -6,6 +6,9 @@ type NotificationType = {
 	formattedCreated: string
 	formattedNotified: string
 	anchor?: string
+	type: string
+	icon: string
+	count?: number
 };
 
 export type { NotificationType };

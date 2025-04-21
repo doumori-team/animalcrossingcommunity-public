@@ -1,15 +1,15 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditShop from '@/components/shop/EditShop.tsx';
 import { Header, Section } from '@layout';
 import { Alert } from '@form';
 import { APIThisType, ACGameType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddShopPage = () =>
+export const action = routerUtils.formAction;
+
+const AddShopPage = ({ loaderData }: { loaderData: AddShopPageProps }) =>
 {
-	const { acgames } = useLoaderData() as AddShopPageProps;
+	const { acgames } = loaderData;
 
 	return (
 		<div className='AddShopPage'>
@@ -33,7 +33,7 @@ const AddShopPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AddShopPageProps>
+async function loadData(this: APIThisType): Promise<AddShopPageProps>
 {
 	const [acgames] = await Promise.all([
 		this.query('v1/acgames'),
@@ -41,6 +41,8 @@ export async function loadData(this: APIThisType): Promise<AddShopPageProps>
 
 	return { acgames };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddShopPageProps = {
 	acgames: ACGameType[]

@@ -65,8 +65,9 @@ TRUNCATE TABLE user_donation_identification;
 TRUNCATE TABLE user_avatar;
 TRUNCATE TABLE site_statistic_data;
 TRUNCATE TABLE users_site_header;
+TRUNCATE TABLE audit_log;
 DELETE FROM users WHERE user_group_id NOT IN (11, 10, 9, 8, 6, 5, 4, 3, 2) AND id != 63167; -- All non active staff, ACC user for Adoption BT
-UPDATE users SET bio_location = null, signature = null, last_active_time = null, show_birthday = false, show_age = false, away_start_date = null, away_end_date = null, name = null, show_email = false, bio = null, bio_format = null, signature_format = null, user_title = null;
+UPDATE users SET bio_location = null, signature = null, last_active_time = null, show_birthday = false, show_age = false, away_start_date = null, away_end_date = null, name = null, show_email = false, bio = null, user_title = null, flag_option = 'never', markup_style = 'markdown', email_notifications = false, show_images = true, show_staff = true, southern_hemisphere = false, stay_forever = false;
 
 INSERT INTO node SELECT * FROM tmp_node;
 INSERT INTO node_revision SELECT * FROM tmp_node_revision;

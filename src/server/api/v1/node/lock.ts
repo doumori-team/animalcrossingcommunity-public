@@ -26,7 +26,7 @@ async function lock(this: APIThisType, { nodeIds }: lockProps): Promise<void>
 			throw new UserError('no-such-node');
 		}
 
-		if (node.locked != null)
+		if (node.locked !== null)
 		{
 			throw new UserError('bad-format');
 		}

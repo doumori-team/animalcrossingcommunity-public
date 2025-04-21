@@ -17,10 +17,6 @@ async function users(this: APIThisType, { query }: usersProps): Promise<Whitelis
 		throw new UserError('permission');
 	}
 
-	// Check paramters
-	await this.query('v1/user_lite', { id: this.userId });
-
-	// Perform queries
 	if (query === null)
 	{
 		return await db.query(`

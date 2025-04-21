@@ -1,23 +1,26 @@
-import React from 'react';
-import { Link, useAsyncValue, useParams } from 'react-router-dom';
+import { use } from 'react';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import TownSummary from '@/components/towns/TownSummary.tsx';
 import { UserContext } from '@contexts';
 import { Grid, Section } from '@layout';
 import { APIThisType, TownType } from '@types';
+import { routerUtils } from '@utils';
 
-const UserTownsPage = () =>
+export const action = routerUtils.formAction;
+
+const UserTownsPage = ({ loaderData, params }: { loaderData: Promise<UserTownsPageProps>, params: Params }) =>
 {
-	const { towns } = getData(useAsyncValue()) as UserTownsPageProps;
-	const { userId } = useParams();
+	const { towns } = getData(use(loaderData));
+	const { id } = params;
 
 	return (
 		<RequirePermission permission='view-towns'>
 			<div className='UserTownsPage'>
 				<Grid options={towns} message={
 					<UserContext.Consumer>
-						{currentUser => currentUser && currentUser.id === Number(userId) ?
+						{currentUser => currentUser && currentUser.id === Number(id) ?
 							<Section>
 								{'You have no towns set up. '}
 								<RequirePermission permission='modify-towns'><Link to={`/profile/${encodeURIComponent(currentUser.id)}/towns/add`}>Click here</Link>
@@ -42,7 +45,7 @@ const UserTownsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
 {
 	return Promise.all([
 		this.query('v1/users/towns', { id }),
@@ -56,8 +59,10 @@ function getData(data: any): UserTownsPageProps
 	return { towns };
 }
 
+export const loader = routerUtils.deferLoader(loadData);
+
 type UserTownsPageProps = {
 	towns: TownType[]
 };
 
-export default UserTownsPage;
+export default routerUtils.LoadingFunction(UserTownsPage);

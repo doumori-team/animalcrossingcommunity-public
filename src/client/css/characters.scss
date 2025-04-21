@@ -1,3 +1,6 @@
+@use "mixins";
+@use "forms";
+
 .Character {
 	@extend .GenericInnerSection;
 	background: white;
@@ -8,19 +11,19 @@
 		align-items: center;
 
 		.Character_roofColorThumbnail {
-			width: px2rem(20px);
-			height: px2rem(20px);
+			width: mixins.px2rem(20px);
+			height: mixins.px2rem(20px);
 			border: 1px solid black;
 		}
 	}
 
 	.Character_doorPatternContainer {
-		margin-top: px2rem(24px);
+		margin-top: mixins.px2rem(24px);
 	}
 }
 
 .Character_face, .EditCharacter_name {
-	font-size: px2rem(24px);
+	font-size: mixins.px2rem(24px);
 	text-align: center;
 
 	.Character_fullbody {
@@ -31,6 +34,7 @@
 .Character_name {
 	display: flex;
 	justify-content: center;
+	align-items: center;
 	word-break: break-word;
 
 	img {
@@ -41,11 +45,11 @@
 .EditCharacter_townName {
 	display: block;
 	font-weight: normal;
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 }
 
 .Character_links {
-	@include links(90px);
+	@include mixins.links(90px);
 }
 
 .AddCharacterPage {
@@ -53,27 +57,27 @@
 		p {
 			transform: inherit !important;
 			@extend .HeaderText;
-			width: px2rem(165px) !important;
+			width: mixins.px2rem(165px) !important;
 		}
 	}
 }
 
 .AddCharacterPage {
 	.Grid {
-		@include responsive(1rem) {
-			@include grid($col-width: 15rem);
+		@include mixins.responsive(1rem) {
+			@include mixins.grid($col-width: 15rem);
 		}
 	}
 }
 
 .EditCharacter_houseSizes {
-	padding: px2rem(5px) px2rem(0px) px2rem(5px) px2rem(0px);
+	padding: mixins.px2rem(5px) mixins.px2rem(0px) mixins.px2rem(5px) mixins.px2rem(0px);
 }
 
 .EditCharacter {
 	.FormGroup {
-		margin-top: px2rem(20px);
-		margin-bottom: px2rem(20px);
+		margin-top: mixins.px2rem(20px);
+		margin-bottom: mixins.px2rem(20px);
 	}
 
 	label[for^="faceId"] img {

@@ -1,6 +1,7 @@
 import * as db from '@db';
 import { dateUtils } from '@utils';
 import { APIThisType, NotificationType, LatestNotificationType } from '@types';
+import { UserError } from '@errors';
 
 /*
  * Get count of current notifications, latest notification
@@ -9,25 +10,9 @@ export default async function latest(this: APIThisType): Promise<LatestNotificat
 {
 	if (!this.userId)
 	{
-		return {
-			notification: null,
-			totalCount: 0,
-		};
+		throw new UserError('login-needed');
 	}
 
-	try
-	{
-		await this.query('v1/user_lite', { id: this.userId });
-	}
-	catch
-	{
-		return {
-			notification: null,
-			totalCount: 0,
-		};
-	}
-
-	// Perform queries
 	let notification: NotificationType | null = null, totalCount = 0, permNotification = {};
 
 	// v1/notification does perm check, so if it comes back null, try again

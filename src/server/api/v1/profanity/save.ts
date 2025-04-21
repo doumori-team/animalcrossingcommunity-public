@@ -4,7 +4,7 @@ import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, { id, word, activate }: saveProps): Promise<SuccessType>
+async function save(this: APIThisType, { id, word, activate }: saveProps): Promise<SuccessType | void>
 {
 	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'profanity-admin' });
 
@@ -111,6 +111,10 @@ async function save(this: APIThisType, { id, word, activate }: saveProps): Promi
 				WHERE id = $1::int
 			`, id, word, nodeId, activate);
 		}
+
+		return {
+			_success: 'The filtered word has been updated.',
+		};
 	}
 	else
 	{
@@ -125,11 +129,6 @@ async function save(this: APIThisType, { id, word, activate }: saveProps): Promi
 			($1, false, $2)
 		`, word, nodeId);
 	}
-
-	return {
-		_success: 'The filtered word has been updated.',
-		_callbackFirst: true,
-	};
 }
 
 /*

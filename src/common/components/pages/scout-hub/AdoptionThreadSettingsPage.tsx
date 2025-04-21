@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Text, Select, Check } from '@form';
 import { Header, Section, Grid } from '@layout';
 import { APIThisType, AdoptionBTSettingsType } from '@types';
 
-const AdoptionThreadSettingsPage = () =>
+export const action = routerUtils.formAction;
+
+const AdoptionThreadSettingsPage = ({ loaderData }: { loaderData: AdoptionThreadSettingsPageProps }) =>
 {
-	const { settings } = useLoaderData() as AdoptionThreadSettingsPageProps;
+	const { settings } = loaderData;
 
 	return (
 		<div className='AdoptionThreadSettingsPage'>
@@ -75,7 +76,7 @@ const AdoptionThreadSettingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AdoptionThreadSettingsPageProps>
+async function loadData(this: APIThisType): Promise<AdoptionThreadSettingsPageProps>
 {
 	const [settings] = await Promise.all([
 		this.query('v1/scout_hub/adoption/settings'),
@@ -83,6 +84,8 @@ export async function loadData(this: APIThisType): Promise<AdoptionThreadSetting
 
 	return { settings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdoptionThreadSettingsPageProps = {
 	settings: AdoptionBTSettingsType

@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import { Header, Section, Grid, Markup } from '@layout';
 import Avatar from '@/components/nodes/Avatar.tsx';
 import { APIThisType, UserBellShopItemType } from '@types';
+import { routerUtils } from '@utils';
 
-const BellShopRedeemedPage = () =>
+export const action = routerUtils.formAction;
+
+const BellShopRedeemedPage = ({ loaderData }: { loaderData: BellShopRedeemedPageProps }) =>
 {
-	const { items } = useLoaderData() as BellShopRedeemedPageProps;
+	const { items } = loaderData;
 
 	return (
 		<div className='BellShopRedeemedPage'>
@@ -60,7 +60,7 @@ const BellShopRedeemedPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<BellShopRedeemedPageProps>
+async function loadData(this: APIThisType): Promise<BellShopRedeemedPageProps>
 {
 	const [items] = await Promise.all([
 		this.query('v1/users/bell_shop/items'),
@@ -68,6 +68,8 @@ export async function loadData(this: APIThisType): Promise<BellShopRedeemedPageP
 
 	return { items };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type BellShopRedeemedPageProps = {
 	items: UserBellShopItemType[]

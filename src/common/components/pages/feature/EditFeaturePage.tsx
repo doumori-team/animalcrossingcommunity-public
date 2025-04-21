@@ -1,14 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import EditFeature from '@/components/features/EditFeature.tsx';
 import { Header, Section } from '@layout';
 import { APIThisType, FeatureType, FeatureCategoryType, FeatureStatusType, EmojiSettingType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditFeaturePage = () =>
+export const action = routerUtils.formAction;
+
+const EditFeaturePage = ({ loaderData }: { loaderData: EditFeaturePageProps }) =>
 {
-	const { feature, categories, statuses, userEmojiSettings } = useLoaderData() as EditFeaturePageProps;
+	const { feature, categories, statuses, userEmojiSettings } = loaderData;
 
 	return (
 		<RequirePermission permission='claim-features'>
@@ -36,7 +38,7 @@ const EditFeaturePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditFeaturePageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditFeaturePageProps>
 {
 	const [feature, categories, statuses] = await Promise.all([
 		this.query('v1/feature', { id: id }),
@@ -50,6 +52,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { feature, categories, statuses, userEmojiSettings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditFeaturePageProps = {
 	feature: FeatureType

@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import EditViolation from '@/components/admin/EditViolation.tsx';
 import { Header } from '@layout';
 import { APIThisType, SeverityType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddAdminRuleViolationPage = () =>
+export const action = routerUtils.formAction;
+
+const AddAdminRuleViolationPage = ({ loaderData }: { loaderData: AddAdminRuleViolationPageProps }) =>
 {
-	const { ruleId, severities } = useLoaderData() as AddAdminRuleViolationPageProps;
+	const { ruleId, severities } = loaderData;
 
 	return (
 		<div className='AddAdminRuleViolationPage'>
@@ -24,7 +24,7 @@ const AddAdminRuleViolationPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { ruleId }: { ruleId: string }): Promise<AddAdminRuleViolationPageProps>
+async function loadData(this: APIThisType, { ruleId }: { ruleId: string }): Promise<AddAdminRuleViolationPageProps>
 {
 	const [severities] = await Promise.all([
 		this.query('v1/admin/rule/severities'),
@@ -32,6 +32,8 @@ export async function loadData(this: APIThisType, { ruleId }: { ruleId: string }
 
 	return { ruleId, severities };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddAdminRuleViolationPageProps = {
 	ruleId: string

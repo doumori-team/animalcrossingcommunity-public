@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Select, RichTextArea, Switch, Checkbox } from '@form';
 import { Header, Section, Markup } from '@layout';
-import { constants, dateUtils } from '@utils';
+import { constants, dateUtils, routerUtils } from '@utils';
 import { APIThisType, SupportTicketType, EmojiSettingType, AccountUserType } from '@types';
 
-const SupportTicketPage = () =>
+export const action = routerUtils.formAction;
+
+const SupportTicketPage = ({ loaderData }: { loaderData: SupportTicketPageProps }) =>
 {
-	const { supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory } = useLoaderData() as SupportTicketPageProps;
+	const { supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory } = loaderData;
 
 	return (
 		<div className='SupportTicketPage'>
@@ -172,7 +173,7 @@ const SupportTicketPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportTicketPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportTicketPageProps>
 {
 	const [supportTicket, currentUserEmojiSettings] = await Promise.all([
 		this.query('v1/support_ticket', { id: id }),
@@ -189,6 +190,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { supportTicket, userEmojiSettings, currentUserEmojiSettings, usernameHistory };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type SupportTicketPageProps = {
 	supportTicket: SupportTicketType

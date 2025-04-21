@@ -48,7 +48,6 @@ async function save(this: APIThisType, { headerIds }: saveProps): Promise<Succes
 
 	return {
 		_success: 'Your site header settings have been updated.',
-		_callbackFirst: true,
 	};
 }
 

@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import { Form, Select, Check, Text } from '@form';
 import { Pagination, Header, Section, Search, Grid } from '@layout';
-import { constants, utils } from '@utils';
+import { constants, utils, routerUtils } from '@utils';
 import { APIThisType, FeaturesType, FeatureCategoryType, FeatureStatusType } from '@types';
 
-const FeaturesDashboardPage = () =>
+export const action = routerUtils.formAction;
+
+const FeaturesDashboardPage = ({ loaderData }: { loaderData: FeaturesDashboardPageProps }) =>
 {
 	const { features, categories, statuses, page, pageSize, totalCount, categoryId,
-		isBug, statusId, following, staffOnly, readOnly, assignedUser, createdUser } = useLoaderData() as FeaturesDashboardPageProps;
+		isBug, statusId, following, staffOnly, readOnly, assignedUser, createdUser } = loaderData;
 
 	const link = `&categoryId=${encodeURIComponent(categoryId)}
 		&isBug=${encodeURIComponent(isBug)}
@@ -161,7 +162,7 @@ const FeaturesDashboardPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, categoryId, isBug, statusId, following, staffOnly, readOnly, createdUser, assignedUser }: { page?: string, categoryId?: string, isBug?: string, statusId?: string, following?: string, staffOnly?: string, readOnly?: string, createdUser?: string, assignedUser?: string }): Promise<FeaturesDashboardPageProps>
+async function loadData(this: APIThisType, _: any, { page, categoryId, isBug, statusId, following, staffOnly, readOnly, createdUser, assignedUser }: { page?: string, categoryId?: string, isBug?: string, statusId?: string, following?: string, staffOnly?: string, readOnly?: string, createdUser?: string, assignedUser?: string }): Promise<FeaturesDashboardPageProps>
 {
 	const [returnValue, categories, statuses] = await Promise.all([
 		this.query('v1/features', {
@@ -196,6 +197,8 @@ export async function loadData(this: APIThisType, _: any, { page, categoryId, is
 		statuses: statuses,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type FeaturesDashboardPageProps = {
 	features: FeaturesType['results']

@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import { Header } from '@layout';
 import EditGame from '@/components/admin/EditGame.tsx';
 import { APIThisType, GameConsoleType, GameType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddAdminGamePage = () =>
+export const action = routerUtils.formAction;
+
+const AddAdminGamePage = ({ loaderData }: { loaderData: AddAdminGamePageProps }) =>
 {
-	const { gameConsole, gameConsoles, games } = useLoaderData() as AddAdminGamePageProps;
+	const { gameConsole, gameConsoles, games } = loaderData;
 
 	return (
 		<div className='AddAdminGamePage'>
@@ -28,7 +28,7 @@ const AddAdminGamePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<AddAdminGamePageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<AddAdminGamePageProps>
 {
 	const [gameConsole, gameConsoles, games] = await Promise.all([
 		this.query('v1/admin/game_console/game_console', { id }),
@@ -38,6 +38,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { gameConsole, gameConsoles, games };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddAdminGamePageProps = {
 	gameConsole: GameConsoleType

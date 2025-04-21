@@ -1,5 +1,5 @@
-import React from 'react';
-import { Form as ReactRouterForm } from 'react-router-dom';
+import { ReactNode } from 'react';
+import { Form as ReactRouterForm } from 'react-router';
 
 import { Button } from '@form';
 import { RequireUser } from '@behavior';
@@ -30,7 +30,7 @@ const Search = ({
 };
 
 type SearchProps = {
-	children: React.ReactNode | string
+	children: ReactNode | string
 	callback: string
 };
 

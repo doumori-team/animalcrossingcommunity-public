@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import { Form, Check, Select, Switch, Alert, RichTextArea, Text } from '@form';
 import { Pagination, Header, Section, Search, Grid } from '@layout';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { UserContext } from '@contexts';
 import {
 	APIThisType,
@@ -17,10 +17,12 @@ import {
 	ThreadType,
 } from '@types';
 
-const ShopThreadsPage = () =>
+export const action = routerUtils.formAction;
+
+const ShopThreadsPage = ({ loaderData }: { loaderData: ShopThreadsPageProps }) =>
 {
 	const { totalCount, threads, page, pageSize, shopId, category, shops, type,
-		status, waitlisted, locked, userEmojiSettings, markupStyle } = useLoaderData() as ShopThreadsPageProps;
+		status, waitlisted, locked, userEmojiSettings, markupStyle } = loaderData;
 
 	const [selectedCategory, setSelectedCategory] = useState<ThreadsType['category']>(category);
 	const [selectedShopId, setSelectedShopId] = useState<ThreadsType['shopId']>(shopId);
@@ -331,7 +333,7 @@ const ShopThreadsPage = () =>
 							</div>
 
 							<Text
-								hideLabel
+								hideLabels
 								className='NodeWritingInterface_title'
 								name='title'
 								label='Title'
@@ -374,7 +376,7 @@ const ShopThreadsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, shopId, category, type, status, waitlisted, locked }: { page?: string, shopId?: string, category?: string, type?: string, status?: string, waitlisted?: string, locked?: string }): Promise<ShopThreadsPageProps>
+async function loadData(this: APIThisType, _: any, { page, shopId, category, type, status, waitlisted, locked }: { page?: string, shopId?: string, category?: string, type?: string, status?: string, waitlisted?: string, locked?: string }): Promise<ShopThreadsPageProps>
 {
 	const [returnValue, userEmojiSettings] = await Promise.all([
 		this.query('v1/shop/threads', {
@@ -405,6 +407,8 @@ export async function loadData(this: APIThisType, _: any, { page, shopId, catego
 		markupStyle: returnValue.markupStyle,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ShopThreadsPageProps = {
 	threads: ThreadsType['results']

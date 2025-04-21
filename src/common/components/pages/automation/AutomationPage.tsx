@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
-import { useLoaderData, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
-import { RequireUser, RequireTestSite } from '@behavior';
+import { RequireUser, RequireTestSite, RequireClientJS } from '@behavior';
 import { Form, Check, Text, Select } from '@form';
 import { Header, Section } from '@layout';
-import { constants } from '@utils';
-import { APIThisType, NodeBoardType, ACGameType, ViewEmailType } from '@types';
+import { constants, routerUtils } from '@utils';
+import { APIThisType, NodeBoardType, ACGameType, ViewEmailType, TreasureType } from '@types';
+import TreasureOffer from '@/components/layout/TreasureOffer.tsx';
 
-const AutomationPage = () =>
+export const action = routerUtils.formAction;
+
+const AutomationPage = ({ loaderData }: { loaderData: AutomationPageProps }) =>
 {
-	const { boards, acgames } = useLoaderData() as AutomationPageProps;
+	const { boards, acgames } = loaderData;
 
 	const [latestEmail, setLatestEmail] = useState<ViewEmailType | null>(null);
+	const [treasure, setTreasure] = useState<TreasureType | null>(null);
 
 	return (
 		<RequireTestSite>
@@ -45,7 +49,7 @@ const AutomationPage = () =>
 										max={10000000}
 										label='Amount'
 										placeholder='Amount'
-										hideLabel
+										hideLabels
 									/>
 								</Form.Group>
 							</Form>
@@ -111,6 +115,23 @@ const AutomationPage = () =>
 									/>
 								</Form.Group>
 							</Form>
+
+							<RequireClientJS>
+								<hr />
+
+								<div className='AutomationPage_sectionOption'>
+									<Form
+										action='v1/automation/other/treasure'
+										showButton
+										buttonText='Create Treasure'
+										updateFunction={(data: TreasureType) => setTreasure(data)}
+									/>
+
+									{treasure &&
+										<TreasureOffer size='728x90' treasure={treasure} />
+									}
+								</div>
+							</RequireClientJS>
 						</div>
 					</Section>
 
@@ -130,7 +151,7 @@ const AutomationPage = () =>
 										name='threads'
 										max={200}
 										label='Threads'
-										hideLabel
+										hideLabels
 										placeholder='Threads'
 									/>
 									<Text
@@ -138,13 +159,13 @@ const AutomationPage = () =>
 										name='posts'
 										max={50}
 										label='Posts'
-										hideLabel
+										hideLabels
 										placeholder='Posts'
 									/>
 									<Select
 										name='boardId'
 										label='Board ID'
-										hideLabel
+										hideLabels
 										options={boards}
 										optionsMapping={{ value: 'id', label: 'title' }}
 									/>
@@ -288,7 +309,7 @@ const AutomationPage = () =>
 										max={10000000}
 										label='Amount'
 										placeholder='Amount'
-										hideLabel
+										hideLabels
 									/>
 								</Form.Group>
 							</Form>
@@ -296,31 +317,33 @@ const AutomationPage = () =>
 
 						<hr/>
 
-						<div className='AutomationPage_sectionOption'>
-							<p>
-								To see an email, simply go to devtest@animalcrossingcommunity.com (see <Link to='https://www.animalcrossingcommunity.com/forums/6053324/1'>ACC Developer Thread</Link> for access) and setup the forwarding (Settings &gt; Forwarding and POP/IMAP) to be the 'devmail' email (if on review app) or the 'stagemail' email (if on staging). If on review app, have Administrator update the account's website SendGrid app &gt; Settings &gt; Inbound Parse to be your review app url. Then any email sent to devtest will go to that location; you can also manually forward to the devmail/stagemail address. Then you can click 'View Latest Email' below to see the email.
-							</p>
+						<RequireClientJS>
+							<div className='AutomationPage_sectionOption'>
+								<p>
+									To see an email, simply go to devtest@animalcrossingcommunity.com (see <Link to='https://www.animalcrossingcommunity.com/forums/6053324/1'>ACC Developer Thread</Link> for access) and setup the forwarding (Settings &gt; Forwarding and POP/IMAP) to be the 'devmail' email (if on review app) or the 'stagemail' email (if on staging). If on review app, have Administrator update the account's website SendGrid app &gt; Settings &gt; Inbound Parse to be your review app url. Then any email sent to devtest will go to that location; you can also manually forward to the devmail/stagemail address. Then you can click 'View Latest Email' below to see the email.
+								</p>
 
-							<Form
-								action='v1/automation/other/view_email'
-								showButton
-								buttonText='View Latest Email'
-								updateFunction={(data: ViewEmailType | null) => setLatestEmail(data)}
-							/>
+								<Form
+									action='v1/automation/other/view_email'
+									showButton
+									buttonText='View Latest Email'
+									updateFunction={(data: ViewEmailType | null) => setLatestEmail(data)}
+								/>
 
-							{!!latestEmail &&
-								<div className='AutomationPage_sectionInfo'>
-									<div>Date: {latestEmail.recorded}</div>
-									<div>From: {latestEmail.from}</div>
-									<div>Subject: {latestEmail.subject}</div>
-									<div>Body:
-										<br/>
-										{latestEmail.body}</div>
-								</div>
-							}
-						</div>
+								{!!latestEmail &&
+									<div className='AutomationPage_sectionInfo'>
+										<div>Date: {latestEmail.recorded}</div>
+										<div>From: {latestEmail.from}</div>
+										<div>Subject: {latestEmail.subject}</div>
+										<div>Body:
+											<br/>
+											{latestEmail.body}</div>
+									</div>
+								}
+							</div>
 
-						<hr/>
+							<hr/>
+						</RequireClientJS>
 
 						<Form
 							action='v1/automation/other/shop'
@@ -349,7 +372,7 @@ const AutomationPage = () =>
 												{ value: 'complete_trade', label: 'Complete Trade' },
 												{ value: 'submit_feedback', label: 'Submit Feedback' },
 											]}
-											hideLabel
+											hideLabels
 											required
 										/>
 									</Form.Group>
@@ -361,7 +384,7 @@ const AutomationPage = () =>
 												{ id: 'real-world', name: 'Real-World' } as any,
 											].concat(acgames.filter(g => g.hasTown))}
 											optionsMapping={{ value: 'id', label: 'name' }}
-											hideLabel
+											hideLabels
 										/>
 									</Form.Group>
 									<Form.Group>
@@ -369,7 +392,7 @@ const AutomationPage = () =>
 											type='number'
 											name='listingId'
 											label='Listing ID'
-											hideLabel
+											hideLabels
 											placeholder='Listing ID'
 										/>
 									</Form.Group>
@@ -383,7 +406,7 @@ const AutomationPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AutomationPageProps>
+async function loadData(this: APIThisType): Promise<AutomationPageProps>
 {
 	const [boards, acgames] = await Promise.all([
 		this.query('v1/node/boards'),
@@ -392,6 +415,8 @@ export async function loadData(this: APIThisType): Promise<AutomationPageProps>
 
 	return { boards, acgames };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AutomationPageProps = {
 	boards: NodeBoardType[]

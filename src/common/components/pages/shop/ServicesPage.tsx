@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Section, Header, Tabs } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Text, Select } from '@form';
 import { APIThisType, ShopType, ACGameType, ServiceType } from '@types';
 
-const ServicesPage = () =>
+export const action = routerUtils.formAction;
+
+const ServicesPage = ({ loaderData }: { loaderData: ServicesPageProps }) =>
 {
-	const { shop, services, shopServices, acgames } = useLoaderData() as ServicesPageProps;
+	const { shop, services, shopServices, acgames } = loaderData;
 
 	const encodedId = encodeURIComponent(shop.id);
 
@@ -71,7 +72,7 @@ const ServicesPage = () =>
 								label='Service(s)'
 								name='services'
 								multiple
-								value={shopServices}
+								value={shopServices.map(s => s.id)}
 								options={services}
 								optionsMapping={{ value: 'id', label: 'name' }}
 								placeholder='Choose service(s)...'
@@ -157,7 +158,7 @@ const ServicesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ServicesPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ServicesPageProps>
 {
 	const [shop, acgames, shopServices, services] = await Promise.all([
 		this.query('v1/shop', { id: id }),
@@ -173,6 +174,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		services,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ServicesPageProps = {
 	shop: ShopType

@@ -15,14 +15,7 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 	}
 
 	// Check parameters
-	try
-	{
-		if (!placeholder.match(new RegExp(pattern)))
-		{
-			throw new UserError('bad-format');
-		}
-	}
-	catch
+	if (!placeholder.match(new RegExp(pattern)))
 	{
 		throw new UserError('bad-format');
 	}
@@ -31,15 +24,11 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 	{
 		sequence = null;
 	}
-	else if (sequence && sequence < 0)
-	{
-		throw new UserError('bad-format');
-	}
 
 	// Save information
 	const result = await db.transaction(async (query: any) =>
 	{
-		if (id != null && id > 0)
+		if (id > 0)
 		{
 			const [previousGameInfo] = await query(`
 				SELECT
@@ -48,11 +37,6 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 				FROM game
 				WHERE game.id = $1::int
 			`, id);
-
-			if (!previousGameInfo)
-			{
-				throw new UserError('no-such-game');
-			}
 
 			if (previousGameInfo.game_console_id !== gameConsoleId)
 			{
@@ -93,7 +77,7 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 					WHERE game.game_console_id = $1::int AND $2::int < sequence
 				`, previousGameInfo.game_console_id, previousGameInfo.sequence);
 			}
-			else if (sequence != null && previousGameInfo.sequence > sequence)
+			else if (sequence !== null && previousGameInfo.sequence > sequence)
 			{
 				// Modified game went up the list;
 				// all games in between have been shifted one position downwards.
@@ -111,7 +95,7 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 					RETURNING id
 				`, id, gameConsoleId, name, shortName, pattern, placeholder, sequence, isEnabled);
 			}
-			else if (sequence != null && previousGameInfo.sequence < sequence)
+			else if (sequence !== null && previousGameInfo.sequence < sequence)
 			{
 				// Obtain last number in sequence for comparison purposes
 				const [lastInSequence] = await query(`
@@ -159,12 +143,12 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 			`, gameConsoleId);
 
 			// Alter sequence for elements that have shifted positions due to new game
-			if (sequence != null && lastInSequence.max + 1 < sequence)
+			if (sequence !== null && lastInSequence.max + 1 < sequence)
 			{
 				// Input sequence is greater than list size plus the new game
 				throw new UserError('bad-format');
 			}
-			else if (sequence != null && sequence <= lastInSequence.max)
+			else if (sequence !== null && sequence <= lastInSequence.max)
 			{
 				// New game must go between existing games
 				// All games afterwards must move one position downwards.
@@ -182,11 +166,6 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 			`, gameConsoleId, name, shortName, pattern, placeholder, sequence, isEnabled);
 		}
 	});
-
-	if (result.length === 0)
-	{
-		throw new UserError('no-such-game');
-	}
 
 	ACCCache.deleteMatch(constants.cacheKeys.games);
 
@@ -208,7 +187,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-game-name',
 		length: constants.max.gameName,
 		profanity: true,
 	},
@@ -216,7 +194,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-game-short-name',
 		length: constants.max.gameName,
 		profanity: true,
 	},
@@ -224,28 +201,28 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-game-pattern',
 		length: constants.max.gamePattern,
 	},
 	placeholder: {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-game-placeholder',
 		length: constants.max.gamePlaceholder,
 	},
 	sequence: {
 		type: APITypes.number,
-		min: 1,
+		min: 0,
+		required: true,
 	},
 	isEnabled: {
 		type: APITypes.boolean,
 		default: 'false',
+		required: true,
 	},
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	gameConsoleId: number
 	name: string
 	shortName: string

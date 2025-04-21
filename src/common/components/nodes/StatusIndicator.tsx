@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { dateUtils, constants } from '@utils';
 
 const StatusIndicator = ({

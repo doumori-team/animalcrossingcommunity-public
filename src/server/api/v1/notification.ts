@@ -20,7 +20,10 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 			notification.created,
 			notification.notified,
 			notification_type.identifier,
-			notification.description
+			notification_type.description as type,
+			notification_type.icon,
+			notification.description,
+			notification.count
 		FROM notification
 		JOIN notification_type ON (notification_type.id = notification.reference_type_id)
 		WHERE notification.id = $1::int
@@ -229,11 +232,14 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 
 	return <NotificationType>{
 		id: notification.id,
-		description: notification.description,
+		description: notification.description.replace('%count%', notification?.count && notification.count > 1 ? notification?.count.toString() : 'multiple'),
 		url: utils.getNotificationReferenceLink(notification, userCheck, this.userId, extra),
 		formattedCreated: dateUtils.formatDateTime(notification.created),
 		formattedNotified: dateUtils.formatDateTime(notified),
 		anchor: extra.post,
+		type: notification.type,
+		icon: notification.icon,
+		count: notification.count,
 	};
 }
 

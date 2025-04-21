@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import { RequirePermission } from '@behavior';
 
@@ -66,7 +66,7 @@ const Item = ({
 Navbar.Item = Item;
 
 type ItemProps = {
-	children?: React.ReactNode
+	children?: ReactNode
 	extra?: boolean
 	icon?: boolean
 	username?: boolean
@@ -84,7 +84,7 @@ const Spacer = () =>
 Navbar.Spacer = Spacer;
 
 type NavbarProps = {
-	children: React.ReactNode
+	children: ReactNode
 };
 
 export default Navbar;

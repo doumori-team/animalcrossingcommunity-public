@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Check } from '@form';
 import { Pagination, Header, Search, Section, Grid } from '@layout';
-import { utils, constants, dateUtils } from '@utils';
+import { utils, constants, dateUtils, routerUtils } from '@utils';
 import { APIThisType, SupportEmailsType } from '@types';
 
-const SupportEmailDashboardPage = () =>
+export const action = routerUtils.formAction;
+
+const SupportEmailDashboardPage = ({ loaderData }: { loaderData: SupportEmailDashboardPageProps }) =>
 {
 	const { totalCount, supportEmails, page, pageSize, fromUser, fromEmail,
-		toUser, toEmail, startDate, endDate, read, forUser } = useLoaderData() as SupportEmailDashboardPageProps;
+		toUser, toEmail, startDate, endDate, read, forUser } = loaderData;
 
 	const link = `&fromUser=${encodeURIComponent(fromUser)}
 		&fromEmail=${encodeURIComponent(fromEmail)}
@@ -164,7 +165,7 @@ const SupportEmailDashboardPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: { page?: string, fromUser?: string, fromEmail?: string, toUser?: string, toEmail?: string, startDate?: string, endDate?: string, read?: string, forUser?: string }): Promise<SupportEmailDashboardPageProps>
+async function loadData(this: APIThisType, _: any, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: { page?: string, fromUser?: string, fromEmail?: string, toUser?: string, toEmail?: string, startDate?: string, endDate?: string, read?: string, forUser?: string }): Promise<SupportEmailDashboardPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/support_emails', {
@@ -195,6 +196,8 @@ export async function loadData(this: APIThisType, _: any, { page, fromUser, from
 		forUser: returnValue.forUser,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type SupportEmailDashboardPageProps = {
 	supportEmails: SupportEmailsType['results']

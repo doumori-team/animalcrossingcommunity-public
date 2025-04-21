@@ -1,15 +1,18 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
+import { useContext } from 'react';
 
 import { RequireUser } from '@behavior';
 import { Form, Check } from '@form';
 import { Header, Section, Grid, Keyboard, ErrorMessage } from '@layout';
 import { APIThisType, PatternType, CharacterType } from '@types';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
+import { UserContext } from '@contexts';
 
-const ChooseDoorPatternPage = () =>
+export const action = routerUtils.formAction;
+
+const ChooseDoorPatternPage = ({ loaderData }: { loaderData: ChooseTownFlagPageProps }) =>
 {
-	const { characters, pattern } = useLoaderData() as ChooseTownFlagPageProps;
+	const { characters, pattern } = loaderData;
+	const userContext = useContext(UserContext);
 
 	// This should never happen with normal site usage, but someone could theoretically get here by just plugging in a pattern ID from any game
 	if (pattern.gameId !== constants.gameIds.ACGC && pattern.gameId !== constants.gameIds.ACCF)
@@ -51,7 +54,7 @@ const ChooseDoorPatternPage = () =>
 					<Grid name='character' options={useCharacters}>
 						<Form
 							action='v1/character/pattern/save'
-							callback='/profile/:userId/towns'
+							callback={`/profile/${encodeURIComponent(userContext!.id)}/towns`}
 							showButton
 						>
 							<input type='hidden' name='patternId' value={pattern.id} />
@@ -77,7 +80,7 @@ const ChooseDoorPatternPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownFlagPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownFlagPageProps>
 {
 	const [characters, pattern] = await Promise.all([
 		this.query('v1/users/characters'),
@@ -86,6 +89,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { characters, pattern };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ChooseTownFlagPageProps = {
 	characters: CharacterType[]

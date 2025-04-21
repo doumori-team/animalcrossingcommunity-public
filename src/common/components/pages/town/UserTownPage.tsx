@@ -1,16 +1,15 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { getSeason } from 'common/calendar.ts';
 import { RequirePermission } from '@behavior';
-import Town from '@/components/towns/Town.js';
+import Town from '@/components/towns/Town.tsx';
 import { Section } from '@layout';
 import { APIThisType, SeasonsType, TownType } from '@types';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 
-const UserTownPage = () =>
+export const action = routerUtils.formAction;
+
+const UserTownPage = ({ loaderData }: { loaderData: UserTownPageProps }) =>
 {
-	const { town, season } = useLoaderData() as UserTownPageProps;
+	const { town, season } = loaderData;
 
 	return (
 		<RequirePermission permission='view-towns'>
@@ -23,12 +22,14 @@ const UserTownPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { townId }: { townId: number }, { debug }: { debug?: string }): Promise<UserTownPageProps>
+async function loadData(this: APIThisType, { townId }: { townId: number }, { debug }: { debug?: string }): Promise<UserTownPageProps>
 {
 	const town = await this.query('v1/town', { id: townId });
 	const season = getSeason(constants.LIVE_SITE ? null : debug);
 	return { town, season };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserTownPageProps = {
 	town: TownType

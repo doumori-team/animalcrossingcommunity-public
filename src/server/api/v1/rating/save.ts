@@ -223,7 +223,7 @@ type saveProps = {
 	id: number | null
 	rating: string
 	comment: string
-	userId: number | null
+	userId: number
 	listingId: number
 	adoptionNodeId: number
 	shopNodeId: number

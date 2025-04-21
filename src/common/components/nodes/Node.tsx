@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Fragment, useState } from 'react';
+import { Link, useLocation } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import PostAuthorInfo from '@/components/nodes/PostAuthorInfo.tsx';
@@ -68,6 +68,8 @@ const Node = ({
 	const [fileIndex, setFileIndex] = useState<number>(-1);
 
 	const location = useLocation() as LocationType;
+
+	const DotSeparator = () => <div className='Node_dotSeparator'>•</div>;
 
 	const updateNode = (data: NodeType) =>
 	{
@@ -166,46 +168,16 @@ const Node = ({
 								{displaying.breadcrumb && !!breadcrumb &&
 								<Breadcrumb segments={breadcrumb} />
 								}
-								{displaying.nodesCheckbox &&
-									<Checkbox
-										name='nodeIds'
-										value={id}
-										label='Remove Yourself'
-										hideLabel
-										form='removeFromPTs'
-									/>
-								}
-								{!displaying.breadcrumb && !displaying.nodesCheckbox && type === 'thread' && parentPermissions.includes('lock') && permissions.includes('lock') && locked === null && !listBoards.includes(nodeParentId) &&
-									<Checkbox
-										name='nodeIds'
-										value={id}
-										label='Lock Thread'
-										hideLabel
-										form='lockThreads'
-									/>
-								}
-								{displaying.follow &&
-									<RequireUser silent>
-										<Form
-											action='v1/node/follow'
-											updateFunction={updateNode}
-										>
-											<input type='hidden' name='id' value={id} />
-											<input
-												type='image'
-												src={curFollowed ?
-													`${constants.AWS_URL}/images/icons/followed.png` :
-													`${constants.AWS_URL}/images/icons/unfollowed.png`}
-												title='Follow'
-											/>
-										</Form>
-									</RequireUser>
+								{unreadTotal !== null && unreadTotal > 0 &&
+									<div className='Node_unreadIndicator' >
+										<img src={`${constants.AWS_URL}/images/icons/icon_new_replies.png`} alt='New replies' title='New replies' />
+									</div>
 								}
 								{threadType === 'sticky' &&
-									<img src={`${constants.AWS_URL}/images/icons/sticky.png`} alt='Sticky' />
+									<img src={`${constants.AWS_URL}/images/icons/sticky.png`} alt='Sticky' title='Sticky' />
 								}
 								{threadType === 'admin' &&
-									<img src={`${constants.AWS_URL}/images/icons/admin.png`} alt='Lock' />
+									<img src={`${constants.AWS_URL}/images/icons/admin.png`} alt='Locked' title='Locked' />
 								}
 								<Link
 									className={locked ? `locked` : ''}
@@ -215,92 +187,120 @@ const Node = ({
 									{title}
 								</Link>
 							</h1>
-							{displaying.removeMe &&
+							<div className='Node_controls'>
+								{displaying.titleInfo && type === 'thread' &&
+									<div className='Node_extra'>
+										<ReportProblem
+											type={constants.userTicket.types.thread}
+											id={revisionId}
+										/>
+									</div>
+								}
+								{displaying.follow &&
+									<RequireUser silent>
+										<Form
+											action='v1/node/follow'
+											updateFunction={updateNode}
+											formId={`node-follow-${id}`}
+										>
+											<input type='hidden' name='id' value={id} />
+											<input
+												type='image'
+												src={curFollowed ?
+													`${constants.AWS_URL}/images/icons/followed.png` :
+													`${constants.AWS_URL}/images/icons/unfollowed.png`}
+												title={curFollowed ?
+													'Unfollow' :
+													'Follow'}
+											/>
+										</Form>
+									</RequireUser>
+								}
+								{displaying.nodesCheckbox &&
+									<Checkbox
+										name='nodeIds'
+										value={id}
+										label='Remove Yourself'
+										hideLabels
+										form='removeFromPTs'
+									/>
+								}
+								{!displaying.breadcrumb && !displaying.nodesCheckbox && type === 'thread' && parentPermissions.includes('lock') && permissions.includes('lock') && locked === null && !listBoards.includes(nodeParentId) &&
+									<Checkbox
+										name='nodeIds'
+										value={id}
+										label='Lock Thread'
+										hideLabels
+										form='lockThreads'
+									/>
+								}
+								{displaying.removeMe &&
 								<Button
 									type='submit'
-									label='Remove Me'
+									label='Remove me from checked'
 									className='Node_button'
 									form='removeFromPTs'
 								/>
-							}
-							{displaying.removeMe2 &&
+								}
+								{displaying.removeMe2 &&
 								<Form
 									action='v1/node/remove'
 									showButton
 									buttonText='Remove Me'
 									callback={`/forums/${encodeURIComponent(constants.boardIds.privateThreads)}`}
+									formId={`node-remove-${id}`}
 								>
 									<input type='hidden' name='nodeIds' value={id} />
 								</Form>
-							}
-							{displaying.titleInfo &&
-								<div className='Node_extra'>
-									{displaying.follow &&
-										<RequirePermission permission='view-followers' silent>
-											<div className='Node_followed'>
-												{curNumFollowed} <img
-													src={`${constants.AWS_URL}/images/icons/followed.png`}
-													alt='Favorite'
-												/>
-											</div>
-										</RequirePermission>
-									}
-									{type === 'thread' &&
-										<ReportProblem
-											type={constants.userTicket.types.thread}
-											id={revisionId}
-										/>
-									}
-								</div>
-							}
+								}
+							</div>
 						</div>
-						{displaying.titleInfo && conciseMode > 1 &&
+						{displaying.titleInfo && (conciseMode > 2 || displaying.board) &&
 							<div className='Node_secondLine'>
-								<div className='Node_postedBy'>
-									{currentUser ?
+								{conciseMode > 2 && <div className='Node_postedBy'>
+									<span>
+										Posted by{' '}
+										{
+											currentUser ? <Link to={`/profile/${user?.id}`}>{user?.username}</Link> : <>{user?.username}</>
+										}
+									</span>
+									{displaying.board &&
 										<>
-											Posted By: <Link to={`/profile/${user?.id}`}>
-												{user?.username}
-											</Link>
-										</>
-										:
-										<>
-											Posted By: {user?.username}
+											{' '}in{' '}
+											{parentId ?
+												<Link to={`/forums/${parentId}`}><span className='Node_board'>{board}</span></Link> :
+												<span className='Node_board'>{board}</span>
+											}
 										</>
 									}
+									{conciseMode > 3 &&
+										<span className='Node_created'>
+											{' '}on{' '}{formattedCreated}
+										</span>
+									}
 								</div>
-								{lastReply &&
+								}
+								{conciseMode > 3 && lastReply &&
 									<div className='Node_latestPost'>
-										Latest Post: <span>
+										Latest post: <span>
 											{lastReply}
 										</span>
 									</div>
 								}
 							</div>
 						}
-						{displaying.titleInfo && conciseMode > 2 &&
+						{displaying.titleInfo && conciseMode > 1 &&
 							<div className='Node_thirdLine'>
-								<div className='Node_replyCount'>
-									Replies: <span>
-										{replyCount}{unreadTotal !== null ? ` (${unreadTotal})` : ''}
-									</span>
-								</div>
-								{displaying.board &&
-									<div className='Node_board'>
-										Board: <span>
-											{board}
-										</span>
-									</div>
-								}
-							</div>
-						}
-						{displaying.titleInfo && conciseMode > 3 &&
-							<div className='Node_fourthLine'>
-								<div className='Node_created'>
-									Created: <span>
-										{formattedCreated}
-									</span>
-								</div>
+								<span className='Node_replyCount'>
+									{replyCount} {replyCount === 1 ? 'reply' : 'replies'}{unreadTotal !== null ? ` (${unreadTotal} new)` : ''}
+									{displaying.follow && conciseMode > 2 &&
+										<RequirePermission permission='view-followers' silent>
+											<span className='Node_followed'>
+												,{' '}{curNumFollowed}{' '}follower{curNumFollowed === 1 ? '' : 's'}
+											</span>
+										</RequirePermission>
+									}
+								</span>
 							</div>
 						}
 					</>
@@ -310,13 +310,16 @@ const Node = ({
 						{displaying.permalink &&
 							<><Link to={`/${pageLink}/${encodedParentId}/${encodedPage}#${encodedId}`}>
 								{'#'}{index}
-							</Link>{' • '}</>
+							</Link><DotSeparator/></>
 						}
 						{displaying.dates &&
-							formatDate(created)
+							<>
+								{formatDate(created)}
+								<DotSeparator/>
+							</>
 						}
 						{displaying.edits &&
-							<>{' • '}
+							<>
 								<PermissionsContext.Consumer>
 									{userPerms => userPerms &&
 										<>
@@ -327,61 +330,62 @@ const Node = ({
 													{edits} edit(s)
 												</Link>
 											}
+											<DotSeparator/>
 										</>
 									}
 								</PermissionsContext.Consumer>
 							</>
 						}
 						<RequirePermission permission='report-content' silent>
-							<>{' • '}<ReportProblem type={constants.userTicket.types.post} id={revisionId} /></>
+							<><ReportProblem type={constants.userTicket.types.post} id={revisionId} /><DotSeparator/></>
 						</RequirePermission>
 						{permissions.includes('edit') && !locked &&
-							<>{' • '}<Link reloadDocument to={`/${pageLink}/${encodedParentId}/${encodedPage}/${encodedId}#TextBox`}>
+							<><Link reloadDocument to={`/${pageLink}/${encodedParentId}/${encodedPage}/${encodedId}#TextBox`}>
 								<img
 									src={`${constants.AWS_URL}/images/icons/edit.png`}
 									alt='Edit Post'
 								/>
-							</Link></>
+							</Link><DotSeparator/></>
 						}
 						<RequireUser silent>
 							{currentUser?.id !== user?.id &&
-								<RequirePermission permission='use-friend-codes' silent>
-									{' • '}<Confirm
-										action='v1/friend_code/whitelist/save'
-										defaultSubmitImage={`${constants.AWS_URL}/images/icons/wifi.png`}
-										imageTitle='Whitelist User'
-										additionalBody={
-											<>
-												<input type='hidden' name='whiteListUser' value={user?.username} />
-												<input type='hidden' name='action' value='add' />
-											</>
-										}
-										label='Whitelist User'
-										message='Whitelisting this user will allow them to see all your Friend Codes. Do you wish to proceed?'
-									/>
-								</RequirePermission>
-							}
-							{currentUser?.id !== user?.id &&
-								<RequirePermission permission='use-buddy-system' silent>
-									{' • '}<Form
-										action='v1/users/buddy/save'
-										defaultSubmitImage={`${constants.AWS_URL}/images/icons/buddy.png`}
-										imageTitle={`Add ${user?.username} to your buddy list`}
-									>
-										<input type='hidden' name='buddyUsers' value={user?.username} />
-										<input type='hidden' name='action' value='add' />
-									</Form>
-								</RequirePermission>
-							}
-							{currentUser?.id !== user?.id &&
 								<>
-									{' • '}<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user?.username}#TextBox`}>
-										<img
-											src={`${constants.AWS_URL}/images/icons/pt.png`}
-											title={`Send a PT to ${user?.username}`}
-											alt={`Send a PT to ${user?.username}`}
-										/>
-									</Link>
+									<RequirePermission permission='use-friend-codes' silent>
+										<Confirm
+											action='v1/friend_code/whitelist/save'
+											formId={`friend-code-save-${id}`}
+											defaultSubmitImage={`${constants.AWS_URL}/images/icons/wifi.png`}
+											imageTitle='Whitelist User'
+											additionalBody={
+												<>
+													<input type='hidden' name='whiteListUser' value={user?.username} />
+													<input type='hidden' name='action' value='add' />
+												</>
+											}
+											label='Whitelist User'
+											message='Whitelisting this user will allow them to see all your Friend Codes. Do you wish to proceed?'
+										/><DotSeparator/>
+									</RequirePermission>
+									<RequirePermission permission='use-buddy-system' silent>
+										<Form
+											action='v1/users/buddy/save'
+											defaultSubmitImage={`${constants.AWS_URL}/images/icons/buddy.png`}
+											imageTitle={`Add ${user?.username} to your buddy list`}
+											formId={`users-buddy-save-${id}`}
+										>
+											<input type='hidden' name='buddyUsers' value={user?.username} />
+											<input type='hidden' name='action' value='add' />
+										</Form><DotSeparator/>
+									</RequirePermission>
+									<>
+										<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user?.username}#TextBox`}>
+											<img
+												src={`${constants.AWS_URL}/images/icons/pt.png`}
+												title={`Send a PT to ${user?.username}`}
+												alt={`Send a PT to ${user?.username}`}
+											/>
+										</Link>
+									</>
 								</>
 							}
 						</RequireUser>
@@ -394,10 +398,10 @@ const Node = ({
 
 				{displaying.boards && Array.isArray(subBoards) &&
 					<div className='Node_boards'>
-						Sub-forums: {subBoards.map((b, i) => <React.Fragment key={i}>
+						Sub-forums: {subBoards.map((b, i) => <Fragment key={i}>
 							{i > 0 && ', '}
 							<Link to={`/forums/${encodeURIComponent(b.id)}`}>{b.title}</Link>
-						</React.Fragment>)}
+						</Fragment>)}
 					</div>
 				}
 

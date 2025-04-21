@@ -1,10 +1,9 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Select } from '@form';
 import { Pagination, Header, Search, Section, Grid } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import {
 	APIThisType,
 	UserTicketStatusType,
@@ -14,11 +13,13 @@ import {
 	DenyReasonType,
 } from '@types';
 
-const UserTicketDashboardPage = () =>
+export const action = routerUtils.formAction;
+
+const UserTicketDashboardPage = ({ loaderData }: { loaderData: UserTicketDashboardPageProps }) =>
 {
 	const { totalCount, userTickets, page, statuses, rules, types, statusId,
 		assignee, ruleId, typeId, pageSize, denyReasons, violator,
-		denyReasonId } = useLoaderData() as UserTicketDashboardPageProps;
+		denyReasonId } = loaderData;
 
 	const link = `&statusId=${encodeURIComponent(statusId)}
 		&assignee=${encodeURIComponent(assignee)}
@@ -47,7 +48,7 @@ const UserTicketDashboardPage = () =>
 							label='Status'
 							name='statusId'
 							value={statusId}
-							options={[{ id: '', name: 'All Statuses' } as any].concat(statuses)}
+							options={[{ id: 0, name: 'All Statuses' } as any,{ id: -1, name: 'All Open Statuses' } as any].concat(statuses)}
 							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
@@ -56,7 +57,7 @@ const UserTicketDashboardPage = () =>
 							label='Rule'
 							name='ruleId'
 							value={ruleId}
-							options={[{ id: '', name: 'All Rules' } as any,{ id: -1, name: 'Any Rule' } as any].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
+							options={[{ id: 0, name: 'All Rules' } as any,{ id: -1, name: 'Any Rule' } as any].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
 							optionsMapping={{
 								value: 'id',
 								label: (rule: any) =>
@@ -77,7 +78,7 @@ const UserTicketDashboardPage = () =>
 							label='Type'
 							name='typeId'
 							value={typeId}
-							options={[{ id: '', description: 'All Types' } as any].concat(types)}
+							options={[{ id: 0, description: 'All Types' } as any].concat(types)}
 							optionsMapping={{ value: 'id', label: 'description' }}
 						/>
 					</Form.Group>
@@ -86,7 +87,7 @@ const UserTicketDashboardPage = () =>
 							label='Deny Reason'
 							name='denyReasonId'
 							value={denyReasonId}
-							options={[{ id: '', name: 'All Deny Reasons' },{ id: -1, name: 'Any Deny Reason' }].concat(denyReasons)}
+							options={[{ id: 0, name: 'All Deny Reasons' },{ id: -1, name: 'Any Deny Reason' }].concat(denyReasons)}
 							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
@@ -178,7 +179,7 @@ const UserTicketDashboardPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, query: { page?: string, statusId?: string, assignee?: string, ruleId?: string, typeId?: string, violator?: string, denyReasonId?: string }): Promise<UserTicketDashboardPageProps>
+async function loadData(this: APIThisType, _: any, query: { page?: string, statusId?: string, assignee?: string, ruleId?: string, typeId?: string, violator?: string, denyReasonId?: string }): Promise<UserTicketDashboardPageProps>
 {
 	const { page, statusId, assignee, ruleId, typeId, violator, denyReasonId } = query;
 
@@ -189,7 +190,7 @@ export async function loadData(this: APIThisType, _: any, query: { page?: string
 		this.query('v1/user_ticket/deny_reasons'),
 		this.query('v1/user_tickets', {
 			page: page ? page : 1,
-			statusId: 'statusId' in query ? statusId : constants.userTicket.openStatusId,
+			statusId: 'statusId' in query ? statusId : -1,
 			assignee: assignee ? assignee : '',
 			ruleId: ruleId ? ruleId : '',
 			typeId: typeId ? typeId : '',
@@ -215,6 +216,8 @@ export async function loadData(this: APIThisType, _: any, query: { page?: string
 		denyReasonId: returnValue.denyReasonId,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserTicketDashboardPageProps = {
 	userTickets: UserTicketsType['results']

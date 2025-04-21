@@ -1,6 +1,6 @@
 // This file is for date functions throughout the site.
 
-import { format as dateFNSFormat, utcToZonedTime } from 'date-fns-tz';
+import { format as dateFNSFormat, toZonedTime } from 'date-fns-tz';
 import {
 	subDays,
 	parse as dateFNSParse,
@@ -55,7 +55,7 @@ export function formatDateTime2(date: Date | number | string): string
 
 export function formatDateTime3(date: Date | number | string): string
 {
-	return dateFNSFormat(dateToTimezone(date), 'EEEE do MMMM Y h:mmaaa', { timeZone: timezone });
+	return dateFNSFormat(dateToTimezone(date), 'EEEE do MMMM y h:mmaaa', { timeZone: timezone });
 }
 
 /**
@@ -161,27 +161,27 @@ export function format(date: number | Date | string, format: string, readFormat:
 
 export function dateToTimezone(date: Date | number | string, useTimezone = timezone): Date
 {
-	return utcToZonedTime(toDate(date), useTimezone);
+	return toZonedTime(toDate(date), useTimezone);
 }
 
 export function getCurrentDateTimezone(): Date
 {
-	return utcToZonedTime(new Date(), timezone);
+	return toZonedTime(new Date(), timezone);
 }
 
 export function getCurrentDayTimezone(): Date
 {
-	return new Date(utcToZonedTime(new Date(), timezone).setHours(0, 0, 0, 0));
+	return new Date(toZonedTime(new Date(), timezone).setHours(0, 0, 0, 0));
 }
 
-export function parse(date: any, readFormat: string | null = null): Date
+export function parse(date: number | string, readFormat: string | null = null): Date
 {
 	if (readFormat === null)
 	{
 		return toDate(date);
 	}
 
-	return dateFNSParse(date, readFormat, new Date());
+	return dateFNSParse(typeof date === 'number' ? String(date) : date, readFormat, new Date());
 }
 
 export function getCurrentDate(): number
@@ -232,7 +232,7 @@ export function addToCurrentDateTimezone(amount: number, type: 'days' | 'months'
 	return add(getCurrentDateTimezone(), amount, type);
 }
 
-export function isValid(date: number | Date | string, readFormat: string | null = null): boolean
+export function isValid(date: number | string, readFormat: string | null = null): boolean
 {
 	if (readFormat === 'month')
 	{

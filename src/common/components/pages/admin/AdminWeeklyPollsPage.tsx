@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import NavMenu from '@/components/layout/NavMenu.js';
+import NavMenu from '@/components/layout/NavMenu.tsx';
 import { Pagination, Markup, Header, Section } from '@layout';
-import { dateUtils, constants } from '@utils';
+import { dateUtils, constants, routerUtils } from '@utils';
 import { Confirm } from '@form';
 import { APIThisType, PollsType } from '@types';
 
-const AdminWeeklyPollsPage = () =>
+export const action = routerUtils.formAction;
+
+const AdminWeeklyPollsPage = ({ loaderData }: { loaderData: AdminWeeklyPollsPageProps }) =>
 {
-	const { polls, totalCount, page, pageSize, type } = useLoaderData() as AdminWeeklyPollsPageProps;
+	const { polls, totalCount, page, pageSize, type } = loaderData;
 
 	return (
 		<div className='AdminWeeklyPollsPage'>
@@ -63,6 +64,7 @@ const AdminWeeklyPollsPage = () =>
 												label='Delete'
 												message='Are you sure you want to delete this poll?'
 												id={poll.id}
+												formId={`poll-destroy-${poll.id}`}
 											/>
 										</div>
 									}
@@ -128,7 +130,7 @@ const AdminWeeklyPollsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { type }: { type: string }, { page }: { page?: string }): Promise<AdminWeeklyPollsPageProps>
+async function loadData(this: APIThisType, { type }: { type: string }, { page }: { page?: string }): Promise<AdminWeeklyPollsPageProps>
 {
 	const [polls] = await Promise.all([
 		this.query('v1/admin/polls', {
@@ -145,6 +147,8 @@ export async function loadData(this: APIThisType, { type }: { type: string }, { 
 		type,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdminWeeklyPollsPageProps = {
 	polls: PollsType['results']

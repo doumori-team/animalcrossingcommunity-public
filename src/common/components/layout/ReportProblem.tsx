@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Confirm } from '@form';
 import { RequirePermission } from '@behavior';
 import { constants } from '@utils';
@@ -24,6 +22,7 @@ const ReportProblem = ({
 					}
 					label='Report a Problem'
 					message='Are you sure you want to report this content?'
+					formId={`report-problem-${id}-${type}`}
 				/>
 			</div>
 		</RequirePermission>

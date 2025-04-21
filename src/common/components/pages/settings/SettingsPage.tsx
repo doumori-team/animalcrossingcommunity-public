@@ -1,11 +1,12 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Header } from '@layout';
 import NavMenu from '@/components/layout/NavMenu.tsx';
 import { UserContext } from '@contexts';
-import { utils } from '@utils';
+import { utils, routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const SettingsPage = () =>
 {
@@ -21,7 +22,7 @@ const SettingsPage = () =>
 				}
 			>
 				<NavMenu>
-					<NavMenu.Button path='/settings' index>
+					<NavMenu.Button path='/settings/account' index>
 						Account
 					</NavMenu.Button>
 					<NavMenu.Button path='/settings/forum'>

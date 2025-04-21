@@ -1,13 +1,15 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Header, Section, Grid } from '@layout';
 import { APIThisType, TicketType, SupportTicketType } from '@types';
+import { routerUtils } from '@utils';
 
-const TicketsPage = () =>
+export const action = routerUtils.formAction;
+
+const TicketsPage = ({ loaderData }: { loaderData: TicketsPageProps }) =>
 {
-	const { tickets, supportTickets } = useLoaderData() as TicketsPageProps;
+	const { tickets, supportTickets } = loaderData;
 
 	return (
 		<div className='TicketsPage'>
@@ -70,7 +72,7 @@ const TicketsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType)
+async function loadData(this: APIThisType)
 {
 	const [tickets, supportTickets] = await Promise.all([
 		this.query('v1/users/tickets'),
@@ -79,6 +81,8 @@ export async function loadData(this: APIThisType)
 
 	return { tickets, supportTickets };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type TicketsPageProps = {
 	tickets: TicketType[]

@@ -1,3 +1,7 @@
+@use "colors";
+@use "mixins";
+@use "forms";
+
 .AvatarSettingsPage_form {
 	text-align: center;
 
@@ -11,11 +15,11 @@
 }
 
 .AvatarSettingsPage_mainPortal {
-	@include contentbox($background: var(--seasonal-color));
-	@include inset-text;
-	padding: px2rem(16px);
-	border-radius: px2rem(20px);
-	margin-bottom: px2rem(10px);
+	@include mixins.contentbox($background: var(--seasonal-color));
+	@include mixins.inset-text;
+	padding: mixins.px2rem(16px);
+	border-radius: mixins.px2rem(20px);
+	margin-bottom: mixins.px2rem(10px);
 	display: inline-block;
 }
 
@@ -25,7 +29,7 @@
 
 .AvatarSettingsPage_avatarContainer {
 	display: inline-block;
-	margin: px2rem(5px);
+	margin: mixins.px2rem(5px);
 	font-size: 1.17em;
 	font-weight: bold;
 	
@@ -38,7 +42,7 @@
 	label {
 		font-size: 1.17em;
 		font-weight: bold;
-		margin-right: px2rem(5px);
+		margin-right: mixins.px2rem(5px);
 	}
 
 	.Switch {
@@ -47,13 +51,13 @@
 }
 
 .AvatarSettingsPage_submitButton {
-	@include button;
+	@include mixins.button;
 	text-align: center;
 	background: var(--seasonal-color-dark);
 }
 
 .AvatarSelector {
-	@include contentbox($background-image: $background-image);
+	@include mixins.contentbox($background-image: colors.$background-image);
 	text-align: center;
 
 	> .Select-multiple {
@@ -62,15 +66,15 @@
 }
 
 .AvatarSelector_colorationContainer {
-	@include contentbox($background: var(--seasonal-color));
-	padding: px2rem(3px) px2rem(6px) px2rem(3px) px2rem(6px);
-	margin: px2rem(5px);
+	@include mixins.contentbox($background: var(--seasonal-color));
+	padding: mixins.px2rem(3px) mixins.px2rem(6px) mixins.px2rem(3px) mixins.px2rem(6px);
+	margin: mixins.px2rem(5px);
 	display: flex;
 	max-width: 170px;
 
 	label {
-		@include inset-text;
-		margin-right: px2rem(6px);
+		@include mixins.inset-text;
+		margin-right: mixins.px2rem(6px);
 	}
 }
 
@@ -82,20 +86,20 @@
 	label {
 		text-shadow: -1px -1px rgb(0 0 0 / 10%);
 		font-weight: bold;
-		margin-right: px2rem(6px);
+		margin-right: mixins.px2rem(6px);
 	}
 }
 
 .AvatarSelector_noAccent {
-	margin: px2rem(5px);
-	padding: px2rem(5px);
+	margin: mixins.px2rem(5px);
+	padding: mixins.px2rem(5px);
 	text-align: left;
 
 	> label {
-		@include contentbox($background: var(--seasonal-color-dark));
+		@include mixins.contentbox($background: var(--seasonal-color-dark));
 		cursor: pointer;
 		display: inline-block;
-		padding: px2rem(5px);
+		padding: mixins.px2rem(5px);
 
 		&[data-selected='true'] {
 			background: var(--seasonal-color);
@@ -110,27 +114,27 @@
 		}
 
 		label {
-			@include inset-text;
+			@include mixins.inset-text;
 			display: inline-block;
 		}
 	}
 }
 
 .AvatarSelector_optionContainer {
-	height: px2rem(415px);
+	height: mixins.px2rem(415px);
 	overflow: auto;
-	margin: px2rem(5px) px2rem(10px);
+	margin: mixins.px2rem(5px) mixins.px2rem(10px);
 	background: white;
 	border-radius: 0.3333em;
 }
 
 .AvatarSelectorOption {
-	@include contentbox($background: var(--seasonal-color-dark));
-	@include inset-text;
-	margin: px2rem(5px);
+	@include mixins.contentbox($background: var(--seasonal-color-dark));
+	@include mixins.inset-text;
+	margin: mixins.px2rem(5px);
 	display: inline-flex;
 	width: 95%;
-	padding: px2rem(6px);
+	padding: mixins.px2rem(6px);
 	text-align: left;
 
 	label {
@@ -175,7 +179,7 @@
 	}
 }
 
-@include responsive(48rem) {
+@include mixins.responsive(48rem) {
 	.AvatarSelector_optionContainer {
 		height: auto;
 		background: none;
@@ -184,8 +188,8 @@
 	.AvatarSelectorOption {
 		display: inline-flex;
 		justify-content: center;
-   	 	width: px2rem(150px);
-		height: px2rem(230px);
+   	 	width: mixins.px2rem(150px);
+		height: mixins.px2rem(230px);
 		min-width: auto;
 		text-align: center;    
 	}
@@ -199,31 +203,52 @@
 	}
 }
 
-.ForumSettingsPage .Markup {
-	background-color: $color-signature-background;
+.ForumSettingsPage {
+	.ForumSettingsPage_Settings {
+		display: flex;
+		flex-direction: column;
+		gap: mixins.px2rem(16px);
+		margin-bottom: mixins.px2rem(16px);
 
-	.spoiler {
-		color: $color-signature-background;
+		.Select, .FormGroup input[type="text"] {
+			flex-grow: 1;
+
+			select {
+				margin: 0;
+			}
+		}
+
+		label {
+			margin-left: 0;
+		}
+	}
+	
+	.Markup {
+		background-color: colors.$color-signature-background;
+		
+		.spoiler {
+			color: colors.$color-signature-background;
+		}
 	}
 }
 
 .AvatarSettingsPage_links {
-	@include links(125px);
+	@include mixins.links(125px);
 }
 
 .AvatarPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 10rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 10rem);
 			}
 
 			.AvatarPage_avatar {
 				padding: 1rem;
-				@include contentbox($background: white);
+				@include mixins.contentbox($background: white);
 
 				.AvatarPage_links {
-					@include links(125px);
+					@include mixins.links(125px);
 				}
 			}
 		}
@@ -232,13 +257,56 @@
 
 .AccountSettingsPage {
 	.FormGroup {
-		margin-top: px2rem(10px);
-		margin-bottom: px2rem(10px);
-		display: block;
+		margin-top: mixins.px2rem(10px);
+		margin-bottom: mixins.px2rem(10px);
+	}
+
+	.FontAwesomeIcon.informational-icon {
+		margin-left: mixins.px2rem(4px);
 	}
 
 	.AccountSettingsPage_siteHeader {
 		@extend .GenericBoolCheckbox;
 		--active: var(--seasonal-color-dark);
+	}
+
+	.AccountSettingsPage_games {
+		display: flex;
+		flex-wrap: wrap;
+
+		> li {
+			width: 100%;
+			padding: mixins.px2rem(8px) 0;
+
+			@media only screen and (min-width: mixins.px2rem(768px)) {
+				width: 25%;
+				padding: 0 mixins.px2rem(8px) mixins.px2rem(8px) 0;
+			}
+
+			.AccountSettingsPage_ACGame {
+				font-weight: bold;
+			}
+			
+			ul {
+				margin-left: mixins.px2rem(16px);
+			}
+		}
+	}
+
+	.AccountSettingsPage_awayContainer {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+
+		.AccountSettingsPage_away {
+			display: flex;
+			align-items: center;
+			gap: 4px;	
+		}
+
+		label {
+			margin-left: 0;
+			font-size: mixins.px2rem(14px);
+		}
 	}
 }

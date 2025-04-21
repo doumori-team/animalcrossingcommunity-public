@@ -1,14 +1,17 @@
-import React from 'react';
-import { Link, useAsyncValue } from 'react-router-dom';
+import { use } from 'react';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import EditShop from '@/components/shop/EditShop.tsx';
 import { Section, Header } from '@layout';
 import { APIThisType, ShopType, ACGameType, ShopCatalogType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditShopPage = () =>
+export const action = routerUtils.formAction;
+
+const EditShopPage = ({ loaderData }: { loaderData: Promise<EditShopPageProps> }) =>
 {
-	const { shop, acgames, acGameCatalogs } = getData(useAsyncValue()) as EditShopPageProps;
+	const { shop, acgames, acGameCatalogs } = getData(use(loaderData));
 
 	const encodedId = encodeURIComponent(shop.id);
 
@@ -43,7 +46,7 @@ const EditShopPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
 {
 	return Promise.all([
 		this.query('v1/shop', { id: id }),
@@ -59,10 +62,12 @@ function getData(data: any): EditShopPageProps
 	return { shop, acgames, acGameCatalogs };
 }
 
+export const loader = routerUtils.deferLoader(loadData);
+
 type EditShopPageProps = {
 	shop: ShopType
 	acgames: ACGameType[]
 	acGameCatalogs: ShopCatalogType[]
 };
 
-export default EditShopPage;
+export default routerUtils.LoadingFunction(EditShopPage);

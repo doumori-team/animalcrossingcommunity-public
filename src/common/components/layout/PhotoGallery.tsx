@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import PhotoAlbum from 'react-photo-album';
+import { useState } from 'react';
+import { ColumnsPhotoAlbum } from 'react-photo-album';
+import 'react-photo-album/columns.css';
 
 import { RequireClientJS } from '@behavior';
 import { constants } from '@utils';
@@ -14,45 +15,25 @@ const PhotoGallery = ({
 {
 	const [fileIndex, setFileIndex] = useState<number>(-1);
 
-	const slides = files?.map(file =>
-	{
-		return {
-			src: `${constants.USER_FILE_DIR}${userId}/${file.fileId}`,
-			alt: file.caption,
-			title: file.caption,
-			width: Number(file.width || 0),
-			height: Number(file.height || 0),
-			id: file.id,
-			description: file.caption,
-		};
-	});
-
-	const renderPhoto = ({ _, layoutOptions, imageProps: { alt, style, ...restImageProps } }: any) =>
-		<div
-			style={{
-				boxSizing: 'content-box',
-				alignItems: 'center',
-				width: style?.width,
-				padding: `${layoutOptions.padding - 2}px`,
-				paddingBottom: 0,
-			}}
-		>
-			<img
-				alt={alt} style={{ ...style, width: '100%', padding: 0 }} {...restImageProps}
-			/>
-		</div>
-	;
-
 	return (
 		<RequireClientJS>
-			<PhotoAlbum
-				layout='columns'
-				photos={slides}
-				onClick={({ index: current }) => setFileIndex(current)}
+			<ColumnsPhotoAlbum
+				photos={files?.map(file =>
+				{
+					return {
+						src: `${constants.USER_FILE_DIR}${userId}/${file.fileId}`,
+						alt: file.caption,
+						title: file.caption,
+						width: Number(file.width || 0),
+						height: Number(file.height || 0),
+						id: file.id,
+						description: file.caption,
+					};
+				})}
+				onClick={({ index }: { index: number }) => setFileIndex(index)}
 				spacing={5}
 				padding={0}
 				columns={4}
-				renderPhoto={renderPhoto}
 			/>
 			<PhotoSlideshow
 				userId={userId}

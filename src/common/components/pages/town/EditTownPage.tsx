@@ -1,16 +1,15 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { getSeason } from 'common/calendar.ts';
 import { RequireUser } from '@behavior';
 import EditTown from '@/components/towns/EditTown.tsx';
 import { Section } from '@layout';
 import { APIThisType, TownType, TownGameType, SeasonsType } from '@types';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 
-const EditTownPage = () =>
+export const action = routerUtils.formAction;
+
+const EditTownPage = ({ loaderData }: { loaderData: EditTownPageProps }) =>
 {
-	const { town, townGame, season } = useLoaderData() as EditTownPageProps;
+	const { town, townGame, season } = loaderData;
 
 	return (
 		<RequireUser id={town.userId} permission='modify-towns'>
@@ -29,7 +28,7 @@ const EditTownPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { townId }: { townId: string }, { debug }: { debug: string }): Promise<EditTownPageProps>
+async function loadData(this: APIThisType, { townId }: { townId: string }, { debug }: { debug: string }): Promise<EditTownPageProps>
 {
 	const [town] = await Promise.all([
 		this.query('v1/town', { id: townId }),
@@ -55,6 +54,8 @@ export async function loadData(this: APIThisType, { townId }: { townId: string }
 		season,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditTownPageProps = {
 	town: TownType

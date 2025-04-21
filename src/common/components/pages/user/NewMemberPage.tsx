@@ -1,10 +1,11 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form } from '@form';
 import { ContentBox } from '@layout';
+
+export const action = routerUtils.formAction;
 
 const NewMemberPage = () =>
 {

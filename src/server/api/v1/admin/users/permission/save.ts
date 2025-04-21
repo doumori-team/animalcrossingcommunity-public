@@ -2,9 +2,9 @@ import * as db from '@db';
 import { constants } from '@utils';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
-import { APIThisType, UserType } from '@types';
+import { APIThisType, UserType, SuccessType } from '@types';
 
-async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions }: saveProps): Promise<void>
+async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions }: saveProps): Promise<SuccessType>
 {
 	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
 
@@ -244,6 +244,10 @@ async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions
 			}
 		}));
 	});
+
+	return {
+		_success: `The user's permissions have been updated.`,
+	};
 }
 
 save.apiTypes = {

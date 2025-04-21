@@ -1,9 +1,8 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser, RequireTestSite, RequirePermission } from '@behavior';
 import { Form, Check, Confirm, Select, Text, TextArea, RichTextArea } from '@form';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import Listing from '@/components/trading_post/Listing.tsx';
 import Offer from '@/components/trading_post/Offer.tsx';
 import Rating from '@/components/ratings/Rating.tsx';
@@ -19,10 +18,12 @@ import {
 	UserFriendCodesType,
 } from '@types';
 
-const ListingPage = () =>
+export const action = routerUtils.formAction;
+
+const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 {
 	const { listing, characters, game, towns, friendCodes, userEmojiSettings,
-		currentUserEmojiSettings } = useLoaderData() as ListingPageProps;
+		currentUserEmojiSettings } = loaderData;
 
 	const encodedId = encodeURIComponent(listing.id);
 
@@ -690,16 +691,15 @@ const ListingPage = () =>
 										<UserContext.Consumer>
 											{currentUser =>
 												currentUser ?
-													<>
+													<div>
 														Comment By: <Link to={`/profile/${encodeURIComponent(comment.user.id)}`}>
 															{comment.user.username}
 														</Link> on {comment.formattedDate}
-													</>
+													</div>
 													:
-													<>
+													<div>
 														Comment By: {comment.user.username} on {comment.formattedDate}
-													</>
-
+													</div>
 											}
 										</UserContext.Consumer>
 									</div>
@@ -799,7 +799,7 @@ const ListingPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ListingPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ListingPageProps>
 {
 	const [listing, characters, games, towns, friendCodes, currentUserEmojiSettings] = await Promise.all([
 		this.query('v1/trading_post/listing', { id: id }),
@@ -826,6 +826,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		currentUserEmojiSettings,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ListingPageProps = {
 	listing: ListingType

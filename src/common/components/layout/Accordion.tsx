@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import FontAwesomeIcon from '@/components/layout/FontAwesomeIcon.tsx';
 import { RequireClientJS } from '@behavior';
@@ -11,7 +11,7 @@ const AccordionItem = ({
 	onClick,
 }: AccordionItemProps) =>
 {
-	const contentHeight = useRef<any>();
+	const contentHeight = useRef<any>(null);
 
 	return(
 		<div className='AccordionItem'>

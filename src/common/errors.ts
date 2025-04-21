@@ -275,14 +275,6 @@ export const ERROR_MESSAGES = {
 		message: 'Please enter a message.',
 		code: 400,
 	},
-	'no-such-parent-node': {
-		message: 'We couldn’t find the post or thread you were trying to reply to. Head back to the previous page, reload it, and try again.',
-		code: 404,
-	},
-	'node-locked': {
-		message: 'This thread is locked.',
-		code: 400,
-	},
 
 	// Errors associated with features
 	'already-claimed': {
@@ -291,10 +283,6 @@ export const ERROR_MESSAGES = {
 	},
 
 	// Other
-	'missing-town-name': {
-		message: 'Please enter a name for your town.',
-		code: 400,
-	},
 	'too-many-pwps': {
 		message: 'You can’t have more than 30 Public Works Projects in your town.',
 		code: 400,
@@ -315,60 +303,12 @@ export const ERROR_MESSAGES = {
 		message: 'You have too many towns.',
 		code: 400,
 	},
-	'missing-character-name': {
-		message: 'Please enter a name for your character.',
-		code: 400,
-	},
-	'missing-town-tune-name': {
-		message: 'Please enter a name for your town tune.',
-		code: 400,
-	},
-	'missing-pattern-name': {
-		message: 'Please enter a name for your pattern.',
-		code: 400,
-	},
 	'pattern-published': {
 		message: 'This pattern is published and no longer allows editing.',
 		code: 403,
 	},
-	'missing-game-console-name': {
-		message: 'Please enter a game console name.',
-		code: 400,
-	},
-	'missing-game-name': {
-		message: 'Please enter a game name.',
-		code: 400,
-	},
-	'missing-game-short-name': {
-		message: 'Please enter a short game name.',
-		code: 400,
-	},
-	'missing-game-pattern': {
-		message: 'Please enter a pattern for this game’s friend code.',
-		code: 400,
-	},
-	'missing-game-placeholder': {
-		message: 'Please enter a placeholder for this game’s friend code.',
-		code: 400,
-	},
-	'missing-poll-question': {
-		message: 'Please enter a question for your poll.',
-		code: 400,
-	},
 	'max-buddies': {
 		message: 'You have reached the max number of buddies you may have.',
-		code: 400,
-	},
-	'missing-guide-name': {
-		message: 'Please enter a name for your guide.',
-		code: 400,
-	},
-	'missing-guide-description': {
-		message: 'Please enter a description for your guide.',
-		code: 400,
-	},
-	'missing-guide-content': {
-		message: 'Please enter content for your guide.',
 		code: 400,
 	},
 	'missing-hemisphere': {
@@ -583,13 +523,12 @@ export const ERROR_MESSAGES = {
 		code: 400,
 	},
 
-	// Test message. Do not use this in production
-	'test': {
-		message: 'This is a test error message.',
-		code: 418,
+	// PayPal
+	'paypal-error': {
+		message: 'Something went wrong with PayPal. Please let us know through our Site Support board or a Support Ticket.',
+		code: 400,
 	},
 };
-
 
 /**
  * Other kinds of error message, used in specific contexts:

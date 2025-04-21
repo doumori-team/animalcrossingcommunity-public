@@ -119,8 +119,8 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 		const listingOfferId = listingOffer.id;
 
 		await Promise.all([
-			updateItems.bind(this)(listingOfferId, gameId, items, quantities, query),
-			updateResidents.bind(this)(listingOfferId, residents, query),
+			updateItems(listingOfferId, gameId, items, quantities, query),
+			updateResidents(listingOfferId, residents, query),
 			db.query(`
 				UPDATE listing
 				SET last_updated = NOW()

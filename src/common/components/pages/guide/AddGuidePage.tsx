@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import EditGuide from '@/components/guide/EditGuide.tsx';
 import { Header, Section } from '@layout';
 import { APIThisType, ACGameType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddGuidePage = () =>
+export const action = routerUtils.formAction;
+
+const AddGuidePage = ({ loaderData }: { loaderData: AddGuidePageProps }) =>
 {
-	const { game } = useLoaderData() as AddGuidePageProps;
+	const { game } = loaderData;
 
 	return (
 		<div className='AddGuidePage'>
@@ -29,7 +29,7 @@ const AddGuidePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { gameId }: { gameId: string }): Promise<AddGuidePageProps>
+async function loadData(this: APIThisType, { gameId }: { gameId: string }): Promise<AddGuidePageProps>
 {
 	const [game] = await Promise.all([
 		this.query('v1/acgame', { id: gameId }),
@@ -37,6 +37,8 @@ export async function loadData(this: APIThisType, { gameId }: { gameId: string }
 
 	return { game };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddGuidePageProps = {
 	game: ACGameType

@@ -38,8 +38,7 @@ async function donations(this: APIThisType, { id }: donationsType): Promise<User
 		db.query(`
 			SELECT COALESCE(sum(donation), 0) AS donations
 			FROM user_donation
-			JOIN user_donation_identification ON (user_donation_identification.user_id = user_donation.user_id)
-			WHERE user_donation.user_id = $1::int AND donated >= now() - interval '32' day
+			WHERE user_donation.user_id = $1::int AND donated >= now() - interval '32' day AND monthly = true
 		`, id),
 	]);
 

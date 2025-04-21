@@ -1,15 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import { Form, Text } from '@form';
 import { Pagination, Header, Search, Section, Grid, InnerSection } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, SessionType } from '@types';
 
-const UserSessionPage = () =>
+export const action = routerUtils.formAction;
+
+const UserSessionPage = ({ loaderData }: { loaderData: UserSessionPageProps }) =>
 {
-	const { url, userSession, page, pageSize, totalCount } = useLoaderData() as UserSessionPageProps;
+	const { url, userSession, page, pageSize, totalCount } = loaderData;
 
 	const link = `
 		&url=${encodeURIComponent(url)}
@@ -71,7 +70,7 @@ const UserSessionPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }, { page, url }: { page?: string, url?: string }): Promise<UserSessionPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }, { page, url }: { page?: string, url?: string }): Promise<UserSessionPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/session/session', {
@@ -89,6 +88,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }, { page
 		url: returnValue.url,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserSessionPageProps = {
 	userSession: SessionType['results']

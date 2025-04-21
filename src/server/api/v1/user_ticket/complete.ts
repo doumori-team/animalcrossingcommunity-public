@@ -525,9 +525,9 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 				text: await getEmailText.bind(this)(id, banLengthId),
 			});
 		}
-		catch (error)
+		catch (error: any)
 		{
-			console.error(error);
+			console.error('accounts.emailUser error:', error);
 		}
 	}
 }
@@ -556,7 +556,7 @@ async function getEmailText(this: APIThisType, userTicketId: number, banLengthId
 	const vbnewline = '<br/>';
 
 	let memberNotes = `Hello ${userTicket.violator.username},${vbnewline}${vbnewline}`;
-	memberNotes += `This is to notify you that we have found activity on your account that is in violation of the <a href='${constants.SITE_URL}/guidelines'>ACC Site Guidelines</a>.${vbnewline}${vbnewline}`;
+	memberNotes += `This is to notify you that we have found activity on your account that is in violation of the <a href='${constants.SITE_URL}/guidelines'>ACC Community Guidelines</a>.${vbnewline}${vbnewline}`;
 
 	if (userTicket.reference.text || userTicket.reference.url)
 	{
@@ -638,10 +638,10 @@ complete.apiTypes = {
 type completeProps = {
 	id: number
 	ruleId: number
-	violationId: number | null
+	violationId: number
 	actionId: number
 	updatedContent: string
-	boardId: number | null
+	boardId: number
 	banLengthId: number
 };
 

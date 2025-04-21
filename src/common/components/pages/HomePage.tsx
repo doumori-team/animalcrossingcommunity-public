@@ -1,16 +1,210 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { ContentBox, ErrorMessage, Markup, PhotoGallery } from '@layout';
 import Poll from '@/components/admin/Poll.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { UserContext } from '@contexts';
 import { APIThisType, HomePollsType, CalendarType, AnnouncementsType, BirthdaysType } from '@types';
 
-const HomePage = () =>
+export const action = routerUtils.formAction;
+
+const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 {
-	const { polls, game, month, announcements, birthdays } = useLoaderData() as HomePageProps;
+	const { polls, calendars, announcements, birthdays, consolidateCalendars } = loaderData;
+
+	const ConsolidatedCalendars = () =>
+	{
+		const events = calendars.flatMap((cal: CalendarType) =>
+		{
+			const [month, ..._] = cal.months;
+			const relevant = month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'events').flatMap((cat: CalendarType['months']['categories']) => cat.events);
+			return relevant.map((ev: CalendarType['months']['categories']['events']) => ({ game: cal.game, month, event: ev, img: `${constants.AWS_URL}/images/games/${utils.getIconDirectoryFromGameID(cal.game.id)}/town_game_icon.png` }));
+		}).sort((a, b) => new Date(a.event.sortDate).getTime() - new Date(b.event.sortDate).getTime()) ?? [];
+
+		const creatures = calendars.filter((cal: CalendarType) =>
+		{
+			const [month, ..._] = cal.months;
+			const catchables = month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'creatures');
+			return catchables && catchables.length > 0;
+		}).map((cal: CalendarType) =>
+		{
+			const [month, ..._] = cal.months;
+			const relevant = month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'creatures').flatMap((cat: CalendarType['months']['categories']) => cat.events);
+			return { game: cal.game, creatures: relevant, month };
+		}) ?? [];
+
+		const birthdays = (() =>
+		{
+			const seen = new Set<string>();
+			return calendars.flatMap((cal: CalendarType) =>
+			{
+				const [month, ..._] = cal.months;
+				return month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'birthdays').flatMap((cat: CalendarType['months']['categories']) => cat.events);
+			}).filter((event) =>
+			{
+				const key = `${event.name}-${event.timing}`;
+				if (seen.has(key))
+				{
+					return false;
+				}
+				seen.add(key);
+				return true;
+			}).sort((a, b) => new Date(a.sortDate).getTime() - new Date(b.sortDate).getTime());
+		})() ?? [];
+
+		return <div className='HomePage_eventGameSection HomePage_eventGameSection_consolidated'>
+			{events.length > 0 || creatures.length > 0 || birthdays.length > 0 ?
+				<div className='HomePage_categorySections'>
+					{
+						events.length > 0 && <div className='HomePage_categorySection'>
+							<div className='HomePage_categoryName'>
+								Upcoming Seasons & Events
+							</div>
+							<div className='HomePage_eventSections'>
+								{events.map((event, index) =>
+								{
+									return (
+										<div key={index} className='HomePage_eventSection_consolidatedEventContainer'>
+											<Link to={`/calendar?gameId=${encodeURIComponent(event.game.id)}&month=${encodeURIComponent(event.month.id)}&year=${encodeURIComponent(event.month.year)}`}>
+												<img
+													src={event.img}
+													alt={event.game.name}
+												/>
+											</Link>
+											<div className='HomePage_eventSection' key={index}>
+												<div className='HomePage_eventName'>
+													{event.event.name}
+												</div>
+
+												<div className='HomePage_timing'>
+													{event.event.timing}
+												</div>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					}
+					{
+						creatures.length > 0 && <div className='HomePage_categorySection'>
+							<div className='HomePage_categoryName'>
+								Fish, Bugs & Sea Creatures
+							</div>
+							<div className='HomePage_eventSections'>
+								{creatures.map((entry, index) =>
+								{
+									return (
+										<div key={index}>
+											<div className='HomePage_eventSections_consolidatedCreaturesHeader'>
+												<Link to={`/calendar?gameId=${encodeURIComponent(entry.game.id)}&month=${encodeURIComponent(entry.month.id)}&year=${encodeURIComponent(entry.month.year)}`}>
+													{entry.game.name}
+												</Link>
+											</div>
+											{entry.creatures.map((creature: any, index: number) =>
+											{
+												return (
+													<img
+														src={creature.img}
+														title={`${utils.capitalize(creature.name)}: ${creature.timing}`}
+														alt={`${utils.capitalize(creature.name)}: ${creature.timing}`}
+														key={`cr_${index}`}
+													/>
+												);
+											})}
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					}
+					{
+						birthdays.length > 0 && <div className='HomePage_categorySection'>
+							<div className='HomePage_categoryName'>
+								Villager Birthdays
+							</div>
+							<div className={'HomePage_eventSections grid'}>
+								{birthdays.map((birthday, index) =>
+								{
+									return (
+										<div className='HomePage_eventSection' key={index}>
+											<div className='HomePage_eventName'>
+												{birthday.name}
+											</div>
+
+											<div className='HomePage_timing'>
+												{birthday.timing}
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					}
+				</div> : 'Nothing found.'}
+		</div>;
+	};
+
+	const SeparateCalendars = () => <>
+		{
+			calendars.map((calendar: CalendarType) =>
+			{
+				const game: CalendarType['game'] = calendar.game;
+				const [month, ..._] = calendar.months;
+				return <div className='HomePage_eventGameSection' key={game.id}>
+					<div className='HomePage_gameName'>
+						<Link to={`/calendar?gameId=${encodeURIComponent(game.id)}&month=${encodeURIComponent(month.id)}&year=${encodeURIComponent(month.year)}`}>
+							Upcoming In {game.name}
+						</Link>
+					</div>
+
+					<div className='HomePage_categorySections'>
+						{month.categories.map((category: CalendarType['months']['categories'], index: number) =>
+							<div className='HomePage_categorySection' key={index}>
+								<div className='HomePage_categoryName'>
+									{category.name}
+								</div>
+
+								{category.events.length > 0 ?
+									<div className={`HomePage_eventSections ${category.identifier === constants.calendarCategories.birthdays && 'grid'}`}>
+										{category.events.map((event: CalendarType['months']['categories']['events'], index: number) =>
+										{
+											if (Object.prototype.hasOwnProperty.call(event, 'img'))
+											{
+												return (
+													<img
+														src={event.img}
+														title={`${utils.capitalize(event.name)}: ${event.timing}`}
+														alt={`${utils.capitalize(event.name)}: ${event.timing}`}
+														key={index}
+													/>
+												);
+											}
+
+											return (
+												<div className='HomePage_eventSection' key={index}>
+													<div className='HomePage_eventName'>
+														{event.name}
+													</div>
+
+													<div className='HomePage_timing'>
+														{event.timing}
+													</div>
+												</div>
+											);
+										})}
+									</div>
+									:
+									'Nothing found.'
+								}
+							</div>,
+						)}
+					</div>
+				</div>;
+			})
+		}
+	</>;
 
 	return (
 		<div className='HomePage'>
@@ -162,56 +356,7 @@ const HomePage = () =>
 								<div className='HomePage_title'>
 									AC Events
 								</div>
-								<div className='HomePage_eventGameSection'>
-									<div className='HomePage_gameName'>
-										<Link to={`/calendar?gameId=${encodeURIComponent(game.id)}&month=${encodeURIComponent(month.id)}&year=${encodeURIComponent(month.year)}`}>
-											Upcoming In {game.name}
-										</Link>
-									</div>
-
-									<div className='HomePage_categorySections'>
-										{month.categories.map((category: CalendarType['months']['categories'], index: number) =>
-											<div className='HomePage_categorySection' key={index}>
-												<div className='HomePage_categoryName'>
-													{category.name}
-												</div>
-
-												{category.events.length > 0 ?
-													<div className={`HomePage_eventSections ${category.identifier === constants.calendarCategories.birthdays && 'grid'}`}>
-														{category.events.map((event: CalendarType['months']['categories']['events'], index: number) =>
-														{
-															if (Object.prototype.hasOwnProperty.call(event, 'img'))
-															{
-																return (
-																	<img
-																		src={event.img}
-																		title={`${utils.capitalize(event.name)}: ${event.timing}`}
-																		alt={`${utils.capitalize(event.name)}: ${event.timing}`}
-																		key={index}
-																	/>
-																);
-															}
-
-															return (
-																<div className='HomePage_eventSection' key={index}>
-																	<div className='HomePage_eventName'>
-																		{event.name}
-																	</div>
-
-																	<div className='HomePage_timing'>
-																		{event.timing}
-																	</div>
-																</div>
-															);
-														})}
-													</div>
-													:
-													'Nothing found.'
-												}
-											</div>,
-										)}
-									</div>
-								</div>
+								{consolidateCalendars ? <ConsolidatedCalendars/> : <SeparateCalendars />}
 							</div>
 						</ContentBox>
 					</RequirePermission>
@@ -221,30 +366,33 @@ const HomePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { debug }: { debug?: string }): Promise<HomePageProps>
+async function loadData(this: APIThisType, _: any, { debug }: { debug?: string }): Promise<HomePageProps>
 {
-	const [polls, returnValue, announcements, birthdays] = await Promise.all([
+	const [polls, calendars, announcements, birthdays, settings] = await Promise.all([
 		this.query('v1/home_polls'),
-		this.query('v1/acgame/calendar', { requester: 'homepage', debug: debug }),
+		this.query('v1/acgame/calendar_multi', { requester: 'homepage', debug: debug }),
 		this.query('v1/node/announcements'),
 		this.query('v1/birthdays'),
+		this.userId ? this.query('v1/settings/account') : null,
 	]);
 
 	return {
 		polls: polls,
-		game: returnValue.game,
-		month: returnValue.months.shift(),
+		calendars: calendars,
 		announcements: announcements,
 		birthdays: birthdays,
+		consolidateCalendars: settings ? settings.consolidateCalendars : false,
 	};
 }
 
+export const loader = routerUtils.wrapLoader(loadData);
+
 type HomePageProps = {
 	polls: HomePollsType
-	game: CalendarType['game']
-	month: CalendarType['months']
+	calendars: CalendarType[]
 	announcements: AnnouncementsType[]
 	birthdays: BirthdaysType[]
+	consolidateCalendars: boolean
 };
 
 export default HomePage;

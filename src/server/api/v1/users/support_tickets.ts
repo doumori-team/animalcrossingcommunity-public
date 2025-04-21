@@ -9,8 +9,6 @@ export default async function support_tickets(this: APIThisType): Promise<Suppor
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	// Only get STs that aren't staff only
 	const tickets = await db.query(`
 		SELECT id

@@ -10,8 +10,6 @@ async function clear(this: APIThisType, { notificationIds }: clearProps): Promis
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	notificationIds = await Promise.all(notificationIds.map(async (id) =>
 	{
 		const [notification] = await db.query(`

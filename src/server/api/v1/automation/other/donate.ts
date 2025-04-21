@@ -44,13 +44,11 @@ async function donate(this: APIThisType, { donateAction, amount }: donateProps):
 
 		return {
 			_success: `You have donated ${amount.toLocaleString()}, bringing your total to ${updatedUser.donations}!`,
-			_callbackFirst: true,
 		};
 	}
 
 	return {
 		_success: `Your donations has been changed to have been donated more then 1 year ago.`,
-		_callbackFirst: true,
 	};
 }
 

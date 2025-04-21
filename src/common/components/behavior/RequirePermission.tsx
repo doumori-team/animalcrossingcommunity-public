@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import { ErrorMessage } from '@layout';
 import { PermissionsContext } from '@contexts';
@@ -38,7 +38,7 @@ const RequirePermission = ({
 type RequirePermissionProps = {
 	permission: string
 	silent?: boolean
-	children: React.ReactNode
+	children: ReactNode
 };
 
 export default RequirePermission;

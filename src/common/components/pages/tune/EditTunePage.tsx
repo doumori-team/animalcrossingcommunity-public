@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditTune from '@/components/tunes/EditTune.tsx';
 import { Header, Section } from '@layout';
 import { APIThisType, TuneType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditTunePage = () =>
+export const action = routerUtils.formAction;
+
+const EditTunePage = ({ loaderData }: { loaderData: EditTunePageProps }) =>
 {
-	const { tune } = useLoaderData() as EditTunePageProps;
+	const { tune } = loaderData;
 
 	return (
 		<div className='EditTunePage'>
@@ -23,7 +23,7 @@ const EditTunePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditTunePageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditTunePageProps>
 {
 	const [tune] = await Promise.all([
 		this.query('v1/tune', { id: id }),
@@ -31,6 +31,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { tune };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditTunePageProps = {
 	tune: TuneType

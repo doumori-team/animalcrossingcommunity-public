@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { ContentBox } from '@layout';
 import { UserContext } from '@contexts';
 import { APIThisType, UserType, UserGroupType } from '@types';
 
-const StaffPage = () =>
+export const action = routerUtils.formAction;
+
+const StaffPage = ({ loaderData }: { loaderData: StaffPageProps }) =>
 {
 	const { admins, mods, researchers, devs, scouts, devTL,
-		researcherTL, userGroups } = useLoaderData() as StaffPageProps;
+		researcherTL, userGroups } = loaderData;
 
 	const format = (user: UserType): any =>
 	{
@@ -107,7 +108,7 @@ const StaffPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<StaffPageProps>
+async function loadData(this: APIThisType): Promise<StaffPageProps>
 {
 	const [admins, mods, researchers, devs, scouts, devTL, researcherTL,
 		userGroups] = await Promise.all([
@@ -123,6 +124,8 @@ export async function loadData(this: APIThisType): Promise<StaffPageProps>
 
 	return { admins, mods, researchers, devs, scouts, devTL, researcherTL, userGroups };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type StaffPageProps = {
 	admins: UserType[]

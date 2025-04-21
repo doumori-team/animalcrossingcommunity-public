@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { PatternType, TownType } from '@types';
@@ -46,6 +45,7 @@ const Pattern = ({
 		{
 			return CONTEXT.TOWN;
 		}
+
 		return CONTEXT.NONE;
 	};
 
@@ -70,6 +70,7 @@ const Pattern = ({
 		{
 			return 'Town flag: ';
 		}
+
 		return '';
 	};
 
@@ -91,15 +92,17 @@ const Pattern = ({
 									id={pattern.id}
 									label='Delete'
 									message='Are you sure you want to delete this pattern?'
+									formId={`pattern-destroy-${pattern.id}`}
 								/>
 							}
 						</RequireUser>
 						<RequireUser silent>
-							{pattern.isFavorite != null &&
+							{pattern.isFavorite !== null &&
 								<Form
 									action='v1/pattern/favorite'
 									showButton
 									buttonText={pattern.isFavorite ? 'Remove Favorite' : 'Favorite'}
+									formId={`pattern-favorite-${pattern.id}`}
 								>
 									<input type='hidden' name='patternId' value={pattern.id} />
 								</Form>
@@ -128,6 +131,7 @@ const Pattern = ({
 							id={townId}
 							label={pattern.gameId === constants.gameIds.ACGC ? 'Remove From Island' : 'Remove From Town'}
 							message='Are you sure you want to remove the pattern from this town?'
+							formId={`town-pattern-destroy-${pattern.id}`}
 						/>
 					</RequireUser>
 				}
@@ -140,6 +144,7 @@ const Pattern = ({
 							id={characterId}
 							label={pattern.gameId === constants.gameIds.ACGC ? 'Remove From Door' : 'Remove From Flagpole'}
 							message={`Are you sure you want to remove the pattern from this character?`}
+							formId={`character-pattern-destroy-${pattern.id}`}
 						/>
 					</RequireUser>
 				}
@@ -154,7 +159,7 @@ const Pattern = ({
 
 				<div className='Pattern_column'>
 					<h1 className='Pattern_name'>
-						<div>
+						<div className='Pattern_nameAlignment'>
 							<ReportProblem type={pattern.id ? constants.userTicket.types.pattern : constants.userTicket.types.townFlag} id={pattern.id ? pattern.id : Number(townId || 0)} />
 							{pattern.id ?
 								<Link to={`/pattern/${encodedId}`}>{prefix()}{pattern.name}</Link>

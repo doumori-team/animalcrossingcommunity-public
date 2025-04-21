@@ -32,7 +32,7 @@ async function consent_denied(this: APIThisType, { id }: consentDeniedProps): Pr
 		throw new UserError('bad-format');
 	}
 
-	await accounts.deleteUser(user.user_id);
+	accounts.deleteUser(user.user_id);
 
 	await db.query(`
 		INSERT INTO consent_log (user_id, action_id)

@@ -1,6 +1,4 @@
-import React from 'react';
-
-import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json';
 import { constants } from '@utils';
 import { EmojiSettingType, ElementClickButtonType } from '@types';
 

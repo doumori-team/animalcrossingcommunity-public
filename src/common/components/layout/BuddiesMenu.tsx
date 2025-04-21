@@ -1,12 +1,12 @@
-import React, { forwardRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Ref } from 'react';
+import { Link } from 'react-router';
 
 import Navbar from '@/components/layout/Navbar.tsx';
 import { Button } from '@form';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { BuddiesType, ClickHandlerButtonType } from '@types';
 
-const BuddiesMenu = forwardRef<HTMLElement, BuddiesMenuProps>(({ dynamic, closeFunc, buddies }, ref) =>
+const BuddiesMenu = ({ dynamic, closeFunc, buddies, ref }: BuddiesMenuProps) =>
 {
 	let className = 'BuddiesMenu';
 
@@ -53,13 +53,15 @@ const BuddiesMenu = forwardRef<HTMLElement, BuddiesMenuProps>(({ dynamic, closeF
 			</ul>
 		</nav>
 	);
-});
+};
+
 BuddiesMenu.displayName = 'BuddiesMenu';
 
 type BuddiesMenuProps = {
 	dynamic: boolean
 	closeFunc: ClickHandlerButtonType
 	buddies: BuddiesType
+	ref: Ref<HTMLElement>
 };
 
 export default BuddiesMenu;

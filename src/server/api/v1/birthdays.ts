@@ -22,7 +22,7 @@ export default async function birthdays(this: APIThisType): Promise<BirthdaysTyp
 	}
 	catch (error)
 	{
-		console.error(error);
+		console.error('GET Birthdays Error:', error);
 	}
 
 	return [];

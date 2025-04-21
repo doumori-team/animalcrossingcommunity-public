@@ -19,7 +19,7 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 
 	if (
 		utils.realStringLength(username) > 0 ||
-		userTicketId != null && userTicketId > 0 ||
+		userTicketId > 0 ||
 		utils.realStringLength(status) > 0
 	)
 	{
@@ -42,7 +42,7 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 			`;
 		}
 
-		if (userTicketId != null && userTicketId > 0)
+		if (userTicketId > 0)
 		{
 			query += `
 				JOIN user_ticket ON (user_ticket.id = support_ticket.user_ticket_id)
@@ -61,7 +61,7 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 			wheres.push(`LOWER(user_account_cache.username) = LOWER($` + paramIndex + `)`);
 		}
 
-		if (userTicketId != null && userTicketId > 0)
+		if (userTicketId > 0)
 		{
 			params[paramIndex] = userTicketId;
 
@@ -151,7 +151,7 @@ support_tickets.apiTypes = {
 type supportTicketsProps = {
 	page: number
 	username: string
-	userTicketId: number | null
+	userTicketId: number
 	status: string
 };
 

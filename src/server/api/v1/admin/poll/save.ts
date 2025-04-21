@@ -15,7 +15,7 @@ async function save(this: APIThisType, { id, question, description, startDate, d
 	}
 
 	// Check parameters
-	if (id != null && id > 0)
+	if (id > 0)
 	{
 		const [checkId] = await db.query(`
 			SELECT now() > poll.start_date + poll.duration AS expired
@@ -43,7 +43,7 @@ async function save(this: APIThisType, { id, question, description, startDate, d
 
 		let newOption = String(option);
 
-		await this.query('v1/profanity/check', { text: newOption });
+		await db.profanityCheck(newOption);
 
 		return newOption;
 	}));
@@ -58,7 +58,7 @@ async function save(this: APIThisType, { id, question, description, startDate, d
 	// Perform queries
 	const pollResult = await db.transaction(async (query: any) =>
 	{
-		if (id != null && id > 0)
+		if (id > 0)
 		{
 			const [pollResult] = await query(`
 				UPDATE poll
@@ -140,7 +140,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-poll-question',
 		length: constants.max.pollQuestion,
 		profanity: true,
 	},
@@ -176,7 +175,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	question: string
 	description: string
 	startDate: string

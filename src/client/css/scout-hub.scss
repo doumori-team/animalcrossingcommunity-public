@@ -1,3 +1,6 @@
+@use "mixins";
+@use "forms";
+
 // hide breadcrumb to forums
 .ScoutThreadBanner + .Node > .Node_main {
 	display: none;
@@ -6,8 +9,8 @@
 .ScoutHubPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 
 			.ScoutHubPage_thread {
@@ -27,8 +30,8 @@
 .NewMembersPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 		}
 	}
@@ -48,8 +51,8 @@
 .ReassignPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 		}
 	}
@@ -58,8 +61,8 @@
 .AdoptionThreadSettingsPage {
 	.Section {
 		.AdoptionThreadSettingsPage_addUserOptions {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 		}
 	}
@@ -74,8 +77,8 @@
 
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 		}
 	}

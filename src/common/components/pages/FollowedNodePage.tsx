@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import Node from '@/components/nodes/Node.tsx';
 import { Header, Grid, Pagination } from '@layout';
 import { APIThisType, FollowedNodesType } from '@types';
+import { routerUtils } from '@utils';
 
-const FollowedNodePage = () =>
+export const action = routerUtils.formAction;
+
+const FollowedNodePage = ({ loaderData }: { loaderData: FollowedNodePageProps }) =>
 {
-	const { nodes, type, page, pageSize, totalCount } = useLoaderData() as FollowedNodePageProps;
+	const { nodes, type, page, pageSize, totalCount } = loaderData;
 
 	return (
 		<RequireUser>
@@ -34,7 +34,7 @@ const FollowedNodePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { type }: { type: string }, { page }: { page?: string }): Promise<FollowedNodePageProps>
+async function loadData(this: APIThisType, { type }: { type: string }, { page }: { page?: string }): Promise<FollowedNodePageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/node/followed', { type: type, page: page ? page : 1 }),
@@ -48,6 +48,8 @@ export async function loadData(this: APIThisType, { type }: { type: string }, { 
 		totalCount: returnValue.totalCount,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type FollowedNodePageProps = {
 	type: FollowedNodesType['type']

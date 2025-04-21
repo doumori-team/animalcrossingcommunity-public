@@ -8,10 +8,6 @@ export default async function users(this: APIThisType): Promise<UserLiteType[]>
 		return [];
 	}
 
-	// Check paramters
-	await this.query('v1/user_lite', { id: this.userId });
-
-	// Perform queries
 	const users = await db.query(`
 		SELECT block_user.block_user_id
 		FROM block_user

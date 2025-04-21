@@ -64,7 +64,8 @@ async function user(this: APIThisType, { id, username }: userProps): Promise<Use
 				away_start_date,
 				away_end_date,
 				user_title,
-				show_images
+				show_images,
+				consolidate_calendars
 			FROM users
 			WHERE users.id = $1::int
 		`, accountData.id),
@@ -125,6 +126,7 @@ async function user(this: APIThisType, { id, username }: userProps): Promise<Use
 		signatureFormat: profileInfo.signature_format,
 		userTitle: profileInfo.user_title,
 		showImages: profileInfo.show_images,
+		consolidateCalendars: profileInfo.consolidate_calendars,
 		avatar,
 		group,
 		bells: totalBells.toLocaleString(),

@@ -2,12 +2,12 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, UserType, MarkupStyleType } from '@types';
+import { APIThisType, UserType, MarkupStyleType, SuccessType } from '@types';
 
 /*
  * Save scout settings.
  */
-async function save(this: APIThisType, { welcomeTemplate, closingTemplate, welcomeTemplateFormat, closingTemplateFormat }: saveProps): Promise<void>
+async function save(this: APIThisType, { welcomeTemplate, closingTemplate, welcomeTemplateFormat, closingTemplateFormat }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -27,6 +27,10 @@ async function save(this: APIThisType, { welcomeTemplate, closingTemplate, welco
 		ON CONFLICT (scout_id) DO 
 			UPDATE SET welcome_template = $2, closing_template = $3, welcome_template_format = $4, closing_template_format = $5
 	`, user.id, welcomeTemplate, closingTemplate, welcomeTemplateFormat, closingTemplateFormat);
+
+	return {
+		_success: `Your Scout Settings have been updated.`,
+	};
 }
 
 save.apiTypes = {

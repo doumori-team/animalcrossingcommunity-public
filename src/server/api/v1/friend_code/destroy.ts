@@ -13,7 +13,7 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 	}
 
 	// Check parameters
-	let [friendCode] = await db.query(`
+	const [friendCode] = await db.query(`
 		SELECT user_id
 		FROM friend_code
 		WHERE id = $1::int
@@ -24,8 +24,7 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		throw new UserError('no-such-friend_code');
 	}
 
-	// Check permission
-	if (friendCode.user_id != this.userId)
+	if (friendCode.user_id !== this.userId)
 	{
 		throw new UserError('permission');
 	}
@@ -33,7 +32,7 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 	// Delete from any trades
 	await db.transaction(async (query: any) =>
 	{
-		let [friendCodeCharacter] = await query(`
+		const [friendCodeCharacter] = await query(`
 			SELECT character_id
 			FROM friend_code_character
 			WHERE friend_code_id = $1::int

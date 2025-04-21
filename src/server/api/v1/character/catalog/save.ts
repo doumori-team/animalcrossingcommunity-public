@@ -3,9 +3,9 @@ import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { ACCCache } from '@cache';
-import { APIThisType, ACGameItemType } from '@types';
+import { APIThisType, ACGameItemType, SuccessType } from '@types';
 
-async function save(this: APIThisType, { characterId, inventory, wishlist, museum, remove }: saveProps): Promise<void>
+async function save(this: APIThisType, { characterId, inventory, wishlist, museum, remove }: saveProps): Promise<SuccessType>
 {
 	const permissionGranted = await this.query('v1/permission', { permission: 'modify-towns' });
 
@@ -14,22 +14,26 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		throw new UserError('permission');
 	}
 
+	if (!this.userId)
+	{
+		throw new UserError('login-needed');
+	}
+
+	// Check parameters
 	const [character] = await db.query(`
-		SELECT character.id, town.user_id, town.game_id
+		SELECT town.user_id, town.game_id
 		FROM character
 		JOIN town ON (town.id = character.town_id)
 		WHERE character.id = $1::int
 	`, characterId);
 
-	if (character.user_id != this.userId)
+	if (character.user_id !== this.userId)
 	{
 		throw new UserError('permission');
 	}
 
-	// all items in game
 	const catalogItems: ACGameItemType[number]['all']['items'] = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${character.game_id}_all_items`);
 
-	// Check inventory
 	inventory = await Promise.all(inventory.map(async (id) =>
 	{
 		if (!catalogItems.find(item => item.id === id))
@@ -40,7 +44,6 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		return String(id).trim();
 	}));
 
-	// Check wishlist
 	wishlist = await Promise.all(wishlist.map(async (id) =>
 	{
 		if (!catalogItems.find(item => item.id === id))
@@ -51,7 +54,6 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		return String(id).trim();
 	}));
 
-	// Check museum
 	museum = await Promise.all(museum.map(async (id) =>
 	{
 		if (!catalogItems.find(item => item.id === id))
@@ -62,7 +64,6 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		return String(id).trim();
 	}));
 
-	// Check remove
 	remove = await Promise.all(remove.map(async (id) =>
 	{
 		if (!catalogItems.find(item => item.id === id))
@@ -73,15 +74,18 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		return String(id).trim();
 	}));
 
-	// Run sql
+	// Perform queries
 	if (wishlist.length > 0 || inventory.length > 0 || museum.length > 0 || remove.length > 0)
 	{
-		// Other area validations
 		await Promise.all([
-			updateItems.bind(this)(characterId, inventory, wishlist, museum),
-			removeInventory.bind(this)(characterId, remove),
+			updateItems(characterId, inventory, wishlist, museum),
+			removeInventory(characterId, remove),
 		]);
 	}
+
+	return {
+		_success: `Your catalog has been updated.`,
+	};
 }
 
 async function updateItems(characterId: number, inventory: any[], wishlist: any[], museum: any[]): Promise<void>

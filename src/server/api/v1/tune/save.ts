@@ -22,7 +22,7 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 	}
 
 	// Check parameters
-	if (townId != null && townId > 0)
+	if (townId > 0)
 	{
 		const [town] = await db.query(`
 			SELECT town.user_id
@@ -92,7 +92,7 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 		id = newTune.id;
 	}
 
-	if (townId != null && townId > 0)
+	if (townId > 0)
 	{
 		await db.query(`
 			UPDATE town
@@ -119,7 +119,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-town-tune-name',
 		length: constants.max.tuneName,
 		profanity: true,
 	},
@@ -127,7 +126,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	townId: number | null
+	townId: number
 	id: number | null
 	tuneName: string
 	noteId0: string

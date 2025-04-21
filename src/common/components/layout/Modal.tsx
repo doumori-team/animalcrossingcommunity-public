@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import { RequireClientJS } from '@behavior';
 import { Button, Form } from '@form';
@@ -14,11 +14,32 @@ const Modal = ({
 	submitButtonImage,
 	submitButtonImageTitle,
 	updateFunction,
+	formId,
 }: ModalProps) =>
 {
 	const [show, setShow] = useState<boolean>(false);
+	const [image, setImage] = useState<ModalProps['submitButtonImage']>(submitButtonImage);
+	const [imageTimeout, setImageTimeout] = useState<number | null>(null);
 
-	const renderSubmitButton = (jsFallback?: React.ReactNode): React.ReactNode =>
+	const updateImage = (newImage: string) =>
+	{
+		if (imageTimeout)
+		{
+			window.clearTimeout(imageTimeout);
+		}
+
+		setImage(newImage);
+
+		const newImageTimeout = window.setTimeout(() =>
+		{
+			setImage(submitButtonImage);
+			setImageTimeout(null);
+		}, 10 * 1000);
+
+		setImageTimeout(newImageTimeout);
+	};
+
+	const renderSubmitButton = (jsFallback?: ReactNode): ReactNode =>
 	{
 		if (!jsFallback && submitButtonImage)
 		{
@@ -29,6 +50,8 @@ const Modal = ({
 					showButton
 					buttonText={submitButtonLabel}
 					buttonClickHandler={() => setShow(false)}
+					updateFunction={(data: any) => updateImage(data._successImage)}
+					formId={formId}
 				>
 					{submitButtonBody}
 				</Form>
@@ -45,6 +68,7 @@ const Modal = ({
 				defaultSubmitImage={submitButtonImage}
 				imageTitle={submitButtonImageTitle}
 				updateFunction={updateFunction}
+				formId={formId}
 			>
 				{submitButtonBody}
 			</Form>
@@ -75,7 +99,7 @@ const Modal = ({
 			<Button
 				label={openButtonLabel}
 				title={openButtonLabel}
-				image={submitButtonImage}
+				image={image}
 				className='Modal_button'
 				clickHandler={() => setShow(true)}
 			/>
@@ -88,12 +112,13 @@ type ModalProps = {
 	submitButtonAction: string
 	submitButtonCallback?: string
 	submitButtonLabel: string
-	submitButtonBody?: React.ReactNode
+	submitButtonBody?: ReactNode
 	openButtonLabel: string
 	submitButtonImage?: string
 	submitButtonImageTitle?: string
 	updateFunction?: Function
 	children: any
+	formId?: string
 };
 
 export default Modal;

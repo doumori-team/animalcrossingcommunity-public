@@ -6,14 +6,14 @@ import { MarkupFormatType, MarkupStyleType } from '../markupFormatType.ts';
 // based on v1/node/full.ts
 type NodeType = {
 	id: number
-	type: string
+	type: 'board' | 'thread' | 'post'
 	parentId: number
 	revisionId: number
 	title: string
 	created: string
 	formattedCreated: string
 	locked: boolean
-	threadType: string
+	threadType: 'normal' | 'sticky' | 'admin'
 	edits: number
 	followed: boolean
 	numFollowed: number

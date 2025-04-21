@@ -1,7 +1,7 @@
-import React from 'react';
-import { Link, useAsyncValue } from 'react-router-dom';
+import { use } from 'react';
+import { Link, Params } from 'react-router';
 
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { RequireUser } from '@behavior';
 import Listing from '@/components/trading_post/Listing.tsx';
 import Offer from '@/components/trading_post/Offer.tsx';
@@ -9,10 +9,15 @@ import { UserContext } from '@contexts';
 import { Header, Section, Grid, Pagination } from '@layout';
 import { APIThisType, UserListingsType, UserOffersType, ListingType } from '@types';
 
-const UserListingPage = () =>
+export const action = routerUtils.formAction;
+
+const UserListingPage = ({ loaderData, params }: { loaderData: Promise<UserListingPageProps>, params: Params }) =>
 {
-	const { listings, offers, selectedUserId, totalListingsCount, listingsPage,
-		listingsPageSize, totalOffersCount, offersPage, offersPageSize } = getData(useAsyncValue()) as UserListingPageProps;
+	const { listings, offers, totalListingsCount, listingsPage,
+		listingsPageSize, totalOffersCount, offersPage, offersPageSize } = getData(use(loaderData));
+
+	const { userId } = params;
+	const selectedUserId = Number(userId);
 
 	const link = `trading-post/${encodeURIComponent(selectedUserId)}/all`;
 
@@ -113,14 +118,13 @@ const UserListingPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId }: { userId: string }, { listingsPage, offersPage }: { listingsPage?: string, offersPage?: string }): Promise<any>
+async function loadData(this: APIThisType, { userId }: { userId: string }, { listingsPage, offersPage }: { listingsPage?: string, offersPage?: string }): Promise<any>
 {
 	const selectedUserId = Number(userId);
 
 	return Promise.all([
 		this.query('v1/users/listings', { id: selectedUserId, page: listingsPage ? listingsPage : 1 }),
 		this.query('v1/users/offers', { id: selectedUserId, page: offersPage ? offersPage : 1 }),
-		selectedUserId,
 	]);
 }
 
@@ -141,6 +145,8 @@ function getData(data: any): UserListingPageProps
 	};
 }
 
+export const loader = routerUtils.deferLoader(loadData);
+
 type UserListingPageProps = {
 	selectedUserId: number
 	listings: UserListingsType['results']
@@ -153,4 +159,4 @@ type UserListingPageProps = {
 	offersPageSize: UserOffersType['pageSize']
 };
 
-export default UserListingPage;
+export default routerUtils.LoadingFunction(UserListingPage);

@@ -7,7 +7,7 @@ import { APIThisType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { email, showBirthday, showAge, awayStartDate, awayEndDate,
 	showEmail, emailNotifications, showStaff, shopDNC, southernHemisphere,
-	stayForever }: saveProps): Promise<SuccessType>
+	stayForever, consolidateCalendars }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -55,9 +55,10 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 				email_notifications = $7,
 				show_staff = $8,
 				southern_hemisphere = $9,
-				stay_forever = $10
+				stay_forever = $10,
+				consolidate_calendars = $11
 			WHERE id = $1::int
-		`, account.id, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications, showStaff, southernHemisphere, stayForever),
+		`, account.id, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications, showStaff, southernHemisphere, stayForever, consolidateCalendars),
 		db.query(`
 			DELETE FROM shop_dnc
 			WHERE user_id = $1
@@ -82,9 +83,9 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 				text: getEmailText(account.username, email, account.email),
 			});
 		}
-		catch (error)
+		catch (error: any)
 		{
-			console.error(error);
+			console.error('accounts.emailUser error:', error);
 		}
 
 		return {
@@ -94,7 +95,6 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 
 	return {
 		_success: 'Your account settings have been updated.',
-		_callbackFirst: true,
 	};
 }
 
@@ -159,6 +159,10 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
+	consolidateCalendars: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
 };
 
 type saveProps = {
@@ -173,6 +177,7 @@ type saveProps = {
 	shopDNC: boolean
 	southernHemisphere: boolean
 	stayForever: boolean
+	consolidateCalendars: boolean
 };
 
 export default save;

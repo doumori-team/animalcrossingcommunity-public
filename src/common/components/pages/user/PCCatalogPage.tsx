@@ -1,15 +1,17 @@
-import React from 'react';
-import { useAsyncValue, useParams, useLocation } from 'react-router-dom';
+import { use } from 'react';
+import { useLocation, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import Catalog from '@/components/users/Catalog.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { LocationType, UserCatalogCategoryType, APIThisType, CatalogItemsType, GroupItemType } from '@types';
 
-const PCCatalogPage = () =>
+export const action = routerUtils.formAction;
+
+const PCCatalogPage = ({ loaderData, params }: { loaderData: Promise<PCCatalogPageProps>, params: Params }) =>
 {
-	const { catalogItems, catalog, catalogCategories } = getData(useAsyncValue()) as PCCatalogPageProps;
-	let { userId } = useParams();
+	const { catalogItems, catalog, catalogCategories } = getData(use(loaderData));
+	let { userId } = params;
 	const query = new URLSearchParams((useLocation() as LocationType).search);
 
 	let by = query.get('by');
@@ -39,7 +41,7 @@ const PCCatalogPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<any>
+async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<any>
 {
 	const selectedUserId = Number(userId);
 
@@ -61,10 +63,12 @@ function getData(data: any): PCCatalogPageProps
 	return { catalog, catalogItems, catalogCategories };
 }
 
+export const loader = routerUtils.deferLoader(loadData);
+
 type PCCatalogPageProps = {
 	catalog: GroupItemType[]
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
 };
 
-export default PCCatalogPage;
+export default routerUtils.LoadingFunction(PCCatalogPage);

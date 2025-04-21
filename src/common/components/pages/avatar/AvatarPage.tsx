@@ -1,15 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Pagination, Header, Section, Grid } from '@layout';
 import Avatar from '@/components/nodes/Avatar.tsx';
 import { Confirm } from '@form';
 import { APIThisType, UserAvatarsType } from '@types';
+import { routerUtils } from '@utils';
 
-const AvatarPage = () =>
+export const action = routerUtils.formAction;
+
+const AvatarPage = ({ loaderData }: { loaderData: AvatarPageProps }) =>
 {
-	const { totalCount, avatars, page, pageSize } = useLoaderData() as AvatarPageProps;
+	const { totalCount, avatars, page, pageSize } = loaderData;
 
 	return (
 		<div className='AvatarPage'>
@@ -65,7 +67,7 @@ const AvatarPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<AvatarPageProps>
+async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<AvatarPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/users/avatars', {
@@ -80,6 +82,8 @@ export async function loadData(this: APIThisType, _: any, { page }: { page?: str
 		pageSize: result.pageSize,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AvatarPageProps = {
 	avatars: UserAvatarsType['results']

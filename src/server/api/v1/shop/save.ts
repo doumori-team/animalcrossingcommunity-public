@@ -21,8 +21,6 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	if (games.length !== perOrders.length)
 	{
 		throw new UserError('bad-format');
@@ -48,17 +46,20 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 
 		const gameId = Number(id);
 
-		const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable);
-
-		items[index].map((id: any) =>
+		if (items.length > 0)
 		{
-			if (!catalogItems.find(item => item.id === id))
-			{
-				throw new UserError('bad-format');
-			}
+			const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable);
 
-			return String(id).trim();
-		});
+			items[index].map((id: any) =>
+			{
+				if (!catalogItems.find(item => item.id === id))
+				{
+					throw new UserError('bad-format');
+				}
+
+				return String(id).trim();
+			});
+		}
 
 		return gameId;
 	}));
@@ -150,15 +151,18 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 					VALUES ($1, $2, $3, $4, $5)
 				`, id, gameId, perOrders[index], stackOrQuantities[index] ? stackOrQuantities[index] : false, completeOrders[index] ? completeOrders[index] : false);
 
-				await Promise.all([
-					items[index].map(async (itemId: any) =>
-					{
-						await query(`
-							INSERT INTO shop_catalog_item (shop_id, catalog_item_id, game_id)
-							VALUES ($1, $2, $3)
-						`, id, itemId, gameId);
-					}),
-				]);
+				if (items.length > 0)
+				{
+					await Promise.all([
+						items[index].map(async (itemId: any) =>
+						{
+							await query(`
+								INSERT INTO shop_catalog_item (shop_id, catalog_item_id, game_id)
+								VALUES ($1, $2, $3)
+							`, id, itemId, gameId);
+						}),
+					]);
+				}
 			}),
 			query(`
 				INSERT INTO shop_audit (shop_id, value, user_id)

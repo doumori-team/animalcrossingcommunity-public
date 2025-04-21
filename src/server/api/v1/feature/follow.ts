@@ -10,8 +10,6 @@ async function follow(this: APIThisType, { id }: followProps): Promise<void>
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const [feature] = await db.query(`
 		SELECT id
 		FROM feature

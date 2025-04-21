@@ -19,8 +19,6 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const [shops, markupStyle] = await Promise.all([
 		db.query(`
 			SELECT

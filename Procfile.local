@@ -1,1 +1,0 @@
-watch: node --watch lib/server/server.js

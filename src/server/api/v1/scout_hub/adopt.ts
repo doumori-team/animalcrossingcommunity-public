@@ -218,7 +218,7 @@ adopt.apiTypes = {
 
 type adoptProps = {
 	adopteeId: number
-	scoutId: number | null
+	scoutId: number
 };
 
 export default adopt;

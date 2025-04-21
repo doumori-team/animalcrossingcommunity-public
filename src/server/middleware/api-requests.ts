@@ -1,95 +1,64 @@
-
-import { URL } from 'url';
 import express from 'express';
-import { generatePath } from 'react-router-dom';
+import multer from 'multer';
 
 import * as errors from 'common/errors.ts';
-import * as iso from 'common/iso.js';
-import * as db from '@db';
-import * as accounts from '@accounts';
+import { iso } from 'common/iso.ts';
 import { utils } from '@utils';
 
+const upload = multer(); // see iso-client; needed for Form, old use case
+
 const handler = express();
-handler.set('views', new URL('../views', import.meta.url).pathname);
 
-/* Express route for handling requests to the API endpoint.
- *
- * On receiving a request, checks to see if the specified query is a real
- * API method. If so, passes the request body to that query and waits for a
- * return value to return to the client. Otherwise, returns a 404.
- *
- * If the request specified a _callback_uri parameter in the query string, and
- * no errors occurred while executing the query, the response will redirect to
- * the URI provided in that parameter. Before redirecting, if the API method
- * returned a "_success" key, the message in that key will be displayed to the
- * user.
- */
+handler.use(express.urlencoded({ extended: true }));
+
 handler.get('/*', handleRequest);
-handler.post('/*', handleRequest);
+handler.post('/*', upload.any(), handleRequest);
 
-function handleRequest (request: any, response: any, next: any): any
+// used when call API endpoint (useEffect)
+async function handleRequest(request: any, response: any): Promise<any>
 {
 	response.set('Cache-Control', 'no-store');
 
-	let log = utils.startLog(request, 'apirequests');
-
-	const requiresJsonResponse = !request.body._callback_uri;
-
-	let ipAddresses = request.headers['x-forwarded-for'];
-
-	if (request.headers['cloudfront-viewer-address'])
-	{
-		ipAddresses = request.headers['cloudfront-viewer-address'].split(':');
-
-		if (ipAddresses.length > 1)
-		{
-			ipAddresses.pop();
-			ipAddresses = ipAddresses.join(':');
-		}
-	}
-
-	recordIP(request.session.user, ipAddresses);
+	let log = utils.startLog({ location: 'apirequests', request });
 
 	const query = request.params[0];
-	let params = null;
 
-	if (request.method === 'GET')
+	if (![
+		'v1/users/upload_image',
+		'v1/users',
+		'v1/guide/upload_image',
+		'v1/notification/latest',
+		'v1/friend_code/whitelist/users',
+		'v1/user_lite',
+		'v1/acgame/catalog',
+		'v1/catalog',
+		'v1/shop/upload_image',
+		'v1/paypal/donate',
+		'v1/paypal/consent',
+	].includes(query))
 	{
-		const searchParams = new URLSearchParams(request._parsedUrl.search);
-		params = Object.fromEntries(searchParams.entries());
+		log += ` status=404`;
+		console.info(log);
+
+		response.status(404);
+
+		response.json({});
 	}
 	else
 	{
-		params = request.body;
-	}
+		let params = null;
 
-	if (query.includes('signup/signup'))
-	{
-		params.ipAddresses = ipAddresses;
-	}
-
-	(iso as any).query(request.session.user, query, params).then((data: any) =>
-	{
-		if (typeof data === 'object' && data !== null && Object.prototype.hasOwnProperty.call(data, '_logout'))
+		if (request.method === 'GET')
 		{
-			log += ` status=200`;
-			console.info(log);
-
-			// Copied from handle-login-logout
-			const userId = request.session.user;
-			delete request.session.user;
-			let logoutProcess = Promise.all(
-				[
-					accounts.logout(userId),
-					db.logout(userId),
-				]);
-			logoutProcess.then(() =>
-			{
-				response.json(data);
-			})
-			.catch(next);
+			const searchParams = new URLSearchParams(request._parsedUrl.search);
+			params = Object.fromEntries(searchParams.entries());
 		}
-		else if (requiresJsonResponse)
+		else
+		{
+			params = request.body;
+		}
+
+		(await iso).query(request.session.user, query, params).then(async (data: any) =>
 		{
 			log += ` status=200`;
 			console.info(log);
@@ -111,153 +80,51 @@ function handleRequest (request: any, response: any, next: any): any
 			{
 				response.json(data);
 			}
-		}
-		else
+		}).catch((error: any) =>
 		{
-			log += ` status=303`;
-			console.info(log);
+			console.error('Error while handling API query:', error);
+			console.error('API operation:', query);
+			console.error('Request body:', params);
 
-			if (typeof data === 'object')
+			if (error.name === 'NotFoundError')
 			{
-				const callback = generatePath(request.body._callback_uri || data._callback, data);
+				log += ` status=404`;
+				console.info(log);
 
-				if (data._success || data._notice)
-				{
-					response.render('success', {
-						message: data._success || data._notice,
-						callback,
-					});
-				}
-				else
-				{
-					response.redirect(303, callback);
-				}
-			}
-			else
-			{
-				response.redirect(303, request.body._callback_uri);
-			}
-		}
-	}).catch((error: any) =>
-	{
-		console.error('Error while handling API query:');
-		console.error(error);
-		console.error('API operation:', query);
-		console.error('Request body:', params);
+				response.status(404);
 
-		// see routes.js
-		if (error.name === 'NotFoundError')
-		{
-			log += ` status=404`;
-			console.info(log);
-
-			response.status(404);
-
-			if (requiresJsonResponse)
-			{
 				response.json({});
 			}
-			else
+			else if (error.name === 'UserError')
 			{
-				response.render('404');
-			}
-		}
-		else if (error.name === 'UserError')
-		{
-			log += ` status=400`;
-			console.info(log);
+				log += ` status=400`;
+				console.info(log);
 
-			// this is an error thrown by us - it's the user's fault
-			response.status(400);
+				// this is an error thrown by us - it's the user's fault
+				response.status(400);
 
-			if (requiresJsonResponse)
-			{
 				response.json({ _errors: error.identifiers });
 			}
-			else
+			else if (error.name === 'ProfanityError')
 			{
-				const details = error.identifiers.map(
-					(id: any) =>
-					{
-						return { id, message: (errors.ERROR_MESSAGES as any)[id].message };
-					},
-				);
+				log += ` status=400`;
+				console.info(log);
 
-				response.render('error', { errors: details });
-			}
-		}
-		else if (error.name === 'ProfanityError')
-		{
-			log += ` status=400`;
-			console.info(log);
+				response.status(400);
 
-			response.status(400);
-
-			if (requiresJsonResponse)
-			{
 				response.json({ _errors: [{ name:'ProfanityError', message: `${(errors.ERROR_MESSAGES as any)[error.identifier].message} ${error.words}` }] });
 			}
 			else
 			{
-				const details = error.identifier.map(
-					(id: any) =>
-					{
-						return { id, message: `${(errors.ERROR_MESSAGES as any)[id].message} ${error.words}` };
-					},
-				);
+				log += ` status=500`;
+				console.info(log);
 
-				response.render('error', { errors: details });
-			}
-		}
-		else
-		{
-			log += ` status=500`;
-			console.info(log);
+				// this is an error thrown by the database - it's a bug
+				response.status(500);
 
-			// this is an error thrown by the database - it's a bug
-			response.status(500);
-
-			if (requiresJsonResponse)
-			{
 				response.json({});
 			}
-			else
-			{
-				response.render('500');
-			}
-		}
-	});
-}
-
-// see v1/signup/signup
-async function recordIP(user_id: number | null = null, ip_addresses: string | any): Promise<void>
-{
-	if (user_id === null || typeof ip_addresses !== 'string')
-	{
-		return;
-	}
-
-	let ipAddresses = ip_addresses.split(',')
-		.map(item => item.trim());
-
-	if (ipAddresses.length > 1)
-	{
-		// firewall IP changes but is always last
-		ipAddresses.pop();
-	}
-
-	if (ipAddresses.length > 0)
-	{
-		await Promise.all([
-			ipAddresses.map(async (ip) =>
-			{
-				await db.query(`
-					INSERT INTO user_ip_address (user_id, ip_address)
-					VALUES ($1::int, $2)
-					ON CONFLICT (user_id, ip_address) DO NOTHING
-				`, user_id, ip);
-			}),
-		]);
+		});
 	}
 }
 

@@ -17,8 +17,6 @@ async function save(this: APIThisType, { whitelistUserId }: saveProps): Promise<
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	// Check if user already has whitelisted user
 	let [whitelist] = await db.query(`
 		SELECT id

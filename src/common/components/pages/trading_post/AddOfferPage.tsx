@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
 import { RequireUser, RequireClientJS } from '@behavior';
 import { Form, Select, Text } from '@form';
 import { UserContext } from '@contexts';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { ErrorMessage, Header, Section } from '@layout';
 import { APIThisType, ListingType, ResidentsType, ACGameItemType, ElementInputType } from '@types';
 
-const AddOfferPage = () =>
-{
-	const { listing, residents, catalogItems } = useLoaderData() as AddOfferPageProps;
+export const action = routerUtils.formAction;
 
-	const [items, setItems] = useState<number[]>([]);
+const AddOfferPage = ({ loaderData }: { loaderData: AddOfferPageProps }) =>
+{
+	const { listing, residents, catalogItems } = loaderData;
+
+	const [items, setItems] = useState<string[]>([]);
 	const [quantities, setQuantities] = useState<number[]>([]);
 
 	const encodedId = encodeURIComponent(listing.id);
 
-	const changeItems = (newItems: number[]) =>
+	const changeItems = (newItems: string[]) =>
 	{
 		// map old quantities to new quantity indexes
 		let newQuantities: number[] = [];
 
-		newItems.map((itemId: number, index: number) =>
+		newItems.map((itemId: string, index: number) =>
 		{
 			let itemIndex = items.findIndex(id => id === itemId);
 
@@ -170,7 +172,7 @@ const AddOfferPage = () =>
 																<Form.Group key={index}>
 																	<Text
 																		type='number'
-																		label={`${catalogItems.find(item => Number(item.id) === itemId)?.name} Quantity`}
+																		label={`${catalogItems.find(item => item.id === itemId)?.name} Quantity`}
 																		name='quantities'
 																		value={quantities[index]}
 																		changeHandler={(e) => changeQuantity(index, e)}
@@ -232,7 +234,7 @@ const AddOfferPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<AddOfferPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<AddOfferPageProps>
 {
 	const [listing] = await Promise.all([
 		this.query('v1/trading_post/listing', { id: id }),
@@ -250,6 +252,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { listing, residents, catalogItems };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddOfferPageProps = {
 	listing: ListingType

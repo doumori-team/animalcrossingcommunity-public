@@ -69,7 +69,6 @@ async function email_needed(this: APIThisType, { id, email }: emailNeededProps):
 
 	return {
 		_success: 'We have sent a reset password link to your email.',
-		_useCallback: true,
 	};
 }
 

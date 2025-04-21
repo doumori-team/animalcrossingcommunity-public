@@ -11,8 +11,6 @@ async function message(this: APIThisType, { id, message, staffOnly, format }: me
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const [feature] = await db.query(`
 		SELECT read_only, staff_only
 		FROM feature

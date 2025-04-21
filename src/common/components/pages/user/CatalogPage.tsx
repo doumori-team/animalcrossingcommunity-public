@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData, Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router';
 import ReactDomServer from 'react-dom/server';
 
 import { RequireUser, RequirePermission } from '@behavior';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { Keyboard, Header, Section } from '@layout';
 import { APIThisType, UserLiteType, CharacterType } from '@types';
 
-const CatalogPage = () =>
+export const action = routerUtils.formAction;
+
+const CatalogPage = ({ loaderData }: { loaderData: CatalogPageProps }) =>
 {
-	const { user, characters } = useLoaderData() as CatalogPageProps;
+	const { user, characters } = loaderData;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -86,7 +87,7 @@ const CatalogPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId }: { userId: string })
+async function loadData(this: APIThisType, { userId }: { userId: string })
 {
 	const [user, characters] = await Promise.all([
 		this.query('v1/user_lite', { id: userId }),
@@ -98,6 +99,8 @@ export async function loadData(this: APIThisType, { userId }: { userId: string }
 		characters,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type CatalogPageProps = {
 	user: UserLiteType

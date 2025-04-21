@@ -1,5 +1,3 @@
-import React from 'react';
-
 import * as markup from 'common/markup.ts';
 import { EmojiSettingType, MarkupFormatType } from '@types';
 import HTMLPurify from '@/components/layout/HTMLPurify.tsx';

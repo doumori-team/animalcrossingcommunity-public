@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { ReactNode } from 'react';
+import { Link } from 'react-router';
 
 const Header = ({
 	links,
@@ -46,12 +46,12 @@ const Header = ({
 };
 
 type HeaderProps = {
-	links?: React.ReactNode
-	name: string | React.ReactNode
+	links?: ReactNode
+	name: string | ReactNode
 	link?: string
-	children?: React.ReactNode
-	description?: string | React.ReactNode
-	description2?: string | React.ReactNode
+	children?: ReactNode
+	description?: string | ReactNode
+	description2?: string | ReactNode
 };
 
 export default Header;

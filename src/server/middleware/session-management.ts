@@ -2,7 +2,8 @@ import expressSession from 'express-session';
 
 import * as db from '@db';
 
-/* Connect session manager to automatically-created table in the database
+/* 
+ * Connect session manager to automatically-created table in the database
  */
 export default expressSession(
 	{
@@ -11,7 +12,7 @@ export default expressSession(
 		secret: process.env.COOKIE_SECRET || 'keyboard cat',
 		saveUninitialized: false,
 		cookie: {
-		// milliseconds; 7 days
+			// milliseconds; 7 days
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 		},
 	});

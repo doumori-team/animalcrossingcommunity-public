@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 const Section = ({
 	children,
@@ -12,7 +12,7 @@ const Section = ({
 };
 
 type SectionProps = {
-	children: React.ReactNode | string
+	children: ReactNode | string
 };
 
 export default Section;

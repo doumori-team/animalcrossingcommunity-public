@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
 import { RequireClientJS } from '@behavior';
 import AvatarSelector from '@/components/settings/AvatarSelector.tsx';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Switch, Button } from '@form';
 import { ErrorMessage, Tabs, ContentBox } from '@layout';
 import Avatar from '@/components/nodes/Avatar.tsx';
 import { APIThisType, UserAvatarType, AvatarsType, ElementSelectType } from '@types';
 
-const AvatarSettingsPage = () =>
+export const action = routerUtils.formAction;
+
+const AvatarSettingsPage = ({ loaderData }: { loaderData: AvatarSettingsPageProps }) =>
 {
 	const { avatar, characters, accents, backgrounds, colorations,
-		characterTags, accentTags, backgroundTags } = useLoaderData() as AvatarSettingsPageProps;
+		characterTags, accentTags, backgroundTags } = loaderData;
 
 	const [previewCharacter, setPreviewCharacter] = useState<AvatarsType['characters'][number]>(avatar.character.name !== 'Default' ? avatar.character : characters[0]);
 	const [previewAccent, setPreviewAccent] = useState<AvatarsType['accents'][number] | null>(avatar.character.name !== 'Default' ? avatar.accent : null);
@@ -214,7 +216,7 @@ const AvatarSettingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AvatarSettingsPageProps>
+async function loadData(this: APIThisType): Promise<AvatarSettingsPageProps>
 {
 	const [avatar, avatars] = await Promise.all([
 		this.query('v1/users/avatar'),
@@ -232,6 +234,8 @@ export async function loadData(this: APIThisType): Promise<AvatarSettingsPagePro
 		backgroundTags: avatars.tags.backgroundTags,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AvatarSettingsPageProps = {
 	avatar: UserAvatarType

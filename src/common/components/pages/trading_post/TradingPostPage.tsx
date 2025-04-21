@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission, RequireClientJS } from '@behavior';
 import { Form, Check, Select, Text, Switch } from '@form';
 import Listing from '@/components/trading_post/Listing.tsx';
 import { UserContext } from '@contexts';
-import { Pagination, Header, Section, Grid, Search } from '@layout';
-import { utils, constants } from '@utils';
-import * as iso from 'common/iso.js';
+import { Pagination, Header, Section, Grid, Search, ItemLookup } from '@layout';
+import { utils, constants, routerUtils } from '@utils';
 import { APIThisType, ACGameType, ListingsType, ACGameItemType, ResidentsType, ElementSelectType } from '@types';
 
-const TradingPostPage = () =>
+export const action = routerUtils.formAction;
+
+const TradingPostPage = ({ loaderData }: { loaderData: TradingPostPageProps }) =>
 {
 	const { listings, totalCount, page, pageSize, acgames, creator, type,
 		bells, items, villagers, active, acItemsCatalog, wishlist,
-		bioLocation, comment, gameId, acgameCatalog, initialResidents } = useLoaderData() as TradingPostPageProps;
+		bioLocation, comment, gameId, acgameCatalog, initialResidents } = loaderData;
 
-	const [selectedGameId, setSelectedGameId] = useState<number | null>(gameId);
+	const [selectedGameId, setSelectedGameId] = useState<TradingPostPageProps['gameId']>(gameId);
 	const [residents, setResidents] = useState<ResidentsType[number] | null>(initialResidents && gameId ? initialResidents[gameId] : null);
 
 	const link = `&creator=${encodeURIComponent(creator)}
@@ -35,45 +36,8 @@ const TradingPostPage = () =>
 	{
 		const gameId = Number(event.target.value);
 
-		setSelectedGameId(isNaN(gameId) ? null : Number(event.target.value));
+		setSelectedGameId(isNaN(gameId) ? null : gameId);
 		setResidents(initialResidents && gameId ? initialResidents[gameId] : null);
-	};
-
-	const handleItemsLookup = async (query: string): Promise<ACGameItemType[number]['all']['items']> =>
-	{
-		let callback = 'v1/acgame/catalog';
-
-		let params = new FormData();
-		params.append('query', query);
-		params.append('categoryName', 'all');
-		params.append('sortBy', 'items');
-
-		if (selectedGameId === 0)
-		{
-			callback = 'v1/catalog';
-		}
-		else
-		{
-			params.append('id', String(selectedGameId || ''));
-		}
-
-		return (iso as any).query(null, callback, params)
-			.then(async (items: ACGameItemType[number]['all']['items']) =>
-			{
-				if (selectedGameId === 0)
-				{
-					return items;
-				}
-
-				return items.filter(item => item.tradeable);
-			})
-			.catch((error: any) =>
-			{
-				console.error('Error attempting to get items.');
-				console.error(error);
-
-				return [];
-			});
 	};
 
 	return (
@@ -155,27 +119,20 @@ const TradingPostPage = () =>
 						/>
 					</Form.Group>
 
-					{!!selectedGameId &&
+					{selectedGameId !== null && selectedGameId >= 0 &&
 						<RequireClientJS>
 							<Form.Group>
-								<Select
-									name='items'
+								<ItemLookup
 									label='Item(s)'
-									options={acItemsCatalog.length > 0 ? selectedGameId === 0 ? acItemsCatalog : acgameCatalog.filter(item => item.tradeable) : []}
-									optionsMapping={{ value: 'id', label: 'name' }}
+									options={selectedGameId >= 0 ? acItemsCatalog.length > 0 ? acItemsCatalog : acgameCatalog.filter(item => item.tradeable) : []}
 									value={items}
-									placeholder='Select item(s)...'
-									async
-									multiple
-									groupBy='categoryName'
-									size={15}
-									loadOptionsHandler={handleItemsLookup}
+									selectedGameId={selectedGameId}
 								/>
 							</Form.Group>
 						</RequireClientJS>
 					}
 
-					{selectedGameId && selectedGameId > constants.gameIds.ACGC && residents != null &&
+					{selectedGameId !== null && selectedGameId > constants.gameIds.ACGC && residents !== null &&
 						<>
 							<Form.Group>
 								<Select
@@ -222,7 +179,7 @@ const TradingPostPage = () =>
 						</Form.Group>
 					}
 
-					{!!selectedGameId &&
+					{selectedGameId !== null && selectedGameId >= 0 &&
 						<Form.Group>
 							<Switch
 								name='wishlist'
@@ -253,7 +210,7 @@ const TradingPostPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, creator, type, gameId, bells, items, villagers, active, wishlist, bioLocation, comment }: { page?: string, creator?: string, type?: string, gameId?: string, bells?: string, items?: string, villagers?: string, active?: string, wishlist?: string, bioLocation?: string, comment?: string }): Promise<TradingPostPageProps>
+async function loadData(this: APIThisType, _: any, { page, creator, type, gameId, bells, items, villagers, active, wishlist, bioLocation, comment }: { page?: string, creator?: string, type?: string, gameId?: string, bells?: string, items?: string, villagers?: string, active?: string, wishlist?: string, bioLocation?: string, comment?: string }): Promise<TradingPostPageProps>
 {
 	const [acgames, returnValue, acgameCatalog, residents, acItemsCatalog] = await Promise.all([
 		this.query('v1/acgames'),
@@ -270,9 +227,9 @@ export async function loadData(this: APIThisType, _: any, { page, creator, type,
 			bioLocation: bioLocation ? bioLocation : '',
 			comment: comment ? comment : '',
 		}),
-		items && gameId != '0' ? this.query('v1/acgame/catalog', { id: gameId, categoryName: 'all', sortBy: 'items' }) : [],
+		items && gameId !== '0' ? this.query('v1/acgame/catalog', { id: gameId, categoryName: 'all', sortBy: 'items' }) : [],
 		this.query('v1/acgame/resident'),
-		items ? this.query('v1/catalog', { categoryName: 'all', sortBy: 'items' }) : [],
+		items && gameId === '0' ? this.query('v1/catalog', { categoryName: 'all', sortBy: 'items' }) : [],
 	]);
 
 	return {
@@ -296,6 +253,8 @@ export async function loadData(this: APIThisType, _: any, { page, creator, type,
 		comment: returnValue.comment,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type TradingPostPageProps = {
 	listings: ListingsType['results']

@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Form, Text, Checkbox, Check } from '@form';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { Header, Section, SelectAllCheckbox } from '@layout';
 import { APIThisType, BuddiesType } from '@types';
 
-const BuddyPage = () =>
+export const action = routerUtils.formAction;
+
+const BuddyPage = ({ loaderData }: { loaderData: BuddyPageProps }) =>
 {
-	const { buddies, staff } = useLoaderData() as BuddyPageProps;
+	const { buddies, staff } = loaderData;
 
 	return (
 		<div className='BuddyPage'>
@@ -71,7 +72,7 @@ const BuddyPage = () =>
 													name='buddyUsers'
 													label='Remove Buddy'
 													value={buddy.username}
-													hideLabel
+													hideLabels
 												/>
 											</Form.Group>
 
@@ -144,7 +145,7 @@ const BuddyPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<BuddyPageProps>
+async function loadData(this: APIThisType): Promise<BuddyPageProps>
 {
 	const [results] = await Promise.all([
 		this.query('v1/users/buddies'),
@@ -155,6 +156,8 @@ export async function loadData(this: APIThisType): Promise<BuddyPageProps>
 		staff: results.staff,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type BuddyPageProps = {
 	buddies: BuddiesType['buddies']

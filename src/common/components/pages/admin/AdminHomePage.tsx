@@ -1,9 +1,11 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Header, Section } from '@layout';
 import { Form } from '@form';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const AdminHomePage = () =>
 {

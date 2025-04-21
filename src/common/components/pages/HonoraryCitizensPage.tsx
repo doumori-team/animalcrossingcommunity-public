@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { ContentBox } from '@layout';
@@ -7,10 +6,13 @@ import DonateButton from '@/components/layout/DonateButton.tsx';
 import { Section, Grid, InnerSection } from '@layout';
 import { UserContext } from '@contexts';
 import { APIThisType, DonationsType } from '@types';
+import { routerUtils } from '@utils';
 
-const HonoraryCitizensPage = () =>
+export const action = routerUtils.formAction;
+
+const HonoraryCitizensPage = ({ loaderData }: { loaderData: HonoraryCitizensPageProps }) =>
 {
-	const { users } = useLoaderData() as HonoraryCitizensPageProps;
+	const { users } = loaderData;
 
 	return (
 		<div className='HonoraryCitizensPage'>
@@ -49,7 +51,7 @@ const HonoraryCitizensPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<HonoraryCitizensPageProps>
+async function loadData(this: APIThisType): Promise<HonoraryCitizensPageProps>
 {
 	const [users] = await Promise.all([
 		this.query('v1/donations'),
@@ -57,6 +59,8 @@ export async function loadData(this: APIThisType): Promise<HonoraryCitizensPageP
 
 	return { users };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type HonoraryCitizensPageProps = {
 	users: DonationsType[]

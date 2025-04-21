@@ -1,17 +1,16 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import { Form, Check, Text } from '@form';
 import FriendCode from '@/components/friend_codes/FriendCode.tsx';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Pagination, Section, Grid, InnerSection } from '@layout';
 import { APIThisType, UserFriendCodesType, RatingType } from '@types';
 
-const UserFriendCodesPage = () =>
+export const action = routerUtils.formAction;
+
+const UserFriendCodesPage = ({ loaderData }: { loaderData: UserFriendCodesPageProps }) =>
 {
 	const { userId, friendCodes, rating, haveWhitelisted, page, pageSize,
-		totalCount } = useLoaderData() as UserFriendCodesPageProps;
+		totalCount } = loaderData;
 
 	const encodedId = encodeURIComponent(userId);
 
@@ -104,7 +103,7 @@ const UserFriendCodesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }, { page }: { page?: string }): Promise<UserFriendCodesPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }, { page }: { page?: string }): Promise<UserFriendCodesPageProps>
 {
 	const userId = Number(id);
 
@@ -124,6 +123,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }, { page
 		pageSize: fcObj.pageSize,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserFriendCodesPageProps = {
 	userId: number

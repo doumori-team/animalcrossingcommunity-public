@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { TimeContext } from '@contexts';
 import { dateUtils } from '@utils';
 
@@ -8,7 +6,7 @@ const Clock = () =>
 {
 	return (
 		<TimeContext.Consumer>
-			{time =>
+			{time => time &&
 				<span className='Clock'>
 					{dateUtils.formatDateTime4(time)}
 				</span>

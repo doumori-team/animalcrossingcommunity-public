@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import Avatar from '@/components/nodes/Avatar.tsx';
 import { UserType } from '@types';
@@ -50,7 +49,6 @@ const PostAuthorInfo = ({
 						</Link>
 						:
 						<Avatar {...avatar} />
-
 				}
 			</UserContext.Consumer>
 
@@ -61,16 +59,15 @@ const PostAuthorInfo = ({
 							<>
 								<Link to={`/profile/${encodeURIComponent(id)}`}>
 									{username}
-								</Link>{userTitle && <span className='PostAuthorInfo_title'> (<ReportProblem
+								</Link>{userTitle && <div className='PostAuthorInfo_title'> <div>(</div><ReportProblem
 									type={constants.userTicket.types.profileUserTitle}
 									id={id}
-								/>{userTitle})</span>}
+								/><div>{userTitle})</div></div>}
 							</>
 							:
 							<>
 								{username}{userTitle && <span className='PostAuthorInfo_title'> ({userTitle})</span>}
 							</>
-
 					}
 				</UserContext.Consumer>
 			</span>
@@ -97,6 +94,7 @@ const PostAuthorInfo = ({
 			)}
 
 			<span className='PostAuthorInfo_lastactive'>
+				<span className='PostAuthorInfo_lastactive_mobileHint'>Last active:{' '}</span>
 				<StatusIndicator lastActiveTime={lastActiveTime} showDate={true} />
 			</span>
 		</div>

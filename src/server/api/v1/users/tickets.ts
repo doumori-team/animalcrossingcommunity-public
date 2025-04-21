@@ -12,8 +12,6 @@ export default async function tickets(this: APIThisType): Promise<TicketType[]>
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	// Only get closed UTs that are violations
 	const tickets = await db.query(`
 		SELECT id

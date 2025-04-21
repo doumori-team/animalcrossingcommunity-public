@@ -3,11 +3,13 @@
 import connectPgSimple from 'connect-pg-simple';
 import expressSession from 'express-session';
 import pg from 'pg';
+
 import * as crypto from 'crypto';
 
-import { dateUtils, constants } from '@utils';
+import { dateUtils, constants, utils } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, UserLiteType, UserType, NodeChildNodesType, NodeChildrenResultType } from '@types';
+import { ProfanityError } from '@errors';
 
 const { types } = pg;
 
@@ -427,7 +429,7 @@ export async function getChildren(resultsQuery: any, thisQuery: APIThisType['que
 					WHERE node_id = $1 AND user_id = $2
 				`, node.id, userId) : [],
 				node.type === 'thread' ? thisQuery('v1/node/permission', { permission: 'lock', nodeId: node.id }) : null,
-				node.type === 'thread' && userId && conciseMode > 2 ? query(`
+				node.type === 'thread' && userId ? query(`
 					SELECT
 						(
 							SELECT count(*) AS count
@@ -449,6 +451,13 @@ export async function getChildren(resultsQuery: any, thisQuery: APIThisType['que
 				`, node.revision_id) : null,
 				node.type === 'thread' ? thisQuery('v1/users/donations', { id: node.user_id }) : {},
 				!parentChildren && ['board', 'thread'].includes(node.type) ? thisQuery('v1/node/permission', { permission: 'read', nodeId: node.id }) : true,
+				node.type === 'board' ? query(`
+					SELECT nc.id, nc.title, ncl.order
+					FROM node_category nc
+					INNER JOIN node_category_link ncl ON nc.id = ncl.category_id
+					WHERE ncl.node_id = $1::int
+					LIMIT 1
+				`, node.id) : null,
 			]);
 		}),
 	);
@@ -511,6 +520,7 @@ export async function getChildren(resultsQuery: any, thisQuery: APIThisType['que
 			const unreadTotal = result[12];
 			const nodeFiles = result[13];
 			const userDonations = result[14];
+			const forumCategory = result[15];
 
 			const replies = node.reply_count ? Number(node.reply_count) - 1 : 0;
 
@@ -555,11 +565,60 @@ export async function getChildren(resultsQuery: any, thisQuery: APIThisType['que
 				showImages: userSettings && userSettings[0] ? userSettings[0].show_images : false,
 				conciseMode: conciseMode,
 				userDonations: userDonations,
+				forumCategory: forumCategory,
 			};
 		})];
 }
 
-/* Logs out all sessions belonging to the provided user ID.
+/*
+ * Check whether given text contains a filtered word.
+ */
+export async function profanityCheck(text: any): Promise<void>
+{
+	if (text === null || utils.realStringLength(text) === 0)
+	{
+		return;
+	}
+
+	const words = await query(`
+		SELECT word
+		FROM filter_word
+		WHERE active = true
+	`);
+
+	// strip of all punctuation first
+	const removePunctuation = /[.,!;:–—?]/g;
+
+	text = text.replaceAll(removePunctuation, '');
+
+	const startsWith = '(^|\\s)';
+	const endsWith = '(?=\\s|$)';
+
+	const filteredWords = words.filter((fw: any) =>
+	{
+		const noWildCardWord = fw.word.replaceAll('*', '');
+
+		// checks for (example): hell, *hell, hell*, *hell*
+		if (
+			fw.word.startsWith('*') && fw.word.endsWith('*') && text.match(RegExp(noWildCardWord, 'i')) ||
+			fw.word.startsWith('*') && text.match(RegExp(`${noWildCardWord}${endsWith}`, 'i')) ||
+			fw.word.endsWith('*') && text.match(RegExp(`${startsWith}${noWildCardWord}`, 'i')) ||
+			!(fw.word.startsWith('*') || fw.word.endsWith('*')) && text.match(RegExp(`${startsWith}${noWildCardWord}${endsWith}`, 'i'))
+		)
+		{
+			return fw;
+		}
+	});
+
+	if (filteredWords.length > 0)
+	{
+		const uniqueWords = [...new Set(filteredWords.map((fw: any) => fw.word.replaceAll('*', '')))];
+		throw new ProfanityError(uniqueWords.join(', '));
+	}
+}
+
+/* 
+ * Logs out all sessions belonging to the provided user ID.
  */
 export async function logout(userId: string): Promise<void>
 {

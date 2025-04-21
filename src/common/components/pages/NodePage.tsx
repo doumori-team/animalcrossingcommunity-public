@@ -1,19 +1,37 @@
-import React from 'react';
-import { useLoaderData, useLocation, Link } from 'react-router-dom';
+import { Fragment } from 'react';
+import { useLocation, Link } from 'react-router';
 
 import Node from '@/components/nodes/Node.tsx';
 import NodeWritingInterface from '@/components/nodes/NodeWritingInterface.tsx';
 import { Pagination, Search, Accordion } from '@layout';
 import { Form, Check, Switch } from '@form';
-import { constants, dateUtils } from '@utils';
+import { constants, dateUtils, routerUtils } from '@utils';
 import { UserContext } from '@contexts';
 import { APIThisType, NodesType, LocationType } from '@types';
 
-const NodePage = () =>
+export const action = routerUtils.formAction;
+
+const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 {
 	const { node, childNodes, page, pageSize, totalCount, addUsers, order, reverse,
 		locked, editNode, currentUserEmojiSettings, breadcrumb, nodeUsersEmojiSettings,
-		boards, subBoards, staffBoards, archivedBoards, listBoards, userDonations } = useLoaderData() as NodePageProps;
+		boards, subBoards, staffBoards, archivedBoards, listBoards, userDonations } = loaderData;
+
+	const uniqueCategories = Array.from(new Set(childNodes.map(n => n.forumCategory?.id)))
+		// @ts-ignore typescript
+		.map(id => childNodes.find(n => n.forumCategory?.id === id).forumCategory)
+		// @ts-ignore typescript
+		.sort((a, b) => a.id - b.id);
+
+	const sortedChildNodes = [
+		...uniqueCategories
+			.map(cat => childNodes
+			// @ts-ignore typescript
+			.filter(n => n.forumCategory && n.forumCategory.id === cat.id)
+			// @ts-ignore typescript
+			.sort((a, b) => a.forumCategory.order - b.forumCategory.order)),
+		childNodes.filter(n => !n.forumCategory),
+	];
 
 	const location = useLocation() as LocationType;
 
@@ -132,24 +150,42 @@ const NodePage = () =>
 							endLink={link}
 						/>
 
-						{childNodes.map((child, index) =>
-							<Node
-								{...child}
-								index={page > 1 ? index + 1 + pageSize * (page - 1) : index + 1}
-								key={child.revisionId}
-								page={page}
-								emojiSettings={child.user !== null ?
-									nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
-									[]}
-								currentUser={currentUser}
-								followNode={node.id === constants.boardIds.publicThreads}
-								subBoards={subBoards.filter(b => b.parentId === child.id)}
-								parentPermissions={node.permissions}
-								nodeParentId={node.id}
-								pageLink={pageLink}
-								listBoards={listBoards}
-							/>,
-						)}
+						{
+							sortedChildNodes.map((list, listIndex) =>
+							{
+								const header =
+									uniqueCategories.length > 0 && list.length > 0 && list[0].forumCategory?.id ?
+										<article className='Node Node_forumCategory'>
+											<div className='Node_main'>
+												<h1 className='Node_title'>{uniqueCategories.find(c => !!c && c?.id === list[0].forumCategory?.id)?.title ?? ''}</h1>
+											</div>
+										</article> :
+										<></>;
+
+								return <Fragment key={listIndex}>
+									{header}
+									{list.map((child, index) =>
+										<Node
+											{...child}
+											index={page > 1 ? index + 1 + pageSize * (page - 1) : index + 1}
+											key={child.revisionId ?? child.id}
+											page={page}
+											emojiSettings={child.user !== null ?
+												nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
+												[]}
+											currentUser={currentUser}
+											followNode={node.id === constants.boardIds.publicThreads}
+											subBoards={subBoards.filter(b => b.parentId === child.id)}
+											parentPermissions={node.permissions}
+											nodeParentId={node.id}
+											pageLink={pageLink}
+											listBoards={listBoards}
+										/>,
+									)}
+								</Fragment>;
+							})
+						}
+
 					</>
 				}
 			</UserContext.Consumer>
@@ -165,38 +201,30 @@ const NodePage = () =>
 
 			{childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && !listBoards.includes(node.id) &&
 				<div className='Node_boardActions'>
-					<Form action='v1/node/lock' id='lockThreads' showButton buttonText='Lock' />
+					<Form action='v1/node/lock' id='lockThreads' showButton buttonText='Lock selected' />
 				</div>
 			}
 
 			{editNode ?
-				<>
-					{editNode.permissions.indexOf('edit') > -1 && !node.locked &&
-						<NodeWritingInterface
-							parentId={editNode.id}
-							parentType={editNode.type}
-							permissions={node.permissions}
-							lastPage={page}
-							parentTitle={node.title}
-							parentContent={editNode.content}
-							threadId={node.id}
-							key={Math.random()}
-							emojiSettings={currentUserEmojiSettings}
-							nodeParentId={node.parentId}
-							files={editNode.files}
-							staffBoards={staffBoards}
-							userDonations={userDonations}
-							threadType={node.threadType}
-							markupStyle={node.markupStyle}
-						/>
-					}
-				</>
+				editNode.permissions.indexOf('edit') > -1 && !node.locked &&
+					<NodeWritingInterface
+						parentId={editNode.id}
+						parentType={editNode.type}
+						permissions={node.permissions}
+						lastPage={page}
+						parentTitle={node.title}
+						parentContent={editNode.content}
+						threadId={node.id}
+						emojiSettings={currentUserEmojiSettings}
+						nodeParentId={node.parentId}
+						files={editNode.files}
+						staffBoards={staffBoards}
+						userDonations={userDonations}
+						threadType={node.threadType}
+						markupStyle={node.markupStyle}
+					/>
 				:
-				<>
-					{/* Only show the "new post/thread" form if the user has
-					* permission to reply
-					*/}
-					{node.permissions.indexOf('reply') > -1 && node.type !== 'post' &&
+				node.permissions.indexOf('reply') > -1 && node.type !== 'post' &&
 					<NodeWritingInterface
 						parentId={node.id}
 						parentType={node.type}
@@ -205,7 +233,6 @@ const NodePage = () =>
 						addUsers={addUsers}
 						nodeParentId={node.parentId}
 						threadType={node.id === constants.boardIds.announcements ? 'admin' : node.threadType}
-						key={Math.random()}
 						threadId={node.id}
 						parentTitle={node.permissions.includes('edit') ? node.title : ''}
 						emojiSettings={currentUserEmojiSettings}
@@ -214,8 +241,6 @@ const NodePage = () =>
 						staffBoards={staffBoards}
 						userDonations={userDonations}
 					/>
-					}
-				</>
 			}
 		</>
 	);
@@ -233,7 +258,7 @@ function formatDate(date: string): string
 	}
 }
 
-export async function loadData(this: APIThisType, { id, page, editId }: { id: string, page?: string, editId?: string }, { addUsers, locked, order, reverse }: { addUsers?: string, locked?: string, order?: string, reverse?: string }): Promise<NodePageProps>
+async function loadData(this: APIThisType, { id, page, editId }: { id: string, page?: string, editId?: string }, { addUsers, locked, order, reverse }: { addUsers?: string, locked?: string, order?: string, reverse?: string }): Promise<NodePageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/nodes', {
@@ -268,6 +293,8 @@ export async function loadData(this: APIThisType, { id, page, editId }: { id: st
 		userDonations: returnValue.userDonations,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type NodePageProps = NodesType & {
 	addUsers?: string

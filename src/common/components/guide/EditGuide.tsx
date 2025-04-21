@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Form, RichTextArea, TextArea, Text } from '@form';
 import { ACGameType, GuideType } from '@types';
 import { constants } from '@utils';
@@ -26,7 +24,7 @@ const EditGuide = ({
 							required
 							maxLength={constants.max.guideName}
 							label='Guide Name'
-							hideLabel
+							hideLabels
 							placeholder='Guide Name'
 							className='text-full'
 						/>

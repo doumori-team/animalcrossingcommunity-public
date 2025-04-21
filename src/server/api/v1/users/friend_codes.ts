@@ -78,7 +78,7 @@ friend_codes.apiTypes = {
 };
 
 type friendCodesProps = {
-	id: number | null
+	id: number | APIThisType['userId']
 	page: number
 };
 

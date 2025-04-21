@@ -1,15 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import Node from '@/components/nodes/Node.tsx';
-import { utils } from '@utils';
+import { utils, routerUtils } from '@utils';
 import { Header, Grid, Pagination } from '@layout';
 import { APIThisType, UserLiteType, UserThreadsType } from '@types';
 
-const ThreadsPage = () =>
+export const action = routerUtils.formAction;
+
+const ThreadsPage = ({ loaderData }: { loaderData: ThreadsPageProps }) =>
 {
-	const { user, threads, page, pageSize, totalCount } = useLoaderData() as ThreadsPageProps;
+	const { user, threads, page, pageSize, totalCount } = loaderData;
 
 	return (
 		<RequireUser>
@@ -36,7 +35,7 @@ const ThreadsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string }): Promise<ThreadsPageProps>
+async function loadData(this: APIThisType, { userId }: { userId: string }, { page }: { page?: string }): Promise<ThreadsPageProps>
 {
 	const [returnValue, user] = await Promise.all([
 		this.query('v1/users/threads', { id: userId, page: page ? page : 1 }),
@@ -51,6 +50,8 @@ export async function loadData(this: APIThisType, { userId }: { userId: string }
 		pageSize: returnValue.pageSize,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ThreadsPageProps = {
 	user: UserLiteType

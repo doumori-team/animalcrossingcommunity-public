@@ -7,7 +7,7 @@ import { APIThisType, ACGameItemType, GroupItemType } from '@types';
 /*
  * Fetches information about 'real-world' items.
  */
-async function catalog(this: APIThisType, { categoryName, sortBy, name }: catalogProps): Promise<GroupItemType[] | ACGameItemType[number]['all']['items']>
+async function catalog(this: APIThisType, { categoryName, sortBy, name, query }: catalogProps): Promise<GroupItemType[] | ACGameItemType[number]['all']['items']>
 {
 	const [viewUserCatalogPerm, useTradingPostPerm] = await Promise.all([
 		this.query('v1/permission', { permission: 'view-user-catalog' }),
@@ -47,6 +47,15 @@ async function catalog(this: APIThisType, { categoryName, sortBy, name }: catalo
 					})),
 			}));
 	}
+	// async Select (see TradingPost)
+	else if (utils.realStringLength(query) > 0)
+	{
+		// have direct match show first in the list
+		return (categories as GroupItemType[])
+			.filter((item: any) => item.name.toLowerCase() === query.toLowerCase())
+			.concat((categories as GroupItemType[])
+				.filter((item: any) => item.name.toLowerCase() !== query.toLowerCase() && item.name.toLowerCase().includes(query.toLowerCase())));
+	}
 
 	return categories;
 }
@@ -67,12 +76,19 @@ catalog.apiTypes = {
 		type: APITypes.string,
 		default: '',
 	},
+	query: {
+		type: APITypes.string,
+		min: 3,
+		default: '',
+		nullable: true,
+	},
 };
 
 type catalogProps = {
 	categoryName: string
 	sortBy: string
 	name: string
+	query: string
 };
 
 export default catalog;

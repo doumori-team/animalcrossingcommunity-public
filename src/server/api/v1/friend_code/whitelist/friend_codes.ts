@@ -17,8 +17,6 @@ async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	// Perform queries
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
@@ -56,7 +54,7 @@ async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }
 	`;
 
 	const [friendCodes, games] = await Promise.all([
-		groupBy === 'game' && gameId != null && gameId > 0 || groupBy === 'all' ? db.query(query, pageSize, offset, this.userId, gameId) : [],
+		groupBy === 'game' && gameId > 0 || groupBy === 'all' ? db.query(query, pageSize, offset, this.userId, gameId) : [],
 		db.query(`
 			SELECT
 				game.id,
@@ -121,7 +119,7 @@ friend_codes.apiTypes = {
 type friendCodesProps = {
 	page: number
 	sortBy: 'username' | 'date'
-	gameId: number | null
+	gameId: number
 	groupBy: 'all' | 'game'
 };
 

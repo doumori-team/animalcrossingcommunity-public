@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { utils, constants } from '@utils';
 import { Select, Button, Text } from '@form';
@@ -141,8 +141,8 @@ const PatternMaker = ({
 	const [gamePaletteId, setGamePaletteId] = useState<string>(initialGameId + '-' + initialPaletteId);
 	const [paletteInterfaces, setPaletteInterfaces] = useState<any>(initialPaletteInterfaces);
 
-	const patternInterface = useRef<any>();
-	const paletteInterfaceExtended = useRef<any>();
+	const patternInterface = useRef<any>(null);
+	const paletteInterfaceExtended = useRef<any>(null);
 	const didMount = useRef<any>(false);
 
 	useEffect(() =>
@@ -506,7 +506,7 @@ const PatternMaker = ({
 
 		const canvasOffset = [left, top];
 
-		if (e.pageX != undefined && e.pageY != undefined)
+		if (e.pageX !== undefined && e.pageY !== undefined)
 		{
 			x = e.pageX;
 			y = e.pageY;
@@ -781,7 +781,7 @@ const PatternMaker = ({
 					<div className='PatternMaker_paletteInterface'>
 						<div className='PatternMaker_paletteAll'>
 							<Select
-								hideLabel
+								hideLabels
 								label='Palette'
 								name='gamePaletteId'
 								options={palettes}

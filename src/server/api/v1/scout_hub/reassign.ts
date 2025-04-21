@@ -30,7 +30,7 @@ reassign.apiTypes = {
 
 type reassignProps = {
 	adopteeId: number
-	scoutId: number | null
+	scoutId: number
 };
 
 export default reassign;

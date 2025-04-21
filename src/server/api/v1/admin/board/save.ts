@@ -20,7 +20,7 @@ async function save(this: APIThisType, { boardId, parentId, title, description, 
 
 	let isNewBoard = false;
 
-	if (boardId != null && boardId > 0)
+	if (boardId > 0)
 	{
 		await db.query(`
 			UPDATE node
@@ -100,7 +100,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	boardId: number | null
+	boardId: number
 	parentId: number
 	title: string
 	description: string

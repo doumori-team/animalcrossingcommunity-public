@@ -1,6 +1,4 @@
-import React from 'react';
-
-import FontAwesomeIcon from '@/components/layout/FontAwesomeIcon.ts';
+import FontAwesomeIcon from '@/components/layout/FontAwesomeIcon.tsx';
 import { ClickHandlerType } from '@types';
 
 const Switch = ({
@@ -10,11 +8,15 @@ const Switch = ({
 	clickHandler,
 	variant = 'dark',
 	information,
+	switchFirst = false,
 }: SwitchProps) =>
 {
 	return (
 		<div className={`Switch ${variant}`}>
-			<>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
+			{!switchFirst && <>
+				{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}
+				<label htmlFor={name} className='Switch_switchLast'>{label}:</label>
+			</>}
 			<input
 				type='checkbox'
 				name={name}
@@ -24,6 +26,10 @@ const Switch = ({
 				aria-label={label}
 				onClick={clickHandler}
 			/>
+			{switchFirst && <>
+				<label htmlFor={name} className='Switch_switchFirst'>{label}</label>
+				{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}
+			</>}
 		</div>
 	);
 };
@@ -35,6 +41,7 @@ type SwitchProps = {
 	clickHandler?: ClickHandlerType
 	variant?: 'dark' | 'light'
 	information?: string
+	switchFirst?: boolean
 };
 
 export default Switch;

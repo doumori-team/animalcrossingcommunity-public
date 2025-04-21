@@ -19,8 +19,6 @@ async function save(this: APIThisType, { whiteListUser, action }: saveProps): Pr
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const userWhiteList: UserLiteType = await this.query('v1/user_lite', { username: whiteListUser });
 
 	if (userWhiteList.id === this.userId)
@@ -52,6 +50,7 @@ async function save(this: APIThisType, { whiteListUser, action }: saveProps): Pr
 
 			return {
 				_successImage: successImage,
+				_success: `Your friend codes have been updated!`,
 			};
 		}
 		else if (action === 'remove')
@@ -73,6 +72,7 @@ async function save(this: APIThisType, { whiteListUser, action }: saveProps): Pr
 
 	return {
 		_successImage: successImage,
+		_success: `Your friend codes have been updated!`,
 	};
 }
 

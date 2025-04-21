@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import EditGuide from '@/components/guide/EditGuide.tsx';
 import { Header, Section } from '@layout';
 import { APIThisType, GuideType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditGuidePage = () =>
+export const action = routerUtils.formAction;
+
+const EditGuidePage = ({ loaderData }: { loaderData: EditGuidePageProps }) =>
 {
-	const { guide } = useLoaderData() as EditGuidePageProps;
+	const { guide } = loaderData;
 
 	return (
 		<div className='EditGuidePage'>
@@ -30,7 +30,7 @@ const EditGuidePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string })
+async function loadData(this: APIThisType, { id }: { id: string })
 {
 	const [guide] = await Promise.all([
 		this.query('v1/guide', { id: id }),
@@ -38,6 +38,8 @@ export async function loadData(this: APIThisType, { id }: { id: string })
 
 	return { guide };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditGuidePageProps = {
 	guide: GuideType

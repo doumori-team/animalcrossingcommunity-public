@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import { constants, dateUtils } from '@utils';
+import { constants, dateUtils, routerUtils } from '@utils';
 import { Form } from '@form';
 import { Header, Section } from '@layout';
 import { APIThisType, AdoptionTotalsType, UserType } from '@types';
 
-const ReassignPage = () =>
+export const action = routerUtils.formAction;
+
+const ReassignPage = ({ loaderData }: { loaderData: ReassignPageProps }) =>
 {
-	const { adoptionTotals, adoptee } = useLoaderData() as ReassignPageProps;
+	const { adoptionTotals, adoptee } = loaderData;
 
 	return (
 		<div className='ReassignPage'>
@@ -79,7 +80,7 @@ const ReassignPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { adopteeId }: { adopteeId: string }): Promise<ReassignPageProps>
+async function loadData(this: APIThisType, { adopteeId }: { adopteeId: string }): Promise<ReassignPageProps>
 {
 	const [adoptionTotals, adoptee] = await Promise.all([
 		this.query('v1/scout_hub/adoption/totals'),
@@ -88,6 +89,8 @@ export async function loadData(this: APIThisType, { adopteeId }: { adopteeId: st
 
 	return { adoptionTotals, adoptee };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ReassignPageProps = {
 	adoptionTotals: AdoptionTotalsType[]

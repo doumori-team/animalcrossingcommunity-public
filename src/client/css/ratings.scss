@@ -1,3 +1,6 @@
+@use "mixins";
+@use "forms";
+
 .UserGivenRatingsPage, .UserReceivedRatingsPage {
 	.Header {
 		.TotalRatings {
@@ -7,8 +10,8 @@
 
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 		}
 	}
@@ -18,7 +21,7 @@
 	@extend .GenericInnerSection;
 
 	.Rating_links {
-		@include links(205px);
+		@include mixins.links(205px);
 	}
 
 	.Rating_rating, .Rating_comment, .Rating_user, .Rating_lastUpdated {
@@ -29,9 +32,29 @@
 
 	.Rating_rating {
 		display: flex;
+		align-items: center;
 
 		img {
 			align-self: center;
+		}
+
+		.ReportProblem {
+			input {
+				padding-left: 0;
+			}
+		}
+	}
+}
+
+
+@include mixins.responsive(48rem) {
+	.Rating {
+		.Rating_rating {
+			.ReportProblem {
+				input {
+					height: mixins.px2rem(14px);
+				}
+			}
 		}
 	}
 }

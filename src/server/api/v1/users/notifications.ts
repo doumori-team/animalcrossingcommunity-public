@@ -10,8 +10,6 @@ async function notifications(this: APIThisType, { page, sortBy }: notificationsP
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	// Perform queries
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router';
 
 import Clock from '@/components/layout/Clock.tsx';
 import LoginButton from '@/components/layout/LoginButton.tsx';
@@ -7,7 +7,7 @@ import LogoutButton from '@/components/layout/LogoutButton.tsx';
 import Navbar from '@/components/layout/Navbar.tsx';
 import NavbarMenuButton from '@/components/layout/NavbarMenuButton.tsx';
 import { UserContext } from '@contexts';
-import * as iso from 'common/iso.js';
+import { iso } from 'common/iso.ts';
 import { constants } from '@utils';
 import { LatestNotificationType, BuddiesType, SiteHeaderType } from '@types';
 
@@ -27,9 +27,9 @@ const SiteHeader = ({
 	{
 		if (userContext)
 		{
-			const intervalId = setInterval(() =>
+			const intervalId = setInterval(async () =>
 			{
-				(iso as any).query(null, 'v1/notification/latest', null)
+				(await iso).query(null, 'v1/notification/latest', null)
                     .then((data: LatestNotificationType) =>
                     {
                     	setNotiCount(data.totalCount);
@@ -76,9 +76,9 @@ const SiteHeader = ({
 								<Navbar.Item extra permission={option.permission} key={option.name}><Link to={option.url}>{option.name}</Link></Navbar.Item>
 								:
 								option.url === '/threads/' ?
-									<Navbar.Item extra><Link to={`${option.url}${userContext?.id}`}>{option.name}</Link></Navbar.Item>
+									<Navbar.Item extra key={option.name}><Link to={`${option.url}${userContext?.id}`}>{option.name}</Link></Navbar.Item>
 									:
-									<Navbar.Item extra><Link to={option.url}>{option.name}</Link></Navbar.Item>
+									<Navbar.Item extra key={option.name}><Link to={option.url}>{option.name}</Link></Navbar.Item>
 
 							,
 						)}

@@ -1,13 +1,15 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Header, Section, Grid, Markup, PhotoGallery } from '@layout';
 import { APIThisType, NodeLiteType, EmojiSettingType, NodeHistoryType } from '@types';
+import { routerUtils } from '@utils';
 
-const NodeHistoryPage = () =>
+export const action = routerUtils.formAction;
+
+const NodeHistoryPage = ({ loaderData }: { loaderData: NodeHistoryPageProps }) =>
 {
-	const { parentNode, nodes, nodeEmojiSettings } = useLoaderData() as NodeHistoryPageProps;
+	const { parentNode, nodes, nodeEmojiSettings } = loaderData;
 
 	return (
 		<div className='NodeHistoryPage'>
@@ -69,7 +71,7 @@ const NodeHistoryPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<NodeHistoryPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<NodeHistoryPageProps>
 {
 	const [parentNode, nodes] = await Promise.all([
 		this.query('v1/node/lite', { id: id }),
@@ -82,6 +84,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { parentNode, nodes, nodeEmojiSettings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type NodeHistoryPageProps = {
 	parentNode: NodeLiteType

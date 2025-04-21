@@ -4,14 +4,45 @@
 // It needs to be added to the scheduler from within the Heroku dashboard.
 
 const pg = require('pg');
-const importSync = require('import-sync');
-const constants = importSync('../lib/common/utils/constants.js'); // *.ts is converted to *.js with babel so keep *.js
 
 const pool = new pg.Pool(
 {
 	connectionString: process.env.DATABASE_URL,
 	ssl: {rejectUnauthorized: false} // Heroku self-signs its database SSL certificates
 });
+
+const constants = {
+	tradingPost: {
+		// Get statuses for listings.
+		listingStatuses: {
+			open: 'Open',
+			offerAccepted: 'Offer Accepted',
+			inProgress: 'In Progress',
+			completed: 'Completed',
+			closed: 'Closed',
+			cancelled: 'Cancelled',
+			failed: 'Failed',
+			expired: 'Expired',
+		},
+		// Get statuses for offers.
+		offerStatuses: {
+			pending: 'Pending',
+			onHold: 'On Hold',
+			accepted: 'Accepted',
+			rejected: 'Rejected',
+			cancelled: 'Cancelled',
+		},
+		// When a trade expires.
+		tradeExpiry: 7,
+	},
+	scoutHub: {
+		// How many days a user is considered to be a new member
+		newMemberEligibility: 14,
+	},
+	boardIds: {
+		schrodingersChat: 200000336,
+	},
+};
 
 async function daily()
 {
@@ -80,7 +111,7 @@ async function daily()
 	`);
 
 	// delete users who haven't given consent
-	console.info('Deleting users who have not given content');
+	console.info('Deleting users who have not given consent');
 
 	await pool.query(`
 		DELETE FROM users USING user_account_cache WHERE user_account_cache.id = users.id AND users.consent_given = false AND user_account_cache.signup_date < now() - interval '30' day
@@ -129,6 +160,8 @@ async function daily()
 	// could also do: avatar_event_dates, node_user, notification, scout_settings
 
 	// deactivate any giveaways with no owner(s) online in 30 days
+	console.info('Deactivate any giveaways with no owner9s) online in 30 days');
+
 	await pool.query(`
 		UPDATE shop
 		SET active = false
@@ -152,72 +185,72 @@ async function daily()
 	var updateStatsDate = new Date(`1/1/${todaysDate.getFullYear()}`);
 	updateStatsDate.setHours(0,0,0,0);
 
-	if (updateStatsDate == todaysDate)
+	if (updateStatsDate.getTime() == todaysDate.getTime())
 	{
 		console.info('Updating last year stats');
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_posts
+			REFRESH MATERIALIZED VIEW site_statistics_posts
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_threads
+			REFRESH MATERIALIZED VIEW site_statistics_threads
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_treasure_offers
+			REFRESH MATERIALIZED VIEW site_statistics_treasure_offers
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_patterns
+			REFRESH MATERIALIZED VIEW site_statistics_patterns
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_listings
+			REFRESH MATERIALIZED VIEW site_statistics_listings
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_new_users
+			REFRESH MATERIALIZED VIEW site_statistics_new_users
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_user_sessions
+			REFRESH MATERIALIZED VIEW site_statistics_user_sessions
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_features
+			REFRESH MATERIALIZED VIEW site_statistics_features
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_adoptions
+			REFRESH MATERIALIZED VIEW site_statistics_adoptions
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_user_tickets
+			REFRESH MATERIALIZED VIEW site_statistics_user_tickets
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_support_tickets
+			REFRESH MATERIALIZED VIEW site_statistics_support_tickets
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_support_emails
+			REFRESH MATERIALIZED VIEW site_statistics_support_emails
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_town_tunes
+			REFRESH MATERIALIZED VIEW site_statistics_town_tunes
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_donations
+			REFRESH MATERIALIZED VIEW site_statistics_donations
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_bell_shop
+			REFRESH MATERIALIZED VIEW site_statistics_bell_shop
 		`);
 
 		await pool.query(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY site_statistics_shop_orders
+			REFRESH MATERIALIZED VIEW site_statistics_shop_orders
 		`);
 
 		console.info('Update top_bell_latest');
@@ -240,12 +273,13 @@ async function daily()
 			REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_search
 		`);
 
-		console.loog('Locking any public unlocked normal thread that hasn not been replied to in 5 years');
+		console.info('Locking any public unlocked normal thread that hasn not been replied to in 5 years');
 
+		// includes all public boards + GG Boards
 		await pool.query(`
 			UPDATE node
 			SET locked = now()
-			WHERE type = 'thread' AND locked is null AND parent_node_id IN (200000001,200000002,200000003,200000033,200000055,200000062,200000065,200000069,200000070,200000090,200000093,200000097,200000098,200000140,200000145,200000149,200000152,200000255,200000257,200000267,200000306,200000318,200000319,200000320,200000337,200000356,200000363,200000364,200000365,200000137,200000139,200000138,200000002,200000336) AND thread_type = 'normal' AND latest_reply_time < now() - interval '5' year
+			WHERE type = 'thread' AND locked is null AND parent_node_id IN (200000001,200000002,200000003,200000033,200000055,200000062,200000065,200000069,200000070,200000090,200000093,200000097,200000098,200000140,200000145,200000149,200000152,200000255,200000257,200000267,200000306,200000318,200000319,200000320,200000337,200000356,200000363,200000364,200000365,200000137,200000139,200000138,200000002,200000336,200000258) AND thread_type = 'normal' AND latest_reply_time < now() - interval '5' year
 		`);
 	}
 
@@ -278,7 +312,7 @@ async function daily()
 	var schrodingersChatOffDate = new Date(`4/2/${todaysDate.getFullYear()}`);
 	schrodingersChatOffDate.setHours(0,0,0,0);
 
-	if (schrodingersChatOnDate == todaysDate)
+	if (schrodingersChatOnDate.getTime() == todaysDate.getTime())
 	{
 		console.info('Turn on Schrödingers Chat');
 
@@ -288,7 +322,7 @@ async function daily()
 			WHERE node_id = ${constants.boardIds.schrodingersChat} AND ((user_group_id = 0 AND node_permission_id = 1) OR (user_group_id = 1 AND node_permission_id = 2))
 		`);
 	}
-	else if (schrodingersChatOffDate == todaysDate)
+	else if (schrodingersChatOffDate.getTime() == todaysDate.getTime())
 	{
 		console.info('Turn off Schrödingers Chat');
 

@@ -1,0 +1,25 @@
+@use "mixins";
+
+.StaffPage {
+	.StaffPage_role {
+		font-weight: bold;
+	}
+}
+
+.StaffRolesPage {
+	.StaffRolesPage_section {
+		.StaffRolesPage_apply, .StaffRolesPage_responsibilities, .StaffRolesPage_recruitment {
+			li {
+				list-style-type: disc;
+				list-style-position: inside;
+
+				padding-top: mixins.px2rem(5px);
+				padding-bottom: mixins.px2rem(5px);
+			}
+		}
+
+		.StaffRolesPage_responsibilityTitle, .StaffRolesPage_recruitmentTitle {
+			font-weight: bold;
+		}
+	}
+}

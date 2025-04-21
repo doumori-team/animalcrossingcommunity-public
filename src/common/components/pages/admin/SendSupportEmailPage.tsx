@@ -1,10 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, TextArea } from '@form';
 import { Header, Section } from '@layout';
 import { constants } from '@utils';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const SendSupportEmailPage = () =>
 {

@@ -4,7 +4,7 @@ import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, { gameId, hemisphereId, categories }: saveProps): Promise<SuccessType>
+async function save(this: APIThisType, { gameIds, hemisphereId, categories }: saveProps): Promise<SuccessType>
 {
 	if (!this.userId)
 	{
@@ -36,7 +36,8 @@ async function save(this: APIThisType, { gameId, hemisphereId, categories }: sav
 
 		if (isNaN(gameId))
 		{
-			throw new UserError('no-such-ac-game');
+			throw new Error(value);
+			// throw new UserError('no-such-ac-game');
 		}
 
 		const checkCatGameId = await db.query(`
@@ -108,7 +109,7 @@ async function save(this: APIThisType, { gameId, hemisphereId, categories }: sav
 				INSERT INTO calendar_setting (user_id, game_id, hemisphere_id, homepage) VALUES
 				($1::int, $2::int, $3, $4)
 				RETURNING id
-			`, this.userId, setting.id, setting.hemisphereId, setting.id === gameId);
+			`, this.userId, setting.id, setting.hemisphereId, gameIds.includes(setting.id.toString()));
 
 			setting.categories.map(async (categoryId: number) =>
 			{
@@ -122,13 +123,12 @@ async function save(this: APIThisType, { gameId, hemisphereId, categories }: sav
 
 	return {
 		_success: 'Your calendar settings have been updated.',
-		_callbackFirst: true,
 	};
 }
 
 save.apiTypes = {
-	gameId: {
-		type: APITypes.acgameId,
+	gameIds: {
+		type: APITypes.array,
 		required: true,
 	},
 	hemisphereId: {
@@ -141,7 +141,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	gameId: number
+	gameIds: number[]
 	hemisphereId: number
 	categories: any[]
 };

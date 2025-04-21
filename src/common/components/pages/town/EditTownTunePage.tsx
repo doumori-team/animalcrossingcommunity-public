@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditTune from '@/components/tunes/EditTune.tsx';
 import { Section } from '@layout';
 import { APIThisType, TownType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditTownTunePage = () =>
+export const action = routerUtils.formAction;
+
+const EditTownTunePage = ({ loaderData }: { loaderData: EditTownTunePageProps }) =>
 {
-	const { town } = useLoaderData() as EditTownTunePageProps;
+	const { town } = loaderData;
 
 	return (
 		<RequireUser id={town.userId} permission='modify-towns'>
@@ -27,7 +27,7 @@ const EditTownTunePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<EditTownTunePageProps>
+async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<EditTownTunePageProps>
 {
 	const [town] = await Promise.all([
 		this.query('v1/town', { id: townId }),
@@ -35,6 +35,8 @@ export async function loadData(this: APIThisType, { townId }: { townId: string }
 
 	return { town };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditTownTunePageProps = {
 	town: TownType

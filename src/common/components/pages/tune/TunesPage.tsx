@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import Tune from '@/components/tunes/Tune.tsx';
 import { Form, Text } from '@form';
 import { Pagination, Header, Section, Grid, Search } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, TunesType } from '@types';
 
-const TunesPage = () =>
+export const action = routerUtils.formAction;
+
+const TunesPage = ({ loaderData }: { loaderData: TunesPageProps }) =>
 {
-	const { totalCount, tunes, page, name, creator, pageSize } = useLoaderData() as TunesPageProps;
+	const { totalCount, tunes, page, name, creator, pageSize } = loaderData;
 
 	const link = `&creator=${encodeURIComponent(creator)}
 		&name=${encodeURIComponent(name)}
@@ -70,7 +71,7 @@ const TunesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, name, creator }: { page?: string, name?: string, creator?: string }): Promise<TunesPageProps>
+async function loadData(this: APIThisType, _: any, { page, name, creator }: { page?: string, name?: string, creator?: string }): Promise<TunesPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/tunes', {
@@ -89,6 +90,8 @@ export async function loadData(this: APIThisType, _: any, { page, name, creator 
 		pageSize: returnValue.pageSize,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type TunesPageProps = {
 	tunes: TunesType['results']

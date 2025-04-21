@@ -19,8 +19,6 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	if (category === constants.shops.categories.orders)
 	{
 		const [[thread], items, claim] = await Promise.all([

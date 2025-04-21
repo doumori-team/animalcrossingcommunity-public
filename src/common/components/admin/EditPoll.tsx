@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Form, Text, Switch, Button } from '@form';
 import { PollType } from '@types';

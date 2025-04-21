@@ -1,9 +1,11 @@
+@use "mixins";
+
 .BuddyPage {
 	.Section {
 		.BuddyPage_addUser {
 			.BuddyPage_addUserOptions {
-				@include responsive(1rem) {
-					@include grid($col-width: 20rem);
+				@include mixins.responsive(1rem) {
+					@include mixins.grid($col-width: 20rem);
 				}
 			}
 		}
@@ -13,14 +15,14 @@
 		}
 
 		.BuddyPage_buddies {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 
 			.BuddyPage_buddy {
-				@include contentbox();
+				@include mixins.contentbox();
 				text-align: center;
-				padding: px2rem(5px);
+				padding: mixins.px2rem(5px);
 
 				.BuddyPage_actions {
 					margin-top: 5px;

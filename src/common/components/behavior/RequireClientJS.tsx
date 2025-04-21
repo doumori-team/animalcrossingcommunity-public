@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 
 /* Helper component. Checks to make sure that the client-side script has loaded
  * before rendering the content inside it. This is for things that can't
@@ -38,8 +38,8 @@ const RequireClientJS = ({
 };
 
 type RequireClientJSProps = {
-	children?: React.ReactNode
-	fallback?: React.ReactNode
+	children?: ReactNode
+	fallback?: ReactNode
 };
 
 export default RequireClientJS;

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Modal } from '@layout';
 
 const Confirm = ({
@@ -12,6 +10,7 @@ const Confirm = ({
 	defaultSubmitImage,
 	imageTitle,
 	updateFunction,
+	formId,
 }: ConfirmProps) =>
 {
 	return (
@@ -32,6 +31,7 @@ const Confirm = ({
 			submitButtonImage={defaultSubmitImage}
 			submitButtonImageTitle={imageTitle}
 			updateFunction={updateFunction}
+			formId={formId}
 		>
 			{message}
 		</Modal>
@@ -48,6 +48,7 @@ type ConfirmProps = {
 	defaultSubmitImage?: string
 	imageTitle?: string
 	updateFunction?: Function
+	formId?: string
 };
 
 export default Confirm;

@@ -1,4 +1,5 @@
 import { Redis } from 'ioredis';
+
 import { constants } from '@utils';
 
 class Cache
@@ -11,7 +12,7 @@ class Cache
 	{
 		(this as any).cache = client;
 
-		if ((this as any).cache == null)
+		if ((this as any).cache === null)
 		{
 			console.info(`info: [Cache] Client not started: REDISCLOUD_URL is not set`);
 		}
@@ -83,62 +84,61 @@ class Cache
 						console.info(`info: [Cache] Cache miss: ${useKey}, regenerating`);
 					}
 
-					// *.ts is converted to *.js with babel so keep *.js
 					switch (switchKey)
 					{
 						case constants.cacheKeys.sortedAcGameCategories:
-							value = ((await import('./data/catalog/data.js')).sortedAcGameCategories as any)[keys[1]][keys[2]][keys[3]];
+							value = ((await import('./data/catalog/data.ts')).sortedAcGameCategories as any)[keys[1]][keys[2]][keys[3]];
 							break;
 						case constants.cacheKeys.sortedCategories:
-							value = (await import('./data/catalog/data.js')).sortedCategories;
+							value = (await import('./data/catalog/data.ts')).sortedCategories;
 							break;
 						case constants.cacheKeys.residents:
-							value = (await import('./data/catalog/residents.js')).residents;
+							value = (await import('./data/catalog/residents.ts')).residents;
 							break;
 						case constants.cacheKeys.creatures:
-							value = (await import('./data/catalog/creatures.js')).creatures;
+							value = (await import('./data/catalog/creatures.ts')).creatures;
 							break;
 						case constants.cacheKeys.events:
-							value = (await import('./data/catalog/events.js')).events;
+							value = (await import('./data/catalog/events.ts')).events;
 							break;
 						case constants.cacheKeys.years:
-							value = (await import('./data/catalog/events.js')).years;
+							value = (await import('./data/catalog/events.ts')).years;
 							break;
 						case constants.cacheKeys.alphabeticalAvatarBackgrounds:
-							value = (await import('./data/avatar/avatars.js')).alphabeticalAvatarBackgrounds;
+							value = (await import('./data/avatar/avatars.ts')).alphabeticalAvatarBackgrounds;
 							break;
 						case constants.cacheKeys.alphabeticalAvatarCharacters:
-							value = (await import('./data/avatar/avatars.js')).alphabeticalAvatarCharacters;
+							value = (await import('./data/avatar/avatars.ts')).alphabeticalAvatarCharacters;
 							break;
 						case constants.cacheKeys.alphabeticalAvatarColorations:
-							value = (await import('./data/avatar/avatars.js')).alphabeticalAvatarColorations;
+							value = (await import('./data/avatar/avatars.ts')).alphabeticalAvatarColorations;
 							break;
 						case constants.cacheKeys.alphabeticalAvatarAccents:
-							value = (await import('./data/avatar/avatars.js')).alphabeticalAvatarAccents;
+							value = (await import('./data/avatar/avatars.ts')).alphabeticalAvatarAccents;
 							break;
 						case constants.cacheKeys.avatarTags:
-							value = (await import('./data/avatar/avatars.js')).avatarTags;
+							value = (await import('./data/avatar/avatars.ts')).avatarTags;
 							break;
 						case constants.cacheKeys.sortedBellShopItems:
-							value = (await import('./data/catalog/info.js')).sortedBellShopItems;
+							value = (await import('./data/catalog/info.ts')).sortedBellShopItems;
 							break;
 						case constants.cacheKeys.bellShopCategories:
-							value = (await import('./data/catalog/info.js')).bellShopCategories;
+							value = (await import('./data/catalog/info.ts')).bellShopCategories;
 							break;
 						case constants.cacheKeys.pwps:
-							value = (await import('./data/catalog/info.js')).pwps;
+							value = (await import('./data/catalog/info.ts')).pwps;
 							break;
 						case constants.cacheKeys.indexedAvatarAccents:
-							value = (await import('./data/avatar/avatars.js')).indexedAvatarAccents;
+							value = (await import('./data/avatar/avatars.ts')).indexedAvatarAccents;
 							break;
 						case constants.cacheKeys.indexedAvatarBackgrounds:
-							value = (await import('./data/avatar/avatars.js')).indexedAvatarBackgrounds;
+							value = (await import('./data/avatar/avatars.ts')).indexedAvatarBackgrounds;
 							break;
 						case constants.cacheKeys.indexedAvatarCharacters:
-							value = (await import('./data/avatar/avatars.js')).indexedAvatarCharacters;
+							value = (await import('./data/avatar/avatars.ts')).indexedAvatarCharacters;
 							break;
 						case constants.cacheKeys.indexedAvatarColorations:
-							value = (await import('./data/avatar/avatars.js')).indexedAvatarColorations;
+							value = (await import('./data/avatar/avatars.ts')).indexedAvatarColorations;
 							break;
 						default:
 							console.error(`Unknown cache key: ${key}`);
@@ -297,7 +297,7 @@ class Cache
 
 			const cacheKey = 'version';
 
-			let exists = false, version = null;
+			let exists = false, version: string | null = null;
 
 			try
 			{
@@ -322,7 +322,7 @@ class Cache
 
 			console.info(`info: [Cache] Cache version: ${version}`);
 
-			if (version !== null && version != constants.version)
+			if (version !== null && version !== constants.version)
 			{
 				try
 				{
@@ -359,7 +359,7 @@ class Cache
 				}
 			}
 
-			if (version === null || version !== null && version != constants.version)
+			if (version === null || version !== null && version !== constants.version)
 			{
 				try
 				{
@@ -375,7 +375,7 @@ class Cache
 				console.info(`info: [Cache] Cache prewarming AC data`);
 
 				// pre-warm some AC data
-				const acData = await import('./data/catalog/data.js');
+				const acData = await import('./data/catalog/data.ts');
 
 				const pipeline = (this as any).cache.pipeline();
 

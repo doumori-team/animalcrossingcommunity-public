@@ -1,14 +1,15 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import { Params } from 'react-router';
 
 import { RequireGroup } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { ContentBox } from '@layout';
 import { Form, Text } from '@form';
 
-const EmailNeededPage = () =>
+export const action = routerUtils.formAction;
+
+const EmailNeededPage = ({ params }: { params: Params }) =>
 {
-	const { id } = useParams();
+	const { id } = params;
 
 	return (
 		<div className='EmailNeededPage'>

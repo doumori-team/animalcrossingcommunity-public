@@ -1,17 +1,18 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import Pattern from '@/components/pattern/Pattern.tsx';
 import { Form, Text, Check, Select } from '@form';
 import { Pagination, Header, Section, Search, Grid } from '@layout';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { APIThisType, PatternsType, ACGameType } from '@types';
 
-const PatternsPage = () =>
+export const action = routerUtils.formAction;
+
+const PatternsPage = ({ loaderData }: { loaderData: PatternsPageProps }) =>
 {
 	const { totalCount, patterns, page, name, creator, pageSize, published,
-		favorite, acgames, games } = useLoaderData() as PatternsPageProps;
+		favorite, acgames, games } = loaderData;
 
 	const link = `&creator=${encodeURIComponent(creator)}
 		&name=${encodeURIComponent(name)}
@@ -104,7 +105,7 @@ const PatternsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, name, creator, published, favorite, games }: { page?: string, name?: string, creator?: string, published?: string, favorite?: string, games?: string }): Promise<PatternsPageProps>
+async function loadData(this: APIThisType, _: any, { page, name, creator, published, favorite, games }: { page?: string, name?: string, creator?: string, published?: string, favorite?: string, games?: string }): Promise<PatternsPageProps>
 {
 	const [acgames, returnValue] = await Promise.all([
 		this.query('v1/acgames'),
@@ -131,6 +132,8 @@ export async function loadData(this: APIThisType, _: any, { page, name, creator,
 		games: returnValue.games,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type PatternsPageProps = {
 	patterns: PatternsType['results']

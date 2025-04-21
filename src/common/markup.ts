@@ -1,7 +1,6 @@
 import { escapeHtml } from './markup/utils.ts';
 import parseBbcode from './markup/bbcode.ts';
 import parseMarkdown from './markup/markdown.ts';
-
 import { UserType, EmojiSettingType, MarkupFormatType } from '@types';
 
 // These are used to determine what the buttons in the Quick Markup bar should insert

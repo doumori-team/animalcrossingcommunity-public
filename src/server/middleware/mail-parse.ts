@@ -1,16 +1,16 @@
-import { URL } from 'url';
 import express from 'express';
+import multer from 'multer';
 
 import * as db from '@db';
 import * as accounts from '@accounts';
 import { constants, dateUtils, utils } from '@utils';
 
+const upload = multer();
+
 const handler = express();
-handler.set('views', new URL('../views', import.meta.url).pathname);
 
-handler.post('/*', async (request, response) =>
+handler.post('/*', upload.any(), async (request, response) =>
 {
-
 	if (utils.realStringLength(request.body.text) === 0)
 	{
 		console.error(`Mail Parse Error: Unable to import ${request.body.subject} ${request.body.from}`);

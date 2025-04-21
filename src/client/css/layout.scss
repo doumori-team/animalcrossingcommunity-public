@@ -1,12 +1,19 @@
+@use "colors";
+@use "fonts";
+@use "mixins";
+@use "forms";
+
 /* layout.scss
  *
  * Styles for the components that make up the site's basic page layout.
  */
 
+$breakpoint-fullsize: 81.25rem;
+
 /* Dimensions: Kept at the top for easy modification. */
 $navbar-height: 2.8125rem;
 $navbar-width: $breakpoint-fullsize;
-$navbar-breakpoint: px2rem(1215px);
+$navbar-breakpoint: mixins.px2rem(1215px);
 $navbar-padding-thickness: .525rem;
 
 .App {
@@ -39,8 +46,8 @@ $navbar-padding-thickness: .525rem;
 	border-bottom: 1px solid rgba(var(--seasonal-color-accent), 0.2);
 	box-shadow: 0px 0px 1.4rem rgba(0, 0, 0, 0.3);
 
-	@include inset-text;
-	font-family: $fontstack-accent;
+	@include mixins.inset-text;
+	font-family: fonts.$fontstack-system;
 
 	width: 100%;
 	z-index: 50;
@@ -79,7 +86,7 @@ $navbar-padding-thickness: .525rem;
 }
 
 .NavbarItem > * {
-	font-size: px2rem(15px);
+	font-size: mixins.px2rem(15px);
 }
 
 .NavbarItem, .NavbarMenuButton, .LogoutButton, .LoginButton {
@@ -107,12 +114,12 @@ $navbar-padding-thickness: .525rem;
 /* Full set of links in the navbar only appears when there is space for them */
 .NavbarItem-extra {
 	display: none;
-	@include responsive($navbar-breakpoint) {
+	@include mixins.responsive($navbar-breakpoint) {
 		display: inline-block;
 	}
 	/* ...except the username, which reappears early */
 	&.NavbarItem-username {
-		@include responsive(px2rem(462px)) {
+		@include mixins.responsive(mixins.px2rem(462px)) {
 			display: inline-block;
 		}
 	}
@@ -143,8 +150,13 @@ $navbar-padding-thickness: .525rem;
 
 
 .SiteMenu, .BuddiesMenu {
-	text-align: left; padding: 0;
+	text-align: left;
+	padding: 0;
 	background-color: #fff;
+
+	@media only screen and (max-width: mixins.px2rem(500px)) {
+		padding-bottom: 7rem;
+	}
 
 	img {
 		vertical-align: baseline;
@@ -153,9 +165,9 @@ $navbar-padding-thickness: .525rem;
 
 .SiteMenu_content, .BuddiesMenu_content {
 	color: #333;
-	font-family: $fontstack-default;
+	font-family: fonts.$fontstack-system;
 	font-weight: bold;
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 	text-shadow: none;
 
 	li {
@@ -170,11 +182,60 @@ $navbar-padding-thickness: .525rem;
 }
 
 .SiteMenu_link, .BuddiesMenu_link {
-	display: block;
+	display: flex;
 	width: 100%; text-align: left;
 	min-height: 2.75em;
 	line-height: 2.75em;
 	padding: 0 1em;
+
+	&.Menu_link_indented {
+		padding-left: 2em;
+	}
+	
+	&.SiteMenu_userInfo {
+		flex-direction: column;
+	}
+
+	&.Menu_link_header {
+		align-items: center;
+		justify-content: space-between;
+		background: var(--seasonal-color-light);
+
+		&.Menu_link_header_cursorPointer {
+			cursor: pointer;
+		}
+	}
+
+	.Menu_link_icon {
+		max-height: mixins.px2rem(24);
+		max-width: mixins.px2rem(24);
+		margin-right: 0.5em;
+	}
+
+	.Menu_arrow_toggle {
+		width: 0;
+		height: 0;
+		border-left: mixins.px2rem(5px) solid transparent;
+		border-right: mixins.px2rem(5px) solid transparent;
+		border-top: mixins.px2rem(5px) solid #333333;
+		border-bottom: none;
+		transition: 'transform 0.2s ease';
+
+		&.Menu_arrow_toggle_open {
+			border-top: none;
+			border-bottom: mixins.px2rem(5px) solid #333333;
+		}
+	}
+
+	.Menu_link_subtext {
+		font-size: 85%;
+		line-height: 1.5em;
+		font-weight: normal;
+	
+		&.Menu_link_subtext_separate_line {
+			padding-bottom: 0.9375em;
+		}
+	}
 }
 
 .BuddiesMenu_link {
@@ -199,14 +260,14 @@ $navbar-padding-thickness: .525rem;
 	/* scroll bar */
 	overflow: auto;
 
-	@media only screen and (min-width: px2rem(2500px)) {
+	@media only screen and (min-width: mixins.px2rem(2500px)) {
 		left: 20%;
 	}
 }
 
 .NavbarMenuButton::before {
 	content: '';
-	display: block; width: 100%; height: 100%;
+	display: block; width: 100%; height: 100vh;
 	position: absolute; left: 0; top: 0;
 	z-index: 29; /* just behind SiteMenu */
 	background: rgba(0, 0, 0, 0.4); cursor: default;
@@ -222,22 +283,22 @@ $navbar-padding-thickness: .525rem;
 }
 
 .SiteFooter {
-	background-color: $color-footer-background;
-	padding: 0 px2rem(21px) px2rem(24px) px2rem(21px);
-	border-top: px2rem(6px) solid rgba(#000, 0.05);
+	background-color: colors.$color-footer-background;
+	padding: 0 mixins.px2rem(21px) mixins.px2rem(24px) mixins.px2rem(21px);
+	border-top: mixins.px2rem(6px) solid rgba(#000, 0.05);
 
 	color: rgba(255, 255, 255, 0.55);
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 	line-height: 1.8em;
 	text-shadow: -1px -1px rgba(0, 0, 0, 0.1);
 }
 
-@include responsive(48rem) {
+@include mixins.responsive(48rem) {
 	.SiteFooter_gridContainer {
 		max-width: $breakpoint-fullsize; margin: auto;
 		display: grid;
 		grid: auto-flow / 1fr 1fr 1fr;
-		grid-gap: px2rem(24px); gap: px2rem(24px);
+		grid-gap: mixins.px2rem(24px); gap: mixins.px2rem(24px);
 	}
 }
 
@@ -258,7 +319,7 @@ $navbar-padding-thickness: .525rem;
 }
 
 .SiteFooter_socialIcon {
-	margin: px2rem(8px);
+	margin: mixins.px2rem(8px);
 	display: inline-block;
 	vertical-align: middle;
 }
@@ -277,11 +338,11 @@ $navbar-padding-thickness: .525rem;
 
 	a.NavbarMenuButton {
 		img {
-			padding-bottom: px2rem(5px);
+			padding-bottom: mixins.px2rem(5px);
 		}
 
 		.buddiesCountImg {
-			padding-bottom: px2rem(10px);
+			padding-bottom: mixins.px2rem(10px);
 		}
 
 		.SiteHeader_buddiesCount {
@@ -296,21 +357,21 @@ $navbar-padding-thickness: .525rem;
 }
 
 .SiteHeader_notificationCount, .SiteHeader_buddiesCount {
-	font-size: px2rem(12px);
+	font-size: mixins.px2rem(12px);
 	font-weight: bold;
-	padding: 0 px2rem(5px);
+	padding: 0 mixins.px2rem(5px);
 	border-radius: 50%;
 
 	position: relative;
 	opacity: 0.9;
-	top: px2rem(-60px);
-	right: px2rem(-10px);
+	top: mixins.px2rem(-60px);
+	right: mixins.px2rem(-10px);
 }
 
 .SiteHeader_notificationCount {
 	background: #fc7468;
 	color: #000;
-	border: px2rem(1px) solid #c9483c;
+	border: mixins.px2rem(1px) solid #c9483c;
 }
 
 .SiteHeader_buddiesCount {
@@ -318,7 +379,7 @@ $navbar-padding-thickness: .525rem;
 	right: -0.5rem;
 	background: #6fe400;
 	color: #000;
-	border: px2rem(1px) solid #509b04;
+	border: mixins.px2rem(1px) solid #509b04;
 }
 
 .SiteHeader {
@@ -337,7 +398,7 @@ $navbar-padding-thickness: .525rem;
 
 		.SiteHeader_notification {
 			background-color: #fff;
-			border: px2rem(1px) solid gray;
+			border: mixins.px2rem(1px) solid gray;
 			border-radius: 0.5rem;
 
 			position: absolute;
@@ -346,15 +407,15 @@ $navbar-padding-thickness: .525rem;
 
 			width: 354%;
 			height: auto;
-			max-width: px2rem(159px);
-			line-height: px2rem(15px);
+			max-width: mixins.px2rem(159px);
+			line-height: mixins.px2rem(15px);
 
 			.SiteHeader_notificationArrow {
-				transform: translate(px2rem(66px));
+				transform: translate(mixins.px2rem(66px));
 				display: block;
 				width: 1rem;
 				height: .5rem;
-				margin-top: px2rem(-9px);
+				margin-top: mixins.px2rem(-9px);
 			}
 
 			.SiteHeader_notificationArrow::before,
@@ -369,14 +430,14 @@ $navbar-padding-thickness: .525rem;
 			}
 
 			.SiteHeader_notificationArrow::after {
-				top: px2rem(1px);
+				top: mixins.px2rem(1px);
 				border-bottom-color: white !important;
 			}
 
 			.SiteHeader_notificationBody {
 				color: black;
-				font-size: px2rem(12px);
-				padding: px2rem(5px);
+				font-size: mixins.px2rem(12px);
+				padding: mixins.px2rem(5px);
 			}
 		}
 	}
@@ -387,9 +448,9 @@ $navbar-padding-thickness: .525rem;
 	flex-direction: column;
 	align-items: center;
 
-	@include contentbox($background: white);
+	@include mixins.contentbox($background: white);
 	padding: 1rem;
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 
 	img {
 		width: 15%;
@@ -440,15 +501,15 @@ img[src*="/male-tone3/"] {
 }
 
 .ContentBox {
-	@include contentbox;
+	@include mixins.contentbox;
 
 	margin: 0 .625rem .9375rem;
 	padding: 1rem;
 
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 	line-height: 1.5;
 
-	@include responsive($navbar-breakpoint) {
+	@include mixins.responsive($navbar-breakpoint) {
 		margin: 0 0 1.875rem;
 		padding: 1.5rem;
 		font-size: 1rem;
@@ -457,16 +518,30 @@ img[src*="/male-tone3/"] {
 }
 
 .UsernameSearch {
+	display: flex;
+	align-items: center;
+
 	.UsernameSearch_option {
 		display: flex;
 
 		input[type='text'] {
 			@extend .GenericTextbox;
 
-			margin: 0 px2rem(4px);
+			margin: 0 mixins.px2rem(4px);
 
-			width: px2rem(135px);
+			width: mixins.px2rem(135px);
 		}
+	}
+
+	.FormTextInput {
+		display: flex;
+
+		.placeholder {
+			flex-grow: 1;
+			display: flex;
+			align-items: center;
+		}
+
 	}
 
 	button {
@@ -477,20 +552,20 @@ img[src*="/male-tone3/"] {
 .NavMenu {
 	margin: 0 .625rem .9375rem;
 	text-align: center;
-	font-family: $fontstack-accent;
+	font-family: fonts.$fontstack-system;
 }
 
 .NavMenuButton {
 	display: inline-block;
-	margin: px2rem(2px);
+	margin: mixins.px2rem(2px);
 }
 
 .NavMenuButton_link {
-	@include contentbox(var(--seasonal-color-dark), white);
-	@include inset-text;
+	@include mixins.contentbox(var(--seasonal-color-dark), white);
+	@include mixins.inset-text;
 
-	width: px2rem(146px);
-	padding: px2rem(3px);
+	width: mixins.px2rem(146px);
+	padding: mixins.px2rem(3px);
 	display: block;
 }
 
@@ -512,10 +587,10 @@ img[src*="/male-tone3/"] {
 	.EditKeyboard_markup {
 		background: var(--seasonal-color-light);
 		border-radius: 0.25rem 0.25rem 0 0;
-		padding: px2rem(8px);
+		padding: mixins.px2rem(8px);
 		overflow: auto;
 
-		font-size: px2rem(12px);
+		font-size: mixins.px2rem(12px);
 	}
 
 	button {
@@ -538,13 +613,13 @@ img[src*="/male-tone3/"] {
 }
 
 .Pagination {
-	$pagination-border-width: px2rem(12px);
+	$pagination-border-width: mixins.px2rem(12px);
 
 	display: flex;
 	justify-content: center;
 
-	margin-top: px2rem(2px);
-	padding: px2rem(4px);
+	margin-top: mixins.px2rem(2px);
+	padding: mixins.px2rem(4px);
 
 	background-color: var(--seasonal-color-dark);
 	box-shadow: 0px -1px 0px rgba(0,0,0,0.3) inset, 0px 1px 0px rgba(255,255,255,0.3) inset;
@@ -559,10 +634,10 @@ img[src*="/male-tone3/"] {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-left: px2rem(10px);
-		margin-right: px2rem(10px);
-		width: px2rem(60px);
-		height: px2rem(25px);
+		margin-left: mixins.px2rem(10px);
+		margin-right: mixins.px2rem(10px);
+		width: mixins.px2rem(60px);
+		height: mixins.px2rem(25px);
 
 		&:hover, &:focus {
 			background-color: var(--seasonal-color-accent);
@@ -581,20 +656,20 @@ img[src*="/male-tone3/"] {
 	a::after, button:after {
 		position: absolute;
 		content: "";
-		top: px2rem(-1px);
+		top: mixins.px2rem(-1px);
 		border-top: $pagination-border-width solid transparent;
 		border-bottom: $pagination-border-width solid transparent;
 	}
 
 	.Pagination_next::after, .Pagination_last::after {
-		right: px2rem(-24px);
+		right: mixins.px2rem(-24px);
 
 		border-left: $pagination-border-width solid var(--seasonal-color);
 		border-right: $pagination-border-width solid transparent;
 	}
 
 	.Pagination_first::after, .Pagination_previous::after {
-		right: px2rem(56px);
+		right: mixins.px2rem(56px);
 
 		border-left: $pagination-border-width solid transparent;
 		border-right: $pagination-border-width solid var(--seasonal-color);
@@ -606,7 +681,7 @@ img[src*="/male-tone3/"] {
 	}
 
 	.Pagination_next, .Pagination_last, .Pagination_first, .Pagination_previous {
-		@media only screen and (max-width: px2rem(945px)) {
+		@media only screen and (max-width: mixins.px2rem(945px)) {
 			display: none;
 		}
 	}
@@ -621,7 +696,7 @@ img[src*="/male-tone3/"] {
 		margin: auto;
 		width: 6%;
 
-		@media only screen and (max-width: px2rem(1300px)) {
+		@media only screen and (max-width: mixins.px2rem(1300px)) {
 			width: 25%;
 		}
 	}
@@ -637,11 +712,11 @@ img[src*="/male-tone3/"] {
 			border: none;
 			outline: none;
 			cursor: pointer;
-			padding: px2rem(14px) px2rem(16px);
+			padding: mixins.px2rem(14px) mixins.px2rem(16px);
 			transition: 0.3s;
-			font-size: px2rem(17px);
+			font-size: mixins.px2rem(17px);
 			border-radius: .25rem .25rem 0 0;
-			margin: px2rem(1px);
+			margin: mixins.px2rem(1px);
 		}
 
 		button.btn-light {
@@ -654,7 +729,7 @@ img[src*="/male-tone3/"] {
 
 		button.btn-dark {
 			background-color: var(--seasonal-color-dark);
-			border: px2rem(1px) solid var(--seasonal-color-light);
+			border: mixins.px2rem(1px) solid var(--seasonal-color-light);
 			color: rgba(255,255,255,.85);
 
 			&:hover {
@@ -676,7 +751,7 @@ img[src*="/male-tone3/"] {
 	@extend .GenericHeader;
 
 	.Header_links {
-		@include links(150px);
+		@include mixins.links(150px);
 	}
 
 	.Header_name {
@@ -708,8 +783,8 @@ img[src*="/male-tone3/"] {
 	@extend .GenericSection;
 
 	.Search_options {
-		@include responsive(1rem) {
-			@include grid($col-width: 20rem);
+		@include mixins.responsive(1rem) {
+			@include mixins.grid($col-width: 20rem);
 		}
 	}
 
@@ -732,37 +807,37 @@ img[src*="/male-tone3/"] {
 
 .RequireLargeScreen {
 	.RequireLargeScreen_fallback_1300 {
-		@include responsive(px2rem(1300px)) {
+		@include mixins.responsive(mixins.px2rem(1300px)) {
 			display: none;
 		}
 	}
 
 	.RequireLargeScreen_content_1300 {
-		@media only screen and (max-width: px2rem(1299px)) {
+		@media only screen and (max-width: mixins.px2rem(1299px)) {
 			display: none;
 		}
 	}
 
 	.RequireLargeScreen_fallback_1275 {
-		@include responsive(px2rem(1275px)) {
+		@include mixins.responsive(mixins.px2rem(1275px)) {
 			display: none;
 		}
 	}
 
 	.RequireLargeScreen_content_1275 {
-		@media only screen and (max-width: px2rem(1274px)) {
+		@media only screen and (max-width: mixins.px2rem(1274px)) {
 			display: none;
 		}
 	}
 
 	.RequireLargeScreen_fallback_657 {
-		@include responsive(px2rem(657px)) {
+		@include mixins.responsive(mixins.px2rem(657px)) {
 			display: none;
 		}
 	}
 
 	.RequireLargeScreen_content_657 {
-		@media only screen and (max-width: px2rem(656px)) {
+		@media only screen and (max-width: mixins.px2rem(656px)) {
 			display: none;
 		}
 	}
@@ -822,14 +897,14 @@ img[src*="/male-tone3/"] {
 		vertical-align: top;
 
 		.DonateButton {
-			width: px2rem(75px);
+			width: mixins.px2rem(75px);
 		}
 	}
 
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 
 			.InnerSection {
@@ -842,8 +917,8 @@ img[src*="/male-tone3/"] {
 .TopBellsPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 
 			.TopBellsPage_user {
@@ -854,16 +929,16 @@ img[src*="/male-tone3/"] {
 }
 
 .DonateButton {
-	width: px2rem(100px);
+	width: mixins.px2rem(100px);
 }
 
 img[src*="/icons/"], input[src*="/icons/"] {
-	padding-left: px2rem(2px);
-	padding-right: px2rem(2px);
+	padding-left: mixins.px2rem(2px);
+	padding-right: mixins.px2rem(2px);
 }
 
 input[src*="/icons/wifi"] {
-	height: px2rem(24px);
+	height: mixins.px2rem(24px);
 }
 
 .Modal_container {
@@ -895,7 +970,7 @@ input[src*="/icons/wifi"] {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%) !important;
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 	font-weight: normal;
 
 	&.Modal_hide {
@@ -930,7 +1005,20 @@ input[src*="/icons/wifi"] {
 		.Modal_button_close {
 			background-color: #6c757d;
 			@extend .GenericSubmitButton;
+
+			/* override gray-on-gray during winter */
+			.App-snow & {
+				color: rgba(#fff, 0.85);
+			}
 		}
+	}
+}
+
+
+// make modal wider on small screens so buttons don't break mid-word
+@media only screen and (max-width: mixins.px2rem(768px)) {
+	.Modal {
+		width: 80%;
 	}
 }
 
@@ -953,13 +1041,13 @@ input[src*="/icons/wifi"] {
 		.title-container {
 			width: 100%;
 			text-align: left;
-			padding-left: px2rem(10px);
-			padding-right: px2rem(10px);
+			padding-left: mixins.px2rem(10px);
+			padding-right: mixins.px2rem(10px);
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
 			font-weight: 500;
-			font-size: px2rem(20px);
+			font-size: mixins.px2rem(20px);
 			background: var(--seasonal-color-dark);
 			border: none;
 			cursor: pointer;
@@ -979,11 +1067,21 @@ input[src*="/icons/wifi"] {
 			padding: 0 1rem;
 			transition: height .7s ease-in-out;
 			background: #fff;
-			margin-bottom: px2rem(13px);
+			margin-bottom: mixins.px2rem(13px);
 
 			.description-content {
 				padding: 1rem 0;
 			}
 		}
+	}
+}
+
+/* 
+ * Images render as display:inline by default, which stretches their containers slightly to make space for text descenders, adding artificial lower padding.
+ * Change this to display:block so get rid of that, so that the pitfall icon can be cleanly vertically aligned with any text it accompanies.
+ */
+.ReportProblem {
+	input[type="image"] {
+		display: block;
 	}
 }

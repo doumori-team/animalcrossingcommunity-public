@@ -1,6 +1,7 @@
-import React from 'react';
-
 import { ContentBox } from '@layout';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const CookiePolicyPage = () =>
 {

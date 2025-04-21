@@ -1,15 +1,14 @@
-import React from 'react';
-import { Link, useLoaderData, Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router';
 
 import { RequireUser } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Check, TextArea } from '@form';
 import { Header, Section, ReportProblem, Markup } from '@layout';
 import { APIThisType, NodeType, RatingsGivenType, ShopNodeShopType } from '@types';
 
-const ShopThreadBanner = () =>
+const ShopThreadBanner = ({ loaderData }: { loaderData: ShopThreadBannerProps }) =>
 {
-	const { node, rating, shop } = useLoaderData() as ShopThreadBannerProps;
+	const { node, rating, shop } = loaderData;
 
 	const showRatings = Object.keys(constants.rating.configs)
 		.map(x =>
@@ -138,7 +137,7 @@ const ShopThreadBanner = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ShopThreadBannerProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ShopThreadBannerProps>
 {
 	const [node, ratings, shop] = await Promise.all([
 		this.query('v1/node/full', { id: id }),
@@ -152,6 +151,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		shop,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ShopThreadBannerProps = {
 	node: NodeType

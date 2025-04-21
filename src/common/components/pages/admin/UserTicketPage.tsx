@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { ReactNode, Fragment, useState, useRef } from 'react';
+import { Link } from 'react-router';
 
 import { RequirePermission, RequireClientJS } from '@behavior';
 import { Form, Confirm, TextArea, Switch, Select, Checkbox, Button, RichTextArea, Alert } from '@form';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { UserContext, PermissionsContext } from '@contexts';
 import { Header, ErrorMessage, Tabs, Section, Markup, HTMLPurify } from '@layout';
 import {
@@ -18,10 +18,12 @@ import {
 	ElementSelectType,
 } from '@types';
 
-const UserTicketPage = () =>
+export const action = routerUtils.formAction;
+
+const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 {
 	const { userTicket, denyReasons, rules, actions, boards, ticketUserEmojiSettings,
-		banLengths, userEmojiSettings, currentUserEmojiSettings } = useLoaderData() as UserTicketPageProps;
+		banLengths, userEmojiSettings, currentUserEmojiSettings } = loaderData;
 
 	const noActionAction = actions.find(a => a.identifier === 'no_action');
 
@@ -99,12 +101,12 @@ const UserTicketPage = () =>
 		textareaRef.current.value = '';
 	};
 
-	const getMessagesSection = (): React.ReactNode =>
+	const getMessagesSection = (): ReactNode =>
 	{
 		const encodedId = encodeURIComponent(userTicket.id);
 
 		return (
-			<Section key={Math.random()}>
+			<Section>
 				<Alert type='info'>
 					User(s) who submitted the UT cannot answer messages. All non-staff messages on the UT are shown to the violator if the UT is completed. If you need more information from the submitting user(s), send them a ST and link the ST to the UT. If the UT is relatively minor, you can just deny it if it's not obvious what the problem is.
 				</Alert>
@@ -113,6 +115,7 @@ const UserTicketPage = () =>
 					action='v1/user_ticket/message'
 					callback={`/user-ticket/${encodedId}`}
 					showButton
+					formId={String(Math.random())}
 				>
 					<input type='hidden' name='id' value={userTicket.id} />
 
@@ -198,13 +201,15 @@ const UserTicketPage = () =>
 																/>
 															</>
 														}
-														<Confirm
-															action='v1/user_ticket/discussion'
-															callback={`/user-ticket/${encodedId}`}
-															id={userTicket.id}
-															label='Move to In Discussion'
-															message='Are you sure you want to move this UT to In Discussion?'
-														/>
+														{userTicket.status !== constants.userTicket.statuses.inDiscussion &&
+															<Confirm
+																action='v1/user_ticket/discussion'
+																callback={`/user-ticket/${encodedId}`}
+																id={userTicket.id}
+																label='Move to In Discussion'
+																message='Are you sure you want to move this UT to In Discussion?'
+															/>
+														}
 													</>
 												}
 											</>
@@ -342,11 +347,11 @@ const UserTicketPage = () =>
 												{userTicket.supportTickets.length > 0 &&
 													<div className='UserTicketPage_supportTicket'>
 														Support Ticket(s): {userTicket.supportTickets.map(st =>
-															<React.Fragment key={st.id}>
+															<Fragment key={st.id}>
 																<Link to={`/support-ticket/${encodeURIComponent(st.id)}`}>
 																	{st.title}
 																</Link>{userTicket.supportTickets.length > 1 ? ' ' : ''}
-															</React.Fragment>,
+															</Fragment>,
 														)}
 													</div>
 												}
@@ -566,7 +571,7 @@ const UserTicketPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<UserTicketPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<UserTicketPageProps>
 {
 	const [userTicket, denyReasons, rules, actions, boards, banLengths, currentUserEmojiSettings] = await Promise.all([
 		this.query('v1/user_ticket', { id: id }),
@@ -595,6 +600,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		currentUserEmojiSettings,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserTicketPageProps = {
 	userTicket: UserTicketType

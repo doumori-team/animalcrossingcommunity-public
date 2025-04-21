@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { ChangeEvent, useRef } from 'react';
 
 import { RequireClientJS } from '@behavior';
 import { constants } from '@utils';
@@ -13,7 +13,7 @@ const EditKeyboard = ({
 {
 	const textInput = useRef<HTMLInputElement>(null);
 
-	const doSpecialCharacter = (e: React.ChangeEvent<HTMLInputElement>, tag: string): void =>
+	const doSpecialCharacter = (e: ChangeEvent<HTMLInputElement>, tag: string): void =>
 	{
 		e.preventDefault();
 
@@ -54,7 +54,7 @@ const EditKeyboard = ({
 				maxLength={constants.max.keyboardName}
 				label={label}
 				className='text-full'
-				hideLabel
+				hideLabels
 				placeholder={label}
 			/>
 		</div>

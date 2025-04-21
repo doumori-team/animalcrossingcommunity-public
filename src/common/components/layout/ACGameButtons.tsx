@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 
 import { ACGameType, LocationType } from '@types';
 import Grid from '@/components/layout/Grid.tsx';

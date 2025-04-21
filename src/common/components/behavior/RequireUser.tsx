@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import RequirePermission from '@/components/behavior/RequirePermission.tsx';
 import { UserContext } from '@contexts';
@@ -58,7 +58,7 @@ type RequireUserProps = {
 	id?: number
 	permission?: string
 	silent?: boolean
-	children?: React.ReactNode
+	children?: ReactNode
 	ids?: number[]
 };
 

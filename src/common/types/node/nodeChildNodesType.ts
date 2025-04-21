@@ -3,6 +3,7 @@ import { UserType } from '../user/userType.ts';
 import { UserDonationsType } from '../user/userDonationsType.ts';
 import { FileType } from '../fileType.ts';
 import { MarkupFormatType, MarkupStyleType } from '../markupFormatType.ts';
+import { NodeCategoryType } from './nodeCategoryType.ts';
 
 type NodeChildNodesType = {
 	id: number
@@ -40,6 +41,7 @@ type NodeChildNodesType = {
 	conciseMode: number
 	userDonations: UserDonationsType
 	markupStyle?: MarkupStyleType
+	forumCategory?: NodeCategoryType
 };
 
 export type { NodeChildNodesType };

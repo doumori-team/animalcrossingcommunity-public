@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditPattern from '@/components/pattern/EditPattern.tsx';
 import { Section } from '@layout';
 import { APIThisType, TownType, ACGameType } from '@types';
+import { routerUtils } from '@utils';
 
-const AddTownFlagPage = () =>
+export const action = routerUtils.formAction;
+
+const AddTownFlagPage = ({ loaderData }: { loaderData: AddTownFlagPageProps }) =>
 {
-	const { town, acgames } = useLoaderData() as AddTownFlagPageProps;
+	const { town, acgames } = loaderData;
 
 	return (
 		<RequireUser id={town.userId} permission='modify-towns'>
@@ -25,7 +25,7 @@ const AddTownFlagPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<AddTownFlagPageProps>
+async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<AddTownFlagPageProps>
 {
 	const town = await this.query('v1/town', { id: townId }) as TownType;
 	const acgames = await Promise.all([
@@ -34,6 +34,8 @@ export async function loadData(this: APIThisType, { townId }: { townId: string }
 
 	return { town, acgames };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddTownFlagPageProps = {
 	town: TownType

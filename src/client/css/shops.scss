@@ -1,3 +1,6 @@
+@use "mixins";
+@use "forms";
+
 // hide breadcrumb to forums
 .ShopThreadBanner + .Node > .Node_main {
 	display: none;
@@ -39,11 +42,11 @@
 
 	&.header {
 		padding: 0 !important;
-		min-height: px2rem(40px);
+		min-height: mixins.px2rem(40px);
 	}
 
 	.Shop_links {
-		@include links(125px);
+		@include mixins.links(125px);
 	}
 
 	.Shop_img_links {
@@ -74,7 +77,7 @@
 		display: flex;
 		justify-content: center;
 		font-weight: normal;
-		font-size: px2rem(14px);
+		font-size: mixins.px2rem(14px);
 	}
 
 	.Shop_vacation {
@@ -83,15 +86,15 @@
 }
 
 .Shop_header {
-	width: px2rem(1299px);
+	width: mixins.px2rem(1299px);
 	max-width: 100%;
-	max-height: px2rem(350px);
+	max-height: mixins.px2rem(350px);
 }
 
 .ShopThreadsPage {
 	.Grid {
-		@include responsive(1rem) {
-			@include grid($col-width: 20rem);
+		@include mixins.responsive(1rem) {
+			@include mixins.grid($col-width: 20rem);
 		}
 
 		.ShopThreadsPage_order,
@@ -100,7 +103,7 @@
 			@extend .GenericInnerSection;
 
 			.ShopThreadsPage_links {
-				@include links(125px);
+				@include mixins.links(125px);
 
 				a {
 					text-decoration: none;
@@ -118,8 +121,8 @@
 .EmployeeRatingsPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 		}
 	}

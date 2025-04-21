@@ -34,11 +34,11 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 
 	// Other area validations
 	await Promise.all([
-		validateHouseSizes.bind(this)(townId, houseSizeIds), // House Sizes
-		validateBedLocation.bind(this)(townId, bedLocationId), // AC:GC/AC:WW Bed Location
-		validateFace.bind(this)(townId, faceId), // Face (AC:GC through AC:NL only)
-		validatePaint.bind(this)(townId, paintId), // AC:GC and AC:CF Roof Paint
-		validateMonument.bind(this)(townId, monumentId), // AC:GC Train Station Monument
+		validateHouseSizes(townId, houseSizeIds), // House Sizes
+		validateBedLocation(townId, bedLocationId), // AC:GC/AC:WW Bed Location
+		validateFace(townId, faceId), // Face (AC:GC through AC:NL only)
+		validatePaint(townId, paintId), // AC:GC and AC:CF Roof Paint
+		validateMonument(townId, monumentId), // AC:GC Train Station Monument
 	]);
 
 	// Perform queries
@@ -46,9 +46,9 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 	{
 		let townUserId;
 
-		if (id != null && id > 0)
+		if (id > 0)
 		{
-			let [character] = await query(`
+			const [character] = await query(`
 				SELECT town.id AS town_id, town.user_id, town.game_id, ac_game.max_characters
 				FROM character
 				JOIN town ON (town.id = character.town_id)
@@ -56,30 +56,14 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 				WHERE character.id = $1::int
 			`, id);
 
-			if (!character)
-			{
-				throw new UserError('no-such-character');
-			}
-
-			if (character.user_id != this.userId)
+			if (character.user_id !== this.userId)
 			{
 				throw new UserError('permission');
 			}
 
-			const [characters] = await query(`
-				SELECT count(*) AS count
-				FROM character
-				WHERE town_id = $1::int
-			`, character.town_id);
-
-			if (Number(characters.count) > character.max_characters)
-			{
-				throw new UserError('too-many-characters');
-			}
-
 			await Promise.all([
-				validateHappyHomeNetworkId.bind(this)(character.game_id, happyHomeNetworkId),
-				validateCreatorId.bind(this)(character.game_id, creatorId),
+				validateHappyHomeNetworkId(character.game_id, happyHomeNetworkId),
+				validateCreatorId(character.game_id, creatorId),
 			]);
 
 			townUserId = character.user_id;
@@ -92,18 +76,16 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 		}
 		else
 		{
-			await this.query('v1/user_lite', { id: this.userId });
-
-			let [foundTown] = await query(`
-				SELECT town.game_id, ac_game.max_characters
+			const [foundTown] = await query(`
+				SELECT town.user_id, town.game_id, ac_game.max_characters
 				FROM town
 				JOIN ac_game ON (town.game_id = ac_game.id)
 				WHERE town.id = $1::int
 			`, townId);
 
-			if (!foundTown)
+			if (foundTown.user_id !== this.userId)
 			{
-				throw new UserError('no-such-town');
+				throw new UserError('permission');
 			}
 
 			const [characters] = await query(`
@@ -118,11 +100,11 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 			}
 
 			await Promise.all([
-				validateHappyHomeNetworkId.bind(this)(foundTown.game_id, happyHomeNetworkId),
-				validateCreatorId.bind(this)(foundTown.game_id, creatorId),
+				validateHappyHomeNetworkId(foundTown.game_id, happyHomeNetworkId),
+				validateCreatorId(foundTown.game_id, creatorId),
 			]);
 
-			const [townCharacters] = await db.query(`
+			const [townCharacters] = await query(`
 				SELECT count(*) AS count
 				FROM character
 				JOIN town ON (town.id = character.town_id)
@@ -134,34 +116,34 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 				throw new UserError('too-many-town-characters');
 			}
 
-			const [newTown] = await query(`
+			const [newCharacter] = await query(`
 				INSERT INTO character (name, town_id, bells, debt, hra_score, face_id, bed_location_id, nook_miles, happy_home_network_id, creator_id, paint_id, monument_id)
 				VALUES ($1, $2::int, $3, $4, $5, $6::int, $7::int, $8::int, $9, $10, $11, $12)
 				RETURNING id
 			`, name, townId, bells, debt, hraScore, faceId, bedLocationId, nookMiles, happyHomeNetworkId, creatorId, paintId, monumentId);
 
-			id = newTown.id;
+			id = newCharacter.id;
 
 			townUserId = this.userId;
 		}
 
 		// Other areas
 		await Promise.all([
-			updateHouseSizes.bind(this)(Number(id || 0), houseSizeIds, query), // House Sizes
+			updateHouseSizes(Number(id || 0), houseSizeIds, query), // House Sizes
 		]);
 
 		return townUserId;
 	});
 
 	return {
-		id: Number(id || 0),
+		id: id,
 		userId: townUserId,
 	};
 }
 
-async function validateHouseSizes(townId: number, houseSizeIds: any[]): Promise<void>
+export async function validateHouseSizes(townId: number, houseSizeIds: any[]): Promise<void>
 {
-	await Promise.all([
+	await Promise.all(
 		houseSizeIds.map(async (houseSizeId) =>
 		{
 			if (houseSizeId > 0)
@@ -180,10 +162,10 @@ async function validateHouseSizes(townId: number, houseSizeIds: any[]): Promise<
 				}
 			}
 		}),
-	]);
+	);
 }
 
-async function validateBedLocation(townId: number, bedLocationId: number | null): Promise<void>
+export async function validateBedLocation(townId: number, bedLocationId: number | null): Promise<void>
 {
 	if (bedLocationId === null)
 	{
@@ -204,7 +186,7 @@ async function validateBedLocation(townId: number, bedLocationId: number | null)
 	}
 }
 
-async function validateFace(townId: number, faceId: number | null): Promise<void>
+export async function validateFace(townId: number, faceId: number | null): Promise<void>
 {
 	if (faceId === null)
 	{
@@ -224,7 +206,7 @@ async function validateFace(townId: number, faceId: number | null): Promise<void
 	}
 }
 
-async function validateHappyHomeNetworkId(gameId: number, happyHomeNetworkId: string): Promise<void>
+export async function validateHappyHomeNetworkId(gameId: number, happyHomeNetworkId: string): Promise<void>
 {
 	if (utils.realStringLength(happyHomeNetworkId) === 0)
 	{
@@ -237,7 +219,7 @@ async function validateHappyHomeNetworkId(gameId: number, happyHomeNetworkId: st
 	}
 }
 
-async function validateCreatorId(gameId: number, creatorId: string): Promise<void>
+export async function validateCreatorId(gameId: number, creatorId: string): Promise<void>
 {
 	if (utils.realStringLength(creatorId) === 0)
 	{
@@ -250,14 +232,14 @@ async function validateCreatorId(gameId: number, creatorId: string): Promise<voi
 	}
 }
 
-async function updateHouseSizes(id: number, houseSizeIds: any[], query: any): Promise<void>
+export async function updateHouseSizes(id: number, houseSizeIds: any[], query: any): Promise<void>
 {
 	query(`
 		DELETE FROM character_house_size
 		WHERE character_id = $1::int
 	`, id);
 
-	await Promise.all([
+	await Promise.all(
 		houseSizeIds.map(async (houseSizeId) =>
 		{
 			if (houseSizeId > 0)
@@ -268,10 +250,10 @@ async function updateHouseSizes(id: number, houseSizeIds: any[], query: any): Pr
 				`, id, houseSizeId);
 			}
 		}),
-	]);
+	);
 }
 
-async function validatePaint(townId: number, paintId: number | null): Promise<void>
+export async function validatePaint(townId: number, paintId: number | null): Promise<void>
 {
 	if (paintId === null)
 	{
@@ -291,7 +273,7 @@ async function validatePaint(townId: number, paintId: number | null): Promise<vo
 	}
 }
 
-async function validateMonument(townId: number, monumentId: number | null): Promise<void>
+export async function validateMonument(townId: number, monumentId: number | null): Promise<void>
 {
 	if (monumentId === null)
 	{
@@ -325,7 +307,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-character-name',
 		length: constants.max.keyboardName,
 		profanity: true,
 	},
@@ -379,7 +360,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	townId: number
 	name: string
 	bells: number

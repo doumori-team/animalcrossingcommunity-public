@@ -1,15 +1,16 @@
-import React from 'react';
-import { useLoaderData, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Form, Text, RichTextArea } from '@form';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Header, Section } from '@layout';
 import { APIThisType, UserBioType, EmojiSettingType, UserDonationsType, UserType } from '@types';
 
-const EditProfileBioPage = () =>
+export const action = routerUtils.formAction;
+
+const EditProfileBioPage = ({ loaderData }: { loaderData: EditProfileBioPageProps }) =>
 {
-	const { bio, emojiSettings, userDonations } = useLoaderData() as EditProfileBioPageProps;
+	const { bio, emojiSettings, userDonations } = loaderData;
 	const { user } = useOutletContext() as { user: UserType };
 
 	return (
@@ -70,7 +71,7 @@ const EditProfileBioPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditProfileBioPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<EditProfileBioPageProps>
 {
 	const [bio, emojiSettings, userDonations] = await Promise.all([
 		this.query('v1/users/bio', { id }),
@@ -80,6 +81,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { bio, emojiSettings, userDonations };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditProfileBioPageProps = {
 	bio: UserBioType

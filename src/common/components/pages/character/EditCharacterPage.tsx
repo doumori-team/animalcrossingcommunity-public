@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditCharacter from '@/components/characters/EditCharacter.tsx';
 import { Section } from '@layout';
 import { APIThisType, CharacterType, CharacterGameType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditCharacterPage = () =>
+export const action = routerUtils.formAction;
+
+const EditCharacterPage = ({ loaderData }: { loaderData: EditCharacterPageProps }) =>
 {
-	const { character, characterGame } = useLoaderData() as EditCharacterPageProps;
+	const { character, characterGame } = loaderData;
 
 	return (
 		<RequireUser id={character.userId} permission='modify-towns'>
@@ -26,7 +26,7 @@ const EditCharacterPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { characterId }: { characterId: string }): Promise<EditCharacterPageProps>
+async function loadData(this: APIThisType, { characterId }: { characterId: string }): Promise<EditCharacterPageProps>
 {
 	const character: CharacterType = await this.query('v1/character', { id: characterId });
 
@@ -44,6 +44,8 @@ export async function loadData(this: APIThisType, { characterId }: { characterId
 		characterGame: { info, houseSizes, bedLocations, faces, paintColors, monuments },
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditCharacterPageProps = {
 	character: CharacterType

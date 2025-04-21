@@ -1,12 +1,17 @@
-import React, { Suspense } from 'react';
-import { Await, useLoaderData } from 'react-router-dom';
+import { ReactNode, Suspense, use } from 'react';
 
-import ErrorMessage from '@/components/layout/ErrorMessage.tsx';
 import { constants } from '@utils';
 
-const Loading = ({ children }: LoadingProps) =>
+const Loading = ({ loaderData, children }: { loaderData: Promise<any>, children: ReactNode }) =>
 {
-	const { data } = useLoaderData() as { data: any };
+	// Don't defer if we're loading from the server
+	// Server will handle 'loading spinner' and this allows
+	// the client side to have the data
+	// `use` will suspend until the promise resolves
+	if ((import.meta as any).env.SSR)
+	{
+		use(loaderData);
+	}
 
 	return (
 		<Suspense
@@ -16,20 +21,9 @@ const Loading = ({ children }: LoadingProps) =>
 				</div>
 			}
 		>
-			<Await
-				resolve={data}
-				errorElement={
-					<ErrorMessage identifier='bad-format' />
-				}
-			>
-				{children}
-			</Await>
+			{children}
 		</Suspense>
 	);
-};
-
-type LoadingProps = {
-	children: React.ReactNode | string
 };
 
 export default Loading;

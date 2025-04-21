@@ -26,7 +26,7 @@ async function features(this: APIThisType, { page, statusId, isBug, categoryId, 
 		}
 	}
 
-	if (categoryId > 0)
+	if (categoryId !== null && categoryId > 0)
 	{
 		const [category] = await db.query(`
 			SELECT feature_category.id
@@ -119,7 +119,7 @@ async function features(this: APIThisType, { page, statusId, isBug, categoryId, 
 		wheres.push(`feature.is_bug = $` + paramIndex);
 	}
 
-	if (categoryId > -2 && categoryId != null)
+	if (categoryId !== null && categoryId > -2)
 	{
 		if (categoryId === -1)
 		{
@@ -288,7 +288,7 @@ features.apiTypes = {
 type featuresProps = {
 	page: number
 	statusId: string
-	categoryId: number
+	categoryId: number | null
 	isBug: string
 	following: string
 	readOnly: string

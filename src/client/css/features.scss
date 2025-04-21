@@ -1,8 +1,11 @@
+@use "mixins";
+@use "forms";
+
 .FeaturesDashboardPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 
 			.FeaturesDashboardPage_feature {
@@ -14,7 +17,7 @@
 
 .FeaturePage {
 	.Tabs {
-		padding-top: px2rem(20px);
+		padding-top: mixins.px2rem(20px);
 	}
 
 	.FeaturePage_chat {

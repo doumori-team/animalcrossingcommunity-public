@@ -21,7 +21,7 @@ async function save(this: APIThisType, { gameId, type, items, quantities, bells,
 	}
 
 	// Check parameters
-	if (gameId != null && gameId > 0)
+	if (gameId > 0)
 	{
 		let [checkId] = await db.query(`
 			SELECT id
@@ -45,7 +45,7 @@ async function save(this: APIThisType, { gameId, type, items, quantities, bells,
 		}
 	}
 
-	const catalogItems: ACGameItemType[number]['all']['items'] = gameId != null && gameId > 0 ?
+	const catalogItems: ACGameItemType[number]['all']['items'] = gameId > 0 ?
 		(await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable) :
 		(await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
@@ -105,7 +105,7 @@ async function save(this: APIThisType, { gameId, type, items, quantities, bells,
 			INSERT INTO listing (creator_id, status, game_id, type)
 			VALUES ($1::int, $2, $3::int, $4)
 			RETURNING id
-		`, this.userId, listingStatuses.open, gameId != null && gameId > 0 ? gameId : null, type);
+		`, this.userId, listingStatuses.open, gameId > 0 ? gameId : null, type);
 
 		const [listingOffer] = await query(`
 			INSERT INTO listing_offer (user_id, listing_id, bells, status, comment)
@@ -116,8 +116,8 @@ async function save(this: APIThisType, { gameId, type, items, quantities, bells,
 		const listingOfferId = listingOffer.id;
 
 		await Promise.all([
-			updateItems.bind(this)(listingOfferId, Number(gameId || 0), items, quantities, query),
-			updateResidents.bind(this)(listingOfferId, residents, query),
+			updateItems(listingOfferId, gameId, items, quantities, query),
+			updateResidents(listingOfferId, residents, query),
 		]);
 
 		return listing;
@@ -203,7 +203,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	gameId: number | null
+	gameId: number
 	type: string
 	items: any[]
 	quantities: any[]

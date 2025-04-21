@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Form, Select, Text, Switch } from '@form';
 import { GameType, GameConsoleType } from '@types';
 import { constants } from '@utils';

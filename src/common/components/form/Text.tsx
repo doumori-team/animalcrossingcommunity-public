@@ -1,11 +1,9 @@
-import React from 'react';
-
 import { RequireClientJS } from '@behavior';
 import { FontAwesomeIcon } from '@layout';
 import { ChangeHandlerInputType } from '@types';
 
 const Text = ({
-	hideLabel = false,
+	hideLabels = false,
 	label,
 	type = 'text',
 	name,
@@ -22,11 +20,12 @@ const Text = ({
 	textRef,
 	step = 1,
 	information,
+	hideTrailingPlaceholder = false,
 }: TextProps) =>
 {
 	const getInput = (javascriptOff: boolean = false) =>
 	{
-		const useClass = `${className}${placeholder && !hideLabel ? ' placeholder' : ''}`;
+		const useClass = `${className}${placeholder && !hideLabels ? ' placeholder' : ''}`;
 
 		return (
 			changeHandler ?
@@ -97,10 +96,10 @@ const Text = ({
 
 	return (
 		<>
-			{!hideLabel &&
+			{!hideLabels &&
 				<>{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}<label htmlFor={name}>{label}:</label></>
 			}
-			{placeholder && !hideLabel ?
+			{placeholder && !hideLabels ?
 				<div className='placeholder'>
 					<RequireClientJS fallback={
 						getInput(true)
@@ -108,7 +107,7 @@ const Text = ({
 					>
 						{getInput()}
 					</RequireClientJS>
-					<span>({placeholder})</span>
+					{!hideTrailingPlaceholder && <span>({placeholder})</span>}
 				</div>
 				:
 				getInput()
@@ -118,7 +117,7 @@ const Text = ({
 };
 
 type TextProps = {
-	hideLabel?: boolean
+	hideLabels?: boolean
 	label: string
 	type?: 'text' | 'number' | 'email' | 'date'
 	name: string
@@ -135,6 +134,7 @@ type TextProps = {
 	step?: number
 	minLength?: number
 	information?: string
+	hideTrailingPlaceholder?: boolean
 };
 
 export default Text;

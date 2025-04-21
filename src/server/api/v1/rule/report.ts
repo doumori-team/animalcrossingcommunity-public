@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, SuccessType, UserLiteType } from '@types';
+import { APIThisType, SuccessType } from '@types';
 
 /*
  * Reports content as a rule violation to the modmins.
@@ -22,8 +22,6 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 	}
 
 	// Parameter Validation
-	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
-
 	const [typeId] = await db.query(`
 		SELECT id
 		FROM user_ticket_type
@@ -506,8 +504,8 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 	if (!currentUserTicket)
 	{
 		const [processUserTickets, processModTickets, violator] = await Promise.all([
-			this.query('v1/permission', { permission: 'process-user-tickets', user: user.id }),
-			this.query('v1/permission', { permission: 'process-mod-tickets', user: user.id }),
+			this.query('v1/permission', { permission: 'process-user-tickets', user: this.userId }),
+			this.query('v1/permission', { permission: 'process-mod-tickets', user: this.userId }),
 			this.query('v1/user', { id: violatorId }),
 		]);
 
@@ -525,7 +523,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 			].includes(violator.group.identifier) && processModTickets)
 		)
 		{
-			assigneeId = user.id;
+			assigneeId = this.userId;
 		}
 
 		[currentUserTicket] = await db.query(`
@@ -548,7 +546,6 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 	{
 		return {
 			_successImage: successImage,
-			_success: 'The content has been reported.',
 		};
 	}
 
@@ -577,7 +574,6 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 
 	return {
 		_successImage: successImage,
-		_success: 'The content has been reported.',
 	};
 }
 

@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Select } from '@form';
 import { Header, Search, Section, Grid, InnerSection } from '@layout';
-import { constants, dateUtils } from '@utils';
+import { constants, dateUtils, routerUtils } from '@utils';
 import { APIThisType, UserMatchingType } from '@types';
 
-const UserMatchingPage = () =>
+export const action = routerUtils.formAction;
+
+const UserMatchingPage = ({ loaderData }: { loaderData: UserMatchingPageProps }) =>
 {
-	const { username, matches, match } = useLoaderData() as UserMatchingPageProps;
+	const { username, matches, match } = loaderData;
 
 	return (
 		<div className='UserMatchingPage'>
@@ -60,7 +61,7 @@ const UserMatchingPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, username, match }: { page?: string, username?: string, match?: string }): Promise<UserMatchingPageProps>
+async function loadData(this: APIThisType, _: any, { page, username, match }: { page?: string, username?: string, match?: string }): Promise<UserMatchingPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/matching', {
@@ -76,6 +77,8 @@ export async function loadData(this: APIThisType, _: any, { page, username, matc
 		match: returnValue.match,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserMatchingPageProps = {
 	matches: UserMatchingType['results']

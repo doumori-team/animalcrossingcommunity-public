@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireGroup } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, RichTextArea } from '@form';
 import { Header, Section } from '@layout';
 import { UserContext } from '@contexts';
 import { APIThisType, ScoutSettingsType, EmojiSettingType } from '@types';
 
-const ScoutSettingsPage = () =>
+export const action = routerUtils.formAction;
+
+const ScoutSettingsPage = ({ loaderData }: { loaderData: ScoutSettingsPageProps }) =>
 {
-	const { settings, emojiSettings } = useLoaderData() as ScoutSettingsPageProps;
+	const { settings, emojiSettings } = loaderData;
 
 	return (
 		<div className='ScoutSettingsPage'>
@@ -86,7 +87,7 @@ const ScoutSettingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<ScoutSettingsPageProps>
+async function loadData(this: APIThisType): Promise<ScoutSettingsPageProps>
 {
 	const [settings, emojiSettings] = await Promise.all([
 		this.query('v1/scout_hub/settings'),
@@ -95,6 +96,8 @@ export async function loadData(this: APIThisType): Promise<ScoutSettingsPageProp
 
 	return { settings, emojiSettings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ScoutSettingsPageProps = {
 	settings: ScoutSettingsType

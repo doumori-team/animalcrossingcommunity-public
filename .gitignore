@@ -199,4 +199,6 @@ FakesAssemblies/
 # Project-specific additions
 .env
 .vagrant/
-lib/
+build/
+.react-router/
+coverage/

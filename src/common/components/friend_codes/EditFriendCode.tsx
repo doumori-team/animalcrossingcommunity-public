@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { RequireClientJS } from '@behavior';
 import { Form, Select, Text } from '@form';

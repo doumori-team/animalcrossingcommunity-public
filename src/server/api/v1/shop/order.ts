@@ -19,8 +19,6 @@ async function order(this: APIThisType, { id, gameId, serviceId, items, quantiti
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)

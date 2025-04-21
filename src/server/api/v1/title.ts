@@ -16,26 +16,29 @@ async function title(this: APIThisType, { pathname }: titleProps): Promise<strin
 			return `FAQ${ending}`;
 		case 'forums':
 		{
-			const nodePermission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: sections[2] });
-
-			if (nodePermission)
+			if (sections[2])
 			{
-				if (sections[3] === 'history')
-				{
-					return `Post History${ending}`;
-				}
+				const nodePermission: boolean = await this.query('v1/node/permission', { permission: 'read', nodeId: sections[2] });
 
-				const [node] = await db.query(`
-                    SELECT title
-                    FROM node_revision
-                    WHERE node_revision.node_id = $1
-                    ORDER BY time DESC
-                    LIMIT 1
-                `, sections[2]);
-
-				if (node && node.title)
+				if (nodePermission)
 				{
-					return `${utils.ellipsisLongText(node.title)}${ending}`;
+					if (sections[3] === 'history')
+					{
+						return `Post History${ending}`;
+					}
+
+					const [node] = await db.query(`
+						SELECT title
+						FROM node_revision
+						WHERE node_revision.node_id = $1
+						ORDER BY time DESC
+						LIMIT 1
+					`, sections[2]);
+
+					if (node && node.title)
+					{
+						return `${utils.ellipsisLongText(node.title)}${ending}`;
+					}
 				}
 			}
 
@@ -57,60 +60,72 @@ async function title(this: APIThisType, { pathname }: titleProps): Promise<strin
 			return `Notifications${ending}`;
 		case 'profile':
 		{
-			const [user1] = await db.query(`
-                SELECT user_account_cache.username
-                FROM user_account_cache
-                WHERE id = $1::int
-            `, sections[2]);
-
-			if (user1)
+			if (sections[2] && !isNaN(Number(sections[2])))
 			{
-				return `${utils.getPossessiveNoun(user1.username)} Profile${ending}`;
+				const [user1] = await db.query(`
+					SELECT user_account_cache.username
+					FROM user_account_cache
+					WHERE id = $1::int
+				`, sections[2]);
+
+				if (user1)
+				{
+					return `${utils.getPossessiveNoun(user1.username)} Profile${ending}`;
+				}
 			}
 
 			break;
 		}
 		case 'threads':
 		{
-			const [user2] = await db.query(`
-                SELECT user_account_cache.username
-                FROM user_account_cache
-                WHERE id = $1::int
-            `, sections[2]);
-
-			if (user2)
+			if (sections[2] && !isNaN(Number(sections[2])))
 			{
-				return `${utils.getPossessiveNoun(user2.username)} Threads${ending}`;
+				const [user2] = await db.query(`
+					SELECT user_account_cache.username
+					FROM user_account_cache
+					WHERE id = $1::int
+				`, sections[2]);
+
+				if (user2)
+				{
+					return `${utils.getPossessiveNoun(user2.username)} Threads${ending}`;
+				}
 			}
 
 			break;
 		}
 		case 'ratings':
 		{
-			const [user3] = await db.query(`
-                SELECT user_account_cache.username
-                FROM user_account_cache
-                WHERE id = $1::int
-            `, sections[2]);
-
-			if (user3)
+			if (sections[2] && !isNaN(Number(sections[2])))
 			{
-				return `${utils.getPossessiveNoun(user3.username)} Ratings${ending}`;
+				const [user3] = await db.query(`
+					SELECT user_account_cache.username
+					FROM user_account_cache
+					WHERE id = $1::int
+				`, sections[2]);
+
+				if (user3)
+				{
+					return `${utils.getPossessiveNoun(user3.username)} Ratings${ending}`;
+				}
 			}
 
 			break;
 		}
 		case 'catalog':
 		{
-			const [user4] = await db.query(`
-                SELECT user_account_cache.username
-                FROM user_account_cache
-                WHERE id = $1::int
-            `, sections[2]);
-
-			if (user4)
+			if (sections[2] && !isNaN(Number(sections[2])))
 			{
-				return `${utils.getPossessiveNoun(user4.username)} Catalog${ending}`;
+				const [user4] = await db.query(`
+					SELECT user_account_cache.username
+					FROM user_account_cache
+					WHERE id = $1::int
+				`, sections[2]);
+
+				if (user4)
+				{
+					return `${utils.getPossessiveNoun(user4.username)} Catalog${ending}`;
+				}
 			}
 
 			break;
@@ -220,16 +235,19 @@ async function title(this: APIThisType, { pathname }: titleProps): Promise<strin
 					return `Shops & Services${ending}`;
 				}
 
-				const [shop] = await db.query(`
-                    SELECT
-                        shop.name
-                    FROM shop
-                    WHERE shop.id = $1::int
-                `, sections[2]);
-
-				if (shop)
+				if (sections[2] && !isNaN(Number(sections[2])))
 				{
-					return `${utils.ellipsisLongText(shop.name)}${ending}`;
+					const [shop] = await db.query(`
+						SELECT
+							shop.name
+						FROM shop
+						WHERE shop.id = $1::int
+					`, sections[2]);
+
+					if (shop)
+					{
+						return `${utils.ellipsisLongText(shop.name)}${ending}`;
+					}
 				}
 			}
 

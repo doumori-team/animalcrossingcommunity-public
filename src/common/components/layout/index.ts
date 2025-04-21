@@ -9,6 +9,7 @@ import Grid from './Grid.tsx';
 import Header from './Header.tsx';
 import HTMLPurify from './HTMLPurify.tsx';
 import InnerSection from './InnerSection.tsx';
+import ItemLookup from './ItemLookup.tsx';
 import Keyboard from './Keyboard.tsx';
 import Markup from './Markup.tsx';
 import Modal from './Modal.tsx';
@@ -21,6 +22,7 @@ import Search from './Search.tsx';
 import Section from './Section.tsx';
 import SelectAllCheckbox from './SelectAllCheckbox.tsx';
 import Tabs from './Tabs.tsx';
+import UserLookup from './UserLookup.tsx';
 
 export {
 	ACGameButtons,
@@ -34,6 +36,7 @@ export {
 	Header,
 	HTMLPurify,
 	InnerSection,
+	ItemLookup,
 	Keyboard,
 	Markup,
 	Modal,
@@ -46,4 +49,5 @@ export {
 	Section,
 	SelectAllCheckbox,
 	Tabs,
+	UserLookup,
 };

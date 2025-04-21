@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Form, Check, Text } from '@form';
 import { TuneType, TownType } from '@types';
 import { utils, constants } from '@utils';

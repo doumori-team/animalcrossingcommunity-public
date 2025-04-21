@@ -109,7 +109,7 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 
 	if (ipAddresses)
 	{
-		// see api-requests
+		// see middleware
 		ipAddresses = ipAddresses.split(',')
 			.map((item: any) => item.trim());
 

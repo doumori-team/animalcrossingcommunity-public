@@ -15,14 +15,11 @@ export const SHOP_FILE_DIR = LIVE_SITE ? `${AWS_URL}/images/shops/` : `${AWS_URL
 
 export const SHOP_FILE_DIR2 = LIVE_SITE ? `images/shops/` : `images/stage/shops/`;
 
-// Update this with each release; it helps with css / js caching (see index.ejs)
-export const version = '2.3.9';
+// Update this with each release
+export const version = '2.4.2';
 
 // used for invalidating cache with heroku preboot
-export const lastVersion = '2.3.8';
-
-// Update this when package.json is changed
-export const vendorVersion = '2.3.9';
+export const lastVersion = '2.4.1';
 
 export const gameIds = {
 	ACGC: 1,
@@ -113,7 +110,7 @@ export const boardIds = {
 	featuresDashboard: 300000005,
 	archivedSpecialProjects: 300000010,
 	shopThread: 410000000,
-	schrodingersChat: 200000336,
+	schrodingersChat: 200000336, // see daily.cjs
 	ggOffTopic: 200000139,
 	ggWiFiLobby: 200000138,
 	colorDuels: 200000002,
@@ -191,6 +188,7 @@ export const max = {
 	url: 100,
 	towns: 30,
 	supportEmailBody: 8000,
+	donationAmount: 5000,
 };
 
 export const min = {
@@ -294,7 +292,7 @@ export const rating = {
 
 export const tradingPost = {
 	// Get statuses for listings.
-	listingStatuses: {
+	listingStatuses: { // see daily.cjs
 		open: 'Open',
 		offerAccepted: 'Offer Accepted',
 		inProgress: 'In Progress',
@@ -305,7 +303,7 @@ export const tradingPost = {
 		expired: 'Expired',
 	},
 	// Get statuses for offers.
-	offerStatuses: {
+	offerStatuses: { // see daily.cjs
 		pending: 'Pending',
 		onHold: 'On Hold',
 		accepted: 'Accepted',
@@ -329,7 +327,7 @@ export const tradingPost = {
 		game: 'game',
 	},
 	// When a trade expires.
-	tradeExpiry: 7,
+	tradeExpiry: 7, // see daily.cjs
 	// Age user must be to trade real world items.
 	realTradeAge: 16,
 	maxItems: 15,
@@ -338,6 +336,7 @@ export const tradingPost = {
 export const userTicket = {
 	// DB UT Status 'Open' id
 	openStatusId: 1,
+	closeStatusId: 4,
 	statuses: {
 		open: 'Open',
 		inProgress: 'In Progress',
@@ -402,7 +401,7 @@ export const supportTicket = {
 
 export const scoutHub = {
 	// How many days a user is considered to be a new member
-	newMemberEligibility: 14,
+	newMemberEligibility: 14, // see daily.cjs
 	// Default message if scout doesn't have one for opening adoptee thread
 	defaultWelcomeTemplate: `
 Thank you for signing up for adoption!

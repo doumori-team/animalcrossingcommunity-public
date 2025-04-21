@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Fragment } from 'react';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { constants, utils } from '@utils';
@@ -264,7 +264,7 @@ const Town = ({ town, season }: TownProps) =>
 							Museum
 						</h2>
 						{museum.map(category =>
-							<>
+							<Fragment key={category.name}>
 								<h3 className='Town_museumSubheading'>{category.name}: {category.count}/{category.total}</h3>
 								<ul className='Town_museumProgress'>
 									{
@@ -276,14 +276,14 @@ const Town = ({ town, season }: TownProps) =>
 												<img
 													className={museumFileName(category.name, item.name)}
 													src={museumItemIconUrl(category.name, item.name)}
-													alt={item.name}
+													alt={`${item.name} ${item.owned ? '(donated)' : '(missing)'}`}
 													title={item.name}
 												/>
 											</li>,
 										)
 									}
 								</ul>
-							</>,
+							</Fragment>,
 						)}
 					</InnerSection>
 

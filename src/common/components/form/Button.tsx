@@ -1,5 +1,3 @@
-import React from 'react';
-
 import Spinner from '@/components/form/Spinner.tsx';
 
 const Button = ({
@@ -49,7 +47,7 @@ type ButtonProps = {
 	label?: string
 	children?: any
 	loading?: boolean
-	// React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLInputElement>
+	// MouseEvent<HTMLButtonElement> | MouseEvent<HTMLInputElement>
 	clickHandler?: (e: any) => any
 	type?: 'button' | 'submit'
 	className?: string

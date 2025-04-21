@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import { TuneType, TownType } from '@types';
@@ -47,6 +46,7 @@ const Tune = ({
 							id={tune.id}
 							label='Delete'
 							message='Are you sure you want to delete this tune?'
+							formId={`tune-destroy-${tune.id}`}
 						/>
 					}
 				</RequireUser>
@@ -58,15 +58,15 @@ const Tune = ({
 							id={townId}
 							label='Remove From Town'
 							message='Are you sure you want to remove the tune from this town?'
+							formId={`town-tune-destroy-${tune.id}`}
 						/>
 					</RequireUser>
 					:
 					<RequireUser silent><Link to={`/town-tune/${encodedId}/choose`}>Use as Town Tune</Link></RequireUser>
 				}
 			</div>
-
 			<h1 className='Tune_name'>
-				<div>
+				<div className='Tune_nameAlignment'>
 					<ReportProblem type={tune.id ? constants.userTicket.types.tune : constants.userTicket.types.townTune} id={tune.id ? tune.id : Number(townId || 0)} />
 					{townId ? 'Town Tune: ' : ''}{tune.name}
 				</div>
@@ -83,7 +83,6 @@ const Tune = ({
 									<>
 										(submitted by {tune.creator.username}{tune.formattedDate && ` on ${tune.formattedDate}`})
 									</>
-
 							}
 						</UserContext.Consumer>
 					</cite>

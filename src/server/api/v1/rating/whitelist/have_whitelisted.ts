@@ -20,8 +20,6 @@ async function have_whitelisted(this: APIThisType, { id }: haveWhitelistedProps)
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	if (id === this.userId)
 	{
 		return true;

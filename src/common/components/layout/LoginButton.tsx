@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@form';
 
 /* Button which brings the user to a login form. */

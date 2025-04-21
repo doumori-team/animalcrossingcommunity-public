@@ -52,6 +52,5 @@ export default async function claim(this: APIThisType): Promise<SuccessType>
 
 	return {
 		_success: `Congratulations! You have won the JACKPOT, bringing your total to ${user.bells} Bells!`,
-		_callbackFirst: true,
 	};
 }

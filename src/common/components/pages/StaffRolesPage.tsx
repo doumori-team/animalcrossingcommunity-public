@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import { ContentBox, Header } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, RichTextArea, Text } from '@form';
 import NavMenu from '@/components/layout/NavMenu.tsx';
 import { APIThisType, UserGroupType, EmojiSettingType } from '@types';
 
-const StaffRolesPage = () =>
+export const action = routerUtils.formAction;
+
+const StaffRolesPage = ({ loaderData }: { loaderData: StaffRolesPageProps }) =>
 {
-	const { staffGroups, selectedGroupId, emojiSettings } = useLoaderData() as StaffRolesPageProps;
+	const { staffGroups, selectedGroupId, emojiSettings } = loaderData;
 
 	const selectedStaffGroup = selectedGroupId ?
 		staffGroups.find(sg => sg.id === selectedGroupId) : null;
@@ -400,7 +401,7 @@ const StaffRolesPage = () =>
 												constants.staffIdentifiers.scout,
 											].includes(selectedStaffGroup.identifier) &&
 												<Text
-													hideLabel
+													hideLabels
 													className='NodeWritingInterface_title'
 													name='username'
 													label='Title'
@@ -430,7 +431,7 @@ const StaffRolesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<StaffRolesPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<StaffRolesPageProps>
 {
 	const selectedGroupId = Number(id);
 
@@ -453,6 +454,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		emojiSettings: emojiSettings,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type StaffRolesPageProps = {
 	staffGroups: UserGroupType[]

@@ -18,7 +18,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 	}
 
 	// Check parameters
-	let [game] = await db.query(`
+	const [game] = await db.query(`
 		SELECT pattern
 		FROM game
 		WHERE id = $1::int
@@ -29,27 +29,21 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 		throw new UserError('bad-format');
 	}
 
-	if (characterId != null && characterId > 0)
+	if (characterId > 0)
 	{
-		// Check characterId param
-		let [checkCharacterId] = await db.query(`
-			SELECT town.game_id, town.user_id
-			FROM character
-			JOIN town ON (character.town_id = town.id)
-			WHERE character.id = $1::int
-		`, characterId);
-
-		if (!checkCharacterId)
-		{
-			throw new UserError('no-such-character');
-		}
-
-		// Check if it's a game that should have a character
-		let [acGame] = await db.query(`
-			SELECT acgame_id
-			FROM ac_game_game
-			WHERE game_id = $1::int
-		`, gameId);
+		const [[checkCharacterId], [acGame]] = await Promise.all([
+			db.query(`
+				SELECT town.game_id, town.user_id
+				FROM character
+				JOIN town ON (character.town_id = town.id)
+				WHERE character.id = $1::int
+			`, characterId),
+			db.query(`
+				SELECT acgame_id
+				FROM ac_game_game
+				WHERE game_id = $1::int
+			`, gameId),
+		]);
 
 		// Confirm that the character matches the game's ac game
 		if (checkCharacterId.game_id !== acGame.acgame_id)
@@ -62,7 +56,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 
 		if (id > 0)
 		{
-			let [friendCode] = await db.query(`
+			const [friendCode] = await db.query(`
 				SELECT user_id
 				FROM friend_code
 				WHERE id = $1::int
@@ -96,7 +90,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 
 		if (id > 0)
 		{
-			let [friendCode2] = await query(`
+			const [friendCode2] = await query(`
 				SELECT user_id
 				FROM friend_code
 				WHERE id = $1::int
@@ -107,7 +101,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 				throw new UserError('no-such-friend-code');
 			}
 
-			if (friendCode2.user_id != this.userId)
+			if (friendCode2.user_id !== this.userId)
 			{
 				throw new UserError('permission');
 			}
@@ -122,8 +116,6 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 		}
 		else
 		{
-			await this.query('v1/user_lite', { id: this.userId });
-
 			const [newFriendCode] = await query(`
 				INSERT INTO friend_code (user_id, game_id, friend_code)
 				VALUES ($1::int, $2::int, $3::text)
@@ -135,7 +127,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 			friendCodeUserId = this.userId;
 		}
 
-		if (characterId != null && characterId > 0)
+		if (characterId > 0)
 		{
 			const [listings] = await Promise.all([
 				query(`
@@ -155,7 +147,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 			]);
 
 			// If character used in trade, update that friend code
-			await Promise.all([
+			await Promise.all(
 				listings.map(async(listing: any) =>
 				{
 					await query(`
@@ -164,7 +156,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 						WHERE id = $1::int
 					`, listing.id, code);
 				}),
-			]);
+			);
 		}
 
 		return friendCodeUserId;
@@ -200,7 +192,7 @@ type saveProps = {
 	id: number
 	code: string
 	gameId: number
-	characterId: number | null
+	characterId: number
 };
 
 export default save;

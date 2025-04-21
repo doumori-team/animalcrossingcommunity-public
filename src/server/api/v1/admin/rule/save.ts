@@ -26,7 +26,7 @@ async function save(this: APIThisType, { id, number, name, description, category
 	}
 
 	// Perform queries
-	if (id != null && id > 0)
+	if (id > 0)
 	{
 		const [rule] = await db.query(`
 			SELECT start_date, node_id, description, name, number
@@ -138,7 +138,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	number: number
 	name: string
 	description: string

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import FontAwesomeIcon from '@/components/layout/FontAwesomeIcon.tsx';
 import { ElementClickButtonType } from '@types';
 

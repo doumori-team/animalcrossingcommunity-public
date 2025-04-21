@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { constants, utils } from '@utils';
 import { TownType, TownGameType, SeasonsType } from '@types';
 import { Form, Check, Select, Text } from '@form';
@@ -82,7 +80,7 @@ const EditTown = ({
 										defaultValue={town && town.nativeFruit.islandFruitId1 ?
 											[town.nativeFruit.islandFruitId1] : [0]}
 										imageLocation='fruit'
-										hideLabel
+										hideLabels
 										label='Native Island Fruit, Type 1'
 									/>
 
@@ -92,7 +90,7 @@ const EditTown = ({
 										defaultValue={town && town.nativeFruit.islandFruitId2 ?
 											[town.nativeFruit.islandFruitId2] : [0]}
 										imageLocation='fruit'
-										hideLabel
+										hideLabels
 										label='Native Island Fruit, Type 2'
 									/>
 								</div>
@@ -125,7 +123,7 @@ const EditTown = ({
 
 					<Form.Group>
 						<Select
-							hideLabel
+							hideLabels
 							label='Villagers'
 							name='residents'
 							multiple

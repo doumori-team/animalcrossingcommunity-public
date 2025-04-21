@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Section, Header, Tabs } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Text, Select, Switch, Check } from '@form';
 import { APIThisType, EmployeesType, ShopType, ServiceType, RoleType } from '@types';
 
-const EmployeesPage = () =>
+export const action = routerUtils.formAction;
+
+const EmployeesPage = ({ loaderData }: { loaderData: EmployeesPageProps }) =>
 {
-	const { shop, employees, shopServices, shopRoles } = useLoaderData() as EmployeesPageProps;
+	const { shop, employees, shopServices, shopRoles } = loaderData;
 
 	const encodedId = encodeURIComponent(shop.id);
 
@@ -242,7 +243,7 @@ const EmployeesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<EmployeesPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<EmployeesPageProps>
 {
 	const [shop, employees, shopServices, shopRoles] = await Promise.all([
 		this.query('v1/shop', { id: id }),
@@ -253,6 +254,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { shop, employees, shopServices, shopRoles };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EmployeesPageProps = {
 	shop: ShopType

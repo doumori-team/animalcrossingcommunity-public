@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import EditRule from '@/components/admin/EditRule.tsx';
 import { Header } from '@layout';
 import { APIThisType, RuleCategoryType, RuleType } from '@types';
+import { routerUtils } from '@utils';
 
-const EditAdminRulePage = () =>
+export const action = routerUtils.formAction;
+
+const EditAdminRulePage = ({ loaderData }: { loaderData: EditAdminRulePageProps }) =>
 {
-	const { rule, categories } = useLoaderData() as EditAdminRulePageProps;
+	const { rule, categories } = loaderData;
 
 	return (
 		<div className='EditAdminRulePage'>
@@ -24,7 +24,7 @@ const EditAdminRulePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { ruleId }: { ruleId: string }): Promise<EditAdminRulePageProps>
+async function loadData(this: APIThisType, { ruleId }: { ruleId: string }): Promise<EditAdminRulePageProps>
 {
 	const [rule, categories] = await Promise.all([
 		this.query('v1/admin/rule', { id: ruleId }),
@@ -33,6 +33,8 @@ export async function loadData(this: APIThisType, { ruleId }: { ruleId: string }
 
 	return { rule, categories };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditAdminRulePageProps = {
 	rule: RuleType

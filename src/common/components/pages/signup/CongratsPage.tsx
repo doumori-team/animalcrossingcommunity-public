@@ -1,8 +1,9 @@
-import React from 'react';
-
 import { RequireGroup } from '@behavior';
 import { constants } from '@utils';
 import { ContentBox } from '@layout';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const CongratsPage = () =>
 {

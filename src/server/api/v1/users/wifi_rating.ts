@@ -17,9 +17,6 @@ async function wifi_rating(this: APIThisType, { id }: wifiRatingProps): Promise<
 		throw new UserError('login-needed');
 	}
 
-	// Check parameters
-	await this.query('v1/user_lite', { id: this.userId });
-
 	// Confirm whitelists
 	let [whitelist] = await db.query(`
 		SELECT id

@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Select } from '@form';
 import { Pagination, Header, Search, Section, Grid } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, SupportTicketsType } from '@types';
 
-const SupportTicketDashboardPage = () =>
+export const action = routerUtils.formAction;
+
+const SupportTicketDashboardPage = ({ loaderData }: { loaderData: SupportTicketDashboardPageProps }) =>
 {
 	const { username, userTicketId, supportTickets, page, pageSize, totalCount,
-		status } = useLoaderData() as SupportTicketDashboardPageProps;
+		status } = loaderData;
 
 	const link = `&username=${encodeURIComponent(username)}
 		&userTicketId=${encodeURIComponent(String(userTicketId || ''))}
@@ -121,7 +122,7 @@ const SupportTicketDashboardPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, username, userTicketId, status }: { page?: string, username?: string, userTicketId?: string, status?: string }): Promise<SupportTicketDashboardPageProps>
+async function loadData(this: APIThisType, _: any, { page, username, userTicketId, status }: { page?: string, username?: string, userTicketId?: string, status?: string }): Promise<SupportTicketDashboardPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/support_tickets', {
@@ -142,6 +143,8 @@ export async function loadData(this: APIThisType, _: any, { page, username, user
 		status: returnValue.status,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type SupportTicketDashboardPageProps = {
 	supportTickets: SupportTicketsType['results']

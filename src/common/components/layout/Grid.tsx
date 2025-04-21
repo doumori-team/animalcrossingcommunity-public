@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 const Grid = ({
 	name,
@@ -29,8 +29,8 @@ const Grid = ({
 type GridProps = {
 	name?: string
 	options: any[]
-	children: React.ReactNode
-	message?: string | React.ReactNode
+	children: ReactNode
+	message?: string | ReactNode
 };
 
 export default Grid;

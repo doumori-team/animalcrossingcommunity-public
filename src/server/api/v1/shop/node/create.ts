@@ -1,6 +1,6 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { utils, constants } from '@utils';
+import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, ThreadApplicationType, ThreadOrderType, ShopType, MarkupStyleType } from '@types';
 
@@ -16,25 +16,6 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 	if (!this.userId)
 	{
 		throw new UserError('login-needed');
-	}
-
-	await this.query('v1/user_lite', { id: this.userId });
-
-	if (!Array.isArray(users))
-	{
-		if (users)
-		{
-			if (utils.realStringLength(users) > constants.max.addMultipleUsers)
-			{
-				throw new UserError('bad-format');
-			}
-
-			users = users.split(',').map(username => username.trim());
-		}
-		else
-		{
-			users = [];
-		}
 	}
 
 	let userIds: number[] = [], employeeIds: number[] = [];
@@ -302,8 +283,8 @@ create.apiTypes = {
 		profanity: true,
 	},
 	users: {
-		type: APITypes.string,
-		default: '',
+		type: APITypes.array,
+		length: constants.max.addMultipleUsers,
 	},
 	text: {
 		type: APITypes.string,
@@ -325,7 +306,7 @@ type createProps = {
 	applicationId: number | null
 	shopId: number | null
 	title: string
-	users: string | any[]
+	users: string[]
 	text: string
 	format: MarkupStyleType
 };

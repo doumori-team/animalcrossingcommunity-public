@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import Clock from '@/components/layout/Clock.tsx';
@@ -63,12 +62,6 @@ const SiteFooter = () =>
 								alt='Follow ACC on Facebook'
 							/>
 						</a>
-						<a href='https://www.twitter.com/accommunity'>
-							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_twt.png`}
-								srcSet={`${constants.AWS_URL}/images/layout/social_media_twt.png 1x, ${constants.AWS_URL}/images/layout/social_media_twt@2x.png 2x`}
-								alt='Follow ACC on Twitter'
-							/>
-						</a>
 						<a href='https://www.instagram.com/animal.crossing.community'>
 							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_insta.png`}
 								srcSet={`${constants.AWS_URL}/images/layout/social_media_insta.png 1x, ${constants.AWS_URL}/images/layout/social_media_insta@2x.png 2x`}
@@ -79,6 +72,12 @@ const SiteFooter = () =>
 							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_blsk.png`}
 								srcSet={`${constants.AWS_URL}/images/layout/social_media_blsk.png 1x, ${constants.AWS_URL}/images/layout/social_media_blsk@2x.png 2x`}
 								alt='Follow ACC on Bluesky'
+							/>
+						</a>
+						<a href='https://www.youtube.com/@animalcrossingcommunity'>
+							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_yt.png`}
+								srcSet={`${constants.AWS_URL}/images/layout/social_media_yt.png 1x, ${constants.AWS_URL}/images/layout/social_media_yt@2x.png 2x`}
+								alt='Follow ACC on YouTube'
 							/>
 						</a>
 					</div>

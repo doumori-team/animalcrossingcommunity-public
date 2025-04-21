@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { TimeContext } from '@contexts';
 import { constants, dateUtils } from '@utils';
 
@@ -11,7 +9,7 @@ const HomePageBanner = ({
 		<TimeContext.Consumer>
 			{time =>
 			{
-				const leftTime = bannerName === 'newyear' ? timeLeft(time) : {};
+				const leftTime = bannerName === 'newyear' && time ? timeLeft(time) : {};
 
 				return (
 					<h1 className='HomePageBanner'>

@@ -1,7 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { ContentBox } from '@layout';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const PrivacyPage = () =>
 {

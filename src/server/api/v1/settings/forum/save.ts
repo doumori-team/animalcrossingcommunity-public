@@ -58,7 +58,6 @@ async function save(this: APIThisType, { signature = null, format, userTitle = n
 
 	return {
 		_success: 'Your forum settings have been updated.',
-		_callbackFirst: true,
 	};
 }
 

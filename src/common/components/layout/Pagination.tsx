@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { Link, useNavigate } from 'react-router';
 
 import { RequireClientJS } from '@behavior';
 import { utils } from '@utils';
@@ -28,12 +28,15 @@ const Pagination = ({
 	pageName = 'page',
 }: PaginationProps) =>
 {
+	const userContext = useContext(UserContext);
+	const navigate = useNavigate();
+
 	if (totalCount === 0)
 	{
 		return null;
 	}
 
-	if (!useContext(UserContext))
+	if (!userContext)
 	{
 		return (
 			<Alert type='info'>
@@ -41,8 +44,6 @@ const Pagination = ({
 			</Alert>
 		);
 	}
-
-	const navigate = useNavigate();
 
 	const lastPage = Math.ceil(totalCount / pageSize);
 
@@ -179,7 +180,7 @@ const Pagination = ({
 						<div className='Pagination_dropdown'>
 							<Select
 								label='Pagination'
-								hideLabel
+								hideLabels
 								name='page'
 								options={allNumbers}
 								value={page}
@@ -190,7 +191,7 @@ const Pagination = ({
 						<div className='Pagination_dropdown'>
 							<Select
 								label='Pagination'
-								hideLabel
+								hideLabels
 								name='page'
 								options={allNumbers}
 								value={page}

@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import { Fragment, useState } from 'react';
 import axios from 'axios';
 import Compressor from 'compressorjs';
 
 import { RequireClientJS, RequirePermission } from '@behavior';
 import { constants } from '@utils';
-import { ShopType, ACGameType, ACGameItemType, ShopCatalogType } from '@types';
+import { ShopType, ACGameType, ShopCatalogType } from '@types';
 import { Form, Text, Switch, Select, TextArea, RichTextArea } from '@form';
-import { ErrorMessage } from '@layout';
-import * as iso from 'common/iso.js';
-import { AnySrvRecord } from 'dns';
+import { ErrorMessage, ItemLookup } from '@layout';
+import { iso } from 'common/iso.ts';
 
 const EditShop = ({
 	shop,
@@ -58,11 +57,12 @@ const EditShop = ({
 
 	const uploadImage = async (file: any): Promise<string> =>
 	{
-		let params = new FormData();
-		params.append('shopId', String(shop?.id || ''));
-		params.append('imageExtension', file.type.replace(/(.*)\//g, ''));
+		const params = {
+			shopId: String(shop?.id || ''),
+			imageExtension: file.type.replace(/(.*)\//g, ''),
+		};
 
-		return await (iso as any).query(null, 'v1/shop/upload_image', params)
+		return await (await iso).query(null, 'v1/shop/upload_image', params)
 			.then(async ({ s3PresignedUrl, fileName }: { s3PresignedUrl: string, fileName: string }) =>
 			{
 				try
@@ -71,49 +71,16 @@ const EditShop = ({
 
 					return fileName;
 				}
-				catch (e)
+				catch (error: any)
 				{
-					console.error('Error attempting to upload.');
-					console.error(e);
+					console.error('Error attempting to upload.', error);
 
 					setErrors(['bad-format']);
 				}
 			})
-			.catch((error: any) =>
+			.catch((_: any) =>
 			{
-				console.error('Error attempting to get presigned url.');
-				console.error(error);
-
 				setErrors(['bad-format']);
-			});
-	};
-
-	const handleItemsLookup = async (query: string, selectedGameId: number): Promise<ACGameItemType[number]['all']['items']> =>
-	{
-		let callback = 'v1/acgame/catalog';
-
-		let params = new FormData();
-		params.append('query', query);
-		params.append('categoryName', 'all');
-		params.append('sortBy', 'items');
-		params.append('id', String(selectedGameId));
-
-		return (iso as any).query(null, callback, params)
-			.then(async (items: ACGameItemType[number]['all']['items']) =>
-			{
-				if (selectedGameId === 0)
-				{
-					return items;
-				}
-
-				return items.filter(item => item.tradeable);
-			})
-			.catch((error: AnySrvRecord) =>
-			{
-				console.error('Error attempting to get items.');
-				console.error(error);
-
-				return [];
 			});
 	};
 
@@ -191,17 +158,17 @@ const EditShop = ({
 
 					{games.length > 0 &&
 						<div className='EditShop_gameOptions'>
-							{games.map((game: any, index: any) =>
+							{games.map((game: any) =>
 							{
 								const shopGame = shop ? shop.games.find(g => g.id === game.id) : null;
 
 								return (
-									<React.Fragment key={game.id}>
+									<Fragment key={game.id}>
 										<Form.Group>
 											<Text
 												type='number'
 												label={`${game.shortname}: Max Items Allowed Per Order`}
-												name={`perOrders[${index}]`}
+												name='perOrders'
 												required
 												max={constants.max.shopPerOrder}
 												min={constants.min.number}
@@ -210,34 +177,27 @@ const EditShop = ({
 										</Form.Group>
 										<Form.Group>
 											<Switch
-												name={`stackOrQuantities[${index}]`}
+												name='stackOrQuantities'
 												label={`${game.shortname}: Max Items by Stack`}
 												value={shopGame ? shopGame.stackOrQuantity : true}
 											/>
 										</Form.Group>
 										<Form.Group>
 											<Switch
-												name={`completeOrders[${index}]`}
+												name='completeOrders'
 												label={`${game.shortname}: Complete Order Before Ordering Again`}
 												value={shopGame ? shopGame.completeOrder : true}
 											/>
 										</Form.Group>
 										<Form.Group>
-											<Select
-												name={`items[${index}]`}
+											<ItemLookup
 												label={`${game.shortname}: Unorderables`}
 												options={catalogItems && catalogItems.find(g => g.gameId === game.id) ? catalogItems.find(g => g.gameId === game.id)?.items.filter((item: any) => item.tradeable) : []}
-												optionsMapping={{ value: 'id', label: 'name' }}
 												value={shopGame ? shopGame.items : []}
-												placeholder='Select item(s)...'
-												async
-												multiple
-												groupBy='categoryName'
-												size={15}
-												loadOptionsHandler={(query: string) => handleItemsLookup(query, game.id)}
+												selectedGameId={game.id}
 											/>
 										</Form.Group>
-									</React.Fragment>
+									</Fragment>
 								);
 							})}
 						</div>
@@ -252,13 +212,13 @@ const EditShop = ({
 							type='date'
 							name='vacationStartDate'
 							label='Vacation Start Date'
-							hideLabel
+							hideLabels
 							value={shop && shop.vacation ? shop.vacation.startDate : ''}
 						/> to <Text
 							type='date'
 							name='vacationEndDate'
 							label='Vacation End Date'
-							hideLabel
+							hideLabels
 							value={shop && shop.vacation ? shop.vacation.endDate : ''}
 						/>
 					</div>

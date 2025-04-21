@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { Form, Check } from '@form';
-import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json';
 import { Section } from '@layout';
 import { APIThisType, EmojiSettingType } from '@types';
+import { routerUtils } from '@utils';
 
-const EmojiSettingsPage = () =>
+export const action = routerUtils.formAction;
+
+const EmojiSettingsPage = ({ loaderData }: { loaderData: EmojiSettingsPageProps }) =>
 {
-	const { settings } = useLoaderData() as EmojiSettingsPageProps;
+	const { settings } = loaderData;
 
 	const types = emojiDefs[0];
 	const categories = emojiDefs[2];
@@ -55,7 +55,7 @@ const EmojiSettingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<EmojiSettingsPageProps>
+async function loadData(this: APIThisType): Promise<EmojiSettingsPageProps>
 {
 	const [settings] = await Promise.all([
 		this.query('v1/settings/emoji'),
@@ -63,6 +63,8 @@ export async function loadData(this: APIThisType): Promise<EmojiSettingsPageProp
 
 	return { settings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EmojiSettingsPageProps = {
 	settings: EmojiSettingType[]

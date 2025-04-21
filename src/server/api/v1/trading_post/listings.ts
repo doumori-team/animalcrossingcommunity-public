@@ -24,7 +24,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 	// confirm age
 	let age = 0;
 
-	if (gameId != null && gameId <= 0 && this.userId)
+	if (gameId <= 0 && this.userId)
 	{
 		const birthDate = await accounts.getBirthDate(this.userId);
 		age = dateUtils.getAge(birthDate);
@@ -120,7 +120,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		wheres.push(`listing.type = $` + paramIndex);
 	}
 
-	if (gameId != null && gameId > 0)
+	if (gameId > 0)
 	{
 		params[paramIndex] = gameId;
 
@@ -132,7 +132,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 	{
 		wheres.push(`listing.game_id IS NULL`);
 	}
-	else if (gameId != null && gameId <= 0 && age < constants.tradingPost.realTradeAge)
+	else if (gameId <= 0 && age < constants.tradingPost.realTradeAge)
 	{
 		wheres.push(`listing.game_id IS NOT NULL`);
 	}
@@ -183,7 +183,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 			const userCatalogItems: CatalogItemsType[] = await this.query('v1/users/catalog', { id: this.userId });
 			wishlistItemsSearch = userCatalogItems.filter((item: any) => item.isWishlist);
 		}
-		else if (gameId != null && gameId > 0)
+		else if (gameId > 0)
 		{
 			const characters: CharacterType[] = await this.query('v1/users/characters', { id: this.userId });
 
@@ -351,7 +351,7 @@ type listingsProps = {
 	page: number
 	creator: string
 	type: string
-	gameId: number | null
+	gameId: number
 	bells: number | null
 	items: any[]
 	villagers: any[]

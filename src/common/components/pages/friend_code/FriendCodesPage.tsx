@@ -1,19 +1,20 @@
-import React from 'react';
-import { Link, useLoaderData, Form as ReactRouterForm } from 'react-router-dom';
+import { Link, Form as ReactRouterForm } from 'react-router';
 
 import { RequireUser, RequireClientJS } from '@behavior';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { Form, Select, Text, Button, Check } from '@form';
 import FriendCode from '@/components/friend_codes/FriendCode.tsx';
 import { Pagination, Header, Section } from '@layout';
 import { UserContext } from '@contexts';
-import * as iso from 'common/iso.js';
+import { iso } from 'common/iso.ts';
 import { APIThisType, WhitelistFriendCodesType, WhitelistUserType } from '@types';
 
-const FriendCodesPage = () =>
+export const action = routerUtils.formAction;
+
+const FriendCodesPage = ({ loaderData }: { loaderData: FriendCodesPageProps }) =>
 {
 	const { friendCodes, sortBy, groupBy, games, requestUser, gameId,
-		page, pageSize, totalCount } = useLoaderData() as FriendCodesPageProps;
+		page, pageSize, totalCount } = loaderData;
 
 	let groupByLink = '', sortByLink = '', link = '';
 
@@ -38,19 +39,13 @@ const FriendCodesPage = () =>
 
 	const handleUserLookup = async (query: string) =>
 	{
-		let params = new FormData();
-		params.append('query', query);
-
-		return (iso as any).query(null, 'v1/friend_code/whitelist/users', params)
+		return (await iso).query(null, 'v1/friend_code/whitelist/users', { query })
 			.then(async (users: WhitelistUserType[]) =>
 			{
 				return users;
 			})
-			.catch((error: any) =>
+			.catch((_: any) =>
 			{
-				console.error('Error attempting to get users.');
-				console.error(error);
-
 				return [];
 			});
 	};
@@ -221,7 +216,7 @@ const FriendCodesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { sort, group, requestUser, gameId, page }: { sort?: string, group?: string, requestUser?: string, gameId?: string, page?: string }): Promise<FriendCodesPageProps>
+async function loadData(this: APIThisType, _: any, { sort, group, requestUser, gameId, page }: { sort?: string, group?: string, requestUser?: string, gameId?: string, page?: string }): Promise<FriendCodesPageProps>
 {
 	let sortBy = sort ? sort : 'username';
 	let groupBy = group ? group : 'game';
@@ -244,6 +239,8 @@ export async function loadData(this: APIThisType, _: any, { sort, group, request
 		pageSize: fcObj.pageSize,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type FriendCodesPageProps = {
 	sortBy: string

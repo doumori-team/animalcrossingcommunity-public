@@ -1,11 +1,16 @@
-.ProfileBanner {
-	@include contentbox(white, black);
+@use "fonts";
+@use "mixins";
+@use "forms";
 
-	margin-bottom: px2rem(20px);
+.ProfileBanner {
+	@include mixins.contentbox(white, black);
+
+	margin-bottom: mixins.px2rem(20px);
 	padding: 1rem;
 
 	h1 {
 		display: flex;
+		align-items: center;
 	}
 }
 
@@ -19,7 +24,7 @@
 }
 
 .ProfileGeneralInfo {
-	padding-left: px2rem(10px);
+	padding-left: mixins.px2rem(10px);
 	display: inline-block;
 	clear: left;
 }
@@ -50,8 +55,8 @@
 		@extend .GenericHeader;
 
 		.ProfileAdminPage_name {
-			font-family: $fontstack-accent;
-			font-size: px2rem(24px);
+			font-family: fonts.$fontstack-system;
+			font-size: mixins.px2rem(24px);
 			text-align: center;
 		}
 	}
@@ -75,6 +80,10 @@
 	}
 }
 
+.ProfileBioPage .ContentBox {
+	margin: 0;
+}
+
 .ProfileBioPage .ContentBox,
 .EditProfileBioPage .Markup,
 .NodeWritingInterface .Markup,
@@ -82,7 +91,7 @@
 .EditShop .Markup,
 .ShopPage .Markup {
 	font-family: verdana;
-	font-size: px2rem(12px);
+	font-size: mixins.px2rem(12px);
 	line-height: initial;
 
 	.spoiler {
@@ -94,6 +103,44 @@
 	margin-bottom: 1rem;
 }
 
-.ProfileBioPage_option {
+.ProfileBioPage_section {
 	display: flex;
+	flex-direction: column;
+	gap: mixins.px2rem(4px);
+
+	.ProfileBioPage_option {
+		display: flex;
+		align-items: center;
+	}
+}
+
+.ProfileBioPage_bioContainer {
+	display: flex;
+	align-items: center;
+	word-break: break-word;
+}
+
+
+@include mixins.responsive(48rem) {
+	.ProfileBioPage_bioContainer {
+		align-items: normal;
+	}
+
+	.ProfileBioPage_option, .ProfileBioPage_bioContainer {
+		.ReportProblem {
+
+			input {
+				height: mixins.px2rem(12px);
+				/* 
+				 * The following formula calculates the difference between the top of the text next to the report button (0.875rem size) and the top of its element.
+				 * This margin is given to the report button to align it with the bio text when the text has a top margin of 0.
+				 */
+				margin-top: calc((1rem - mixins.px2rem(12px)) / 2);
+			}
+		}
+	}
+
+	.ProfileBioPage .ContentBox {
+		padding: 1rem;
+	}
 }

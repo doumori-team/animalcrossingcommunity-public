@@ -1,15 +1,52 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Params } from 'react-router';
+import {
+	PayPalButtons,
+	PayPalScriptProvider,
+	ReactPayPalScriptOptions,
+} from '@paypal/react-paypal-js';
 
 import { RequireGroup, RequireClientJS } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { ContentBox, ErrorMessage } from '@layout';
-import { Form, Text, Button } from '@form';
+import { Form, Text } from '@form';
 import { APIThisType } from '@types';
+import { iso } from 'common/iso.ts';
 
-const ConsentPage = () =>
+export const action = routerUtils.formAction;
+
+export const shouldRevalidate = routerUtils.shouldRevalidate;
+
+const ConsentPage = ({ loaderData, params }: { loaderData: ConsentPageProps, params: Params }) =>
 {
-	const { id, age } = useLoaderData() as ConsentPageProps;
+	const { age } = loaderData;
+	const { id } = params;
+
+	const [error, setError] = useState<string>('');
+
+	const initialOptions: ReactPayPalScriptOptions = {
+		clientId: process.env.PAYPAL_CLIENT_ID as string,
+	};
+
+	const createOrder = async () =>
+	{
+		setError('');
+
+		return (await iso).query(null, 'v1/paypal/consent', { id })
+			.then((data: { id: string }) =>
+			{
+				return data.id;
+			})
+			.catch((_: any) =>
+			{
+				setError('paypal-error');
+			});
+	};
+
+	const onApprove = async (_: any, actions: any) =>
+	{
+		return actions.order.capture();
+	};
 
 	return (
 		<div className='ConsentPage'>
@@ -42,24 +79,22 @@ const ConsentPage = () =>
 							<ErrorMessage identifier='javascript-required' />
 						}
 						>
-							<form action={!constants.LIVE_SITE ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr'} method='post' target='_top'>
-								<input type='hidden' name='cmd' value='_xclick' />
-								<input type='hidden' name='lc' value='US' />
-								<input type='hidden' name='amount' value='0.30' />
-								<input type='hidden' name='business' value={process.env.PAYPAL_MERCHANT_ID} />
-								<input type='hidden' name='item_name' value='Parental Consent' />
-								<input type='hidden' name='no_shipping' value='1' />
-								<input type='hidden' name='no_note' value='0' />
-								<input type='hidden' name='currency_code' value='USD' />
-								<input type='hidden' name='tax' value='0' />
-								<input type='hidden' name='custom' value={id} />
+							<p>
+								Please note that consent through donation will be in USD.
+							</p>
 
-								<Button
-									label='Yes, I agree and wish to give consent for this child.'
-									type='submit'
-									className='Form_button'
+							<br/>
+
+							{error &&
+								<ErrorMessage identifier={error} />
+							}
+
+							<PayPalScriptProvider options={initialOptions}>
+								<PayPalButtons
+									createOrder={createOrder}
+									onApprove={onApprove}
 								/>
-							</form>
+							</PayPalScriptProvider>
 						</RequireClientJS>
 						:
 						<Form
@@ -88,17 +123,18 @@ const ConsentPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ConsentPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ConsentPageProps>
 {
 	const [age] = await Promise.all([
 		this.query('v1/signup/age', { id: id }),
 	]);
 
-	return { id, age };
+	return { age };
 }
 
+export const loader = routerUtils.wrapLoader(loadData);
+
 type ConsentPageProps = {
-	id: string
 	age: number
 };
 

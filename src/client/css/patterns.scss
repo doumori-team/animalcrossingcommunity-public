@@ -1,13 +1,15 @@
+@use "mixins";
+
 .PatternsPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 
 			.Pattern {
 				padding: 1rem;
-				@include contentbox($background: white);
+				@include mixins.contentbox($background: white);
 
 				.Pattern_row {
 					.Pattern_image {
@@ -21,7 +23,7 @@
 
 .Pattern {
 	.Pattern_links {
-		@include links(125px);
+		@include mixins.links(125px);
 	}
 
 	.Pattern_row {
@@ -29,10 +31,12 @@
 		flex-direction: row;
 		flex-wrap: wrap;
 
-		margin-top: px2rem(5px);
+		margin-top: mixins.px2rem(5px);
 
 		.Pattern_image {
+			image-rendering: pixelated;
 			image-rendering: -moz-crisp-edges;
+			image-rendering: crisp-edges;
 			min-width: 45%;
 		}
 
@@ -42,22 +46,23 @@
 
 			flex: 1;
 
-			margin-left: px2rem(5px);
+			margin-left: mixins.px2rem(5px);
 
 			.Pattern_name {
-				font-size: px2rem(24px);
+				font-size: mixins.px2rem(24px);
 				text-align: center;
 				word-break: keep-all;
 
 				.Pattern_submitted {
 					display: block;
 					font-weight: normal;
-					font-size: px2rem(14px);
+					font-size: mixins.px2rem(14px);
 				}
 
-				> div {
+				.Pattern_nameAlignment {
 					display: flex;
 					justify-content: center;
+					align-items: center;
 				}
 			}
 
@@ -88,14 +93,14 @@
 						.PatternPage_grid {
 							border-color: black;
 							border-style: solid;
-							border-width: px2rem(1px);
-							width: px2rem(15px);
-							height: px2rem(15px);
+							border-width: mixins.px2rem(1px);
+							width: mixins.px2rem(15px);
+							height: mixins.px2rem(15px);
 							text-align: center;
 							display: inline-block;
 							font-weight: bold;
 							font-size: 6pt;
-							margin-right: px2rem(5px);
+							margin-right: mixins.px2rem(5px);
 
 							.hideNumber {
 								visibility: hidden;
@@ -107,19 +112,19 @@
 
 			.PatternPage_palette {
 				flex: 1 1;
-				min-width: px2rem(302px);
+				min-width: mixins.px2rem(302px);
 
 				.palette {
 					border-color: black;
 					border-style: solid;
-					width: px2rem(75px);
-					margin-bottom: px2rem(2px);
+					width: mixins.px2rem(75px);
+					margin-bottom: mixins.px2rem(2px);
 					text-align: center;
 					display: inline-block;
 				}
 
 				.PatternPage_paletteName {
-					margin-left: px2rem(5px);
+					margin-left: mixins.px2rem(5px);
 				}
 
 				.PatternPage_paletteColor {
@@ -142,33 +147,33 @@
 }
 
 .PatternMaker {
-	margin-top: px2rem(5px);
+	margin-top: mixins.px2rem(5px);
 
 	.PatternMaker_grid {
 		display: flex;
 		flex-wrap: wrap;
 
 		.PatternMaker_canvas {
-			margin-right: px2rem(5px);
-			margin-bottom: px2rem(5px);
+			margin-right: mixins.px2rem(5px);
+			margin-bottom: mixins.px2rem(5px);
 
 			flex-shrink: 0;
-			max-height: px2rem(321px);
+			max-height: mixins.px2rem(321px);
 		}
 
 		.PatternMaker_palette {
-			@include contentbox($background: #ba8759);
+			@include mixins.contentbox($background: #ba8759);
 			padding: 1rem;
-			font-size: px2rem(14px);
+			font-size: mixins.px2rem(14px);
 
 			flex: 1;
 
 			button {
-				@include button;
-				margin: px2rem(1px);
+				@include mixins.button;
+				margin: mixins.px2rem(1px);
 				text-align: center;
 
-				margin-bottom: px2rem(5px);
+				margin-bottom: mixins.px2rem(5px);
 			}
 
 			.PatternMaker_paletteInterface {
@@ -178,18 +183,18 @@
 					flex: 1;
 
 					.PatternMaker_palettes {
-						margin-top: px2rem(10px);
-						margin-bottom: px2rem(10px);
+						margin-top: mixins.px2rem(10px);
+						margin-bottom: mixins.px2rem(10px);
 
-						@include responsive(1rem) {
-							@include grid($col-width: 2rem);
+						@include mixins.responsive(1rem) {
+							@include mixins.grid($col-width: 2rem);
 						}
 
 						.paletteInterface {
-							width: px2rem(31px);
-							height: px2rem(31px);
+							width: mixins.px2rem(31px);
+							height: mixins.px2rem(31px);
 
-							@include contentbox();
+							@include mixins.contentbox();
 						}
 
 						.paletteInterface.selected {
@@ -204,23 +209,23 @@
 			}
 
 			.PatternMaker_buttons {
-				margin-top: px2rem(10px);
-				margin-bottom: px2rem(10px);
+				margin-top: mixins.px2rem(10px);
+				margin-bottom: mixins.px2rem(10px);
 			}
 
 			.PatternMaker_extended {
 				.PatternMaker_nlInterface {
-					max-height: px2rem(256px);
+					max-height: mixins.px2rem(256px);
 				}
 
 				.PatternMaker_nhInterface {
 					.PatternMaker_nhDefault {
 						display: flex;
 						align-items: baseline;
-						margin-left: px2rem(15px);
+						margin-left: mixins.px2rem(15px);
 
 						h3 {
-							margin-right: px2rem(10px);
+							margin-right: mixins.px2rem(10px);
 						}
 					}
 
@@ -229,11 +234,11 @@
 						flex-wrap: wrap;
 
 						.FormGroup {
-							margin-left: px2rem(10px);
-							margin-right: px2rem(10px);
+							margin-left: mixins.px2rem(10px);
+							margin-right: mixins.px2rem(10px);
 
 							input[type='number'] {
-								max-width: px2rem(100px);
+								max-width: mixins.px2rem(100px);
 							}
 						}
 					}

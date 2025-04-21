@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { utils, constants } from '@utils';
 import { GroupItemType, CatalogItemsType } from '@types';

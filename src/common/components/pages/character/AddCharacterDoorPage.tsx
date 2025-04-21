@@ -1,15 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import EditPattern from '@/components/pattern/EditPattern.tsx';
 import { ErrorMessage, Section } from '@layout';
 import { APIThisType, CharacterType, ACGameType } from '@types';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 
-const AddCharacterDoorPage = () =>
+export const action = routerUtils.formAction;
+
+const AddCharacterDoorPage = ({ loaderData }: { loaderData: AddCharacterDoorPageProps }) =>
 {
-	const { character, acgames } = useLoaderData() as AddCharacterDoorPageProps;
+	const { character, acgames } = loaderData;
 
 	return (
 		<RequireUser id={character.userId} permission='modify-towns'>
@@ -34,7 +33,7 @@ const AddCharacterDoorPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { characterId }: { characterId: string }): Promise<AddCharacterDoorPageProps>
+async function loadData(this: APIThisType, { characterId }: { characterId: string }): Promise<AddCharacterDoorPageProps>
 {
 	const character = await this.query('v1/character', { id: characterId }) as CharacterType;
 	const acgames = await Promise.all([
@@ -43,6 +42,8 @@ export async function loadData(this: APIThisType, { characterId }: { characterId
 
 	return { character, acgames };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddCharacterDoorPageProps = {
 	character: CharacterType

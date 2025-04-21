@@ -1,10 +1,11 @@
 import MarkdownIt from 'markdown-it';
 import ins from 'markdown-it-ins';
 import spoiler from '@traptitech/markdown-it-spoiler';
-import color from './markdown-color.ts';
 import attrs from 'markdown-it-attrs';
 import { full as emoji } from 'markdown-it-emoji';
-import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
+
+import color from './markdown-color.ts';
+import emojiDefs from 'common/markup/emoji.json';
 import userTag from './markdown-user-tag.ts';
 import center from './markdown-center.ts';
 import { constants } from '@utils';

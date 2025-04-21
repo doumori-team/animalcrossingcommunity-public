@@ -11,6 +11,7 @@ type UserType = {
 	signatureFormat: MarkupFormatType
 	userTitle: string
 	showImages: boolean
+	consolidateCalendars: boolean
 	avatar: UserAvatarType
 	group: {
 		id: number

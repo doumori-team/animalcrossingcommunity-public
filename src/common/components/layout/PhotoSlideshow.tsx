@@ -1,6 +1,8 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import { Lightbox, useLightboxState } from 'yet-another-react-lightbox';
 import Captions from 'yet-another-react-lightbox/plugins/captions';
+import 'yet-another-react-lightbox/styles.css';
+import 'yet-another-react-lightbox/plugins/captions.css';
 
 import { RequireClientJS } from '@behavior';
 import { constants } from '@utils';
@@ -28,7 +30,7 @@ const PhotoSlideshow = ({
 		};
 	});
 
-	const ReportProblemButton = (): React.ReactNode | null =>
+	const ReportProblemButton = (): ReactNode | null =>
 	{
 		const { currentIndex } = useLightboxState();
 

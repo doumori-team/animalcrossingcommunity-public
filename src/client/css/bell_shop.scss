@@ -1,3 +1,6 @@
+@use "mixins";
+@use "forms";
+
 .BellShopPage, .BellShopGiftPage {
 	.Header {
 		.BellShopPage_bells, .BellShopGiftPage_bells {
@@ -21,7 +24,7 @@
 			align-items: baseline;
 
 			.BellShopPage_sortLink {
-				padding: px2rem(2px);
+				padding: mixins.px2rem(2px);
 			}
 
 			.BellShopPage_sortLink.selected {
@@ -30,8 +33,8 @@
 		}
 
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 
 			a:not(.BellShopPage_button) {
@@ -70,8 +73,8 @@
 .BellShopRedeemedPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 15rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 15rem);
 			}
 		}
 	}
@@ -92,8 +95,8 @@
 
 	.BellShopPage_prices, .BellShopGiftPage_prices {
 		.BellShopPage_button, .BellShopGiftPage_button {
-			@include button;
-			margin: px2rem(1px);
+			@include mixins.button;
+			margin: mixins.px2rem(1px);
 			text-align: center;
 
 			&:disabled, &[disabled] {

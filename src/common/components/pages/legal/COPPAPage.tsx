@@ -1,7 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
+import { routerUtils } from '@utils';
 import { ContentBox } from '@layout';
+
+export const action = routerUtils.formAction;
 
 const COPPAPage = () =>
 {

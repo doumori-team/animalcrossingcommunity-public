@@ -1,14 +1,13 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
-import Catalog from '@/components/users/Catalog.ts';
-import { utils, constants } from '@utils';
+import Catalog from '@/components/users/Catalog.tsx';
+import { utils, constants, routerUtils } from '@utils';
 import { APIThisType, CatalogItemsType, UserCatalogCategoryType, GroupItemType } from '@types';
 
-const EditPCCatalogPage = () =>
+export const action = routerUtils.formAction;
+
+const EditPCCatalogPage = ({ loaderData }: { loaderData: EditPCCatalogPageProps }) =>
 {
-	const { catalogItems, catalog, by, category, userId, catalogCategories, name } = useLoaderData() as EditPCCatalogPageProps;
+	const { catalogItems, catalog, by, category, userId, catalogCategories, name } = loaderData;
 
 	return (
 		<RequirePermission permission='modify-user-catalog'>
@@ -29,7 +28,7 @@ const EditPCCatalogPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditPCCatalogPageProps>
+async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<EditPCCatalogPageProps>
 {
 	const selectedUserId = Number(userId);
 
@@ -45,6 +44,8 @@ export async function loadData(this: APIThisType, { userId }: { userId: string }
 
 	return { catalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type EditPCCatalogPageProps = {
 	catalog: GroupItemType[]

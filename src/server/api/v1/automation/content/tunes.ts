@@ -1,7 +1,8 @@
+import { faker } from '@faker-js/faker/locale/en';
+
 import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
-import { faker } from '@faker-js/faker/locale/en';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, SuccessType } from '@types';

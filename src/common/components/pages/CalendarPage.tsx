@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
 
 import { RequirePermission } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Select } from '@form';
 import { Header, Search, Section } from '@layout';
 import { APIThisType, CalendarType, ACGameYearsType, ACGameType, ElementSelectType } from '@types';
 
-const CalendarPage = () =>
+export const action = routerUtils.formAction;
+
+const CalendarPage = ({ loaderData }: { loaderData: CalendarPageProps }) =>
 {
-	const { acgames, months, game, initialYears } = useLoaderData() as CalendarPageProps;
+	const { acgames, months, game, initialYears } = loaderData;
 
 	const [selectedGameId, setSelectedGameId] = useState<CalendarType['game']>(game.id);
 	const [years, setYears] = useState<number[]>(initialYears[game.id]);
@@ -121,7 +122,7 @@ const CalendarPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { gameId, month, year }: { gameId?: string, month?: string, year?: string }): Promise<CalendarPageProps>
+async function loadData(this: APIThisType, _: any, { gameId, month, year }: { gameId?: string, month?: string, year?: string }): Promise<CalendarPageProps>
 {
 	const [returnValue, acgames, years] = await Promise.all([
 		this.query('v1/acgame/calendar', {
@@ -141,6 +142,8 @@ export async function loadData(this: APIThisType, _: any, { gameId, month, year 
 		initialYears: years,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type CalendarPageProps = {
 	game: CalendarType['game']

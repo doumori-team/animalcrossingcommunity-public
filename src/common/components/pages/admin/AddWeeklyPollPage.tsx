@@ -1,8 +1,9 @@
-import React from 'react';
-
 import { RequirePermission } from '@behavior';
 import { Header } from '@layout';
 import EditPoll from '@/components/admin/EditPoll.tsx';
+import { routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const AddWeeklyPollPage = () =>
 {

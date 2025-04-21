@@ -1,14 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Confirm } from '@form';
 import { Header, Section, Grid } from '@layout';
 import { APIThisType, GameConsoleType, GameType } from '@types';
+import { routerUtils } from '@utils';
 
-const AdminGamesPage = () =>
+export const action = routerUtils.formAction;
+
+const AdminGamesPage = ({ loaderData }: { loaderData: AdminGamesPageProps }) =>
 {
-	const { gameConsole, games } = useLoaderData() as AdminGamesPageProps;
+	const { gameConsole, games } = loaderData;
 
 	return (
 		<div className='AdminGamesPage'>
@@ -38,6 +40,7 @@ const AdminGamesPage = () =>
 										label='Delete'
 										message='Are you sure you want to delete this game?'
 										id={game.id}
+										formId={`game-destroy-${game.id}`}
 									/>
 								</div>
 								{game.name}
@@ -50,7 +53,7 @@ const AdminGamesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminGamesPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminGamesPageProps>
 {
 	const [gameConsole, games] = await Promise.all([
 		this.query('v1/admin/game_console/game_console', { id }),
@@ -59,6 +62,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { gameConsole, games };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdminGamesPageProps = {
 	gameConsole: GameConsoleType

@@ -1,9 +1,7 @@
-import React from 'react';
-
 import { ChangeHandlerTextAreaType } from '@types';
 
 const TextArea = ({
-	hideLabel = false,
+	hideLabels = false,
 	name,
 	label,
 	value,
@@ -17,7 +15,7 @@ const TextArea = ({
 {
 	return (
 		<>
-			{!hideLabel &&
+			{!hideLabels &&
 				<label htmlFor={name}>{label}:</label>
 			}
 			{changeHandler ?
@@ -55,7 +53,7 @@ const TextArea = ({
 };
 
 type TextAreaProps = {
-	hideLabel?: boolean
+	hideLabels?: boolean
 	label: string
 	name: string
 	value?: string

@@ -1,15 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser, RequirePermission } from '@behavior';
 import { Form, Text, Switch, Select, RichTextArea } from '@form';
 import { Header, Section } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, UserTicketBanLengthType, EmojiSettingType } from '@types';
 
-const AddSupportTicketPage = () =>
+export const action = routerUtils.formAction;
+
+const AddSupportTicketPage = ({ loaderData }: { loaderData: AddSupportTicketPageProps }) =>
 {
-	const { banLengths, currentUserEmojiSettings } = useLoaderData() as AddSupportTicketPageProps;
+	const { banLengths, currentUserEmojiSettings } = loaderData;
 
 	return (
 		<div className='AddSupportTicketPage'>
@@ -78,7 +77,7 @@ const AddSupportTicketPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AddSupportTicketPageProps>
+async function loadData(this: APIThisType): Promise<AddSupportTicketPageProps>
 {
 	const [banLengths, currentUserEmojiSettings] = await Promise.all([
 		this.query('v1/user_ticket/ban_lengths'),
@@ -87,6 +86,8 @@ export async function loadData(this: APIThisType): Promise<AddSupportTicketPageP
 
 	return { banLengths, currentUserEmojiSettings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddSupportTicketPageProps = {
 	banLengths: UserTicketBanLengthType[]

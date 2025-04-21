@@ -6,10 +6,12 @@ import stylisticTs from '@stylistic/eslint-plugin-ts';
 import stylisticJs from '@stylistic/eslint-plugin-js';
 import stylisticJsx from '@stylistic/eslint-plugin-jsx';
 import pluginReact from 'eslint-plugin-react';
+import pluginImport from 'eslint-plugin-import';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
 
 export default [
 	{
-		files: ['src/**/*.{js,ts,jsx,tsx}'],
+		files: ['src/**/*.{js,ts,jsx,tsx}', 'tests/**/*.{js,ts,jsx,tsx}'],
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node },
 			parser: tsParser,
@@ -28,11 +30,14 @@ export default [
 			'@stylistic/js': stylisticJs,
 			'@stylistic/jsx': stylisticJsx,
 			react: pluginReact,
+			import: pluginImport,
+			'react-hooks': pluginReactHooks,
 		},
 		rules: {
 			...pluginJs.configs.recommended.rules,
 			...tsEslint.configs.recommendedTypeChecked,
 			...pluginReact.configs.recommended.rules,
+			...pluginReactHooks.configs.recommended.rules,
 			// Tab indenting only
 			'@stylistic/ts/indent': ['error', 'tab', {'MemberExpression': 'off', 'SwitchCase': 1}],
 			// Single quotes, but allow backticks when single quotes are part of the string
@@ -54,7 +59,7 @@ export default [
 			'@stylistic/ts/type-annotation-spacing': ['error', { 'before': false, 'after': true, 'overrides': { 'arrow': { 'before': true, 'after': true } } }],
 			'@stylistic/js/block-spacing': ['error', 'always'],
 			'@stylistic/js/space-before-blocks': ['error', 'always'],
-			"@stylistic/js/template-curly-spacing": ["error", "never"],
+			'@stylistic/js/template-curly-spacing': ['error', 'never'],
 			'@stylistic/js/padding-line-between-statements': [
 				'error',
 				{ 'blankLine': 'always', 'prev': 'block-like', 'next': 'block-like' },
@@ -62,7 +67,7 @@ export default [
 			],
 			'@stylistic/ts/object-curly-spacing': ['error', 'always'],
 			'@stylistic/js/space-in-parens': ['error', 'never'],
-			'@stylistic/jsx/jsx-curly-spacing': ['error', { "when": "never", "children": true }],
+			'@stylistic/jsx/jsx-curly-spacing': ['error', { 'when': 'never', 'children': true }],
 			// Other
 			eqeqeq: ['warn', 'always'], // Can't enforce this without a significant core TS rewrite, so just discourage it
 			'@stylistic/ts/comma-dangle': ['error', 'always-multiline'],
@@ -80,15 +85,40 @@ export default [
 				'argsIgnorePattern': '^_',
 				'varsIgnorePattern': '^_',
 				'caughtErrorsIgnorePattern': '^_',
-			}]
+			}],
+			'import/newline-after-import': ['error', { 'count': 1 }],
+			'import/order': [
+				'error',
+					{
+						'groups': ['external', 'builtin', 'internal'],
+						'pathGroups': [
+							{
+								'pattern': 'react',
+								'group': 'external',
+								'position': 'before'
+							}
+						],
+						// remove external from default; use pathGroups on external
+						'pathGroupsExcludedImportTypes': ['builtin', 'object'],
+						'newlines-between': 'always',
+						// tell pathGroups to have react before but not separate
+						'distinctGroup': false,
+						'alphabetize': { 'order': 'ignore', 'orderImportKind': 'ignore', 'caseInsensitive': false }
+					}
+			],
+			'react/react-in-jsx-scope': 'off',
+			'react/jsx-uses-react': 'off',
+			'react-hooks/exhaustive-deps': 'off'
 		},
 		'settings': {
 			'react': {
 				'version': 'detect',
 			},
-		},
+			// for some reason to get @utils, etc, to be classified as internal
+			'import/internal-regex': '^@\\/components|^@\\/pages|^@accounts$|^@behavior$|^@contexts$|^@db$|^@errors$|^@form$|^@layout$|^@types$|^@utils$|^@apiTypes$|^@cache$|^common|^server|^client|^tests|^\\.{1,2}/'
+		}
 	},
 	{
-		ignores: ['node_modules'],
+		ignores: ['node_modules', 'src/server/scripts'],
 	},
 ];

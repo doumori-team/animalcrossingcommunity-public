@@ -50,7 +50,7 @@ async function save(this: APIThisType, { id, ruleId, severityId, number, violati
 
 	await db.transaction(async (query: any) =>
 	{
-		if (id != null && id > 0)
+		if (id > 0)
 		{
 			const [ruleViolation] = await query(`
 				SELECT start_date, severity_id, violation
@@ -151,7 +151,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	id: number | null
+	id: number
 	ruleId: number
 	severityId: number | null
 	number: number

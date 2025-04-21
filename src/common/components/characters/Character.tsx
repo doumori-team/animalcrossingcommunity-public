@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { constants, utils } from '@utils';
 import { CharacterType } from '@types';
@@ -54,6 +53,7 @@ const Character = ({
 						id={id}
 						label='Delete'
 						message='Are you sure you want to delete this character?'
+						formId={`character-destroy-${id}`}
 					/>
 				</div>
 			</RequireUser>
@@ -70,7 +70,7 @@ const Character = ({
 				}
 				<div className='Character_name'>
 					<ReportProblem type={constants.userTicket.types.character} id={id} />
-					<Keyboard name={name} gameId={game.id} />
+					<div><Keyboard name={name} gameId={game.id} /></div>
 				</div>
 			</h1>
 

@@ -39,7 +39,6 @@ async function miss(this: APIThisType, { type }: missProps): Promise<SuccessType
 
 	return {
 		_success: `Oh no! You've missed ${user.missedBells} Bells!`,
-		_callbackFirst: true,
 	};
 }
 

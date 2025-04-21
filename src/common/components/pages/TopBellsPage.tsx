@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Form, Text, Check, Select } from '@form';
 import { Pagination, Header, Search, Section, Grid } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, TopBellsType } from '@types';
 
-const TopBellsPage = () =>
+export const action = routerUtils.formAction;
+
+const TopBellsPage = ({ loaderData }: { loaderData: TopBellsPageProps }) =>
 {
-	const { totalCount, users, page, pageSize, order, reverse, username, lastJackpot } = useLoaderData() as TopBellsPageProps;
+	const { totalCount, users, page, pageSize, order, reverse, username, lastJackpot } = loaderData;
 
 	const link = `&username=${encodeURIComponent(username)}
 		&order=${encodeURIComponent(order)}
@@ -103,7 +104,7 @@ const TopBellsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, order, reverse, username }: { page?: string, order?: string, reverse?: string, username?: string }): Promise<TopBellsPageProps>
+async function loadData(this: APIThisType, _: any, { page, order, reverse, username }: { page?: string, order?: string, reverse?: string, username?: string }): Promise<TopBellsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/top_bells', {
@@ -125,6 +126,8 @@ export async function loadData(this: APIThisType, _: any, { page, order, reverse
 		lastJackpot: returnValue.lastJackpot,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type TopBellsPageProps = {
 	users: TopBellsType['results']

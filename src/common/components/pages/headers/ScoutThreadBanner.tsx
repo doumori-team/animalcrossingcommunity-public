@@ -1,16 +1,15 @@
-import React from 'react';
-import { Link, useLoaderData, Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router';
 
 import { RequireGroup, RequirePermission } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { Form, Check, TextArea } from '@form';
 import { UserContext } from '@contexts';
 import { Header, Section } from '@layout';
 import { APIThisType, NodeLiteType, RatingsGivenType } from '@types';
 
-const ScoutThreadBanner = () =>
+const ScoutThreadBanner = ({ loaderData }: { loaderData: ScoutThreadBannerProps }) =>
 {
-	const { node, rating } = useLoaderData() as ScoutThreadBannerProps;
+	const { node, rating } = loaderData;
 
 	const showRatings = Object.keys(constants.rating.configs)
 		.map(x =>
@@ -96,7 +95,7 @@ const ScoutThreadBanner = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ScoutThreadBannerProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ScoutThreadBannerProps>
 {
 	const [node, ratings] = await Promise.all([
 		this.query('v1/node/lite', { id: id }),
@@ -108,6 +107,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		rating: ratings.results.length > 0 ? ratings.results.pop() : null,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ScoutThreadBannerProps = {
 	node: NodeLiteType

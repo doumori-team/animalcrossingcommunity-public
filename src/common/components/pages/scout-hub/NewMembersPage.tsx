@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission, RequireGroup } from '@behavior';
-import { constants, dateUtils } from '@utils';
+import { constants, dateUtils, routerUtils } from '@utils';
 import { Header, Pagination, Section, Grid, InnerSection } from '@layout';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { UserContext } from '@contexts';
 import { APIThisType, UsersNewType } from '@types';
 
-const NewMembersPage = () =>
+export const action = routerUtils.formAction;
+
+const NewMembersPage = ({ loaderData }: { loaderData: NewMembersPageProps }) =>
 {
-	const { newMembers, page, pageSize, totalCount } = useLoaderData() as NewMembersPageProps;
+	const { newMembers, page, pageSize, totalCount } = loaderData;
 
 	return (
 		<div className='NewMembersPage'>
@@ -96,7 +97,7 @@ const NewMembersPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<NewMembersPageProps>
+async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<NewMembersPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/users/new', {
@@ -111,6 +112,8 @@ export async function loadData(this: APIThisType, _: any, { page }: { page?: str
 		pageSize: result.pageSize,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type NewMembersPageProps = {
 	newMembers: UsersNewType['newUsers']

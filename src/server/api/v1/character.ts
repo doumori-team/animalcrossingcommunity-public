@@ -62,9 +62,9 @@ async function character(this: APIThisType, { id }: characterProps): Promise<Cha
 	}
 
 	const [houseSizes, catalogTotal, museumTotal, doorPatternCreator] = await Promise.all([
-		getHouseSizes.bind(this)(character.id),
-		getCatalogTotal.bind(this)(character.id),
-		getMuseumTotal.bind(this)(character.id),
+		getHouseSizes(character.id),
+		getCatalogTotal(character.id),
+		getMuseumTotal(character.id),
 		character.door_pattern_creator_id ? this.query('v1/user_lite', { id: character.door_pattern_creator_id }) : null,
 	]);
 

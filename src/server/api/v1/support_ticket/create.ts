@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, UserLiteType, BanLengthType, MarkupStyleType } from '@types';
+import { APIThisType, BanLengthType, MarkupStyleType } from '@types';
 
 async function create(this: APIThisType, { title, message, username, staffOnly, banLengthId, userTicketId, format }: createProps): Promise<{ id: number }>
 {
@@ -19,8 +19,6 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 	}
 
 	// Check parameters
-	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
-
 	let userId = this.userId;
 
 	const processSupportTickets: boolean = await this.query('v1/permission', { permission: 'process-support-tickets' });
@@ -95,7 +93,7 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 		await query(`
 			INSERT INTO support_ticket_message (user_id, support_ticket_id, message, message_format) VALUES
 			($1::int, $2::int, $3, $4)
-		`, user.id, supportTicket.id, message, format);
+		`, this.userId, supportTicket.id, message, format);
 
 		await query(`
 			UPDATE users

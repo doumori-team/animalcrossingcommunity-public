@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import { dateUtils } from '@utils';
+import { dateUtils, routerUtils } from '@utils';
 import { Confirm } from '@form';
 import { Header, HTMLPurify } from '@layout';
 import { APIThisType, PendingRuleType } from '@types';
 
-const AdminRulesPage = () =>
+export const action = routerUtils.formAction;
+
+const AdminRulesPage = ({ loaderData }: { loaderData: AdminRulesPageProps }) =>
 {
-	const { rules } = useLoaderData() as AdminRulesPageProps;
+	const { rules } = loaderData;
 
 	return (
 		<RequirePermission permission='view-rules-admin'>
@@ -49,6 +50,7 @@ const AdminRulesPage = () =>
 										id={rule.id}
 										label='Restore'
 										message='Are you sure you want to restore this rule?'
+										formId={`rule-restore-${rule.id}`}
 									/>
 									:
 									<>
@@ -59,6 +61,7 @@ const AdminRulesPage = () =>
 												id={rule.pendingRule.id}
 												label='Revert'
 												message='Are you sure you want to revert this rule?'
+												formId={`rule-revert-${rule.id}`}
 											/>
 										}
 
@@ -69,6 +72,7 @@ const AdminRulesPage = () =>
 												id={rule.id}
 												label='Delete'
 												message='Are you sure you want to delete this rule?'
+												formId={`rule-destroy-${rule.id}`}
 											/>
 											:
 											<Confirm
@@ -77,6 +81,7 @@ const AdminRulesPage = () =>
 												id={rule.id}
 												label='Expire'
 												message='Are you sure you want to expire this rule?'
+												formId={`rule-expire-${rule.id}`}
 											/>
 										}
 									</>
@@ -166,6 +171,7 @@ const AdminRulesPage = () =>
 															id={violation.id}
 															label='Restore'
 															message='Are you sure you want to restore this violation?'
+															formId={`violation-restore-${violation.id}`}
 														/>
 														:
 														<Confirm
@@ -174,6 +180,7 @@ const AdminRulesPage = () =>
 															id={violation.id}
 															label='Expire'
 															message='Are you sure you want to expire this violation?'
+															formId={`violation-expire-${violation.id}`}
 														/>
 													}
 												</div>
@@ -202,6 +209,7 @@ const AdminRulesPage = () =>
 															id={violation.id}
 															label='Restore'
 															message='Are you sure you want to restore this violation?'
+															formId={`violation-restore-${violation.id}`}
 														/>
 														:
 														<>
@@ -212,6 +220,7 @@ const AdminRulesPage = () =>
 																	id={violation.pendingViolation.id}
 																	label='Revert'
 																	message='Are you sure you want to revert this violation?'
+																	formId={`violation-destroy-${violation.pendingViolation.id}`}
 																/>
 															}
 
@@ -222,6 +231,7 @@ const AdminRulesPage = () =>
 																	id={violation.id}
 																	label='Delete'
 																	message='Are you sure you want to delete this violation?'
+																	formId={`violation-destroy-${violation.id}`}
 																/>
 																:
 																<Confirm
@@ -230,6 +240,7 @@ const AdminRulesPage = () =>
 																	id={violation.id}
 																	label='Expire'
 																	message='Are you sure you want to expire this violation?'
+																	formId={`violation-expire-${violation.id}`}
 																/>
 															}
 														</>
@@ -254,7 +265,7 @@ const AdminRulesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AdminRulesPageProps>
+async function loadData(this: APIThisType): Promise<AdminRulesPageProps>
 {
 	const [rules] = await Promise.all([
 		this.query('v1/rule/pending'),
@@ -262,6 +273,8 @@ export async function loadData(this: APIThisType): Promise<AdminRulesPageProps>
 
 	return { rules };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdminRulesPageProps = {
 	rules: PendingRuleType[]

@@ -1,15 +1,15 @@
 // Interface for reacting with the accounts site.
-import url from 'url';
 import axios from 'axios';
 
+import url from 'url';
+
 import * as errors from 'common/errors.ts';
-
-const AccountsError = errors.AccountsError;
-const UserError = errors.UserError;
-
 import * as db from '@db';
 import { dateUtils } from '@utils';
 import { AccountUserType, AccountUserLiteType } from '@types';
+
+const AccountsError = errors.AccountsError;
+const UserError = errors.UserError;
 
 const consumer_key = process.env.ACCOUNTS_API_KEY || '';
 const host = 'https://accounts.animalcrossingcommunity.com/';
@@ -148,7 +148,7 @@ export async function checkToken(token: string): Promise<boolean>
 //  - signup_date: date user created their account (Date)
 export async function getData(id?: number | null | string, username?: string): Promise<AccountUserLiteType>
 {
-	if ((id == null || id == 0) && username === undefined)
+	if ((id === null || id === undefined || id === 0 || id === '0') && username === undefined)
 	{
 		throw new UserError('no-such-user');
 	}
@@ -380,10 +380,10 @@ export async function signup(userData: {
 			return userData;
 		}
 		case 400: // Bad Request
-			console.error(userData);
+			console.error('Invalid user email or date of birth', userData);
 			throw new AccountsError('POST data', 'invalid user email or date of birth', 400);
 		default:
-			console.error(userData);
+			console.error('unexpected http status code', userData);
 			throw new AccountsError('POST signup', 'unexpected http status code', response.status);
 	}
 }

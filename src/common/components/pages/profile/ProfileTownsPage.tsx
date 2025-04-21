@@ -1,10 +1,11 @@
-import React from 'react';
-import { Link, useOutletContext, Outlet } from 'react-router-dom';
+import { Link, useOutletContext, Outlet } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { Header } from '@layout';
 import { UserType } from '@types';
+
+export const action = routerUtils.formAction;
 
 const ProfileTownsPage = () =>
 {

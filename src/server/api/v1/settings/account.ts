@@ -21,7 +21,8 @@ export default async function account(this: APIThisType): Promise<AccountSetting
 				email_notifications,
 				show_staff,
 				southern_hemisphere,
-				stay_forever
+				stay_forever,
+				consolidate_calendars
 			FROM users
 			WHERE users.id = $1::int
 		`, this.userId),
@@ -43,5 +44,6 @@ export default async function account(this: APIThisType): Promise<AccountSetting
 		shopDNC: shopDNC.length > 0,
 		southernHemisphere: user.southern_hemisphere,
 		stayForever: user.stay_forever,
+		consolidateCalendars: user.consolidate_calendars,
 	};
 }

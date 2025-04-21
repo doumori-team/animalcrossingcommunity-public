@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants, dateUtils } from '@utils';
@@ -33,7 +34,7 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 {
 	let newParams = { ...params };
 
-	await Promise.all(Object.keys(apiTypes).map(async paramType =>
+	for (const paramType of Object.keys(apiTypes))
 	{
 		const apiType = apiTypes[paramType];
 		const param = params[paramType];
@@ -43,10 +44,6 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 		{
 			// Common
 			case string:
-				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-					String(newParam || apiType.default) :
-					String(newParam));
-
 				if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					if (newParam === null)
@@ -60,6 +57,10 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 						break;
 					}
 				}
+
+				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
+					String(newParam || apiType.default) :
+					String(newParam));
 
 				if (Object.prototype.hasOwnProperty.call(apiType, 'length'))
 				{
@@ -94,7 +95,7 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				}
 				else if (Object.prototype.hasOwnProperty.call(apiType, 'profanity') && apiType.profanity)
 				{
-					await this.query('v1/profanity/check', { text: newParam });
+					await db.profanityCheck(newParam);
 				}
 
 				break;
@@ -209,7 +210,15 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam)
 					{
-						newParam = newParam.split(',');
+						if (Object.prototype.hasOwnProperty.call(apiType, 'length'))
+						{
+							if (utils.realStringLength(newParam) > apiType.length)
+							{
+								throw new UserError('bad-format');
+							}
+						}
+
+						newParam = newParam.split(',').map((np: string) => np.trim());
 					}
 					else
 					{
@@ -822,7 +831,7 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 		}
 
 		newParams[paramType] = newParam;
-	}));
+	}
 
 	return newParams;
 }

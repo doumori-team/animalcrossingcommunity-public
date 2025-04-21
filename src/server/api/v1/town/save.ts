@@ -102,19 +102,19 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	// Other area validations
 	await Promise.all([
 		validateFruit.bind(this)(gameId, fruit, nativeTownFruit, islandFruitId1, islandFruitId2), // Fruit
-		validateGrassShape.bind(this)(grassShapeId), // Grass Shape
-		validateOrdinance.bind(this)(ordinanceId), // Ordinance
-		validateStores.bind(this)(gameId, stores), // Stores
-		validatePublicWorkProjects.bind(this)(gameId, pwps), // Public Work Projects
-		validateResidents.bind(this)(gameId, islandResidentId, residents), // AC:GC Island Resident, Residents
-		validateHemisphere.bind(this)(hemisphereId), // AC:NH Hemisphere
-		validatePaint.bind(this)(gameId, paintId), // AC:WW Roof Paint
+		validateGrassShape(grassShapeId), // Grass Shape
+		validateOrdinance(ordinanceId), // Ordinance
+		validateStores(gameId, stores), // Stores
+		validatePublicWorkProjects(gameId, pwps), // Public Work Projects
+		validateResidents(gameId, islandResidentId, residents), // AC:GC Island Resident, Residents
+		validateHemisphere(hemisphereId), // AC:NH Hemisphere
+		validatePaint(gameId, paintId), // AC:WW Roof Paint
 	]);
 
 	// Perform queries
 	let townUserId;
 
-	if (id != null && id > 0)
+	if (id > 0)
 	{
 		const [town] = await db.query(`
 			SELECT id, user_id
@@ -142,8 +142,6 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	}
 	else
 	{
-		await this.query('v1/user_lite', { id: this.userId });
-
 		const [foundGameId] = await db.query(`
 			SELECT id
 			FROM ac_game
@@ -186,10 +184,10 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 
 	await Promise.all([
 		updateFruit.bind(this)(id, fruit, nativeTownFruit, islandFruitId1, islandFruitId2), // Fruit
-		updateStores.bind(this)(id, stores), // Stores
-		updatePublicWorkProjects.bind(this)(id, pwps), // Public Work Projects
-		updateResidents.bind(this)(id, residents), // Residents
-		updateIsland.bind(this)(id, islandName, Number(islandResidentId || 0), gameId), // AC:GC Island
+		updateStores(id, stores), // Stores
+		updatePublicWorkProjects(id, pwps), // Public Work Projects
+		updateResidents(id, residents), // Residents
+		updateIsland(id, islandName, Number(islandResidentId || 0), gameId), // AC:GC Island
 	]);
 
 	return {
@@ -198,7 +196,7 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	};
 }
 
-async function validateFruit(this: any, gameId: number, fruit: any[], nativeTownFruit: number, islandFruitId1: number, islandFruitId2: number): Promise<void>
+async function validateFruit(this: APIThisType, gameId: number, fruit: any[], nativeTownFruit: number, islandFruitId1: number, islandFruitId2: number): Promise<void>
 {
 	await Promise.all([
 		Promise.all([
@@ -268,7 +266,7 @@ async function validateFruit(this: any, gameId: number, fruit: any[], nativeTown
 	]);
 }
 
-async function updateFruit(this: any, id: number, fruit: any[], nativeTownFruit: number, islandFruitId1: number, islandFruitId2: number): Promise<void>
+async function updateFruit(this: APIThisType, id: number, fruit: any[], nativeTownFruit: number, islandFruitId1: number, islandFruitId2: number): Promise<void>
 {
 	await Promise.all([
 		db.query(`
@@ -569,7 +567,6 @@ save.apiTypes = {
 		type: APITypes.string,
 		default: '',
 		required: true,
-		error: 'missing-town-name',
 		length: constants.max.keyboardName,
 		profanity: true,
 	},
@@ -629,7 +626,7 @@ save.apiTypes = {
 
 type saveProps = {
 	gameId: number
-	id: number | null
+	id: number
 	name: string
 	nativeTownFruit: number
 	islandFruitId1: number

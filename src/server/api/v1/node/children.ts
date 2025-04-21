@@ -72,10 +72,9 @@ async function children(this: APIThisType, { id, order, reverse, page, showLocke
 					`, this.userId, constants.boardIds.ggBoard, constants.nodePermissions.read);
 				}
 			}
-			catch (error)
+			catch (error: any)
 			{
-				console.error(`Error updating GG Board Access for User ${this.userId}:`);
-				console.error(error);
+				console.error(`Error updating GG Board Access for User ${this.userId}:`, error);
 			}
 		}
 	}

@@ -1,14 +1,17 @@
+@use "mixins";
+@use "forms";
+
 .AdminRulesPage {
 	.AdminRulesPage_rule {
 		@extend .GenericInnerSection;
 
 		.AdminRulesPage_links {
-			@include links(130px);
+			@include mixins.links(130px);
 		}
 
 		.AdminRulesPage_ruleInfo {
-			@include responsive(40rem) {
-				@include grid($col-width: 30rem);
+			@include mixins.responsive(40rem) {
+				@include mixins.grid($col-width: 30rem);
 			}
 
 			.AdminRulesPage_currentRule, .AdminRulesPage_pendingRule, .AdminRulesPage_pendingViolation {
@@ -43,15 +46,15 @@
 
 .AdminProfanityPage {
 	.AdminProfanityPage_words  {
-		@include responsive(1rem) {
-			@include grid($col-width: 18rem);
+		@include mixins.responsive(1rem) {
+			@include mixins.grid($col-width: 18rem);
 		}
 
 		.AdminProfanityPage_word {
 			@extend .GenericInnerSection;
 
 			.AdminProfanityPage_wordLinks {
-				@include links(100px);
+				@include mixins.links(100px);
 			}
 		}
 	}
@@ -60,16 +63,16 @@
 .UserTicketDashboardPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 		}
 	}
 
 	.UserTicketDashboardPage_userTicket {
-		@include contentbox($background: white);
+		@include mixins.contentbox($background: white);
 		padding: 1rem;
-		font-size: px2rem(14px);
+		font-size: mixins.px2rem(14px);
 
 		.UserTicketDashboardPage_userTicketId {
 			a {
@@ -82,7 +85,7 @@
 
 .UserTicketPage {
 	.Tabs {
-		padding-top: px2rem(20px);
+		padding-top: mixins.px2rem(20px);
 	}
 
 	.UserTicketPage_info, .UserTicketPage_chat, .UserTicketPage_complete {
@@ -99,7 +102,7 @@
 
 	.UserTicketPage_chat {
 		.UserTicketPage_messages {
-			margin-bottom: px2rem(30px);
+			margin-bottom: mixins.px2rem(30px);
 
 			> .UserTicketPage_message {
 				@extend .GenericInnerSection;
@@ -154,23 +157,23 @@
 			}
 
 			.AdminPermissionsPage_userGroup.indent_1 {
-				padding-left: px2rem(5px);
+				padding-left: mixins.px2rem(5px);
 			}
 
 			.AdminPermissionsPage_userGroup.indent_2 {
-				padding-left: px2rem(10px);
+				padding-left: mixins.px2rem(10px);
 			}
 
 			.AdminPermissionsPage_userGroup.indent_3 {
-				padding-left: px2rem(15px);
+				padding-left: mixins.px2rem(15px);
 			}
 
 			.AdminPermissionsPage_userGroup.indent_4 {
-				padding-left: px2rem(20px);
+				padding-left: mixins.px2rem(20px);
 			}
 
 			.AdminPermissionsPage_userGroup.indent_5 {
-				padding-left: px2rem(25px);
+				padding-left: mixins.px2rem(25px);
 			}
 		}
 	}
@@ -180,7 +183,7 @@
 	.Permission_sitePermissions {
 		.Permission_sitePermission {
 			@extend .GenericBoolCheckbox;
-			padding-bottom: px2rem(3px);
+			padding-bottom: mixins.px2rem(3px);
 			--active: var(--seasonal-color-dark);
 		}
 	}
@@ -194,8 +197,8 @@
 			.Permission_forumPermissionType {
 				display: table-cell;
 
-				padding-left: px2rem(10px);
-				padding-right: px2rem(10px);
+				padding-left: mixins.px2rem(10px);
+				padding-right: mixins.px2rem(10px);
 			}
 		}
 
@@ -211,32 +214,32 @@
 
 				display: table-cell;
 
-				padding-left: px2rem(10px);
-				padding-right: px2rem(10px);
-				padding-bottom: px2rem(3px);
+				padding-left: mixins.px2rem(10px);
+				padding-right: mixins.px2rem(10px);
+				padding-bottom: mixins.px2rem(3px);
 
 				--active: var(--seasonal-color-dark);
 			}
 		}
 
 		.Permission_forumPermission.indent_1 .Permission_forumPermissionName {
-			padding-left: px2rem(5px);
+			padding-left: mixins.px2rem(5px);
 		}
 
 		.Permission_forumPermission.indent_2 .Permission_forumPermissionName {
-			padding-left: px2rem(10px);
+			padding-left: mixins.px2rem(10px);
 		}
 
 		.Permission_forumPermission.indent_3 .Permission_forumPermissionName {
-			padding-left: px2rem(15px);
+			padding-left: mixins.px2rem(15px);
 		}
 
 		.Permission_forumPermission.indent_4 .Permission_forumPermissionName {
-			padding-left: px2rem(20px);
+			padding-left: mixins.px2rem(20px);
 		}
 
 		.Permission_forumPermission.indent_5 .Permission_forumPermissionName {
-			padding-left: px2rem(25px);
+			padding-left: mixins.px2rem(25px);
 		}
 	}
 }
@@ -244,8 +247,8 @@
 .UserMatchingPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 16rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 16rem);
 			}
 		}
 	}
@@ -254,16 +257,16 @@
 .SupportTicketDashboardPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 16rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 16rem);
 			}
 		}
 	}
 
 	.SupportTicketDashboardPage_supportTicket {
-		@include contentbox($background: white);
+		@include mixins.contentbox($background: white);
 		padding: 1rem;
-		font-size: px2rem(14px);
+		font-size: mixins.px2rem(14px);
 
 		&.staff {
 			background-color: #ddf;
@@ -285,7 +288,7 @@
 
 	.SupportTicketPage_chat {
 		.SupportTicketPage_messages {
-			margin-bottom: px2rem(30px);
+			margin-bottom: mixins.px2rem(30px);
 
 			> .SupportTicketPage_message {
 				@extend .GenericInnerSection;
@@ -323,7 +326,7 @@
 			}
 
 			.Form_button {
-				margin-left: px2rem(5px);
+				margin-left: mixins.px2rem(5px);
 			}
 		}
 	}
@@ -347,7 +350,7 @@
 			}
 
 			.PollQuestion_links {
-				@include links(130px);
+				@include mixins.links(130px);
 			}
 		}
 	}
@@ -372,15 +375,15 @@
 .AdminGameConsolesPage, .AdminGamesPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 18rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 18rem);
 			}
 
 			.AdminGameConsolesPage_gameConsole, .AdminGameConsolesPage_game {
 				@extend .GenericInnerSection;
 
 				.AdminGameConsolesPage_gameConsoleLinks, .AdminGameConsolesPage_gameLinks {
-					@include links(100px);
+					@include mixins.links(100px);
 				}
 			}
 		}
@@ -407,8 +410,8 @@
 .UserSessionsPage, .UserSessionPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 16rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 16rem);
 			}
 		}
 	}
@@ -417,8 +420,8 @@
 .SupportEmailDashboardPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 20rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 20rem);
 			}
 
 			.SupportEmailDashboardPage_supportEmail {

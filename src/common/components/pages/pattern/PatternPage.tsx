@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { RequireClientJS, RequireUser, RequirePermission } from '@behavior';
 import Pattern from '@/components/pattern/Pattern.tsx';
 import { Header, Section, RequireLargeScreen } from '@layout';
 import { Checkbox } from '@form';
 import { APIThisType, PatternType } from '@types';
 
-const PatternPage = () =>
+export const action = routerUtils.formAction;
+
+const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 {
 	const [toggleTransparent, setToggleTransparent] = useState<boolean>(false);
 	const [toggleColor, setToggleColor] = useState<any>([]);
 
-	const { pattern } = useLoaderData() as PatternPageProps;
+	const { pattern } = loaderData;
 
 	// Convert the 1D array to 2D array for printing
 	// also record all unique colors included in the pattern
@@ -220,7 +222,7 @@ const PatternPage = () =>
 																	checked={true}
 																	clickHandler={() => toggleTransparentColor()}
 																	label='Toggle Transparent Color'
-																	hideLabel
+																	hideLabels
 																/>
 															}
 														</RequireClientJS>
@@ -258,7 +260,7 @@ const PatternPage = () =>
 																checked={true}
 																clickHandler={() => toggleColorFunc(rgb, number)}
 																label='Toggle Color'
-																hideLabel
+																hideLabels
 															/>
 														}
 													</RequireClientJS>
@@ -297,7 +299,7 @@ const PatternPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<PatternPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<PatternPageProps>
 {
 	const [pattern] = await Promise.all([
 		this.query('v1/pattern', { id: id }),
@@ -305,6 +307,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { pattern };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type PatternPageProps = {
 	pattern: PatternType

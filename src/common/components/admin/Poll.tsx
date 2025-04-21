@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 
 import { PollType } from '@types';
 import { Form, Checkbox } from '@form';
@@ -18,12 +18,12 @@ const Poll = ({
 	options,
 }: PollProps) =>
 {
+	const permissions = useContext(PermissionsContext);
+
 	if (!isEnabled)
 	{
 		return '';
 	}
-
-	const permissions = useContext(PermissionsContext);
 
 	// Determine whether this poll is within
 	// the allotted time frame to accept votes.
@@ -56,14 +56,14 @@ const Poll = ({
 
 					<div className='PollOptions'>
 						{options.map(option =>
-							<div key={option.sequence} className='PollOption'>
+							<div key={option.sequence} className='PollOption PollOptionCheckboxes'>
 								<Checkbox
 									type={isMultipleChoice ? 'checkbox' : 'radio'}
 									name='choices'
 									value={option.sequence}
 									disabled={dateUtils.isAfterCurrentDateTimezone(startDate)}
 									label={option.description}
-									hideLabel
+									hideLabels
 								/>
 								<span className='PollOptionDescription'>
 									{option.description}

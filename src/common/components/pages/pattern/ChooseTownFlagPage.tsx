@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import { Form, Check } from '@form';
 import { Header, Section, Grid, Keyboard } from '@layout';
 import { APIThisType, TownType, PatternType } from '@types';
+import { routerUtils } from '@utils';
 
-const ChooseTownFlagPage = () =>
+export const action = routerUtils.formAction;
+
+const ChooseTownFlagPage = ({ loaderData }: { loaderData: ChooseTownFlagPageProps }) =>
 {
-	const { towns, pattern } = useLoaderData() as ChooseTownFlagPageProps;
+	const { towns, pattern } = loaderData;
 
 	const useTowns = towns.filter(t => t.game.id === pattern.gameId);
 
@@ -47,7 +47,7 @@ const ChooseTownFlagPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownFlagPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownFlagPageProps>
 {
 	const [towns, pattern] = await Promise.all([
 		this.query('v1/users/towns'),
@@ -56,6 +56,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { towns, pattern };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ChooseTownFlagPageProps = {
 	towns: TownType[]

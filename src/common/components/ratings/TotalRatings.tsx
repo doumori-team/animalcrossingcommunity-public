@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { constants } from '@utils';
 
 const TotalRatings = ({

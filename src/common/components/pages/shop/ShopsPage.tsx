@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import Shop from '@/components/shop/Shop.tsx';
 import { Form, Check, Select } from '@form';
 import { Pagination, Header, Section, Search, Grid } from '@layout';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { APIThisType, ACGameType, ServiceType, ShopsType, ElementSelectType } from '@types';
 
-const ShopsPage = () =>
+export const action = routerUtils.formAction;
+
+const ShopsPage = ({ loaderData }: { loaderData: ShopsPageProps }) =>
 {
 	const { totalCount, shops, page, pageSize, acgames, shopServices, gameId,
-		services, fee, vacation } = useLoaderData() as ShopsPageProps;
+		services, fee, vacation } = loaderData;
 
 	const [selectedGameId, setSelectedGameId] = useState<number | null>(gameId);
 	const [selectedServices, setSelectedServices] = useState<ServiceType[]>(gameId ? shopServices.filter(s => s.games.some(g => g.id === gameId)) : []);
@@ -127,7 +129,7 @@ const ShopsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, services, fee, vacation, gameId, mine }: { page?: string, services?: string, fee?: string, vacation?: string, gameId?: string, mine?: string })
+async function loadData(this: APIThisType, _: any, { page, services, fee, vacation, gameId, mine }: { page?: string, services?: string, fee?: string, vacation?: string, gameId?: string, mine?: string })
 {
 	const [acgames, shopServices, returnValue] = await Promise.all([
 		this.query('v1/acgames'),
@@ -155,6 +157,8 @@ export async function loadData(this: APIThisType, _: any, { page, services, fee,
 		gameId: returnValue.gameId,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ShopsPageProps = {
 	shops: ShopsType['results']

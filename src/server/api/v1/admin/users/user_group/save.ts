@@ -3,9 +3,9 @@ import { constants } from '@utils';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
-import { APIThisType, UserType } from '@types';
+import { APIThisType, UserType, SuccessType } from '@types';
 
-async function save(this: APIThisType, { userId, groupId }: saveProps): Promise<void>
+async function save(this: APIThisType, { userId, groupId }: saveProps): Promise<SuccessType>
 {
 	// Confirm perms
 	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
@@ -60,6 +60,10 @@ async function save(this: APIThisType, { userId, groupId }: saveProps): Promise<
 	}
 
 	ACCCache.deleteMatch(constants.cacheKeys.userGroupUsers);
+
+	return {
+		_success: `The user's group has been updated.`,
+	};
 }
 
 save.apiTypes = {

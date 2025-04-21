@@ -1,3 +1,5 @@
+@use "mixins";
+
 .SiteRulesPage, .UserTicketPage {
 	.severity_0, .severity_1 {
 		color: #080;
@@ -12,8 +14,8 @@
 	}
 
 	.SiteRulesPage_rule {
-		margin-top: px2rem(25px);
-		margin-bottom: px2rem(25px);
+		margin-top: mixins.px2rem(25px);
+		margin-bottom: mixins.px2rem(25px);
 	}
 }
 
@@ -41,15 +43,15 @@
 }
 
 .SiteRulesPage .SiteRulesPage_rule {
-	text-indent: px2rem(50px);
+	text-indent: mixins.px2rem(50px);
 }
 
 .SiteRulesPage .SiteRulesPage_violation {
-	text-indent: px2rem(100px);
+	text-indent: mixins.px2rem(100px);
 }
 
 .SiteContent_buttons {
-	@include links(90px);
+	@include mixins.links(90px);
 	justify-content: revert;
 }
 

@@ -1,17 +1,18 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, RichTextArea, Text, Confirm } from '@form';
 import { Header, Section, Markup, ReportProblem } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import TotalRatings from '@/components/ratings/TotalRatings.tsx';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { APIThisType, ThreadApplicationType, EmojiSettingType, MarkupStyleType } from '@types';
 
-const ApplicationPage = () =>
+export const action = routerUtils.formAction;
+
+const ApplicationPage = ({ loaderData }: { loaderData: ApplicationPageProps }) =>
 {
-	const { application, userEmojiSettings, markupStyle } = useLoaderData() as ApplicationPageProps;
+	const { application, userEmojiSettings, markupStyle } = loaderData;
 
 	return (
 		<div className='ApplicationPage'>
@@ -87,7 +88,7 @@ const ApplicationPage = () =>
 						<input name='applicationId' type='hidden' value={application.id} />
 
 						<Text
-							hideLabel
+							hideLabels
 							className='NodeWritingInterface_title'
 							name='title'
 							label='Title'
@@ -120,7 +121,7 @@ const ApplicationPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ApplicationPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ApplicationPageProps>
 {
 	const [application, userEmojiSettings, forumSettings] = await Promise.all([
 		this.query('v1/shop/thread', { id: id, category: constants.shops.categories.applications }),
@@ -134,6 +135,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		markupStyle: forumSettings.markupStyle,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ApplicationPageProps = {
 	application: ThreadApplicationType

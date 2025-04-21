@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Header, Section } from '@layout';
 import { Form, Text, Switch } from '@form';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, ProfanityWordType } from '@types';
 
-const AdminProfanityPage = () =>
+export const action = routerUtils.formAction;
+
+const AdminProfanityPage = ({ loaderData }: { loaderData: AdminProfanityPageProps }) =>
 {
-	const { words } = useLoaderData() as AdminProfanityPageProps;
+	const { words } = loaderData;
 
 	return (
 		<RequirePermission permission='profanity-admin'>
@@ -19,7 +20,7 @@ const AdminProfanityPage = () =>
 				/>
 
 				<Section>
-					<Form action='v1/profanity/save' showButton>
+					<Form action='v1/profanity/save' showButton formId='main-profanity-save'>
 						<Form.Group>
 							<Text
 								name='word'
@@ -45,12 +46,13 @@ const AdminProfanityPage = () =>
 											action='v1/profanity/save'
 											showButton
 											buttonText='Update'
+											formId={`profanity-save-${word.id}`}
 										>
 											<input type='hidden' name='id' value={word.id} />
 
 											<Form.Group>
 												<Text
-													hideLabel
+													hideLabels
 													label='Word'
 													name='word'
 													required
@@ -82,7 +84,7 @@ const AdminProfanityPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<AdminProfanityPageProps>
+async function loadData(this: APIThisType): Promise<AdminProfanityPageProps>
 {
 	const [words] = await Promise.all([
 		this.query('v1/profanity/word'),
@@ -90,6 +92,8 @@ export async function loadData(this: APIThisType): Promise<AdminProfanityPagePro
 
 	return { words };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AdminProfanityPageProps = {
 	words: ProfanityWordType[]

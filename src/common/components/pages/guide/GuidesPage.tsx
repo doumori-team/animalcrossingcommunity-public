@@ -1,14 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Header, Section, ACGameButtons } from '@layout';
 import ImageUpload from '@/components/layout/ImageUpload.tsx';
-import { APIThisType, ACGameType, ACGameGuideType } from '@types';;
+import { APIThisType, ACGameType, ACGameGuideType } from '@types';
+import { routerUtils } from '@utils';
 
-const GuidesPage = () =>
+export const action = routerUtils.formAction;
+
+const GuidesPage = ({ loaderData }: { loaderData: GuidesPageProps }) =>
 {
-	const { acgames, selectedGameId, guides, selectedGame } = useLoaderData() as GuidesPageProps;
+	const { acgames, selectedGameId, guides, selectedGame } = loaderData;
 
 	const dirPath = selectedGame?.shortname.split(':')[1].toLowerCase();
 
@@ -85,7 +87,7 @@ const GuidesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { gameId }: { gameId: string }): Promise<GuidesPageProps>
+async function loadData(this: APIThisType, { gameId }: { gameId: string }): Promise<GuidesPageProps>
 {
 	const selectedGameId = Number(gameId);
 
@@ -97,6 +99,8 @@ export async function loadData(this: APIThisType, { gameId }: { gameId: string }
 
 	return { acgames, selectedGameId, guides, selectedGame };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type GuidesPageProps = {
 	acgames: ACGameType[]

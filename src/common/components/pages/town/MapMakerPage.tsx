@@ -1,16 +1,15 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireClientJS, RequireUser } from '@behavior';
 import MapMaker from '@/components/towns/MapMaker.tsx';
 import MapDesigner from '@/components/towns/MapDesigner.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { ErrorMessage, RequireLargeScreen } from '@layout';
 import { APIThisType, TownType } from '@types';
 
-const MapMakerPage = () =>
+export const action = routerUtils.formAction;
+
+const MapMakerPage = ({ loaderData }: { loaderData: MapMakerPageProps }) =>
 {
-	const { town } = useLoaderData() as MapMakerPageProps;
+	const { town } = loaderData;
 
 	const mapInfo = utils.getMapInfo(town.game.id);
 
@@ -48,7 +47,7 @@ const MapMakerPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<MapMakerPageProps>
+async function loadData(this: APIThisType, { townId }: { townId: string }): Promise<MapMakerPageProps>
 {
 	const [town] = await Promise.all([
 		this.query('v1/town', { id: townId }),
@@ -56,6 +55,8 @@ export async function loadData(this: APIThisType, { townId }: { townId: string }
 
 	return { town };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type MapMakerPageProps = {
 	town: TownType

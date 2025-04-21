@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData, Form as ReactRouterForm } from 'react-router-dom';
+import { Fragment, useState } from 'react';
+import { Link, Form as ReactRouterForm } from 'react-router';
 
 import { RequireUser, RequireClientJS } from '@behavior';
 import { Confirm, Form, Select, Button } from '@form';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { UserContext } from '@contexts';
 import { Pagination, Header, Section, Grid, Markup } from '@layout';
 import Avatar from '@/components/nodes/Avatar.tsx';
 import { APIThisType, UserBellShopItemType, BellShopCategoryType, ShopItemsType, UserDonationsType } from '@types';
 
-const BellShopPage = () =>
+export const action = routerUtils.formAction;
+
+const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 {
 	const { categories, categoryItems, page, pageSize, totalCount, userItems,
-		selectedCategoryId, sortBy, groupBy, tags, userDonations } = useLoaderData() as BellShopPageProps;
+		selectedCategoryId, sortBy, groupBy, tags, userDonations } = loaderData;
 
 	const [curUserItems, setCurUserItems] = useState<UserBellShopItemType['itemId'][]>(userItems ? userItems : []);
 
@@ -57,7 +59,7 @@ const BellShopPage = () =>
 								</Grid>
 							</Section>
 
-							{selectedCategoryId > 0 && sortBy != null && groupBy != null && page != null && pageSize != null && totalCount != null &&
+							{selectedCategoryId > 0 && sortBy !== null && groupBy !== null && page !== null && pageSize !== null && totalCount !== null &&
 								<Section>
 									<div className='BellShopPage_sort'>
 										<h3>Sort by:</h3>
@@ -97,7 +99,7 @@ const BellShopPage = () =>
 													<Select
 														label='Filters'
 														name='group'
-														hideLabel
+														hideLabels
 														options={tags}
 														optionsMapping={{ value: 'id', label: 'name' }}
 														placeholder='Select filters...'
@@ -119,7 +121,7 @@ const BellShopPage = () =>
 										</div>
 									}
 
-									<Grid name='item' options={categoryItems != null ? categoryItems : []}>
+									<Grid name='item' options={categoryItems !== null ? categoryItems : []}>
 										{categoryItems && categoryItems.map((item: ShopItemsType['results'][number]) =>
 											<div className='BellShopPage_item' key={item.id}>
 												{item.avatar &&
@@ -165,7 +167,7 @@ const BellShopPage = () =>
 															}
 
 															return (
-																<>
+																<Fragment key={`${item.id}-${price.id}`}>
 																	{!curUserItems.includes(item.id) && (
 																		price.isBells && currentUser.nonFormattedTotalBells - price.nonFormattedPrice < 0 ?
 																			<Button
@@ -189,6 +191,7 @@ const BellShopPage = () =>
 																				label={`Redeem for ${`${itemPrice.toLocaleString()} ${price.currency}`}`}
 																				message='Are you sure you want to redeem this item?'
 																				updateFunction={(data: any) => setCurUserItems(data.map((ui: any) => ui.itemId))}
+																				formId={`bell-shop-redeem-${price.id}`}
 																			/>
 
 																	)}
@@ -209,7 +212,7 @@ const BellShopPage = () =>
 																			</RequireClientJS>
 
 																	)}
-																</>
+																</Fragment>
 															);
 														})}
 													</>
@@ -235,7 +238,7 @@ const BellShopPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { categoryId }: { categoryId: string }, { page, sort, group, debug }: { page?: string, sort?: string, group?: string, debug?: string }): Promise<BellShopPageProps>
+async function loadData(this: APIThisType, { categoryId }: { categoryId: string }, { page, sort, group, debug }: { page?: string, sort?: string, group?: string, debug?: string }): Promise<BellShopPageProps>
 {
 	const selectedCategoryId = Number(categoryId || 0);
 
@@ -268,6 +271,8 @@ export async function loadData(this: APIThisType, { categoryId }: { categoryId: 
 		userDonations,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type BellShopPageProps = {
 	categories: BellShopCategoryType[]

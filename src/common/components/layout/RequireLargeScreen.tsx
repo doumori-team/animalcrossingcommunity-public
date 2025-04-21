@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import ErrorMessage from '@/components/layout/ErrorMessage.tsx';
 
@@ -23,7 +23,7 @@ const RequireLargeScreen = ({
 };
 
 type RequireLargeScreenProps = {
-	children: React.ReactNode
+	children: ReactNode
 	silent?: boolean
 	size: string
 };

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { constants } from '@utils';
 import { Form, RichTextArea, Text, Select, Check, Switch } from '@form';
 import { FeatureType, FeatureCategoryType, FeatureStatusType } from '@types';

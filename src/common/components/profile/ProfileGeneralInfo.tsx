@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { dateUtils, constants } from '@utils';

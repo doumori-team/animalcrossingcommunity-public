@@ -1,6 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import * as ReactRouterDom from 'react-router-dom';
+import { Link } from 'react-router';
+import * as ReactRouterDom from 'react-router';
 
 import { utils, constants } from '@utils';
 import { RequireClientJS, RequireUser } from '@behavior';

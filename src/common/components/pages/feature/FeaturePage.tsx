@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { ReactNode, useState } from 'react';
+import { Link } from 'react-router';
 
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { RequirePermission, RequireUser } from '@behavior';
 import { Form, Button, RichTextArea, Switch } from '@form';
 import { PermissionsContext } from '@contexts';
 import { Header, Section, Tabs, Markup } from '@layout';
 import { APIThisType, FeatureType, EmojiSettingType } from '@types';
 
-const FeaturePage = () =>
+export const action = routerUtils.formAction;
+
+const FeaturePage = ({ loaderData }: { loaderData: FeaturePageProps }) =>
 {
-	const { feature, currentUserEmojiSettings, userEmojiSettings } = useLoaderData() as FeaturePageProps;
+	const { feature, currentUserEmojiSettings, userEmojiSettings } = loaderData;
 	const [staffOnly, setStaffOnly] = useState<boolean>(true);
 
 	const encodedId = encodeURIComponent(feature.id);
 
-	const getMessagesSection = (type: string): React.ReactNode =>
+	const getMessagesSection = (type: string): ReactNode =>
 	{
 		const messages = feature.messages.filter(m => type === 'staff' ? m.staffOnly : !m.staffOnly);
 
@@ -302,7 +304,7 @@ const FeaturePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<FeaturePageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<FeaturePageProps>
 {
 	const [feature, currentUserEmojiSettings] = await Promise.all([
 		this.query('v1/feature', { id: id }),
@@ -315,6 +317,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { feature, currentUserEmojiSettings, userEmojiSettings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type FeaturePageProps = {
 	feature: FeatureType

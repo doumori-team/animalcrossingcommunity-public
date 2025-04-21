@@ -1,15 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Header, Section, Grid, Pagination, InnerSection, SelectAllCheckbox } from '@layout';
 import { Form, Checkbox } from '@form';
 import { APIThisType, UserNotificationsType } from '@types';
+import { constants, routerUtils } from '@utils';
 
-const NotificationsPage = () =>
+export const action = routerUtils.formAction;
+
+const NotificationsPage = ({ loaderData }: { loaderData: NotificationsPageProps }) =>
 {
 	const { userNotifications, globalNotifications, page, pageSize,
-		userTotalCount, globalTotalCount, sortBy } = useLoaderData() as NotificationsPageProps;
+		userTotalCount, globalTotalCount, sortBy } = loaderData;
 
 	return (
 		<RequireUser>
@@ -22,21 +24,29 @@ const NotificationsPage = () =>
 					<Grid name='global notification' options={globalNotifications}>
 						{globalNotifications.map(notification =>
 							<InnerSection key={notification.id}>
-								<div className='NotificationsPage_notificationDescription'>
-									<Link
-										to={notification.url}
-										reloadDocument={notification.anchor ? true : false}
-									>
-										{notification.description}
-									</Link>
-								</div>
 
-								<div className='NotificationsPage_notificationCreated'>
-									Created: {notification.formattedCreated}
-								</div>
-
-								<div className='NotificationsPage_notificationNotified'>
-									Notified: {notification.formattedNotified}
+								<div className='NotificationsPage_notificationContent'>
+									<div>
+										<img
+											className='NotificationsPage_notificationIcon'
+											src={`${constants.AWS_URL}/images/games/nl/badges/villager_of_honor.png`}
+											alt='Global notification'
+											title='Global notification'
+										/>
+									</div>
+									<div className='NotificationsPage_notificationDescription'>
+										<div>
+											<Link
+												to={notification.url}
+												reloadDocument={notification.anchor ? true : false}
+											>
+												{notification.description}
+											</Link>
+										</div>
+										<div className='NotificationsPage_notificationCreated'>
+											{notification.formattedCreated}
+										</div>
+									</div>
 								</div>
 							</InnerSection>,
 						)}
@@ -70,10 +80,12 @@ const NotificationsPage = () =>
 								</Link>
 							</div>
 
-							<SelectAllCheckbox
-								name='toggle_buddyUsers'
-								select='.Grid input[name="notificationIds"]'
-							/>
+							<div className='NotificationsPage_CheckAllContainer'>
+								<SelectAllCheckbox
+									name='toggle_buddyUsers'
+									select='.Grid input[name="notificationIds"]'
+								/>
+							</div>
 
 							<Form
 								action='v1/notification/clear'
@@ -83,31 +95,38 @@ const NotificationsPage = () =>
 								<div className='Grid'>
 									{userNotifications.map(notification =>
 										<InnerSection key={notification.id}>
-											<Form.Group>
-												<Checkbox
-													name='notificationIds'
-													label='Remove Notification'
-													value={notification.id}
-													hideLabel
-												/>
-											</Form.Group>
-
-											<div className='NotificationsPage_notificationDescription'>
-												<Link
-													to={notification.url}
-													reloadDocument={notification.anchor ? true : false}
-												>
-													{notification.description}
-												</Link>
+											<div className='NotificationsPage_notificationContent'>
+												<div>
+													<img
+														className='NotificationsPage_notificationIcon'
+														src={`${constants.AWS_URL}${notification.icon}`}
+														alt={notification.type}
+														title={notification.type}
+													/>
+												</div>
+												<div className='NotificationsPage_notificationDescription'>
+													<div>
+														<Link
+															to={notification.url}
+															reloadDocument={notification.anchor ? true : false}
+														>
+															{notification.description}
+														</Link>
+													</div>
+													<div className='NotificationsPage_notificationCreated'>
+														{notification.formattedCreated}
+													</div>
+												</div>
+												<Form.Group>
+													<Checkbox
+														name='notificationIds'
+														label='Remove Notification'
+														value={notification.id}
+														hideLabels
+													/>
+												</Form.Group>
 											</div>
 
-											<div className='NotificationsPage_notificationCreated'>
-												Created: {notification.formattedCreated}
-											</div>
-
-											<div className='NotificationsPage_notificationNotified'>
-												Notified: {notification.formattedNotified}
-											</div>
 										</InnerSection>,
 									)}
 								</div>
@@ -129,7 +148,7 @@ const NotificationsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, sort }: { page?: string, sort?: string }): Promise<NotificationsPageProps>
+async function loadData(this: APIThisType, _: any, { page, sort }: { page?: string, sort?: string }): Promise<NotificationsPageProps>
 {
 	const sortBy = sort ? sort : '';
 
@@ -150,6 +169,8 @@ export async function loadData(this: APIThisType, _: any, { page, sort }: { page
 		sortBy,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type NotificationsPageProps = {
 	userNotifications: UserNotificationsType['userNotifications']

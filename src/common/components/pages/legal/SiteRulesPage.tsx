@@ -1,13 +1,12 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { ContentBox, HTMLPurify } from '@layout';
-import { dateUtils } from '@utils';
+import { dateUtils, routerUtils } from '@utils';
 import { APIThisType, CurrentRuleType } from '@types';
 
-const SiteRulesPage = () =>
+export const action = routerUtils.formAction;
+
+const SiteRulesPage = ({ loaderData }: { loaderData: SiteRulesPageProps }) =>
 {
-	const { rules, lastUpdated } = useLoaderData() as SiteRulesPageProps;
+	const { rules, lastUpdated } = loaderData;
 
 	return (
 		<div className='SiteRulesPage'>
@@ -64,7 +63,7 @@ const SiteRulesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType): Promise<SiteRulesPageProps>
+async function loadData(this: APIThisType): Promise<SiteRulesPageProps>
 {
 	const [rules] = await Promise.all([
 		this.query('v1/rule/current'),
@@ -75,6 +74,8 @@ export async function loadData(this: APIThisType): Promise<SiteRulesPageProps>
 		lastUpdated: rules.lastUpdated,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type SiteRulesPageProps = {
 	rules: CurrentRuleType['currentRules']

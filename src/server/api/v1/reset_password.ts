@@ -2,9 +2,9 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as accounts from '@accounts';
 import * as APITypes from '@apiTypes';
-import { APIThisType, NoticeType } from '@types';
+import { APIThisType, SuccessType } from '@types';
 
-async function reset_password(this: APIThisType, { id }: resetPasswordProps): Promise<NoticeType>
+async function reset_password(this: APIThisType, { id }: resetPasswordProps): Promise<SuccessType>
 {
 	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 

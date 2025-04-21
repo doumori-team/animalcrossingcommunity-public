@@ -1,9 +1,9 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import { constants, dateUtils } from '@utils';
-import { APIThisType, ViewEmailType, NoticeType } from '@types';
+import { APIThisType, ViewEmailType, SuccessType } from '@types';
 
-export default async function view_email(this: APIThisType): Promise<ViewEmailType | NoticeType>
+export default async function view_email(this: APIThisType): Promise<ViewEmailType | SuccessType>
 {
 	// You must be on a test site
 	if (constants.LIVE_SITE)

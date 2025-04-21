@@ -59,7 +59,7 @@ async function message(this: APIThisType, { id, message, userTicketId, status, s
 				($1::int, $2::int, $3, $4, $5)
 				RETURNING id
 			`, this.userId, id, message, staffOnly, format),
-			userTicketId != null && userTicketId > 0 ? query(`
+			userTicketId > 0 ? query(`
 				UPDATE support_ticket
 				SET user_ticket_id = $2::int
 				WHERE id = $1::int
@@ -127,7 +127,7 @@ message.apiTypes = {
 type messageProps = {
 	id: number
 	message: string
-	userTicketId: number | null
+	userTicketId: number
 	status: string
 	staffOnly: boolean
 	format: MarkupStyleType

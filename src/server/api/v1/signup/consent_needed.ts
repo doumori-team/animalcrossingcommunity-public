@@ -45,7 +45,6 @@ async function consent_needed(this: APIThisType, { id, email }: consentNeededPro
 
 	return {
 		_success: 'We have sent your parent / guardian an email. If they give us permission, we will give them instructions to help you finish signing up.',
-		_useCallback: true,
 	};
 }
 

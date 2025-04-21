@@ -1,5 +1,5 @@
 import { escapeHtml, stringAt } from './utils.ts';
-import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json';
 import { convertForUrl } from 'common/utils/utils.ts';
 import * as constants from 'common/utils/constants.ts';
 import { regexes } from 'common/utils/constants.ts';

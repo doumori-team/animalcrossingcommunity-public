@@ -1,22 +1,24 @@
+@use "mixins";
+
 .TunesPage {
 	.Section {
 		.Grid {
-			@include responsive(1rem) {
-				@include grid($col-width: 18rem);
+			@include mixins.responsive(1rem) {
+				@include mixins.grid($col-width: 18rem);
 			}
 		}
 	}
 
 	.Tune {
-		@include contentbox($background: white);
+		@include mixins.contentbox($background: white);
 	}
 }
 
 .AddTunePage, .EditTunePage, .EditTownTunePage {
 	.EditTune {
 		.EditTune_notes {
-			margin-top: px2rem(5px);
-			margin-bottom: px2rem(5px);
+			margin-top: mixins.px2rem(5px);
+			margin-bottom: mixins.px2rem(5px);
 
 			.Check {
 				grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
@@ -27,26 +29,27 @@
 
 .Tune {
 	padding: 1rem;
-	font-size: px2rem(14px);
+	font-size: mixins.px2rem(14px);
 
 	.Tune_links {
-		@include links(100px);
+		@include mixins.links(100px);
 	}
 
 	.Tune_name {
-		font-size: px2rem(24px);
+		font-size: mixins.px2rem(24px);
 		text-align: center;
 		word-break: break-word;
 
 		.Tune_submitted {
 			display: block;
 			font-weight: normal;
-			font-size: px2rem(14px);
+			font-size: mixins.px2rem(14px);
 		}
 
-		> div {
+		.Tune_nameAlignment {
 			display: flex;
 			justify-content: center;
+			align-items: center;
 		}
 	}
 
@@ -56,5 +59,5 @@
 }
 
 img[src*="/tunes/"] {
-	height: px2rem(65px);
+	height: mixins.px2rem(65px);
 }

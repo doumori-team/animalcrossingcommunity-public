@@ -1,9 +1,7 @@
-import React from 'react';
-
 import { ClickHandlerType } from '@types';
 
 const Checkbox = ({
-	hideLabel = false,
+	hideLabels = false,
 	name,
 	htmlFor,
 	label,
@@ -20,7 +18,7 @@ const Checkbox = ({
 	const id = htmlFor ? htmlFor : name;
 
 	return (
-		<>
+		<div className='CheckboxContainer'>
 			<input
 				name={name}
 				id={id}
@@ -33,17 +31,17 @@ const Checkbox = ({
 				required={required}
 				form={form}
 			/>
-			{!hideLabel &&
+			{!hideLabels &&
 				<label htmlFor={id} className={labelClassName}>
 					{label}
 				</label>
 			}
-		</>
+		</div>
 	);
 };
 
 type CheckboxProps = {
-	hideLabel?: boolean
+	hideLabels?: boolean
 	htmlFor?: string
 	name?: string
 	label: string

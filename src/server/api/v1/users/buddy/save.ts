@@ -1,6 +1,6 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { utils, constants } from '@utils';
+import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, UserDonationsType } from '@types';
 
@@ -19,25 +19,6 @@ async function save(this: APIThisType, { buddyUsers, action }: saveProps): Promi
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', { id: this.userId });
-
-	if (!Array.isArray(buddyUsers))
-	{
-		if (buddyUsers)
-		{
-			if (utils.realStringLength(buddyUsers) > constants.max.addMultipleUsers)
-			{
-				throw new UserError('bad-format');
-			}
-
-			buddyUsers = buddyUsers.split(',').map((username: string) => username.trim());
-		}
-		else
-		{
-			buddyUsers = [];
-		}
-	}
-
 	let buddyUserIds = await Promise.all(buddyUsers.map(async (username: string) =>
 	{
 		const [check] = await db.query(`
@@ -116,11 +97,15 @@ async function save(this: APIThisType, { buddyUsers, action }: saveProps): Promi
 
 	return {
 		_successImage: `${constants.AWS_URL}/images/icons/icon_check.png`,
+		_success: `You have updated your buddy list.`,
 	};
 }
 
 save.apiTypes = {
-	// buddyUsers custom check above
+	buddyUsers: {
+		type: APITypes.array,
+		length: constants.max.addMultipleUsers,
+	},
 	action: {
 		type: APITypes.string,
 		default: '',
@@ -130,7 +115,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	buddyUsers: any
+	buddyUsers: string[]
 	action: 'add' | 'remove'
 };
 

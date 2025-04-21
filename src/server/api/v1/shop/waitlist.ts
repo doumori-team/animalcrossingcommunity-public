@@ -18,8 +18,6 @@ async function waitlist(this: APIThisType, { id }: waitlistProps): Promise<void>
 		throw new UserError('login-needed');
 	}
 
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const application: ThreadApplicationType = await this.query('v1/shop/thread', { id: id, category: constants.shops.categories.applications });
 
 	if (!application.contact)

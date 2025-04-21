@@ -1,16 +1,15 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { getSeason } from 'common/calendar.ts';
 import { RequireUser } from '@behavior';
 import EditTown from '@/components/towns/EditTown.tsx';
 import { Section, ACGameButtons } from '@layout';
 import { APIThisType, ACGameType, TownGameType, SeasonsType } from '@types';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 
-const AddTownPage = () =>
+export const action = routerUtils.formAction;
+
+const AddTownPage = ({ loaderData }: { loaderData: AddTownProps }) =>
 {
-	const { acgames, townGame, selectedGameId, userId, season } = useLoaderData() as AddTownProps;
+	const { acgames, townGame, selectedGameId, userId, season } = loaderData;
 
 	return (
 		<RequireUser id={userId} permission='modify-towns'>
@@ -37,7 +36,7 @@ const AddTownPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id, gameId }: { id: string, gameId: string }, { debug }: { debug: string }): Promise<AddTownProps>
+async function loadData(this: APIThisType, { id, gameId }: { id: string, gameId: string }, { debug }: { debug: string }): Promise<AddTownProps>
 {
 	const selectedGameId = Number(gameId);
 	const userId = Number(id);
@@ -66,6 +65,8 @@ export async function loadData(this: APIThisType, { id, gameId }: { id: string, 
 		season,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type AddTownProps = {
 	acgames: ACGameType[]

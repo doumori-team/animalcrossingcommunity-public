@@ -1,6 +1,6 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import emojiDefs from 'common/markup/emoji.json' with { type: 'json'};
+import emojiDefs from 'common/markup/emoji.json';
 import { APIThisType, EmojiSettingType, SuccessType } from '@types';
 
 export default async function save(this: APIThisType, emojiSettings: EmojiSettingType[]): Promise<SuccessType>
@@ -63,6 +63,5 @@ export default async function save(this: APIThisType, emojiSettings: EmojiSettin
 
 	return {
 		_success: 'Your emoji settings have been updated.',
-		_callbackFirst: true,
 	};
 }

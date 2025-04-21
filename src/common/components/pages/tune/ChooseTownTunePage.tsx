@@ -1,14 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequireUser } from '@behavior';
 import { Form, Check } from '@form';
 import { Header, Section, Grid, Keyboard } from '@layout';
 import { APIThisType, TownType } from '@types';
+import { routerUtils } from '@utils';
 
-const ChooseTownTunePage = () =>
+export const action = routerUtils.formAction;
+
+const ChooseTownTunePage = ({ loaderData }: { loaderData: ChooseTownTunePageProps }) =>
 {
-	const { towns, tuneId } = useLoaderData() as ChooseTownTunePageProps;
+	const { towns, tuneId } = loaderData;
 
 	return (
 		<div className='ChooseTownTunePage'>
@@ -45,7 +45,7 @@ const ChooseTownTunePage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownTunePageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ChooseTownTunePageProps>
 {
 	const tuneId = Number(id);
 
@@ -55,6 +55,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { towns, tuneId };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ChooseTownTunePageProps = {
 	towns: TownType[]

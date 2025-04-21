@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { utils, constants } from '@utils';
 import { Form, Check, Button } from '@form';
@@ -123,8 +123,8 @@ const MapDesigner = ({
 	const [allImagesChange, setAllImagesChange] = useState<number>(Math.random());
 
 	const palette = [...Array(constants.town.numberOfColors).keys()];
-	const mapInterface = useRef<any>();
-	const didMount = useRef<any>();
+	const mapInterface = useRef<any>(null);
+	const didMount = useRef<any>(null);
 
 	useEffect(() =>
 	{
@@ -210,7 +210,7 @@ const MapDesigner = ({
 				return;
 			}
 
-			if (draggingImageX == null || draggingImageY == null)
+			if (draggingImageX === null || draggingImageY === null)
 			{
 				return;
 			}
@@ -574,7 +574,7 @@ const MapDesigner = ({
 
 		const canvasOffset = [left, top];
 
-		if (e.pageX != undefined && e.pageY != undefined)
+		if (e.pageX !== undefined && e.pageY !== undefined)
 		{
 			x = e.pageX;
 			y = e.pageY;
@@ -741,7 +741,7 @@ const MapDesigner = ({
 						defaultValue={[showRectTypes.find(rt => rt.id === cursor)?.id]}
 						onChangeHandler={(e: any) => setCursor(String(e.target.value))}
 						label='Paintbrush'
-						hideLabel
+						hideLabels
 					/>
 					<div className='MapDesigner_imageSection'>
 						<h4 className='MapPalette_header'>
@@ -756,7 +756,7 @@ const MapDesigner = ({
 							useImageFilename
 							hideName
 							label='Images'
-							hideLabel
+							hideLabels
 						/>
 						<Button
 							clickHandler={() => addImage()}

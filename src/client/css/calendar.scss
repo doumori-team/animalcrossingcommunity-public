@@ -1,9 +1,12 @@
+@use "mixins";
+@use "forms";
+
 .CalendarPage {
 	.Section {
 		.CalendarPage_monthSection {
 			.CalendarPage_monthName {
 				text-align: center;
-				font-size: px2rem(25px);
+				font-size: mixins.px2rem(25px);
 				font-weight: bold;
 			}
 
@@ -11,24 +14,24 @@
 				.CalendarPage_categorySection {
 					@extend .GenericInnerSection;
 
-					margin-left: px2rem(5px);
-					margin-right: px2rem(5px);
+					margin-left: mixins.px2rem(5px);
+					margin-right: mixins.px2rem(5px);
 					flex: 1;
 
 					.CalendarPage_categoryName {
-						font-size: px2rem(16px);
+						font-size: mixins.px2rem(16px);
 						text-decoration: underline;
-						padding-bottom: px2rem(5px);
+						padding-bottom: mixins.px2rem(5px);
 					}
 
 					.CalendarPage_eventSections {
-						@include responsive(1rem) {
-							@include grid($col-width: 12rem);
+						@include mixins.responsive(1rem) {
+							@include mixins.grid($col-width: 12rem);
 						}
 
 						.CalendarPage_eventSection {
-							padding-bottom: px2rem(5px);
-							padding-top: px2rem(5px);
+							padding-bottom: mixins.px2rem(5px);
+							padding-top: mixins.px2rem(5px);
 
 							display: flex;
 

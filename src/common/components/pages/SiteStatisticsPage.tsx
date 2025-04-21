@@ -1,16 +1,16 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 
 import { RequireUser } from '@behavior';
 import { Form, Text } from '@form';
 import { Header, Search, ContentBox, RequireLargeScreen } from '@layout';
-import { dateUtils, utils, constants } from '@utils';
+import { dateUtils, utils, constants, routerUtils } from '@utils';
 import { APIThisType, SiteStatsType } from '@types';
 
-const SiteStatisticsPage = () =>
+export const action = routerUtils.formAction;
+
+const SiteStatisticsPage = ({ loaderData }: { loaderData: SiteStatisticsPageProps }) =>
 {
-	const { stats, date, lineGraphStats, barGraphStats } = useLoaderData() as SiteStatisticsPageProps;
+	const { stats, date, lineGraphStats, barGraphStats } = loaderData;
 
 	return (
 		<div className='SiteStatisticsPage'>
@@ -93,7 +93,7 @@ const SiteStatisticsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { date }: { date?: string }): Promise<SiteStatisticsPageProps>
+async function loadData(this: APIThisType, _: any, { date }: { date?: string }): Promise<SiteStatisticsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/analytics/stats', {
@@ -108,6 +108,8 @@ export async function loadData(this: APIThisType, _: any, { date }: { date?: str
 		barGraphStats: returnValue.barGraphStats,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type SiteStatisticsPageProps = {
 	stats: SiteStatsType['results']

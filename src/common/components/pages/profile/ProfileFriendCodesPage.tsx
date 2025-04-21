@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useOutletContext, Outlet, useLoaderData } from 'react-router-dom';
+import { Link, useOutletContext, Outlet } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import TotalRatings from '@/components/ratings/TotalRatings.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { Header } from '@layout';
 import { APIThisType, UserRatingType, UserType } from '@types';
 
-const ProfileFriendCodesPage = () =>
+export const action = routerUtils.formAction;
+
+const ProfileFriendCodesPage = ({ loaderData }: { loaderData: ProfileFriendCodesPageProps }) =>
 {
-	const { userRatings } = useLoaderData() as ProfileFriendCodesPageProps;
+	const { userRatings } = loaderData;
 	const { user } = useOutletContext() as { user: UserType };
 
 	const encodedId = encodeURIComponent(user.id);
@@ -53,7 +54,7 @@ const ProfileFriendCodesPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileFriendCodesPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<ProfileFriendCodesPageProps>
 {
 	const [userRatings] = await Promise.all([
 		this.query('v1/users/ratings', { id }),
@@ -61,6 +62,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { userRatings };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ProfileFriendCodesPageProps = {
 	userRatings: UserRatingType

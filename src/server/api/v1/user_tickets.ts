@@ -112,6 +112,14 @@ async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleI
 
 		wheres.push(`user_ticket.status_id = $` + paramIndex);
 	}
+	else if (statusId === -1)
+	{
+		params[paramIndex] = constants.userTicket.closeStatusId;
+
+		paramIndex++;
+
+		wheres.push(`user_ticket.status_id != $` + paramIndex);
+	}
 
 	if (utils.realStringLength(assignee) > 0)
 	{

@@ -12,8 +12,6 @@ async function save(this: APIThisType, { user, action }: saveProps): Promise<voi
 	}
 
 	// Check parameters
-	await this.query('v1/user_lite', { id: this.userId });
-
 	const userBlock: UserType = await this.query('v1/user', { username: user });
 
 	if ([

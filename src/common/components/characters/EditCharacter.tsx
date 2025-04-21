@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { constants, utils } from '@utils';
 import { CharacterType, CharacterGameType, TownType } from '@types';
 import { Form, Check, Text } from '@form';
@@ -151,7 +149,7 @@ const EditCharacter = ({
 										name='houseSizeIds'
 										defaultValue={foundHouseSize ? [foundHouseSize.id] : [0]}
 										multiple
-										hideLabel
+										hideLabels
 										label='House Size Group'
 									/>
 								</div>

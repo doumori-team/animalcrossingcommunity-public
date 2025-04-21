@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ReactSelect, { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -28,7 +28,7 @@ const Input = (props: any) =>
  * - Colored Simple Select Options: Profile Avatar Selector, Colorations
  */
 const Select = ({
-	hideLabel = false,
+	hideLabels = false,
 	label,
 	multiple = false,
 	name,
@@ -374,7 +374,7 @@ const Select = ({
 
 	return (
 		<>
-			{!hideLabel &&
+			{!hideLabels &&
 				<label htmlFor={name}>{label}:</label>
 			}
 			<RequireClientJS fallback={
@@ -392,7 +392,7 @@ const Select = ({
 };
 
 type SelectProps = {
-	hideLabel?: boolean
+	hideLabels?: boolean
 	label: string
 	async?: boolean
 	multiple?: boolean

@@ -47,7 +47,6 @@ async function set(this: APIThisType, { amount }: setProps): Promise<SuccessType
 
 	return {
 		_success: `The jackpot has been set to ${amount.toLocaleString()} Bells!`,
-		_callbackFirst: true,
 	};
 }
 

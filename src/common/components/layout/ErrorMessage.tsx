@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ERROR_MESSAGES } from '@errors';
 import { Alert } from '@form';
 import HTMLPurify from '@/components/layout/HTMLPurify.tsx';

@@ -3,9 +3,9 @@ import { constants, dateUtils } from '@utils';
 import * as accounts from '@accounts';
 import * as APITypes from '@apiTypes';
 import * as db from '@db';
-import { APIThisType, NoticeType } from '@types';
+import { APIThisType, SuccessType } from '@types';
 
-async function view_information(this: APIThisType, { id }: viewInformationProps): Promise<NoticeType>
+async function view_information(this: APIThisType, { id }: viewInformationProps): Promise<SuccessType>
 {
 	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
 

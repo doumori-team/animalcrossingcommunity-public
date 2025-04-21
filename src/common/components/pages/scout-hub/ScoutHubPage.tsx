@@ -1,17 +1,18 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission, RequireGroup } from '@behavior';
-import { constants, utils } from '@utils';
+import { constants, utils, routerUtils } from '@utils';
 import { Form, Select, Check, Text } from '@form';
 import { Header, Pagination, Search, Section, Grid } from '@layout';
 import { UserContext } from '@contexts';
 import { APIThisType, AdoptionThreadsType } from '@types';
 
-const ScoutHubPage = () =>
+export const action = routerUtils.formAction;
+
+const ScoutHubPage = ({ loaderData }: { loaderData: ScoutHubPageProps }) =>
 {
 	const { threads, page, pageSize, totalCount, scouts, scoutIds, adoptee,
-		newMembers, locked } = useLoaderData() as ScoutHubPageProps;
+		newMembers, locked } = loaderData;
 
 	const link = `&scoutIds=${encodeURIComponent(scoutIds.join(','))}
 		&adoptee=${encodeURIComponent(adoptee)}
@@ -140,7 +141,7 @@ const ScoutHubPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, _: any, { page, scoutIds, adoptee, newMembers, locked }: { page?: string, scoutIds?: string, adoptee?: string, newMembers?: string, locked?: string }): Promise<ScoutHubPageProps>
+async function loadData(this: APIThisType, _: any, { page, scoutIds, adoptee, newMembers, locked }: { page?: string, scoutIds?: string, adoptee?: string, newMembers?: string, locked?: string }): Promise<ScoutHubPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/scout_hub/threads', {
@@ -164,6 +165,8 @@ export async function loadData(this: APIThisType, _: any, { page, scoutIds, adop
 		locked: result.locked,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type ScoutHubPageProps = {
 	threads: AdoptionThreadsType['threads']

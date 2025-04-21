@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { RequireUser } from '@behavior';
 import Rating from '@/components/ratings/Rating.tsx';
 import { Pagination, Header, Section, Grid } from '@layout';
 import TotalRatings from '@/components/ratings/TotalRatings.tsx';
 import { APIThisType, RatingsReceivedType, UserLiteType, UserRatingType } from '@types';
 
-const UserReceivedRatingsPage = () =>
+export const action = routerUtils.formAction;
+
+const UserReceivedRatingsPage = ({ loaderData }: { loaderData: UserReceivedRatingsPageProps }) =>
 {
-	const { user, ratings, page, pageSize, totalCount, type, userRatings } = useLoaderData() as UserReceivedRatingsPageProps;
+	const { user, ratings, page, pageSize, totalCount, type, userRatings } = loaderData;
 
 	const encodedId = encodeURIComponent(user.id);
 
@@ -56,7 +57,7 @@ const UserReceivedRatingsPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId, type }: { userId: string, type: string }, { page }: { page?: string }): Promise<UserReceivedRatingsPageProps>
+async function loadData(this: APIThisType, { userId, type }: { userId: string, type: string }, { page }: { page?: string }): Promise<UserReceivedRatingsPageProps>
 {
 	const [ratings, user, userRatings] = await Promise.all([
 		this.query('v1/users/ratings_received', {
@@ -78,6 +79,8 @@ export async function loadData(this: APIThisType, { userId, type }: { userId: st
 		userRatings,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type UserReceivedRatingsPageProps = {
 	user: UserLiteType

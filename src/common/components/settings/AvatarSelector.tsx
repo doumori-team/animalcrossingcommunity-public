@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 import { constants } from '@utils';
 import {
@@ -14,7 +14,7 @@ import {
 } from '@types';
 import { Pagination } from '@layout';
 import { Select, Checkbox, Check } from '@form';
-import Avatar from '@/components/nodes/Avatar.js';
+import Avatar from '@/components/nodes/Avatar.tsx';
 
 /* Component that allows users to select element of specified type.
  *
@@ -99,7 +99,7 @@ const AvatarSelector = ({
 			<Select
 				name='filters'
 				label='Filters'
-				hideLabel
+				hideLabels
 				multiple
 				options={tags}
 				optionsMapping={{ value: 'id', label: 'name' }}
@@ -267,7 +267,7 @@ const AvatarSelectorOption = ({
 					checked={selected}
 					clickHandler={onChange}
 					label={element.name}
-					hideLabel
+					hideLabels
 				/>
 				<div className='AvatarSelectorOption_elementContainer' data-element-type={elementType}>
 					<Avatar {...avatarComponents} />

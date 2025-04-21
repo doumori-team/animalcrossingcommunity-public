@@ -28,13 +28,6 @@ export default async function treasure(this: APIThisType): Promise<null | Treasu
 		return null;
 	}
 
-	const odds = 1.0 / 30;
-	const thousand = 15 / 100.0;
-	const fiveThousand = 8 / 100.0;
-	const tenThousand = 2 / 100.0;
-	let jackpot = 1 / 25000.0;
-	let wisp = 1 / 100.0;
-
 	const [treasureOffer] = await db.query(`
 		SELECT id
 		FROM treasure_offer
@@ -45,6 +38,13 @@ export default async function treasure(this: APIThisType): Promise<null | Treasu
 	{
 		return null;
 	}
+
+	const odds = 1.0 / 30;
+	const thousand = 15 / 100.0;
+	const fiveThousand = 8 / 100.0;
+	const tenThousand = 2 / 100.0;
+	let jackpot = 1 / 25000.0;
+	let wisp = 1 / 100.0;
 
 	if (Math.random() >= odds)
 	{

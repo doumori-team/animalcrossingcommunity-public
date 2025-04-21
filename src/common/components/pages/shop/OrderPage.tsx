@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, RichTextArea } from '@form';
 import { Header, Section, ReportProblem } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { APIThisType, ThreadOrderType, EmojiSettingType, MarkupStyleType } from '@types';
 
-const OrderPage = () =>
+export const action = routerUtils.formAction;
+
+const OrderPage = ({ loaderData }: { loaderData: OrderPageProps }) =>
 {
-	const { order, userEmojiSettings, markupStyle } = useLoaderData() as OrderPageProps;
+	const { order, userEmojiSettings, markupStyle } = loaderData;
 
 	return (
 		<div className='OrderPage'>
@@ -77,7 +78,7 @@ const OrderPage = () =>
 						<input name='orderId' type='hidden' value={order.id} />
 
 						<Text
-							hideLabel
+							hideLabels
 							className='NodeWritingInterface_title'
 							name='title'
 							label='Title'
@@ -110,7 +111,7 @@ const OrderPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<OrderPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<OrderPageProps>
 {
 	const [order, userEmojiSettings, forumSettings] = await Promise.all([
 		this.query('v1/shop/thread', { id: id, category: constants.shops.categories.orders, getItems: true }),
@@ -124,6 +125,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 		markupStyle: forumSettings.markupStyle,
 	};
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type OrderPageProps = {
 	order: ThreadOrderType

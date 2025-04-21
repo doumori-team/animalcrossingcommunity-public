@@ -1,38 +1,20 @@
-import React, { useState } from 'react';
-import { useLoaderData } from 'react-router-dom';
+import { useState } from 'react';
 
 import { RequireUser, RequireClientJS } from '@behavior';
-import { Form, Select, Button } from '@form';
+import { Form, Button } from '@form';
 import { UserContext } from '@contexts';
-import { Header, Section, Markup, ErrorMessage } from '@layout';
+import { Header, Section, Markup, ErrorMessage, UserLookup } from '@layout';
 import Avatar from '@/components/nodes/Avatar.tsx';
-import * as iso from 'common/iso.js';
-import { APIThisType, BellShopItemsType, UsersType, UserDonationsType } from '@types';
+import { APIThisType, BellShopItemsType, UserDonationsType } from '@types';
+import { routerUtils } from '@utils';
 
-const BellShopGiftPage = () =>
+export const action = routerUtils.formAction;
+
+const BellShopGiftPage = ({ loaderData }: { loaderData: BellShopGiftPageProps }) =>
 {
-	const { item, userDonations } = useLoaderData() as BellShopGiftPageProps;
+	const { item, userDonations } = loaderData;
 
 	const [chosenUserId, setChosenUserId] = useState<number>(0);
-
-	const handleUserLookup = async (query: string): Promise<UsersType[]> =>
-	{
-		let params = new FormData();
-		params.append('query', query);
-
-		return (iso as any).query(null, 'v1/users', params)
-			.then(async (users: UsersType[]) =>
-			{
-				return users;
-			})
-			.catch((error: any) =>
-			{
-				console.error('Error attempting to get users.');
-				console.error(error);
-
-				return [];
-			});
-	};
 
 	return (
 		<div className='BellShopGiftPage'>
@@ -105,14 +87,10 @@ const BellShopGiftPage = () =>
 												{
 													return (
 														<>
-															<Select
-																name='users'
+															<UserLookup
 																label='User To Gift To'
-																optionsMapping={{ value: 'id', label: 'username' }}
-																async
 																value={chosenUserId}
 																changeHandler={(userId: number) => setChosenUserId(userId)}
-																loadOptionsHandler={handleUserLookup}
 															/>
 
 															{chosenUserId > 0 &&
@@ -143,7 +121,7 @@ const BellShopGiftPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { id }: { id: string }): Promise<BellShopGiftPageProps>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<BellShopGiftPageProps>
 {
 	const [item, userDonations] = await Promise.all([
 		this.query('v1/bell_shop/item', { id: id }),
@@ -152,6 +130,8 @@ export async function loadData(this: APIThisType, { id }: { id: string }): Promi
 
 	return { item, userDonations };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type BellShopGiftPageProps = {
 	item: BellShopItemsType['all'][number]

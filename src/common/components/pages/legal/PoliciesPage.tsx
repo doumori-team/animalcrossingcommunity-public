@@ -1,8 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { ContentBox } from '@layout';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const PoliciesPage = () =>
 {
@@ -47,8 +48,8 @@ const PoliciesPage = () =>
 					<li>
 						<span className='PoliciesPage_updated'>Site Bans - 1/28/2023</span>
 						<p>The ACC Modmins work hard to enforce the guidelines and policies of the site fairly and consistently. Some of our guidelines enable the site to function smoothly and remain family-friendly, while other guidelines are to ensure the safety and comfort of all ACC members.</p>
-						<p>Some violations of site guidelines and policies may result in a short-term temporary ban on a member's account to prevent them from using the site. In more severe cases, a long-term temporary ban may be placed on a member's account. In extreme cases, when it is deemed necessary to protect other members of the community, the Modmins may permanently ban a member from the site. Most users on the verge of receiving a permanent ban will receive a written final warning from the Modmins as a last chance to rectify their behavior. Any member who has been banned will receive notification of the ban via email with an explanation of why the ban occurred. In very particular cases, the Modmins may issue a permanent ban without any warnings and without sending a ban notification email.</p>
-						<p>The Modmins will not discuss the circumstances or terms of a ban with anyone except the banned member. This is to protect the privacy of the member involved. For the same reason, no one should discuss the circumstances of a ban anywhere on the site. Please see <Link to='/guidelines'>the Accounts section of the Site Guidelines</Link> for more details regarding this. If a banned member has questions about the circumstances of a ban, they should contact the Modmins by sending an email to <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a> or reply to a ban notification email.</p>
+						<p>Some violations of community guidelines and policies may result in a short-term temporary ban on a member's account to prevent them from using the site. In more severe cases, a long-term temporary ban may be placed on a member's account. In extreme cases, when it is deemed necessary to protect other members of the community, the Modmins may permanently ban a member from the site. Most users on the verge of receiving a permanent ban will receive a written final warning from the Modmins as a last chance to rectify their behavior. Any member who has been banned will receive notification of the ban via email with an explanation of why the ban occurred. In very particular cases, the Modmins may issue a permanent ban without any warnings and without sending a ban notification email.</p>
+						<p>The Modmins will not discuss the circumstances or terms of a ban with anyone except the banned member. This is to protect the privacy of the member involved. For the same reason, no one should discuss the circumstances of a ban anywhere on the site. Please see <Link to='/guidelines'>the Accounts section of the Community Guidelines</Link> for more details regarding this. If a banned member has questions about the circumstances of a ban, they should contact the Modmins by sending an email to <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a> or reply to a ban notification email.</p>
 						<p>The Modmins recognize that permanently banned members can mature or take responsibility for the behavior that resulted in their ban. In these cases, permanent bans may be reviewed by the Modmin team. To request a review, an email should be sent to <a href={'mailto:support@animalcrossingcommunity.com'}>support@animalcrossingcommunity.com</a> explaining why the ban should be lifted. Please note that while there is no strict time limit, bans less than a year old are highly unlikely to be lifted. All requests are thoroughly discussed by multiple members of the Modmin team. If the Modmin team agrees to lift a permanent ban on an account, the account in question will be reinstated and monitored closely. In the event that the Modmin team decides to deny a permaban reversal request, any further permaban reversal requests sent in by the member will be ignored for one year after the denial was issued.</p>
 					</li>
 					<li>
@@ -57,7 +58,7 @@ const PoliciesPage = () =>
 					</li>
 					<li>
 						<span className='PoliciesPage_updated'>Trade Feedback &#38; WiFi Rating Changes - 2/29/2020</span>
-						<p>In the event that you feel you have received unfair trade feedback or an unfair WiFi rating, please use the "Report a Problem" button in the trade or on the WiFi ratings page to send in a user ticket on the trade feedback or WiFi rating in question for the Modmins to review. If it is determined that the trade feedback or WiFi rating in question is in violation of our <Link to='/guidelines'>Site Guidelines</Link>, it will be edited or deleted as warranted. Keep in mind that Modmins may only make a change to trade feedback or WiFi ratings with sufficient proof located on ACC (trade messages, message board posts, private threads, etc.) to document your case.</p>
+						<p>In the event that you feel you have received unfair trade feedback or an unfair WiFi rating, please use the "Report a Problem" button in the trade or on the WiFi ratings page to send in a user ticket on the trade feedback or WiFi rating in question for the Modmins to review. If it is determined that the trade feedback or WiFi rating in question is in violation of our <Link to='/guidelines'>Community Guidelines</Link>, it will be edited or deleted as warranted. Keep in mind that Modmins may only make a change to trade feedback or WiFi ratings with sufficient proof located on ACC (trade messages, message board posts, private threads, etc.) to document your case.</p>
 						<p>While you may edit any WiFi ratings that you give to other users, we do not permit you to edit trade feedback after it has been submitted. If you feel specific trade feedback that you have issued needs to be updated or edited, please use the "Report a Problem" button on the trade in question to send in a user ticket on the trade feedback in question. In your user ticket, please detail why you feel the trade feedback you issued needs to be changed.</p>
 					</li>
 					<li>

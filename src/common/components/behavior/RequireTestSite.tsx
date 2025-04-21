@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import { constants } from '@utils';
 
@@ -22,7 +22,7 @@ const RequireTestSite = ({
 };
 
 type RequireTestSiteProps = {
-	children: React.ReactNode
+	children: ReactNode
 };
 
 export default RequireTestSite;

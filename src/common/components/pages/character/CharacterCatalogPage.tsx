@@ -1,15 +1,14 @@
-import React from 'react';
-import { useLoaderData } from 'react-router-dom';
-
 import { RequirePermission } from '@behavior';
 import Catalog from '@/components/users/Catalog.tsx';
-import { utils, constants } from '@utils';
+import { utils, constants, routerUtils } from '@utils';
 import { APIThisType, UserCatalogCategoryType, CatalogItemsType, GroupItemType } from '@types';
 
-const CharacterCatalogPage = () =>
+export const action = routerUtils.formAction;
+
+const CharacterCatalogPage = ({ loaderData }: { loaderData: CharacterCatalogPageProps }) =>
 {
 	const { catalogItems, acgameCatalog, by, category, userId,
-		selectedCharacterId, catalogCategories, name } = useLoaderData() as CharacterCatalogPageProps;
+		selectedCharacterId, catalogCategories, name } = loaderData;
 
 	return (
 		<RequirePermission permission='view-towns'>
@@ -30,7 +29,7 @@ const CharacterCatalogPage = () =>
 	);
 };
 
-export async function loadData(this: APIThisType, { userId, characterId }: { userId: string, characterId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<CharacterCatalogPageProps>
+async function loadData(this: APIThisType, { userId, characterId }: { userId: string, characterId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<CharacterCatalogPageProps>
 {
 	const selectedCharacterId = Number(characterId);
 	const selectedUserId = Number(userId);
@@ -55,6 +54,8 @@ export async function loadData(this: APIThisType, { userId, characterId }: { use
 
 	return { selectedCharacterId, acgameCatalog, by, category, userId: selectedUserId, catalogItems, catalogCategories, name };
 }
+
+export const loader = routerUtils.wrapLoader(loadData);
 
 type CharacterCatalogPageProps = {
 	selectedCharacterId: number

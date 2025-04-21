@@ -1,13 +1,13 @@
-import { URL } from 'url';
 import express from 'express';
+
+import { URL } from 'url';
 
 import * as accounts from '@accounts';
 import * as db from '@db';
-import * as iso from 'common/iso.js';
+import { iso } from 'common/iso.ts';
 import { dateUtils } from '@utils';
 
 const handler = express();
-handler.set('views', new URL('../views', import.meta.url).pathname);
 
 /* Express route for handling GET requests to /auth/go.
  * When the user navigates to this page, they are redirected to the login
@@ -73,10 +73,8 @@ handler.get('/ready', (request: any, response: any, next: any) =>
  * attacks easier in future. Note that this on its own does NOT fully protect
  * against CSRF (though it may dissuade a casual opportunist).
  * See: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)#Only_accepting_POST_requests
- *
- * Copy in api-requests.
  */
-handler.post('/logout', (request: any, response: any, next: any) =>
+handler.post('/logout', async (request: any, response: any, next: any) =>
 {
 	response.set('Cache-Control', 'no-store');
 
@@ -95,7 +93,7 @@ handler.post('/logout', (request: any, response: any, next: any) =>
 			[
 				accounts.logout(userId),
 				db.logout(userId),
-				(iso as any).query(userId, 'v1/session/update', {
+				(await iso).query(userId, 'v1/session/update', {
 					url: 'logout',
 				}),
 			]);
@@ -119,11 +117,9 @@ handler.use((error: any, request: any, response: any, _: any) =>
 {
 	response.set('Cache-Control', 'no-store');
 
-	console.error('Error handling login / logout:');
-	console.error(error);
+	console.error('Error handling login / logout:', error);
 
 	response.status(500);
-	response.render('500');
 });
 
 export default handler;

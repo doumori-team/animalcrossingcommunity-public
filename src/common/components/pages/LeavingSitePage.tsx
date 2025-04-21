@@ -1,9 +1,10 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, redirect } from 'react-router';
 
 import { Alert } from '@form';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { LocationType } from '@types';
+
+export const action = routerUtils.formAction;
 
 const LeavingSitePage = () =>
 {
@@ -22,6 +23,19 @@ const LeavingSitePage = () =>
 			</Alert>
 		</div>
 	);
+};
+
+export const loader = ({ request }: { request: any }) =>
+{
+	const searchParams = new URL(request.url).searchParams;
+	const url = searchParams.get('url');
+
+	if (url && constants.approvedURLs.find(au => url.startsWith(au)))
+	{
+		return redirect(url);
+	}
+
+	return null;
 };
 
 export default LeavingSitePage;

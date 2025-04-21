@@ -43,7 +43,8 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 					FROM followed_node
 					WHERE followed_node.node_id = node.id AND user_id = $3
 				) THEN 1 ELSE 0 END AS followed,
-				node.board_type
+				node.board_type,
+				fc.forum_category
 			FROM node
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
@@ -52,6 +53,16 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 				ORDER BY time DESC
 				FETCH FIRST 1 ROW ONLY
 			) last_revision ON true
+			LEFT JOIN (
+				SELECT ncl.node_id,
+				json_build_object(
+					'id', nc.id,
+					'title', nc.title,
+					'order', ncl.order
+		 		) forum_category
+				FROM node_category nc
+				INNER JOIN node_category_link ncl ON nc.id = ncl.category_id
+			) fc ON fc.node_id = node.id
 			JOIN (
 				SELECT DISTINCT ON (inner_node_id) *
 				FROM (
@@ -96,7 +107,8 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 				last_revision.content,
 				last_revision.content_format,
 				0 AS followed,
-				node.board_type
+				node.board_type,
+				fc.forum_category
 			FROM node
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
@@ -105,6 +117,16 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 				ORDER BY time DESC
 				FETCH FIRST 1 ROW ONLY
 			) last_revision ON true
+			LEFT JOIN (
+				SELECT ncl.node_id,
+				json_build_object(
+					'id', nc.id,
+					'title', nc.title,
+					'order', ncl.order
+		 		) forum_category
+				FROM node_category nc
+				INNER JOIN node_category_link ncl ON nc.id = ncl.category_id
+			) fc ON fc.node_id = node.id
 			JOIN (
 				SELECT DISTINCT ON (inner_node_id) *
 				FROM (
@@ -152,6 +174,7 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 			},
 			followed: board.followed ? true : false,
 			boardType: board.board_type,
+			forumCategory: board.forum_category,
 		};
 	});
 }

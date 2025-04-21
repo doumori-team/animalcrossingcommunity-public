@@ -1,11 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { RequireGroup } from '@behavior';
-import { constants } from '@utils';
+import { constants, routerUtils } from '@utils';
 import { ContentBox } from '@layout';
 import { Form, Text } from '@form';
 import { dateUtils } from '@utils';
+
+export const action = routerUtils.formAction;
 
 const SignupPage = () =>
 {
