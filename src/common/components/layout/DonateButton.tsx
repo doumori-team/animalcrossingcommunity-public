@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import {
 	PayPalButtons,
@@ -28,11 +28,15 @@ const DonateButton = ({
 	const [coverFees, setCoverFees] = useState<boolean>(false);
 	const [error, setError] = useState<string>('');
 
-	const getButton = (): any =>
+	const getButton = (): ReactNode =>
 	{
 		return (
 			<button type='submit'>
-				<img src={`${constants.AWS_URL}/images/layout/donate.png`} className='DonateButton' alt='Donate' />
+				<img
+					src={constants.allImages['layout/donate.png']}
+					className='DonateButton'
+					alt='Donate'
+				/>
 			</button>
 		);
 	};
@@ -42,6 +46,7 @@ const DonateButton = ({
 		setChosenUserId(Number(userId));
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const handleCustomAmountChange = (e: any) =>
 	{
 		const value = e.target.value;
@@ -82,11 +87,11 @@ const DonateButton = ({
 	};
 
 	const initialOptionsOrder: ReactPayPalScriptOptions = {
-		clientId: process.env.PAYPAL_CLIENT_ID as string,
+		clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID as string,
 	};
 
 	const initialOptionsSubscription: ReactPayPalScriptOptions = {
-		clientId: process.env.PAYPAL_CLIENT_ID as string,
+		clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID as string,
 		vault: true,
 		intent: 'subscription',
 	};
@@ -106,12 +111,13 @@ const DonateButton = ({
 			{
 				return data.id;
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				setError('paypal-error');
 			});
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const createSubscription = async (_: any, actions: any) =>
 	{
 		setError('');
@@ -133,15 +139,16 @@ const DonateButton = ({
 					},
 				});
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				setError('paypal-error');
 			});
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onApprove = async (_: any, actions: any) =>
 	{
-		return actions.order.capture().then(function(_: any)
+		return actions.order.capture().then(function(_: unknown)
 		{
 			navigate('/donated');
 		});
@@ -162,6 +169,7 @@ const DonateButton = ({
 						]}
 						name='type'
 						defaultValue={type}
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						onChangeHandler={(e: any) => setType(e.target.value)}
 						required
 					/>
@@ -178,6 +186,7 @@ const DonateButton = ({
 						]}
 						name='amount'
 						defaultValue={amount}
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						onChangeHandler={(e: any) => setAmount(e.target.value)}
 						required
 					/>
@@ -191,7 +200,7 @@ const DonateButton = ({
 							type='number'
 							value={customAmount}
 							required
-							min={constants.min.number}
+							min={constants.min.donationAmount}
 							max={constants.max.donationAmount}
 							changeHandler={handleCustomAmountChange}
 							step={0.01}
@@ -202,6 +211,7 @@ const DonateButton = ({
 						name='coverFees'
 						checked={coverFees}
 						label={`Add $${getFee()} to help cover the fees.`}
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						clickHandler={(e: any) => setCoverFees(e.target.checked)}
 					/>}
 

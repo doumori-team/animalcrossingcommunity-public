@@ -6,13 +6,6 @@ import { APIThisType, BellShopItemsType } from '@types';
 
 async function item(this: APIThisType, { id }: itemProps): Promise<BellShopItemsType['all'][number]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'gift-bell-shop' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const item: BellShopItemsType['all'][number] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['all'][id];
 
 	if (!item || dateUtils.isAfterCurrentDateTimezone(item.releaseDate))
@@ -22,6 +15,10 @@ async function item(this: APIThisType, { id }: itemProps): Promise<BellShopItems
 
 	return item;
 }
+
+item.permissions = [
+	'gift-bell-shop',
+];
 
 item.apiTypes = {
 	id: {

@@ -62,7 +62,7 @@ const ReassignPage = ({ loaderData }: { loaderData: ReassignPageProps }) =>
 
 								<div className='ReassignPage_actions'>
 									<Form
-										action='v1/scout_hub/reassign'
+										action='v1/scout_hub/adopt'
 										callback={`/scout-hub/new-members`}
 										showButton
 										buttonText='Reassign'

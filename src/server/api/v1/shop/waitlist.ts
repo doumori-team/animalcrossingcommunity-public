@@ -6,18 +6,6 @@ import { APIThisType, ThreadApplicationType } from '@types';
 
 async function waitlist(this: APIThisType, { id }: waitlistProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const application: ThreadApplicationType = await this.query('v1/shop/thread', { id: id, category: constants.shops.categories.applications });
 
 	if (!application.contact)
@@ -31,6 +19,11 @@ async function waitlist(this: APIThisType, { id }: waitlistProps): Promise<void>
 		WHERE id = $1
 	`, id);
 }
+
+waitlist.permissions = [
+	'modify-shops',
+	'userId',
+];
 
 waitlist.apiTypes = {
 	id: {

@@ -25,7 +25,7 @@ const ConsentPage = ({ loaderData, params }: { loaderData: ConsentPageProps, par
 	const [error, setError] = useState<string>('');
 
 	const initialOptions: ReactPayPalScriptOptions = {
-		clientId: process.env.PAYPAL_CLIENT_ID as string,
+		clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID as string,
 	};
 
 	const createOrder = async () =>
@@ -37,12 +37,13 @@ const ConsentPage = ({ loaderData, params }: { loaderData: ConsentPageProps, par
 			{
 				return data.id;
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				setError('paypal-error');
 			});
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onApprove = async (_: any, actions: any) =>
 	{
 		return actions.order.capture();

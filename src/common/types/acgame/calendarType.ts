@@ -2,7 +2,7 @@ type CalendarType = {
 	game: {
 		id: number
 		name: string
-	} | any
+	}
 	months: {
 		id: number
 		name: string
@@ -13,11 +13,11 @@ type CalendarType = {
 			events: {
 				name: string
 				timing: string
-				sortDate?: string
+				sortDate?: Date | string
 				img?: string
 			}[]
 		}[]
-	}[] | any
+	}[]
 };
 
 export type { CalendarType };

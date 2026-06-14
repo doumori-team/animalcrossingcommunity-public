@@ -6,17 +6,6 @@ import { APIThisType, SuccessType } from '@types';
 
 async function set(this: APIThisType, { amount }: setProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	if (amount % 100 !== 0)
 	{
@@ -42,13 +31,18 @@ async function set(this: APIThisType, { amount }: setProps): Promise<SuccessType
 
 	await Promise.all([
 		db.regenerateTopBells({ userId: constants.accUserId }),
-		db.regenerateTopBells({ userId: this.userId }),
+		db.regenerateTopBells({ userId: this.userId as number }),
 	]);
 
 	return {
 		_success: `The jackpot has been set to ${amount.toLocaleString()} Bells!`,
 	};
 }
+
+set.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 set.apiTypes = {
 	amount: {

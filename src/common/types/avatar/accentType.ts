@@ -1,6 +1,8 @@
 type AccentType = {
 	id: number
 	name: string
+	subtitle?: string
+	game?: string
 	image: string
 	positionable: boolean
 	zIndex: number

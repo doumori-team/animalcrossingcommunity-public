@@ -67,6 +67,10 @@
 		@include mixins.responsive(1rem) {
 			@include mixins.grid($col-width: 15rem);
 		}
+
+		@media only screen and (max-width: mixins.px2rem(521px)) and (min-width: mixins.px2rem(372px)){
+			@include mixins.grid($col-width: 10rem);
+		}
 	}
 }
 

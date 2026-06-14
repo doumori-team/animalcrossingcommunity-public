@@ -14,7 +14,7 @@ async function calendar_multi(this: APIThisType, { requester, gameIDs, month, ye
 		return [{
 			game: {},
 			months: [],
-		}];
+		} as unknown as CalendarType];
 	}
 
 	if (this.userId && (!gameIDs || gameIDs.length === 0))

@@ -1,9 +1,11 @@
+import { Request, Response, NextFunction } from 'express';
+
 import { constants, utils } from '@utils';
 
-function rejectOrigin(request: any, response: any, next: any): void
+function rejectOrigin(request: Request, response: Response, next: NextFunction): void
 {
-	// redirect if trying to access site directly; move to middleware?
-	if (constants.LIVE_SITE && request.headers['host'] !== 'www.animalcrossingcommunity.com')
+	// redirect if trying to access site directly
+	if (constants.LIVE_SITE && request.headers['x-host'] !== 'CloudFront')
 	{
 		let log = utils.startLog({ location: 'rejectOrigin', request });
 		log += ` status=302`;

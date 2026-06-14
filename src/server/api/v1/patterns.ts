@@ -6,26 +6,14 @@ import { APIThisType, PatternsType } from '@types';
 
 async function patterns(this: APIThisType, { page, name, creator, published, favorite, games }: patternsProps): Promise<PatternsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-patterns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	if (!this.userId && page > 1)
 	{
 		throw new UserError('login-needed');
 	}
 
 	// Check parameters
-	games = await Promise.all(games.map(async(id) =>
+	games = await Promise.all((games as string[]).map(async id =>
 	{
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-ac-game');
-		}
-
 		const [checkId] = await db.query(`
 			SELECT id
 			FROM ac_game
@@ -43,9 +31,10 @@ async function patterns(this: APIThisType, { page, name, creator, published, fav
 	// Do actual search
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let params: any[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: PatternsType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -77,7 +66,7 @@ async function patterns(this: APIThisType, { page, name, creator, published, fav
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (utils.realStringLength(creator) > 0)
 	{
@@ -154,11 +143,11 @@ async function patterns(this: APIThisType, { page, name, creator, published, fav
 	`;
 
 	// Run query
-	const patterns = await db.cacheQuery('v1/patterns', query, ...params);
+	const patterns = await db.cacheQuery(constants.cacheKeys.patterns, query, ...params);
 
 	if (patterns.length > 0)
 	{
-		results = await Promise.all(patterns.map(async (pattern: any) =>
+		results = await Promise.all(patterns.map(async pattern =>
 		{
 			return this.query('v1/pattern', { id: pattern.id });
 		}));
@@ -178,6 +167,10 @@ async function patterns(this: APIThisType, { page, name, creator, published, fav
 		games: games,
 	};
 }
+
+patterns.permissions = [
+	'view-patterns',
+];
 
 patterns.apiTypes = {
 	page: {
@@ -220,7 +213,7 @@ type patternsProps = {
 	creator: string
 	published: string
 	favorite: string
-	games: any[]
+	games: string[] | number[]
 };
 
 export default patterns;

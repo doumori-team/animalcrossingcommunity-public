@@ -99,7 +99,7 @@ const AdminWeeklyPollsPage = ({ loaderData }: { loaderData: AdminWeeklyPollsPage
 											<strong>Options:</strong>
 											{poll.options.map((option, index) =>
 											{
-												const proportion = totalVotes > 0 ? option.votes / totalVotes : 0;
+												const proportion = totalVotes > 0 ? poll.isMultipleChoice ? option.votes / poll.totalUsers : option.votes / totalVotes : 0;
 
 												return (
 													<div key={index}>

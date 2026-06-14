@@ -44,6 +44,7 @@ const AvatarSelector = ({
 {
 	const [currPage, setCurrPage] = useState<number>(1);
 	const [filters, setFilters] = useState<string[]>([]);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const ref = useRef<any>(null);
 
 	let nextIndex = 1;
@@ -104,7 +105,9 @@ const AvatarSelector = ({
 				options={tags}
 				optionsMapping={{ value: 'id', label: 'name' }}
 				placeholder='Choose filters...'
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				changeHandler={(options: any) => handleFilterChange(options)}
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				isOptionDisabled={(_: any) => filters.length >= 3}
 			/>
 
@@ -151,7 +154,7 @@ const AvatarSelector = ({
 			<div className='AvatarSelector_optionContainer' ref={ref}>
 				{elements.map(element =>
 				{
-					let displayID = null;
+					let displayID: number | null = null;
 
 					if (matchesFilters(element))
 					{
@@ -272,9 +275,19 @@ const AvatarSelectorOption = ({
 				<div className='AvatarSelectorOption_elementContainer' data-element-type={elementType}>
 					<Avatar {...avatarComponents} />
 				</div>
-				<span className='AvatarSelectorOption_name'>
+				<div className='AvatarSelectorOption_name'>
 					{element.name}
-				</span>
+				</div>
+				{element.game &&
+					<div className='AvatarSelectorOption_game'>
+						{element.game}
+					</div>
+				}
+				{element.subtitle &&
+					<div className='AvatarSelectorOption_subtitle'>
+						{element.subtitle}
+					</div>
+				}
 			</label>
 		</div>
 	);

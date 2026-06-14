@@ -3,6 +3,8 @@ import Accordion from './Accordion.tsx';
 import Breadcrumb from './Breadcrumb.tsx';
 import ContentBox from './ContentBox.tsx';
 import EditKeyboard from './EditKeyboard.tsx';
+import EmojiPicker from './EmojiPicker.tsx';
+import EmojiUsersModal from './EmojiUsersModal.tsx';
 import ErrorMessage from './ErrorMessage.tsx';
 import FontAwesomeIcon from './FontAwesomeIcon.tsx';
 import Grid from './Grid.tsx';
@@ -30,6 +32,8 @@ export {
 	Breadcrumb,
 	ContentBox,
 	EditKeyboard,
+	EmojiPicker,
+	EmojiUsersModal,
 	ErrorMessage,
 	FontAwesomeIcon,
 	Grid,

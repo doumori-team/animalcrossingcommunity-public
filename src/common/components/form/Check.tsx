@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Fragment } from 'react';
 
 import { utils, constants } from '@utils';
@@ -56,12 +57,19 @@ const Check = ({
 							<label htmlFor={key} className='Check_option'>
 								{utils.realStringLength(imageLocation) > 0 &&
 								<img
-									src={`${constants.AWS_URL}/images/${imageLocation}/${useImageFilename ?
-										option.filename :
-										utils.convertForUrl(option.name) + '.png'}`}
+									src={
+										constants.allImages[
+											`${imageLocation}/${
+												useImageFilename
+													? option.filename
+													: `${utils.convertForUrl(option.name)}.png`
+											}`
+										]
+									}
 									width={option.width ? option.width : ''}
 									height={option.height ? option.height : ''}
 									alt={option.name ? option.name : option.filename}
+									className={option.className ? option.className : ''}
 								/>
 								}
 								{!hideName &&
@@ -83,6 +91,7 @@ type CheckProps = {
 		name?: string
 		width?: number
 		height?: number
+		className?: string
 	}[] | any
 	defaultValue: string | any[]
 	multiple?: boolean

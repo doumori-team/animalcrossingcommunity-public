@@ -7,29 +7,7 @@ import { APIThisType } from '@types';
 async function save(this: APIThisType, { id, townId, name, bells, debt, houseSizeIds, hraScore,
 	bedLocationId, faceId, nookMiles, happyHomeNetworkId, creatorId, paintId, monumentId }: saveProps): Promise<{ id: number, userId: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
-	houseSizeIds = houseSizeIds.map((id) =>
-	{
-		if (isNaN(id))
-		{
-			throw new UserError('bad-format');
-		}
-
-		return Number(id);
-	});
-
 	happyHomeNetworkId = happyHomeNetworkId.toUpperCase();
 
 	// Other area validations
@@ -42,7 +20,7 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 	]);
 
 	// Perform queries
-	const townUserId = await db.transaction(async (query: any) =>
+	const townUserId = await db.transaction(async (query: db.QueryType) =>
 	{
 		let townUserId;
 
@@ -129,7 +107,7 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 
 		// Other areas
 		await Promise.all([
-			updateHouseSizes(Number(id || 0), houseSizeIds, query), // House Sizes
+			updateHouseSizes(utils.safeNumber(id), houseSizeIds, query), // House Sizes
 		]);
 
 		return townUserId;
@@ -141,7 +119,7 @@ async function save(this: APIThisType, { id, townId, name, bells, debt, houseSiz
 	};
 }
 
-export async function validateHouseSizes(townId: number, houseSizeIds: any[]): Promise<void>
+export async function validateHouseSizes(townId: number, houseSizeIds: saveProps['houseSizeIds']): Promise<void>
 {
 	await Promise.all(
 		houseSizeIds.map(async (houseSizeId) =>
@@ -232,9 +210,9 @@ export async function validateCreatorId(gameId: number, creatorId: string): Prom
 	}
 }
 
-export async function updateHouseSizes(id: number, houseSizeIds: any[], query: any): Promise<void>
+export async function updateHouseSizes(id: number, houseSizeIds: saveProps['houseSizeIds'], query: db.QueryType): Promise<void>
 {
-	query(`
+	await query(`
 		DELETE FROM character_house_size
 		WHERE character_id = $1::int
 	`, id);
@@ -294,6 +272,11 @@ export async function validateMonument(townId: number, monumentId: number | null
 	}
 }
 
+save.permissions = [
+	'modify-towns',
+	'userId',
+];
+
 save.apiTypes = {
 	id: {
 		type: APITypes.characterId,
@@ -327,6 +310,7 @@ save.apiTypes = {
 	},
 	houseSizeIds: {
 		type: APITypes.array,
+		subType: 'number',
 	},
 	hraScore: {
 		type: APITypes.wholeNumber,
@@ -366,7 +350,7 @@ type saveProps = {
 	bells: number
 	nookMiles: number
 	debt: number
-	houseSizeIds: any[]
+	houseSizeIds: number[]
 	hraScore: number
 	bedLocationId: number | null
 	faceId: number | null

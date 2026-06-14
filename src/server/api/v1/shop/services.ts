@@ -5,13 +5,6 @@ import { APIThisType, ServiceType } from '@types';
 
 async function services(this: APIThisType, { id, inactive = false }: servicesProps): Promise<ServiceType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	if (id)
 	{
 		const [shop] = await db.query(`
@@ -28,7 +21,27 @@ async function services(this: APIThisType, { id, inactive = false }: servicesPro
 
 	if (id)
 	{
-		const [defaultServices, shopServices, defaultServicesGames, servicesGames] = await Promise.all([
+		const [defaultServices, shopServices, defaultServicesGames, servicesGames]: [{
+			id: string
+			real_id: number
+			name: string
+			description: string
+			default: boolean
+		}[], {
+			id: string
+			real_id: number
+			name: string
+			description: string
+			default: boolean
+		}[], {
+			id: number
+			shortname: string
+			service_id: number
+		}[], {
+			id: number
+			shortname: string
+			service_id: number
+		}[]] = await Promise.all([
 			inactive ? db.query(`
 				SELECT
 					CONCAT('default_', shop_default_service.id) AS id,
@@ -52,7 +65,7 @@ async function services(this: APIThisType, { id, inactive = false }: servicesPro
 			`, id),
 			db.query(`
 				SELECT
-					shop_service.id,
+					shop_service.id::text AS id,
 					shop_service.id AS real_id,
 					shop_service.name,
 					shop_service.description,
@@ -81,19 +94,29 @@ async function services(this: APIThisType, { id, inactive = false }: servicesPro
 			`, id),
 		]);
 
-		return defaultServices.concat(shopServices).map((service: any) =>
+		return defaultServices.concat(shopServices).map(service =>
 		{
 			return {
 				id: service.id,
 				name: service.name,
 				description: service.description,
 				default: service.default,
-				games: service.default ? defaultServicesGames.filter((g: any) => g.service_id = service.real_id) : servicesGames.filter((g: any) => g.service_id = service.real_id),
+				games: service.default ? defaultServicesGames.filter(g => g.service_id = service.real_id) : servicesGames.filter(g => g.service_id = service.real_id),
 			};
 		});
 	}
 
-	const [defaultServices, defaultServicesGames] = await Promise.all([
+	const [defaultServices, defaultServicesGames]: [{
+		id: string
+		real_id: number
+		name: string
+		description: string
+		default: boolean
+	}[], {
+		id: number
+		shortname: string
+		service_id: number
+	}[]] = await Promise.all([
 		db.query(`
 			SELECT
 				CONCAT('default_', shop_default_service.id) AS id,
@@ -114,17 +137,21 @@ async function services(this: APIThisType, { id, inactive = false }: servicesPro
 		`),
 	]);
 
-	return defaultServices.map((s: any) =>
+	return defaultServices.map(s =>
 	{
 		return {
 			id: s.id,
 			name: s.name,
 			description: s.description,
 			default: s.default,
-			games: defaultServicesGames.filter((g: any) => g.service_id = s.real_id),
+			games: defaultServicesGames.filter(g => g.service_id = s.real_id),
 		};
 	});
 }
+
+services.permissions = [
+	'view-shops',
+];
 
 services.apiTypes = {
 	id: {

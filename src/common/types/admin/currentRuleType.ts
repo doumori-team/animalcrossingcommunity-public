@@ -2,7 +2,7 @@ type RuleType = {
 	id: number
 	number: number
 	name: string | null
-	startDate: string
+	startDate: string | Date
 	description: string
 	violations: {
 		id: number
@@ -23,7 +23,7 @@ type CurrentRuleType = {
 		name: string
 		rules: RuleType[]
 	}[]
-	lastUpdated: string
+	lastUpdated: string | Date
 };
 
 export type { CurrentRuleType };

@@ -8,12 +8,7 @@ import { APIThisType } from '@types';
  */
 async function lock(this: APIThisType, { nodeIds }: lockProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	nodeIds = await Promise.all(nodeIds.map(async (id) =>
+	nodeIds = await Promise.all((nodeIds as string[]).map(async id =>
 	{
 		const [node] = await db.query(`
 			SELECT id, locked
@@ -55,6 +50,10 @@ async function lock(this: APIThisType, { nodeIds }: lockProps): Promise<void>
 	await db.updatePTsLookupMass(nodeIds);
 }
 
+lock.permissions = [
+	'userId',
+];
+
 lock.apiTypes = {
 	nodeIds: {
 		type: APITypes.array,
@@ -63,7 +62,7 @@ lock.apiTypes = {
 };
 
 type lockProps = {
-	nodeIds: any[]
+	nodeIds: string[] | number[]
 };
 
 export default lock;

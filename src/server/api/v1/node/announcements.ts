@@ -11,7 +11,7 @@ export default async function announcements(this: APIThisType): Promise<Announce
 		return [];
 	}
 
-	const threads = await db.cacheQuery(constants.cacheKeys.announcements, `
+	const threads: { id: number, title: string, creation_time: Date, user_id: number }[] = await db.cacheQuery(constants.cacheKeys.announcements, `
 		SELECT
 			node.id,
 			(
@@ -29,10 +29,11 @@ export default async function announcements(this: APIThisType): Promise<Announce
 		LIMIT 5
 	`, constants.boardIds.announcements);
 
-	return await Promise.all(threads.map(async (thread: any) =>
+	return await Promise.all(threads.map(async thread =>
 	{
 		const [post] = await db.cacheQuery(constants.cacheKeys.announcements, `
 			SELECT
+				node.id AS node_id,
 				last_revision.id,
 				last_revision.content,
 				last_revision.content_format
@@ -49,13 +50,21 @@ export default async function announcements(this: APIThisType): Promise<Announce
 			LIMIT 1
 		`, thread.id);
 
-		const nodeFiles = await db.cacheQuery(constants.cacheKeys.announcements, `
+		const nodeFiles: { id: number, file_id: string, name: string, width: number | null, height: number | null, caption: string }[] = await db.cacheQuery(constants.cacheKeys.announcements, `
 			SELECT file.id, file.file_id, file.name, file.width, file.height, file.caption
 			FROM node_revision_file
 			JOIN file ON (node_revision_file.file_id = file.id)
 			WHERE node_revision_file.node_revision_id = $1::int
 			ORDER BY file.sequence ASC
 		`, post.id);
+
+		const nodeReactions: { node_id: number, emoji: string, count: number }[] = await db.cacheQuery(constants.cacheKeys.announcements, `
+			SELECT node_reaction.node_id, node_reaction.emoji, count(*) AS count
+			FROM node_reaction
+			WHERE node_reaction.node_id = $1::int
+			GROUP BY node_reaction.node_id, node_reaction.emoji
+			ORDER BY count(*) DESC
+		`, post.node_id);
 
 		return <AnnouncementsType>{
 			id: thread.id,
@@ -66,7 +75,7 @@ export default async function announcements(this: APIThisType): Promise<Announce
 				format: post.content_format,
 			},
 			created: dateUtils.formatDateTime(thread.creation_time),
-			files: nodeFiles ? nodeFiles.map((file: any) =>
+			files: nodeFiles ? nodeFiles.map(file =>
 			{
 				return {
 					id: file.id,
@@ -77,6 +86,13 @@ export default async function announcements(this: APIThisType): Promise<Announce
 					caption: file.caption,
 				};
 			}) : [],
+			reactions: nodeReactions.map(reaction =>
+			{
+				return {
+					...reaction,
+					src: reaction.emoji,
+				};
+			}),
 		};
 	}));
 }

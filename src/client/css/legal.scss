@@ -76,3 +76,22 @@
 		text-decoration: underline;
 	}
 }
+
+.DonatePage {
+	.Select {
+		z-index: 999;
+	}
+}
+
+.PushNotificationsPage {
+	img {
+		max-width: 100%;
+		padding: mixins.px2rem(10px);
+	}
+
+	li div {
+		display: grid;
+		grid-template-columns: repeat(auto-fill,minmax(20rem,1fr));
+		grid-gap: .5rem;
+	}
+}

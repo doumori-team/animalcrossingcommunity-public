@@ -1,4 +1,4 @@
-import { useLocation, redirect } from 'react-router';
+import { useLocation, redirect, ActionFunctionArgs } from 'react-router';
 
 import { Alert } from '@form';
 import { constants, routerUtils } from '@utils';
@@ -25,12 +25,12 @@ const LeavingSitePage = () =>
 	);
 };
 
-export const loader = ({ request }: { request: any }) =>
+export const loader = ({ request }: { request: ActionFunctionArgs['request'] }) =>
 {
 	const searchParams = new URL(request.url).searchParams;
 	const url = searchParams.get('url');
 
-	if (url && constants.approvedURLs.find(au => url.startsWith(au)))
+	if (url && constants.approvedURLs.find(au => url.startsWith(au) && (au === '/' || url.length === au.length || ['/', '?', '#'].includes(url[au.length]))))
 	{
 		return redirect(url);
 	}

@@ -14,7 +14,7 @@ const Rating = ({
 		return 'No rating given.';
 	}
 
-	const configsByRating = (constants.rating.configs as any)[rating.rating];
+	const configsByRating = constants.rating.configs[rating.rating];
 
 	return (
 		<div className='Rating'>
@@ -43,7 +43,11 @@ const Rating = ({
 				<label>Rating: </label>
 				<img
 					alt={configsByRating.imageAlt}
-					src={`${constants.AWS_URL}/images/rating/${configsByRating.image}`}
+					src={
+						constants.allImages[
+    						`rating/${configsByRating.image}`
+						]
+					}
 				/>
 			</div>
 

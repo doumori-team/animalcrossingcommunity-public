@@ -40,6 +40,7 @@ async function consent_given(this: APIThisType, { id, email }: consentGivenProps
 
 		throw new UserError('email-taken');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))

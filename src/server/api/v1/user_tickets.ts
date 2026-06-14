@@ -6,13 +6,6 @@ import { APIThisType, UserTicketsType } from '@types';
 
 async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleId, typeId, denyReasonId, violator }: userTicketsProps): Promise<UserTicketsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	let checkId;
 
@@ -75,9 +68,9 @@ async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleI
 	// Do actual search
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params: (number | string)[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: UserTicketsType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -102,7 +95,7 @@ async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleI
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (statusId > 0)
 	{
@@ -198,11 +191,11 @@ async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleI
 	`;
 
 	// Run query
-	const userTickets = await db.query(query, ...params);
+	const userTickets: { id: number, count: number }[] = await db.query(query, ...params);
 
 	if (userTickets.length > 0)
 	{
-		results = await Promise.all(userTickets.map(async (userTicket: any) =>
+		results = await Promise.all(userTickets.map(async userTicket =>
 		{
 			return this.query('v1/user_ticket', { id: userTicket.id });
 		}));
@@ -223,6 +216,10 @@ async function user_tickets(this: APIThisType, { page, statusId, assignee, ruleI
 		denyReasonId: denyReasonId,
 	};
 }
+
+user_tickets.permissions = [
+	'process-user-tickets',
+];
 
 user_tickets.apiTypes = {
 	page: {

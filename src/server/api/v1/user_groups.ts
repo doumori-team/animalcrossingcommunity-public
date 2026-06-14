@@ -30,11 +30,11 @@ async function user_groups(this: APIThisType, { display }: userGroupsProps): Pro
 /*
  * Recursively get children groups of each group.
  */
-function getChildGroups(userGroups: any, parentId: number | null)
+function getChildGroups(userGroups: { id: number, identifier: string, name: string, parent_id: number | null }[], parentId: number | null): UserGroupType[]
 {
 	return userGroups
-		.filter((ug: any) => ug.parent_id === parentId)
-		.map((userGroup: any) =>
+		.filter(ug => ug.parent_id === parentId)
+		.map(userGroup =>
 		{
 			return {
 				id: userGroup.id,

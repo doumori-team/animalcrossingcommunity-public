@@ -3,22 +3,10 @@ import { UserError } from '@errors';
 import { constants, dateUtils, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
-import { APIThisType, UserBellShopItemType, BellShopItemsType } from '@types';
+import { APIThisType, UserBellShopItemType, BellShopItemsType, UserType, UserDonationsType } from '@types';
 
 async function redeem(this: APIThisType, { id, itemId, userId, debug }: redeemProps): Promise<UserBellShopItemType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'purchase-bell-shop' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const itemPrice: BellShopItemsType['price'][number][number] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['price'][id][itemId];
 
 	if (!constants.LIVE_SITE && utils.realStringLength(debug) > 0)
@@ -53,7 +41,7 @@ async function redeem(this: APIThisType, { id, itemId, userId, debug }: redeemPr
 	}
 
 	// Confirm user can afford
-	const [user, userDonations] = await Promise.all([
+	const [user, userDonations]: [UserType, UserDonationsType] = await Promise.all([
 		this.query('v1/user', { id: this.userId }),
 		this.query('v1/users/donations', { id: this.userId }),
 	]);
@@ -83,7 +71,7 @@ async function redeem(this: APIThisType, { id, itemId, userId, debug }: redeemPr
 	}
 
 	// Process
-	let redeemed = null;
+	let redeemed: { id: number } | undefined;
 
 	if (itemPrice.item.expireDurationMonths === null)
 	{
@@ -102,15 +90,26 @@ async function redeem(this: APIThisType, { id, itemId, userId, debug }: redeemPr
 		`, userId, itemPrice.item.id, price, itemPrice.price.currency, itemPrice.item.expireDurationMonths, this.userId);
 	}
 
-	if (userId && this.userId !== userId)
+	if (userId && this.userId !== userId && redeemed)
 	{
 		await this.query('v1/notification/create', { id: redeemed.id, type: constants.notification.types.giftBellShop });
+
+		this.query('v1/users/badge/check', { badgeId: constants.badges.tengiftsbellshop });
+	}
+	else
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.tenbellshop });
 	}
 
 	return await this.query('v1/users/bell_shop/items', {
 		ignoreExpired: false,
 	});
 }
+
+redeem.permissions = [
+	'purchase-bell-shop',
+	'userId',
+];
 
 redeem.apiTypes = {
 	id: {

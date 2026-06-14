@@ -17,6 +17,7 @@ const EditShop = ({
 {
 	const [errors, setErrors] = useState<string[]>([]);
 	const [fileId, setFileId] = useState<string | null>(null);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const [games, setGames] = useState<any[]>(shop && shop.games.length > 0 ? shop.games : []);
 
 	const changeGames = (newGameIds: number[]): void =>
@@ -26,9 +27,10 @@ const EditShop = ({
 		setGames(newGames);
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const scanFile = async (e: any): Promise<void> =>
 	{
-		const compressedFile: any = await compressImage(e.target.files[0]);
+		const compressedFile = await compressImage(e.target.files[0]);
 
 		// 10000 KB / 10 MB max size
 		if (compressedFile.size > 10000000)
@@ -43,6 +45,7 @@ const EditShop = ({
 		setFileId(fileName);
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const compressImage = async (file: any): Promise<any> =>
 	{
 		return new Promise((resolve, reject) =>
@@ -55,6 +58,7 @@ const EditShop = ({
 		});
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const uploadImage = async (file: any): Promise<string> =>
 	{
 		const params = {
@@ -71,14 +75,14 @@ const EditShop = ({
 
 					return fileName;
 				}
-				catch (error: any)
+				catch (error: unknown)
 				{
 					console.error('Error attempting to upload.', error);
 
 					setErrors(['bad-format']);
 				}
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				setErrors(['bad-format']);
 			});
@@ -141,11 +145,11 @@ const EditShop = ({
 							label='Game(s)'
 							name='games'
 							multiple
-							value={games.map((g: any) => g.id)}
+							value={games.map(g => g.id)}
 							options={acgames.filter(g => g.hasTown === true).slice().sort((a, b) =>
 							{
-								const indexA = games.findIndex((g: any) => a.id === g.id);
-								const indexB = games.findIndex((g: any) => b.id === g.id);
+								const indexA = games.findIndex(g => a.id === g.id);
+								const indexB = games.findIndex(g => b.id === g.id);
 								return indexA - indexB;
 							})}
 							optionsMapping={{ value: 'id', label: 'name' }}
@@ -158,7 +162,7 @@ const EditShop = ({
 
 					{games.length > 0 &&
 						<div className='EditShop_gameOptions'>
-							{games.map((game: any) =>
+							{games.map(game =>
 							{
 								const shopGame = shop ? shop.games.find(g => g.id === game.id) : null;
 
@@ -192,7 +196,7 @@ const EditShop = ({
 										<Form.Group>
 											<ItemLookup
 												label={`${game.shortname}: Unorderables`}
-												options={catalogItems && catalogItems.find(g => g.gameId === game.id) ? catalogItems.find(g => g.gameId === game.id)?.items.filter((item: any) => item.tradeable) : []}
+												options={catalogItems && catalogItems.find(g => g.gameId === game.id) ? catalogItems.find(g => g.gameId === game.id)?.items.filter(item => item.tradeable) : []}
 												value={shopGame ? shopGame.items : []}
 												selectedGameId={game.id}
 											/>

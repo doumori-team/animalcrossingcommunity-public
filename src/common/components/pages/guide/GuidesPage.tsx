@@ -32,6 +32,7 @@ const GuidesPage = ({ loaderData }: { loaderData: GuidesPageProps }) =>
 					<>
 						<ImageUpload
 							directory={`images/guides/${dirPath}`}
+							api='v1/guide/upload_image'
 						/>
 						<Section>
 							<div className='GuidesPage_header'>

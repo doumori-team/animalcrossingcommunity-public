@@ -5,13 +5,8 @@ import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, UserDonationsType, MarkupStyleType } from '@types';
 
 async function save(this: APIThisType, { signature = null, format, userTitle = null, flagOption,
-	markupStyle, showImages, conciseMode }: saveProps): Promise<SuccessType>
+	markupStyle, showImages, conciseMode, postName, hidePostEmojis, disablePostReactionNotifications }: saveProps): Promise<SuccessType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const userDonations: UserDonationsType = await this.query('v1/users/donations', { id: this.userId });
 
 	if (
@@ -23,21 +18,21 @@ async function save(this: APIThisType, { signature = null, format, userTitle = n
 		throw new UserError('bad-format');
 	}
 
-	if (signature != null && utils.realStringLength(signature) > 0 && (signature.match(/\n/g) || []).length >= 4)
+	if (signature !== null && utils.realStringLength(signature) > 0 && (signature.match(/\n/g) || []).length >= 4)
 	{
 		throw new UserError('signature-max-lines');
 	}
 
-	if (userTitle != null)
+	if (userTitle !== null)
 	{
-		const groups = await db.query(`
+		const groups: { name: string }[] = await db.query(`
 			SELECT name
 			FROM user_group
 		`);
 
-		const userTitles = groups.map((g: any) => g.name).concat(['Honorary Citizen']).concat(['New Member']);
+		const userTitles = groups.map(g => g.name).concat(['Honorary Citizen']).concat(['New Member']);
 
-		if (userTitles.some((ut: any) => userTitle.toLowerCase() === ut.toLowerCase()))
+		if (userTitles.some(ut => userTitle.toLowerCase() === ut.toLowerCase()))
 		{
 			throw new UserError('bad-format');
 		}
@@ -52,14 +47,21 @@ async function save(this: APIThisType, { signature = null, format, userTitle = n
 			flag_option = $5,
 			markup_style = $6,
 			show_images = $7,
-			concise_mode = $8
+			concise_mode = $8,
+			post_name = $9,
+			hide_post_emojis = $10,
+			disable_post_reaction_notifications = $11
 		WHERE id = $1::int
-	`, this.userId, signature, format, userTitle, flagOption, markupStyle, showImages, conciseMode);
+	`, this.userId, signature, format, userTitle, flagOption, markupStyle, showImages, conciseMode, postName, hidePostEmojis, disablePostReactionNotifications);
 
 	return {
 		_success: 'Your forum settings have been updated.',
 	};
 }
+
+save.permissions = [
+	'userId',
+];
 
 save.apiTypes = {
 	signature: {
@@ -99,6 +101,18 @@ save.apiTypes = {
 		min: 1,
 		max: 4,
 	},
+	postName: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
+	hidePostEmojis: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
+	disablePostReactionNotifications: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
 };
 
 type saveProps = {
@@ -109,6 +123,9 @@ type saveProps = {
 	markupStyle: MarkupStyleType
 	showImages: boolean
 	conciseMode: number
+	postName: boolean
+	hidePostEmojis: boolean
+	disablePostReactionNotifications: boolean
 };
 
 export default save;

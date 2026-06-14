@@ -5,18 +5,6 @@ import { APIThisType, CharacterType } from '@types';
 
 async function character(this: APIThisType, { id }: characterProps): Promise<CharacterType>
 {
-	const [viewTownsPerm, useFriendCodesPerm, viewUserCatalogPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', { permission: 'view-towns' }),
-		this.query('v1/permission', { permission: 'use-friend-codes' }),
-		this.query('v1/permission', { permission: 'view-user-catalog' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-	]);
-
-	if (!(viewTownsPerm || useFriendCodesPerm || viewUserCatalogPerm || useTradingPostPerm))
-	{
-		throw new UserError('permission');
-	}
-
 	const [character] = await db.query(`
 		SELECT
 			character.id,
@@ -128,7 +116,7 @@ async function character(this: APIThisType, { id }: characterProps): Promise<Cha
 
 async function getHouseSizes(id: number): Promise<CharacterType['houseSizes']>
 {
-	let houseSizes = await db.query(`
+	let houseSizes: { id: number, name: string, group_id: number }[] = await db.query(`
 		SELECT
 			house_size.id,
 			house_size.name,
@@ -138,7 +126,7 @@ async function getHouseSizes(id: number): Promise<CharacterType['houseSizes']>
 		WHERE character_house_size.character_id = $1::int
 	`, id);
 
-	return houseSizes.map((houseSize: any) =>
+	return houseSizes.map(houseSize =>
 	{
 		return {
 			id: houseSize.id,
@@ -170,6 +158,13 @@ async function getMuseumTotal(id: number): Promise<number>
 
 	return Number(count.count);
 }
+
+character.permissions = [
+	'view-towns',
+	'use-friend-codes',
+	'view-user-catalog',
+	'use-trading-post',
+];
 
 character.apiTypes = {
 	id: {

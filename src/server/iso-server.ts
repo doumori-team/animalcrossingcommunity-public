@@ -3,13 +3,15 @@ import * as crypto from 'crypto';
 import { NotFoundError } from '@errors';
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { dateUtils, constants } from '@utils';
+import { dateUtils, constants, utils } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType } from '@types';
+import * as APIPerms from '@apiPerms';
 
 /**
  * Called directly from _getLoaderFunction / actions.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function query(userId: APIThisType['userId'] = null, method: string, params: any = {}, tryCache: boolean = true): Promise<void>
 {
 	if (userId)
@@ -22,6 +24,15 @@ export async function query(userId: APIThisType['userId'] = null, method: string
 				SET last_active_time = now()
 				WHERE id = $1::int AND current_ban_length_id IS NULL
 			`, userId);
+
+			if ('desktop' in params && params.desktop)
+			{
+				await db.query(`
+					UPDATE user_subscription
+					SET last_active_time = now()
+					WHERE user_id = $1::int AND desktop = true
+				`, userId);
+			}
 
 			// update page requests
 			await db.query(`
@@ -80,14 +91,25 @@ export async function query(userId: APIThisType['userId'] = null, method: string
 			await query(userId, 'v1/user_lite', { id: userId });
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const modules = (import.meta as any).glob('./api/**/*.ts');
 		const func = (await modules[`./api/${method}.ts`]()).default;
 
-		if (!constants.LIVE_SITE)
+		utils.log('Inside iso-server:', method, params);
+
+		if (func === undefined)
 		{
-			console.info('Inside iso-server');
-			console.info(method);
-			console.info(params);
+			throw new NotFoundError(method, 'Unknown');
+		}
+
+		if (func.permissions)
+		{
+			await APIPerms.check
+				.bind({
+					userId,
+					query: query.bind(null, userId),
+					fullQuery: query,
+				})(func.permissions);
 		}
 
 		if (func.apiTypes)
@@ -96,20 +118,20 @@ export async function query(userId: APIThisType['userId'] = null, method: string
 				.bind({
 					userId,
 					query: query.bind(null, userId),
+					fullQuery: query,
 				})(func.apiTypes, params);
 		}
 
-		if (!constants.LIVE_SITE)
-		{
-			console.info(params);
-		}
+		utils.log('Still inside iso-server:', method, params);
 
 		return await func
 			.bind({
 				userId,
 				query: query.bind(null, userId),
+				fullQuery: query,
 			})(params);
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		if (error.code === 'MODULE_NOT_FOUND')

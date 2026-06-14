@@ -5,11 +5,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [userAvatar] = await db.query(`
 		SELECT user_avatar.user_id
 		FROM user_avatar
@@ -31,6 +26,10 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		WHERE id = $1
 	`, id);
 }
+
+destroy.permissions = [
+	'userId',
+];
 
 destroy.apiTypes = {
 	id: {

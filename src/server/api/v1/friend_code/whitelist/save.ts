@@ -6,30 +6,18 @@ import { APIThisType, SuccessType, UserLiteType } from '@types';
 
 async function save(this: APIThisType, { whiteListUser, action }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const userWhiteList: UserLiteType = await this.query('v1/user_lite', { username: whiteListUser });
 
 	if (userWhiteList.id === this.userId)
 	{
-		throw new UserError('bad-format');
+		throw new UserError('friend_code_whitelist_yourself');
 	}
 
-	const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
+	const successImage = constants.allImages['icons/icon_check.png'];
 
 	// Check if user already has whitelisted user
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		const [checkId] = await query(`
 			SELECT id
@@ -75,6 +63,11 @@ async function save(this: APIThisType, { whiteListUser, action }: saveProps): Pr
 		_success: `Your friend codes have been updated!`,
 	};
 }
+
+save.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 save.apiTypes = {
 	whiteListUser: {

@@ -49,7 +49,7 @@ const EditTown = ({
 				<InnerSection>
 					<h2 className='EditTown_sectionHeading'>
 						<img
-							src={`${constants.AWS_URL}/images/icons/fruit.png`}
+							src={constants.allImages['icons/fruit.png']}
 							className='EditTown_sectionHeadingIcon'
 							alt='Fruit'
 						/>
@@ -114,7 +114,7 @@ const EditTown = ({
 				<InnerSection>
 					<h2 className='EditTown_sectionHeading'>
 						<img
-							src={`${constants.AWS_URL}/images/icons/villagers.png`}
+							src={constants.allImages['icons/villagers.png']}
 							className='EditTown_sectionHeadingIcon'
 							alt='Villagers'
 						/>
@@ -139,7 +139,7 @@ const EditTown = ({
 				<InnerSection>
 					<h2 className='EditTown_sectionHeading'>
 						<img
-							src={`${constants.AWS_URL}/images/icons/leaf.png`}
+							src={constants.allImages['icons/leaf.png']}
 							className='EditTown_sectionHeadingIcon'
 							alt='Leaf'
 						/>

@@ -144,7 +144,7 @@ const EditListing = ({
 								label='Villager(s)'
 								multiple
 								placeholder='Select villager(s)...'
-								options={gameId <= 0 ? [] : residents.filter((r: any) => r.isTown === true)}
+								options={gameId <= 0 ? [] : residents.filter(r => r.isTown === true)}
 								optionsMapping={{ value: 'id', label: 'name' }}
 								size={15}
 							/>

@@ -1,7 +1,7 @@
 import { escapeHtml } from './markup/utils.ts';
 import parseBbcode from './markup/bbcode.ts';
 import parseMarkdown from './markup/markdown.ts';
-import { UserType, EmojiSettingType, MarkupFormatType } from '@types';
+import { UserType, EmojiSettingType, MarkupFormatType, NodeChildNodesType, UserPollType } from '@types';
 
 // These are used to determine what the buttons in the Quick Markup bar should insert
 export const markdownTags = {
@@ -23,6 +23,10 @@ export const markdownTags = {
 	'center': { start: '{center}', end: '{center}' },
 	'line': { prefix: '---' },
 	'usertag': { start: '@', attrName: 'Username', attrType: 'username', end: '$' },
+	'poll': { prefix: `[poll]
+- Option 1
+- Option 2
+[/poll]` },
 };
 
 export const markdownHtmlTags = {
@@ -190,15 +194,15 @@ function parsePlaintext(text: string): string
 //	- 'markdown'
 //	- 'markdown+html'
 // - emojiSettings: user emoji settings, for gendered emojis
-export function parse({ text, format, emojiSettings, currentUser }: { text: string, format: MarkupFormatType, emojiSettings: EmojiSettingType[] | undefined, currentUser: UserType | null })
+export function parse({ text, format, emojiSettings, currentUser, nodeQuotes, pageLink, polls }: { text: string, format: MarkupFormatType, emojiSettings: EmojiSettingType[] | undefined, currentUser: UserType | null, nodeQuotes?: NodeChildNodesType['nodeQuotes'], pageLink?: string , polls?: UserPollType[] }): string
 {
 	if (format === 'markdown')
 	{
-		return parseMarkdown(text, emojiSettings, currentUser);
+		return parseMarkdown(text, emojiSettings, currentUser, nodeQuotes, pageLink, polls);
 	}
 	else if (format === 'markdown+html')
 	{
-		return parseMarkdown(text, emojiSettings, currentUser, true);
+		return parseMarkdown(text, emojiSettings, currentUser, nodeQuotes, pageLink, polls, true);
 	}
 	else if (format === 'bbcode')
 	{

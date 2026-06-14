@@ -76,7 +76,9 @@ const ProfileGeneralInfo = ({
 							<RequirePermission permission='use-friend-codes' silent>
 								<Confirm
 									action='v1/friend_code/whitelist/save'
-									defaultSubmitImage={`${constants.AWS_URL}/images/icons/wifi.png`}
+									defaultSubmitImage={
+										constants.allImages['icons/wifi.png']
+									}
 									imageTitle='Whitelist User'
 									additionalBody={
 										<>
@@ -93,7 +95,9 @@ const ProfileGeneralInfo = ({
 							<RequirePermission permission='use-buddy-system' silent>
 								<Form
 									action='v1/users/buddy/save'
-									defaultSubmitImage={`${constants.AWS_URL}/images/icons/buddy.png`}
+									defaultSubmitImage={
+										constants.allImages['icons/buddy.png']
+									}
 									imageTitle={`Add ${user.username} to your buddy list`}
 								>
 									<input type='hidden' name='buddyUsers' value={user.username} />
@@ -103,7 +107,7 @@ const ProfileGeneralInfo = ({
 						}
 						<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${user.username}#TextBox`}>
 							<img
-								src={`${constants.AWS_URL}/images/icons/pt.png`}
+								src={constants.allImages['icons/pt.png']}
 								title={`Send a PT to ${user.username}`}
 								alt={`Send a PT to ${user.username}`}
 							/>

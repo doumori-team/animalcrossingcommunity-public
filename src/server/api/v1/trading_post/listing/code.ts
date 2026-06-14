@@ -9,22 +9,10 @@ import { APIThisType, ListingType } from '@types';
  */
 async function code(this: APIThisType, { id, characterId, secretCodes, friendCode, dodoCode }: codeProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
-	if (listing.game?.id === constants.gameIds.ACGC && Number(characterId || 0) <= 0)
+	if (listing.game?.id === constants.gameIds.ACGC && utils.safeNumber(characterId) <= 0)
 	{
 		throw new UserError('bad-format');
 	}
@@ -57,14 +45,14 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 
 	// only users involved in trade can submit codes
 	// only if listing in right status
-	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId) ||
+	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId as number) ||
 		![listingStatuses.offerAccepted, listingStatuses.inProgress].includes(listing.status))
 	{
 		throw new UserError('permission');
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		if (characterId > 0)
 		{
@@ -74,7 +62,7 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 				WHERE id = $1::int
 			`, offer.id, characterId);
 
-			if (Number(listing.game?.id || 0) > constants.gameIds.ACGC && utils.realStringLength(friendCode) === 0 && utils.realStringLength(dodoCode) === 0)
+			if (utils.safeNumber(listing.game?.id) > constants.gameIds.ACGC && utils.realStringLength(friendCode) === 0 && utils.realStringLength(dodoCode) === 0)
 			{
 				const [friendCode] = await query(`
 					SELECT
@@ -100,7 +88,7 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 			// if sell, you're updating your own items
 			// if buying, you're updating the other's items
 			const listingTypes = constants.tradingPost.listingTypes;
-			let items = [];
+			let items: { id: number }[] = [];
 
 			if (listing.type === listingTypes.sell)
 			{
@@ -136,7 +124,7 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 				}
 			}
 
-			items.map(async(item: any, index: any) =>
+			items.map(async (item, index) =>
 			{
 				await query(`
 					UPDATE listing_offer_catalog_item
@@ -165,7 +153,7 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 		}
 	});
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		const updatedListing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
@@ -199,6 +187,11 @@ async function code(this: APIThisType, { id, characterId, secretCodes, friendCod
 	});
 }
 
+code.permissions = [
+	'use-trading-post',
+	'userId',
+];
+
 code.apiTypes = {
 	id: {
 		type: APITypes.listingId,
@@ -224,7 +217,7 @@ code.apiTypes = {
 type codeProps = {
 	id: number
 	characterId: number
-	secretCodes: any[]
+	secretCodes: string[]
 	friendCode: string
 	dodoCode: string
 };

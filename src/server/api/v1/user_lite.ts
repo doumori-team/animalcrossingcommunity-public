@@ -17,9 +17,9 @@ import { APIThisType, UserLiteType } from '@types';
  */
 async function user_lite(this: APIThisType, { id, username }: userLiteProps): Promise<UserLiteType>
 {
-	if (id == null || isNaN(id))
+	if (id === null || id === undefined || isNaN(id))
 	{
-		if (typeof username === 'undefined')
+		if (username === null || username === undefined)
 		{
 			id = this.userId;
 		}
@@ -40,6 +40,11 @@ async function user_lite(this: APIThisType, { id, username }: userLiteProps): Pr
 user_lite.apiTypes = {
 	id: {
 		type: APITypes.number,
+		nullable: true,
+	},
+	username: {
+		type: APITypes.string,
+		nullable: true,
 	},
 };
 

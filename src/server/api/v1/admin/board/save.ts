@@ -1,23 +1,10 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { boardId, parentId, title, description, type }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'board-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	let isNewBoard = false;
 
 	if (boardId > 0)
@@ -68,6 +55,11 @@ async function save(this: APIThisType, { boardId, parentId, title, description, 
 		_success: 'The board has been added / modified.',
 	};
 }
+
+save.permissions = [
+	'board-admin',
+	'userId',
+];
 
 save.apiTypes = {
 	boardId: {

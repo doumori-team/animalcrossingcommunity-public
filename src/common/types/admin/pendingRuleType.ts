@@ -2,22 +2,22 @@
 type PendingRuleType = {
 	id: number
 	number: number
-	name: string
-	startDate: string
+	name: string | null
+	startDate: string | Date | null
 	description: string
 	violations: {
 		id: number
 		severityId: number | null
 		violation: string
 		pendingExpiration: boolean
-		startDate: string
+		startDate: string | Date | null
 	}[]
 	pendingExpiration: boolean
 	pendingRule: {
 		id: number
 		number: number
-		name: string
-		startDate: string
+		name: string | null
+		startDate: string | Date | null
 		description: string
 		category: string
 		reportable: boolean
@@ -28,7 +28,7 @@ type PendingRuleType = {
 		severityId: number | null
 		violation: string
 		pendingExpiration: boolean
-		startDate: string
+		startDate: string | Date | null
 		pendingViolation: {
 			id: number
 			severityId: number | null

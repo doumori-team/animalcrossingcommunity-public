@@ -20,8 +20,6 @@ const MapMaker = ({
 	const [selectedPaletteChildId2, setSelectedPaletteChildId2] = useState<MapTilesType['all'][number]['child_id2']>(firstTile.child_id2);
 	const [selectedStyleId, setSelectedStyleId] = useState<number>(firstTile.id);
 
-	const mapDir = `${constants.AWS_URL}/images/maps/${town.game.identifier}/`;
-
 	const handleAcreChange = (selectedAcreId: number, styleMapTile: MapMakerProps['mapTiles']['all'][number]): void =>
 	{
 		let newSelectedAcreId = Number(selectedAcreId);
@@ -96,13 +94,16 @@ const MapMaker = ({
 			newSelectedStyleId = parentTile?.id;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let array: TownType['mapTiles'] = checkUnique((parentTile as any), mapTiles.grassTileId);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		array[selectedAcreId] = (newSelectedStyleId as any);
 
 		setAcres(array);
 		setSelectedPaletteParentId(newSelectedPaletteParentId);
 		setSelectedPaletteChildId1(newSelectedPaletteChildId1);
 		setSelectedPaletteChildId2(newSelectedPaletteChildId2);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		setSelectedStyleId((newSelectedStyleId as any));
 	};
 
@@ -227,7 +228,11 @@ const MapMaker = ({
 														selectedPaletteChildId2]
 															.includes(paletteGroup.groupId)
 														? 'selected' : ''}
-													src={mapDir + parentTile.img_name}
+													src={
+														constants.allImages[
+															`maps/${town.game.identifier}/${parentTile.img_name}`
+														]
+													}
 													alt='Map Tile'
 													/>
 												</div>
@@ -259,7 +264,11 @@ const MapMaker = ({
 											<img alt='Map Tile'
 												className={selectedStyleId === styleMapTile.id ?
 													'selected' : ''}
-												src={mapDir + styleMapTile.img_name}
+												src={
+													constants.allImages[
+														`maps/${town.game.identifier}/${styleMapTile.img_name}`
+													]
+												}
 											/>
 										</div>
 									);

@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/en';
 
 import * as db from '@db';
 import { UserError } from '@errors';
-import { constants } from '@utils';
+import { constants, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, SuccessType, ListingType, ACGameItemType, ResidentsType } from '@types';
@@ -12,20 +12,9 @@ import { APIThisType, SuccessType, ListingType, ACGameItemType, ResidentsType } 
  */
 async function trading_post(this: APIThisType, { gameId, listingId, step }: tradingPostProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
-	if (Number(gameId || 0) === 0)
+	if (utils.safeNumber(gameId) === 0)
 	{
 		if (gameId !== 'real-world')
 		{
@@ -34,7 +23,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 	}
 	else
 	{
-		gameId = Number(gameId || 0);
+		gameId = utils.safeNumber(gameId);
 
 		const [checkId] = await db.query(`
 			SELECT id
@@ -68,7 +57,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 
 	if (step === 'create_trade')
 	{
-		await db.transaction(async (query: any) =>
+		await db.transaction(async (query: db.QueryType) =>
 		{
 			const type = faker.helpers.arrayElement([listingTypes.sell, listingTypes.buy]);
 
@@ -76,7 +65,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 				INSERT INTO listing (creator_id, status, game_id, type)
 				VALUES ($1::int, $2, $3::int, $4)
 				RETURNING id
-			`, this.userId, listingStatuses.open, Number(gameId || 0) > 0 ? gameId : null, type);
+			`, this.userId, listingStatuses.open, utils.safeNumber(gameId) > 0 ? gameId : null, type);
 
 			const defaults = await getDefaultsForListing(gameId);
 
@@ -116,7 +105,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 			throw new UserError('bad-format');
 		}
 
-		let staffUserIds = await db.query(`
+		let staffUserIds: { id: number }[] = await db.query(`
 			SELECT users.id
 			FROM users
 			JOIN user_group ON (user_group.id = users.user_group_id)
@@ -132,12 +121,12 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 
 		const offersToMake = Math.min(Number(faker.string.numeric({ length: 1, exclude: ['0'] })), staffUserIds.length);
 
-		await db.transaction(async (query: any) =>
+		await db.transaction(async (query: db.QueryType) =>
 		{
 			for (let i = 0; i < offersToMake; i++)
 			{
-				const offerUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
-				staffUserIds = staffUserIds.filter((sui: any) => sui.id !== offerUserId);
+				const offerUserId = faker.helpers.arrayElement(staffUserIds).id;
+				staffUserIds = staffUserIds.filter(sui => sui.id !== offerUserId);
 
 				const defaults = await getDefaultsForListing(listing.game?.id);
 
@@ -202,7 +191,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 			throw new UserError('bad-format');
 		}
 
-		await db.transaction(async (query: any) =>
+		await db.transaction(async (query: db.QueryType) =>
 		{
 			await query(`
 				UPDATE listing_offer
@@ -253,7 +242,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 		}
 		else if (listing.game.id === constants.gameIds.ACGC)
 		{
-			await db.transaction(async (query: any) =>
+			await db.transaction(async (query: db.QueryType) =>
 			{
 				await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) =>
 				{
@@ -325,7 +314,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 						}
 					}
 
-					items.map(async(item: any) =>
+					items.map(async(item: { id: number }) =>
 					{
 						const secretCode = `${faker.string.alphanumeric(14)} ${faker.string.alphanumeric(14)}`;
 
@@ -346,7 +335,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 		}
 		else
 		{
-			await db.transaction(async (query: any) =>
+			await db.transaction(async (query: db.QueryType) =>
 			{
 				let methods = ['friend_code', 'character'];
 
@@ -489,7 +478,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 			throw new UserError('bad-format');
 		}
 
-		await db.transaction(async (query: any) =>
+		await db.transaction(async (query: db.QueryType) =>
 		{
 			await query(`
 				UPDATE listing_offer
@@ -521,7 +510,7 @@ async function trading_post(this: APIThisType, { gameId, listingId, step }: trad
 
 		const ratingIds = [ratingConfig.positive.id, ratingConfig.neutral.id, ratingConfig.negative.id];
 
-		await db.transaction(async (query: any) =>
+		await db.transaction(async (query: db.QueryType) =>
 		{
 			await Promise.all([[listing.creator.id, listing.offers.accepted?.user.id].map(async (userId) =>
 			{
@@ -603,6 +592,11 @@ async function getDefaultsForListing(gameId: number | string | null | undefined)
 
 	return { bells, comment, items, residents };
 }
+
+trading_post.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 trading_post.apiTypes = {
 	gameId: {

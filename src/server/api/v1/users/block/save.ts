@@ -6,11 +6,6 @@ import { APIThisType, UserType } from '@types';
 
 async function save(this: APIThisType, { user, action }: saveProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const userBlock: UserType = await this.query('v1/user', { username: user });
 
@@ -36,7 +31,7 @@ async function save(this: APIThisType, { user, action }: saveProps): Promise<voi
 	}
 
 	// Check if user already has whitelisted user
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		const [checkId] = await query(`
 			SELECT user_id, block_user_id
@@ -68,6 +63,10 @@ async function save(this: APIThisType, { user, action }: saveProps): Promise<voi
 		`, this.userId, blockUserId);
 	});
 }
+
+save.permissions = [
+	'userId',
+];
 
 save.apiTypes = {
 	user: {

@@ -51,10 +51,7 @@ const EditGameConsole = ({
 						options={gameConsolesSequence}
 						optionsMapping={{
 							value: 'sequence',
-							label: (system: any) =>
-							{
-								return `${system.sequence} - ${system.text}`;
-							},
+							label: (system: typeof gameConsolesSequence[number]) => `${system.sequence} - ${system.text}`,
 						}}
 					/>
 				</Form.Group>

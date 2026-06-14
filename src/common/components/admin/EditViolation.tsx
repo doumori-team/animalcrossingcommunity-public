@@ -16,7 +16,7 @@ const EditViolation = ({
 
 				<Form.Group>
 					<Check
-						options={[{ id: '', name: 'No Severity' } as any].concat(severities)}
+						options={[{ id: '', name: 'No Severity' } as unknown as EditViolationProps['severities'][number]].concat(severities)}
 						name='severityId'
 						defaultValue={violation && violation.severityId ? [violation.severityId] : ['']}
 						label='Severity'

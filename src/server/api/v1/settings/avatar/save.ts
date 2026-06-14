@@ -5,11 +5,6 @@ import { APIThisType, SuccessType, AvatarsType } from '@types';
 
 async function save(this: APIThisType, { backgroundId, colorationId, characterId, accentId, accentPosition, useDefault }: saveProps): Promise<SuccessType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	if (useDefault)
 	{
 		characterId = null;
@@ -68,9 +63,15 @@ async function save(this: APIThisType, { backgroundId, colorationId, characterId
 	};
 }
 
+save.permissions = [
+	'userId',
+];
+
 save.apiTypes = {
 	backgroundId: {
 		type: APITypes.number,
+		default: 0,
+		nullable: true,
 	},
 	colorationId: {
 		type: APITypes.number,
@@ -78,6 +79,8 @@ save.apiTypes = {
 	},
 	characterId: {
 		type: APITypes.number,
+		default: 0,
+		nullable: true,
 	},
 	accentId: {
 		type: APITypes.number,
@@ -85,6 +88,7 @@ save.apiTypes = {
 	},
 	accentPosition: {
 		type: APITypes.number,
+		nullable: true,
 		min: 1,
 		max: 4,
 	},

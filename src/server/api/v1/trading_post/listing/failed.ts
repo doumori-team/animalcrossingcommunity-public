@@ -6,18 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function failed(this: APIThisType, { id }: failedProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
@@ -26,14 +14,14 @@ async function failed(this: APIThisType, { id }: failedProps): Promise<void>
 
 	// only users involved in trade can mark it as failed
 	// only if listing in right status
-	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId) ||
+	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId as number) ||
 		![listingStatuses.inProgress].includes(listing.status))
 	{
 		throw new UserError('permission');
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -58,6 +46,11 @@ async function failed(this: APIThisType, { id }: failedProps): Promise<void>
 		]);
 	});
 }
+
+failed.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 failed.apiTypes = {
 	id: {

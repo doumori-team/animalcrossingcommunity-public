@@ -6,18 +6,6 @@ import { APIThisType, UserLiteType, ShopType, MarkupStyleType } from '@types';
 
 async function contact(this: APIThisType, { id, text, format }: contactProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
@@ -27,7 +15,7 @@ async function contact(this: APIThisType, { id, text, format }: contactProps): P
 
 	const user: UserLiteType = await this.query('v1/user_lite', { id: this.userId });
 
-	const contacts = await db.query(`
+	const contacts: { user_id: number }[] = await db.query(`
 		SELECT shop_user.user_id
 		FROM shop_role
 		JOIN shop_user_role ON (shop_user_role.shop_role_id = shop_role.id)
@@ -35,7 +23,7 @@ async function contact(this: APIThisType, { id, text, format }: contactProps): P
 		WHERE shop_role.shop_id = $1::int AND shop_role.contact = true AND shop_role.active = true AND shop_user.active = true
 	`, shop.id);
 
-	const threadId = await db.transaction(async (query: any) =>
+	const threadId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [thread] = await query(`
 			INSERT INTO node (parent_node_id, user_id, type)
@@ -62,7 +50,7 @@ async function contact(this: APIThisType, { id, text, format }: contactProps): P
 		`, message.id, this.userId, text, format);
 
 		await Promise.all([
-			(contacts.length > 0 ? contacts.map((c: any) => c.user_id) : shop.owners.map((o: any) => o.id)).concat([this.userId]).map(async (userId: any) =>
+			(contacts.length > 0 ? contacts.map(c => c.user_id) : shop.owners.map(o => o.id)).concat([this.userId as number]).map(async userId =>
 			{
 				await query(`
 					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
@@ -75,6 +63,12 @@ async function contact(this: APIThisType, { id, text, format }: contactProps): P
 					VALUES ($1::int, $2::int, $3::int, true)
 					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 				`, userId, thread.id, constants.nodePermissions.reply);
+
+				await query(`
+					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+					VALUES ($1::int, $2::int, $3::int, true)
+					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+				`, userId, thread.id, constants.nodePermissions.react);
 
 				await query(`
 					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
@@ -98,6 +92,11 @@ async function contact(this: APIThisType, { id, text, format }: contactProps): P
 		id: threadId,
 	};
 }
+
+contact.permissions = [
+	'view-shops',
+	'userId',
+];
 
 contact.apiTypes = {
 	id: {

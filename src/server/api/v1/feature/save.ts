@@ -2,25 +2,13 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, SuccessType } from '@types';
+import { APIThisType, SuccessType, UserType } from '@types';
 
 async function save(this: APIThisType, { id, title, description, statusId, categoryId, isBug,
 	isExploit, staffOnly, readOnly, assignedUsers, staffDescription, format, staffDescriptionFormat }: saveProps): Promise<SuccessType | { id: number | string }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'suggest-features' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
-	const [user, managePermission, claimPermission, status, category] = await Promise.all([
+	const [user, managePermission, claimPermission, status, category]: [UserType, boolean, boolean, { id: number }[] | null, { id: number }[] | null] = await Promise.all([
 		this.query('v1/user', { id: this.userId }),
 		this.query('v1/permission', { permission: 'manage-features' }),
 		this.query('v1/permission', { permission: 'claim-features' }),
@@ -53,7 +41,7 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 		assignedUsers = [];
 	}
 
-	const assignedUserIds = await Promise.all(assignedUsers.map(async (username: any) =>
+	const assignedUserIds = await Promise.all(assignedUsers.map(async username =>
 	{
 		const [check] = await db.query(`
 			SELECT id
@@ -185,6 +173,11 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 		`, id, assignedUserIds);
 	}
 
+	Promise.all([
+		this.query('v1/users/badge/check', { badgeId: constants.badges.reportbug }),
+		this.query('v1/users/badge/check', { badgeId: constants.badges.suggestion }),
+	]);
+
 	if (successMessage)
 	{
 		return {
@@ -197,6 +190,11 @@ async function save(this: APIThisType, { id, title, description, statusId, categ
 		id: Number(id),
 	};
 }
+
+save.permissions = [
+	'suggest-features',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {
@@ -253,6 +251,7 @@ save.apiTypes = {
 	assignedUsers: {
 		type: APITypes.array,
 		length: constants.max.addMultipleUsers,
+		userInput: true,
 	},
 	staffDescription: {
 		type: APITypes.string,

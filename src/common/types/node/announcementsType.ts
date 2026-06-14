@@ -11,6 +11,11 @@ type AnnouncementsType = {
 	}
 	created: string
 	files: FileType[]
+	reactions: {
+		emoji: string
+		src: string
+		count: number
+	}[]
 };
 
 export type { AnnouncementsType };

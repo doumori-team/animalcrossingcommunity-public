@@ -6,11 +6,6 @@ import { APIThisType } from '@types';
 
 async function message(this: APIThisType, { id, message, staffOnly, format }: messageProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [feature] = await db.query(`
 		SELECT read_only, staff_only
 		FROM feature
@@ -46,6 +41,10 @@ async function message(this: APIThisType, { id, message, staffOnly, format }: me
 		type: constants.notification.types.featurePost,
 	});
 }
+
+message.permissions = [
+	'userId',
+];
 
 message.apiTypes = {
 	id: {

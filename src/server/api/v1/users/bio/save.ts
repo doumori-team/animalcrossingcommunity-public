@@ -1,24 +1,15 @@
+import MarkdownIt from 'markdown-it';
+
 import * as db from '@db';
 import { UserError } from '@errors';
 import { constants, utils, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserType, UserDonationsType, MarkupStyleType } from '@types';
+import poll from 'common/markup/markdown-poll.ts';
 
 async function save(this: APIThisType, { id, location = null, name, bio, format, fileIds, fileNames,
 	fileWidths, fileHeights, fileCaptions }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-profiles' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	if (id !== this.userId)
 	{
 		throw new UserError('permission');
@@ -37,7 +28,7 @@ async function save(this: APIThisType, { id, location = null, name, bio, format,
 		throw new UserError('bad-format');
 	}
 
-	if (fileIds.length != fileNames.length || fileIds.length != fileWidths.length || fileIds.length != fileHeights.length || fileIds.length != fileCaptions.length)
+	if (fileIds.length !== fileNames.length || fileIds.length !== fileWidths.length || fileIds.length !== fileHeights.length || fileIds.length !== fileCaptions.length)
 	{
 		throw new UserError('bad-format');
 	}
@@ -85,7 +76,7 @@ async function save(this: APIThisType, { id, location = null, name, bio, format,
 
 	if (fileIds.length > 0)
 	{
-		await Promise.all(fileIds.map(async (id: any, index: any) =>
+		await Promise.all(fileIds.map(async (id, index) =>
 		{
 			const [file] = await db.query(`
 				INSERT INTO file (file_id, name, width, height, caption, sequence)
@@ -100,10 +91,61 @@ async function save(this: APIThisType, { id, location = null, name, bio, format,
 		}));
 	}
 
+	await db.query(`
+		UPDATE user_poll
+		SET active = false
+		WHERE id = $1
+	`, id);
+
+	const md = new MarkdownIt();
+	md.use(poll);
+
+	const tokens = md.parse(bio, {});
+
+	const polls: {
+		options: string[]
+		multi: boolean
+	}[] = [];
+
+	for (let i = 0; i < tokens.length; i++)
+	{
+		const token = tokens[i];
+
+		if (token.type === 'poll_open' && token.meta)
+		{
+			const options = token.meta.options || [];
+			const multi = token.meta.pollType === 'multi';
+
+			polls.push({ options, multi });
+		}
+	}
+
+	if (polls.length > 0)
+	{
+		for (const [index, row] of polls.entries())
+		{
+			const [poll] = await db.query(`
+				INSERT INTO user_poll (user_id, is_multiple_choice, sort_order)
+				VALUES ($1, $2, $3)
+				RETURNING id
+			`, user.id, row.multi, index);
+
+			await db.query(`
+				INSERT INTO user_poll_option (poll_id, description, sequence)
+				SELECT $1, unnest($2::text[]), unnest($3::int[])
+			`, poll.id, row.options, row.options.map((_, idx) => idx + 1));
+		}
+	}
+
 	return {
 		id: id,
 	};
 }
+
+save.permissions = [
+	'modify-profiles',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {
@@ -156,11 +198,11 @@ type saveProps = {
 	name: string
 	bio: string
 	format: MarkupStyleType
-	fileIds: any[]
-	fileNames: any[]
-	fileWidths: any[]
-	fileHeights: any[]
-	fileCaptions: any[]
+	fileIds: string[]
+	fileNames: string[]
+	fileWidths: string[]
+	fileHeights: string[]
+	fileCaptions: string[]
 };
 
 export default save;

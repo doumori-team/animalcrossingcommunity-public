@@ -7,21 +7,6 @@ import { APIThisType, MarkupStyleType } from '@types';
 
 async function message(this: APIThisType, { id, message, userTicketId, status, staffOnly, format, usernameHistoryId }: messageProps): Promise<void>
 {
-	const [processSupportTickets, submitSupportTickets] = await Promise.all([
-		this.query('v1/permission', { permission: 'process-support-tickets' }),
-		this.query('v1/permission', { permission: 'submit-support-tickets' }),
-	]);
-
-	if (!(processSupportTickets || submitSupportTickets))
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [supportTicket] = await db.query(`
 		SELECT support_ticket.user_id
 		FROM support_ticket
@@ -34,6 +19,8 @@ async function message(this: APIThisType, { id, message, userTicketId, status, s
 	}
 
 	// Only user / modmins can post
+	const processSupportTickets: boolean = this.query('v1/permission', { permission: 'process-support-tickets' });
+
 	if (!processSupportTickets && this.userId !== supportTicket.user_id)
 	{
 		throw new UserError('permission');
@@ -51,7 +38,7 @@ async function message(this: APIThisType, { id, message, userTicketId, status, s
 		usernameHistoryId = null;
 	}
 
-	const supportTicketMessageId = await db.transaction(async (query: any) =>
+	const supportTicketMessageId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [[supportTicketMessage]] = await Promise.all([
 			query(`
@@ -87,6 +74,12 @@ async function message(this: APIThisType, { id, message, userTicketId, status, s
 		});
 	}
 }
+
+message.permissions = [
+	'process-support-tickets',
+	'submit-support-tickets',
+	'userId',
+];
 
 message.apiTypes = {
 	id: {

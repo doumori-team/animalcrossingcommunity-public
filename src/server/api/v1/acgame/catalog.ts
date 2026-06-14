@@ -9,16 +9,6 @@ import { APIThisType, ACGameItemType, GroupItemType } from '@types';
  */
 async function catalog(this: APIThisType, { id, categoryName, sortBy, name, query }: catalogProps): Promise<GroupItemType[] | ACGameItemType[number]['all']['items']>
 {
-	const [viewTownsPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', { permission: 'view-towns' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-	]);
-
-	if (!(viewTownsPerm || useTradingPostPerm))
-	{
-		throw new UserError('permission');
-	}
-
 	let museum = false;
 
 	if (categoryName === 'museum')
@@ -38,14 +28,14 @@ async function catalog(this: APIThisType, { id, categoryName, sortBy, name, quer
 	// Run calculations
 	if (museum)
 	{
-		const doesItemMatch = (item: any) => item.museum && item.genuine;
-		const doesGroupMatch = (group: any) => group.items.some(doesItemMatch);
+		const doesItemMatch = (item: GroupItemType['groups'][number]['items'][number]) => item.museum && item.genuine;
+		const doesGroupMatch = (group: GroupItemType['groups'][number]) => group.items.some(doesItemMatch);
 
-		acgameCategories = acgameCategories.filter((catalog: any) => catalog.groups.some(doesGroupMatch))
-			.map((catalog: any) => ({
+		acgameCategories = (acgameCategories as GroupItemType[]).filter(catalog => catalog.groups.some(doesGroupMatch))
+			.map(catalog => ({
 				...catalog,
 				groups: catalog.groups.filter(doesGroupMatch)
-					.map((group: any) => ({
+					.map(group => ({
 						...group,
 						items: group.items.filter(doesItemMatch),
 					})),
@@ -54,14 +44,14 @@ async function catalog(this: APIThisType, { id, categoryName, sortBy, name, quer
 
 	if (utils.realStringLength(name) > 0)
 	{
-		const doesItemMatch = (item: any) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
-		const doesGroupMatch = (group: any) => group.items.some(doesItemMatch);
+		const doesItemMatch = (item: GroupItemType['groups'][number]['items'][number]) => item.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0;
+		const doesGroupMatch = (group: GroupItemType['groups'][number]) => group.items.some(doesItemMatch);
 
-		return acgameCategories.filter((catalog: any) => catalog.groups.some(doesGroupMatch))
-			.map((catalog: any) => ({
+		return (acgameCategories as GroupItemType[]).filter(catalog => catalog.groups.some(doesGroupMatch))
+			.map(catalog => ({
 				...catalog,
 				groups: catalog.groups.filter(doesGroupMatch)
-					.map((group: any) => ({
+					.map(group => ({
 						...group,
 						items: group.items.filter(doesItemMatch),
 					})),
@@ -72,13 +62,18 @@ async function catalog(this: APIThisType, { id, categoryName, sortBy, name, quer
 	{
 		// have direct match show first in the list
 		return (acgameCategories as ACGameItemType[number]['all']['items'])
-			.filter((item: any) => item.name.toLowerCase() === query.toLowerCase())
+			.filter(item => item.name.toLowerCase() === query.toLowerCase())
 			.concat((acgameCategories as ACGameItemType[number]['all']['items'])
-				.filter((item: any) => item.name.toLowerCase() !== query.toLowerCase() && item.name.toLowerCase().includes(query.toLowerCase())));
+				.filter(item => item.name.toLowerCase() !== query.toLowerCase() && item.name.toLowerCase().includes(query.toLowerCase())));
 	}
 
 	return acgameCategories;
 }
+
+catalog.permissions = [
+	'view-towns',
+	'use-trading-post',
+];
 
 catalog.apiTypes = {
 	id: {

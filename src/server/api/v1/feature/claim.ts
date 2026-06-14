@@ -6,11 +6,6 @@ import { APIThisType, FeatureType } from '@types';
 
 async function claim(this: APIThisType, { id }: claimProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const feature: FeatureType = await this.query('v1/feature', { id: id });
 
 	const currStatus = feature.statusId;
@@ -44,6 +39,10 @@ async function claim(this: APIThisType, { id }: claimProps): Promise<void>
 		VALUES ($1, $2)
 	`, this.userId, id);
 }
+
+claim.permissions = [
+	'userId',
+];
 
 claim.apiTypes = {
 	id: {

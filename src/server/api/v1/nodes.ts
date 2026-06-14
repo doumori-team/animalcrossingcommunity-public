@@ -1,7 +1,9 @@
+import * as Sentry from '@sentry/node';
+
 import * as db from '@db';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, NodesType, NodeChildNodesType, NodeBoardType } from '@types';
+import { APIThisType, NodesType, NodeChildNodesType, NodeBoardType, EmojiSettingType, UserDonationsType, NodeType, NodeChildrenType } from '@types';
 
 /**
  * NodePage calls. Moved here for George.
@@ -9,106 +11,112 @@ import { APIThisType, NodesType, NodeChildNodesType, NodeBoardType } from '@type
  */
 async function nodes(this: APIThisType, { id, page, editId, locked, order, reverse }: nodesProps): Promise<NodesType>
 {
-	const [archivedBoards, listBoardsArr] = await Promise.all([
-		db.query(`
-			SELECT id
-			FROM node
-			WHERE type = 'board' AND board_type = 'archived'
-		`),
-		![constants.boardIds.publicThreads, constants.boardIds.privateThreads].includes(id) ? db.query(`
-			SELECT id
-			FROM node
-			WHERE id = $1 AND type = 'board' AND id NOT IN (
-				SELECT node.parent_node_id
-				FROM node
-				WHERE node.parent_node_id = $1 AND node.type = 'thread'
-				LIMIT 1
-			)
-		`, id) : [],
-	]);
-
-	const archivedBoardIds: number[] = archivedBoards.map((x: { id: string }) => Number(x.id));
-
-	if (archivedBoardIds.includes(id))
+	return await Sentry.startSpan({ name: 'v1/nodes', attributes: { nodeId: id } }, async () =>
 	{
-		locked = true;
-	}
-
-	const listBoardIds: number[] = listBoardsArr.map((x: { id: string }) => Number(x.id));
-	const listBoards = listBoardIds.includes(id);
-
-	const [node, canMoveThread, editNode, currentUserEmojiSettings, subBoards, returnValue, staffBoards] = await Promise.all([
-		this.query('v1/node/full', { id, loadingNode: true }),
-		this.userId ? this.query('v1/node/permission', {
-			permission: 'move',
-			nodeId: id,
-		}) : false,
-		editId ? this.query('v1/node/full', { id: editId }) : null,
-		id !== constants.boardIds.accForums ? this.query('v1/settings/emoji') : [],
-		this.query('v1/node/boards', { nodeIds: [id] }),
-		!listBoards ? this.query('v1/node/children', { id: id, order: order ? order : 'latest_reply_time', reverse: reverse ? reverse : true, page: page ? page : 1, showLocked: locked }) : null,
-		db.query(`
-			SELECT id
-			FROM node
-			WHERE type = 'board' AND board_type = 'staff'
-		`),
-	]);
-
-	const userIds: number[] = node.type === 'thread' ? returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((userId?: number) => !!userId) : [];
-
-	const [userEmojiSettings, breadcrumb, allBoards, subSubBoards, userDonations] = await Promise.all([
-		userIds.length > 0 ? this.query('v1/settings/emoji', { userIds: returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((id?: number) => id) }) : [],
-		id !== constants.boardIds.accForums ? db.query(`
-			WITH RECURSIVE tree(id, parent_node_id, title, level) AS (
-				SELECT n.id, n.parent_node_id, (
-					SELECT title
-					FROM node_revision
-					WHERE node_revision.node_id = n.id
-					ORDER BY time DESC
+		const [archivedBoards, listBoardsArr] = await Sentry.startSpan({ name: 'nodes.init' }, () => Promise.all([
+			db.query(`
+				SELECT id
+				FROM node
+				WHERE type = 'board' AND board_type = 'archived'
+			`),
+			![constants.boardIds.publicThreads, constants.boardIds.staffThreads, constants.boardIds.privateThreads].includes(id) ? db.query(`
+				SELECT id
+				FROM node
+				WHERE id = $1 AND type = 'board' AND id NOT IN (
+					SELECT node.parent_node_id
+					FROM node
+					WHERE node.parent_node_id = $1 AND node.type = 'thread'
 					LIMIT 1
-				) AS title, 1 AS level
-				FROM node n
-				WHERE n.id = $1
-				UNION ALL
-				SELECT n.id, n.parent_node_id, (
-					SELECT title
-					FROM node_revision
-					WHERE node_revision.node_id = n.id
-					ORDER BY time DESC
-					LIMIT 1
-				) AS title, t.level + 1 AS level
-				FROM node n
-				JOIN tree t ON (n.id = t.parent_node_id)
-			)
-			SELECT id, title
-			FROM tree
-			ORDER BY level DESC;
-		`, node.parentId) : [],
-		canMoveThread && node.type === 'thread' ? this.query('v1/node/boards') : [],
-		listBoards ? this.query('v1/node/boards', { nodeIds: subBoards.map((b: NodeBoardType) => b.id) }) : [],
-		this.userId ? this.query('v1/users/donations') : null,
-	]);
+				)
+			`, id) : [],
+		]));
 
-	return <NodesType>{
-		node,
-		breadcrumb,
-		childNodes: listBoards ? subBoards : returnValue.childNodes,
-		page: listBoards ? page : returnValue.page,
-		totalCount: listBoards ? 0 : returnValue.count,
-		pageSize: listBoards ? node.type === 'board' ? 50 : constants.threadPageSize : returnValue.pageSize,
-		reverse: listBoards ? reverse : returnValue.reverse,
-		order: listBoards ? order : returnValue.order,
-		locked: listBoards ? locked : returnValue.showLocked,
-		editNode: editNode,
-		currentUserEmojiSettings: currentUserEmojiSettings,
-		nodeUsersEmojiSettings: userEmojiSettings,
-		boards: allBoards,
-		subBoards: listBoards ? subSubBoards : subBoards,
-		staffBoards: staffBoards.map((x: { id: string }) => Number(x.id)),
-		archivedBoards: archivedBoardIds,
-		listBoards: listBoardIds,
-		userDonations: userDonations,
-	};
+		const archivedBoardIds: number[] = archivedBoards.map((x: { id: string }) => Number(x.id));
+
+		if (archivedBoardIds.includes(id))
+		{
+			locked = true;
+		}
+
+		const listBoardIds: number[] = listBoardsArr.map((x: { id: string }) => Number(x.id));
+		const listBoards = listBoardIds.includes(id);
+
+		const [node, canMoveThread, editNode, currentUserEmojiSettings, subBoards, returnValue, staffBoards]: [NodeType, boolean, NodeType | null, EmojiSettingType[], NodeBoardType[], NodeChildrenType | null, { id: number }[]] = await Sentry.startSpan({ name: 'nodes.wave1' }, () => Promise.all([
+			this.query('v1/node/full', { id, loadingNode: true }),
+			this.userId ? this.query('v1/node/permission', {
+				permission: 'move',
+				nodeId: id,
+			}) : false,
+			editId ? this.query('v1/node/full', { id: editId }) : null,
+			id !== constants.boardIds.accForums ? this.query('v1/settings/emoji') : [],
+			this.query('v1/node/boards', { nodeIds: [id] }),
+			!listBoards ? this.query('v1/node/children', { id: id, order: order ? order : 'latest_reply_time', reverse: reverse ? reverse : true, page: page ? page : 1, showLocked: locked }) : null,
+			db.query(`
+				SELECT id
+				FROM node
+				WHERE type = 'board' AND board_type = 'staff'
+			`),
+		]));
+
+		const userIds: number[] = node.type === 'thread' && returnValue ? returnValue.childNodes.map(cn => cn.user?.id).filter(userId => userId !== undefined) : [];
+
+		const [userEmojiSettings, breadcrumb, allBoards, subSubBoards, userDonations]: [EmojiSettingType[], {
+			id: number
+			title: string | null
+		}[], NodeBoardType[], NodeBoardType[], UserDonationsType | null] = await Sentry.startSpan({ name: 'nodes.wave2' }, () => Promise.all([
+			userIds.length > 0 && returnValue ? this.query('v1/settings/emoji', { userIds: returnValue.childNodes.map((cn: NodeChildNodesType) => cn.user?.id).filter((id?: number) => id) }) : [],
+			id !== constants.boardIds.accForums ? db.query(`
+				WITH RECURSIVE tree(id, parent_node_id, title, level) AS (
+					SELECT n.id, n.parent_node_id, (
+						SELECT title
+						FROM node_revision
+						WHERE node_revision.node_id = n.id
+						ORDER BY time DESC
+						LIMIT 1
+					) AS title, 1 AS level
+					FROM node n
+					WHERE n.id = $1
+					UNION ALL
+					SELECT n.id, n.parent_node_id, (
+						SELECT title
+						FROM node_revision
+						WHERE node_revision.node_id = n.id
+						ORDER BY time DESC
+						LIMIT 1
+					) AS title, t.level + 1 AS level
+					FROM node n
+					JOIN tree t ON (n.id = t.parent_node_id)
+				)
+				SELECT id, title
+				FROM tree
+				ORDER BY level DESC;
+			`, node.parentId) : [],
+			canMoveThread && node.type === 'thread' ? this.query('v1/node/boards') : [],
+			listBoards ? this.query('v1/node/boards', { nodeIds: subBoards.map((b: NodeBoardType) => b.id) }) : [],
+			this.userId ? this.query('v1/users/donations') : null,
+		]));
+
+		return <NodesType>{
+			node,
+			breadcrumb,
+			childNodes: !returnValue ? subBoards : returnValue.childNodes,
+			page: !returnValue ? page : returnValue.page,
+			totalCount: !returnValue ? 0 : returnValue.count,
+			pageSize: !returnValue ? node.type === 'board' ? 50 : constants.threadPageSize : returnValue.pageSize,
+			reverse: !returnValue ? reverse : returnValue.reverse,
+			order: !returnValue ? order : returnValue.order,
+			locked: !returnValue ? locked : returnValue.showLocked,
+			editNode: editNode,
+			currentUserEmojiSettings: currentUserEmojiSettings,
+			nodeUsersEmojiSettings: userEmojiSettings,
+			boards: allBoards,
+			subBoards: listBoards ? subSubBoards : subBoards,
+			staffBoards: staffBoards.map(x => x.id),
+			archivedBoards: archivedBoardIds,
+			listBoards: listBoardIds,
+			userDonations: userDonations,
+		};
+	});
 }
 
 nodes.apiTypes = {

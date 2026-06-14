@@ -1,7 +1,8 @@
 type EventType = {
 	displayName: string
-	dateVariesByYear: boolean
+	dateVariesByYear: 'Yes' | 'No'
 	startDate?: string
+	endDate?: string
 	startTime?: string
 	endTime?: string
 	notes?: string

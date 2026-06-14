@@ -2,7 +2,6 @@ import * as db from '@db';
 import * as accounts from '@accounts';
 import { dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType, BirthdayType } from '@types';
 
 /*
@@ -11,13 +10,6 @@ import { APIThisType, BirthdayType } from '@types';
  */
 async function birthday(this: APIThisType, { id }: birthdayProps): Promise<BirthdayType>
 {
-	const permission: boolean = await this.query('v1/permission', { permission: 'view-profiles' });
-
-	if (!permission)
-	{
-		throw new UserError('permission');
-	}
-
 	const [profileInfo] = await db.query(`
 		SELECT
 			show_birthday,
@@ -26,7 +18,7 @@ async function birthday(this: APIThisType, { id }: birthdayProps): Promise<Birth
 		WHERE id = $1::int
 	`, id);
 
-	let birthDate = null;
+	let birthDate: Date | null = null;
 
 	if (profileInfo.show_birthday || profileInfo.show_age)
 	{
@@ -34,10 +26,14 @@ async function birthday(this: APIThisType, { id }: birthdayProps): Promise<Birth
 	}
 
 	return <BirthdayType>{
-		birthday: profileInfo.show_birthday && birthDate != null ? profileInfo.show_age ? dateUtils.formatDate(birthDate) : dateUtils.formatDateWithoutYear(birthDate) : null,
-		age: profileInfo.show_age && birthDate != null ? dateUtils.getAge(birthDate) : null,
+		birthday: profileInfo.show_birthday && birthDate !== null ? profileInfo.show_age ? dateUtils.formatDate(birthDate) : dateUtils.formatDateWithoutYear(birthDate) : null,
+		age: profileInfo.show_age && birthDate !== null ? dateUtils.getAge(birthDate) : null,
 	};
 }
+
+birthday.permissions = [
+	'view-profiles',
+];
 
 birthday.apiTypes = {
 	id: {

@@ -12,7 +12,10 @@ import {
 	useRouteError,
 	redirect,
 	Params,
+	ActionFunctionArgs,
 } from 'react-router';
+// @ts-ignore
+import { registerSW } from 'virtual:pwa-register';
 
 import { URL } from 'url';
 
@@ -25,6 +28,7 @@ import {
 import SiteContent from '@/components/layout/SiteContent.tsx';
 import SiteHeader from '@/components/layout/SiteHeader.tsx';
 import SiteFooter from '@/components/layout/SiteFooter.tsx';
+import ReportButton from '@/components/layout/ReportButton.tsx';
 import { ErrorMessage } from '@layout';
 import HomePageBanner from '@/pages/headers/HomePageBanner.tsx';
 import { getSeason } from 'common/calendar.ts';
@@ -46,7 +50,8 @@ import 'client/css/_main.scss';
 
 export function Layout({ children }: { children: ReactNode })
 {
-	const error = useRouteError() as any;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const error: any = useRouteError();
 	const loaderData = useRouteLoaderData('root') as AppProps;
 	const location = useLocation() as LocationType;
 
@@ -75,15 +80,17 @@ export function Layout({ children }: { children: ReactNode })
 	{
 		const { status, title: loadDataTitle } = loaderData;
 
-		icon = `${constants.AWS_URL}/images/layout/favicon/`;
-
 		if (constants.LIVE_SITE || status.season.debug)
 		{
-			icon += `gyroid-${status.season.season}.ico`;
+			icon = constants.allImages[
+    			`layout/favicon/gyroid-${status.season.season}.ico`
+			];
 		}
 		else
 		{
-			icon += 'gyroid-test.ico';
+			icon = constants.allImages[
+    			'layout/favicon/gyroid-test.ico'
+			];
 		}
 
 		title = loadDataTitle;
@@ -97,7 +104,10 @@ export function Layout({ children }: { children: ReactNode })
 				<meta name='viewport' content='width=device-width, initial-scale=1' />
 				<meta name='og:image' content='/acc_og-image.png' />
 				<meta name='og:image:alt' content='A logo for Animal Crossing Community surrounded by various Animal Crossing characters.' />
-				<link rel='icon' href={icon} id='acc-favicon'></link>
+				<link rel='icon' href={icon} id='acc-favicon' />
+				<meta name='apple-mobile-web-app-capable' content='yes' />
+				<meta name='apple-mobile-web-app-status-bar-style' content='default' />
+				<link rel='apple-touch-icon' href='/apple-touch-icon-192x192.png' />
 				<Meta />
 				<Links />
 			</head>
@@ -110,14 +120,8 @@ export function Layout({ children }: { children: ReactNode })
 	);
 }
 
-export function headers()
-{
-	return {
-		'Cache-Control': 'no-store',
-	};
-}
-
-export function ErrorBoundary({ error }: any)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function ErrorBoundary({ error }: { error: any })
 {
 	console.error('ErrorBoundary Occurred:', error);
 
@@ -131,7 +135,7 @@ export function ErrorBoundary({ error }: any)
 					<div>
 						<p>Oh, drumsticks... Looks like we can't find that page right now... Sorry about that. You can <a href={constants.SITE_URL}>click here</a> to go back to homepage.</p>
 						<p>
-							<img src={`${constants.AWS_URL}/images/layout/Orville_NH.png`} />
+							<img src={constants.allImages['layout/Orville_NH.png']} />
 						</p>
 					</div>
 				</article>
@@ -146,11 +150,20 @@ export function ErrorBoundary({ error }: any)
 					<div>
 						<p>Sorry! We have probably made a mistake that wasn't immediately obvious until now. Wilbur has alerted us and we'll fix the problem as soon as possible. You can <a href={constants.SITE_URL}>click here</a> to go back to homepage.</p>
 						<p>
-							<img className='wilbur' src={`${constants.AWS_URL}/images/layout/Wilbur_NH.png`} />
+							<img
+								className='wilbur'
+								src={constants.allImages['layout/Wilbur_NH.png']}
+							/>
 						</p>
 					</div>
 				</article>
 			);
+		}
+
+		// maintenance mode
+		if (error.status === 503)
+		{
+			return error.data;
 		}
 
 		return (
@@ -159,6 +172,7 @@ export function ErrorBoundary({ error }: any)
 			</div>
 		);
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	else if ((import.meta as any).env.DEV && error && error instanceof Error)
 	{
 		console.error(error.message);
@@ -186,7 +200,7 @@ const App = ({ loaderData }: { loaderData: AppProps }) =>
 	};
 
 	const [time, setTime] = useState<Date>(getZonedTimeNow());
-	const { status, jackpot, treasure, notifications, buddies, siteHeader } = loaderData;
+	const { status, jackpot, treasure, notifications, buddies, siteHeader, dockMenu } = loaderData;
 	const location = useLocation() as LocationType;
 
 	useEffect(() =>
@@ -197,6 +211,25 @@ const App = ({ loaderData }: { loaderData: AppProps }) =>
 		}, 1000);
 
 		return () => clearInterval(intervalId);
+	}, []);
+
+	useEffect(() =>
+	{
+		if (typeof window === 'undefined')
+		{
+			return;
+		}
+
+		registerSW({
+			onRegistered(r)
+			{
+				console.info('SW registered', r);
+			},
+			onRegisterError(err)
+			{
+				console.error('SW registration failed', err);
+			},
+		});
 	}, []);
 
 	if (status.banLength)
@@ -222,18 +255,20 @@ const App = ({ loaderData }: { loaderData: AppProps }) =>
 			<PermissionsContext value={status.permissions}>
 				<TimeContext value={time}>
 					<JackpotContext value={jackpot}>
-						<div {...getSeasonsStyle(status.season)}>
+						<div {...getSeasonsStyle(status.season, dockMenu)}>
 							<SiteHeader
 								latestNotification={notifications.notification}
 								notificationCount={notifications.totalCount}
 								buddies={buddies}
 								options={siteHeader}
+								dockMenu={dockMenu}
 							/>
 							{location.pathname === '/' && <HomePageBanner bannerName={status.season.bannerName} />}
 							<SiteContent treasure={treasure}>
 								<Outlet />
 							</SiteContent>
 							<SiteFooter />
+							<ReportButton />
 						</div>
 					</JackpotContext>
 				</TimeContext>
@@ -242,10 +277,17 @@ const App = ({ loaderData }: { loaderData: AppProps }) =>
 	);
 };
 
-function getSeasonsStyle({ bg_colors, ui_colors, theme, bannerName, season, event }: SeasonsType): { style: any, className: string }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSeasonsStyle({ bg_colors, ui_colors, theme, bannerName, season, event }: SeasonsType, dockMenu: boolean): { style: any, className: string }
 {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let style: any = {};
-	let className = `App App-${event}`;
+	let className = `App`;
+
+	if (event !== null)
+	{
+		className += ` App-${event}`;
+	}
 
 	style['--seasonal-color'] = ui_colors.default;
 	style['--seasonal-color-dark'] = ui_colors.dark;
@@ -254,12 +296,17 @@ function getSeasonsStyle({ bg_colors, ui_colors, theme, bannerName, season, even
 	style['--seasonal-color-accent'] = ui_colors.light;
 	style['--seasonal-color-header'] = ui_colors.header;
 	style['--seasonal-grass'] = `url('${getGrassBackgroundSvg(bg_colors)}')`;
-	style['--banner-background'] = `url('${constants.AWS_URL}/images/banners/${bannerName}_background.png')`;
-	style['--banner-background-2x'] = `url('${constants.AWS_URL}/images/banners/${bannerName}_background@2x.png')`;
+	style['--banner-background'] = `url(${constants.allImages[`banners/${bannerName}_background.png`]})`;
+	style['--banner-background-2x'] = `url(${constants.allImages[`banners/${bannerName}_background@2x.png`]})`;
 
 	if (theme !== 'default')
 	{
 		className += ` App-${theme}`;
+	}
+
+	if (dockMenu)
+	{
+		className += ` App-dockMenu`;
 	}
 
 	if (season === 'summer')
@@ -327,23 +374,27 @@ function getGrassBackgroundSvg(colors: SeasonsType['bg_colors']): string
 	return `data:image/svg+xml;utf8,${encodeURIComponent(svg.replace('\n','').replace('\t',''))}`;
 }
 
-async function loadData(this: APIThisType, params: any, searchParams: any, pathname: string): Promise<AppProps>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadData(this: APIThisType, params: Params, searchParams: Record<string, any>, pathname: string, isDesktop: boolean): Promise<AppProps>
 {
-	const [status, jackpot, treasure, notifications, buddies, siteHeader, title] = await Promise.all([
+	const [status, title] = await Promise.all([
 		this.query('v1/status'),
-		this.query('v1/treasure/jackpot'),
-		this.query('v1/treasure'),
-		this.userId ? this.query('v1/notification/latest') : {
+		this.query('v1/title', { pathname }),
+	]);
+
+	const [jackpot, treasure, notifications, buddies, siteHeader] = await Promise.all([
+		!status.banLength ? this.query('v1/treasure/jackpot') : 0,
+		this.userId && !status.banLength ? this.query('v1/treasure', { desktop: isDesktop }) : null,
+		this.userId && !status.banLength ? this.query('v1/notification/latest') : {
 			notification: null,
 			totalCount: 0,
 		},
-		this.userId ? this.query('v1/users/buddies', { online: true }) : {
+		this.userId && !status.banLength ? this.query('v1/users/buddies', { online: true }) : {
 			buddies: [],
 			staff: [],
 		},
-		this.query('v1/site_header'),
-		this.query('v1/title', { pathname }),
-		this.userId ? this.query('v1/session/update', {
+		this.userId && !status.banLength ? this.query('v1/site_header') : [],
+		this.userId && !status.banLength ? this.query('v1/session/update', {
 			url: pathname,
 			params,
 			query: searchParams,
@@ -361,10 +412,11 @@ async function loadData(this: APIThisType, params: any, searchParams: any, pathn
 		buddies,
 		siteHeader,
 		title,
+		dockMenu: status.dockMenu,
 	};
 }
 
-export const loader = async ({ context, params, request }: { context: AppLoadContextType, params: Params; request: any }) =>
+export const loader = async ({ context, params, request }: { context: AppLoadContextType, params: Params; request: ActionFunctionArgs['request'] }) =>
 {
 	if (!constants.LIVE_SITE)
 	{
@@ -396,7 +448,8 @@ type AppProps = {
 	notifications: LatestNotificationType
 	buddies: BuddiesType
 	siteHeader: SiteHeaderType[]
-	title: string,
+	title: string
+	dockMenu: boolean
 };
 
 export default App;

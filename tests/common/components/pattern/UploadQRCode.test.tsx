@@ -1,7 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, Mock } from 'vitest';
+import jsQR from 'jsqr';
 
 import UploadQRCode from '@/components/pattern/UploadQRCode.tsx';
+
+vi.mock('jsqr', async () =>
+{
+	const actual = await vi.importActual('jsqr');
+	return { ...actual, default: vi.fn((actual as any).default) };
+});
+const mockJsQR = jsQR as unknown as Mock;
 
 const setup = () =>
 {
@@ -34,21 +42,25 @@ Object.defineProperty(regularFile, 'size', { value: 99999 });
 // Mock FileReader (onload)
 class MockFileReader
 {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onload: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null;
 	readAsDataURL = vi.fn(() =>
 	{
 		if (this.onload)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(this as any).onload({ target: { result: 'data:image/png;base64,FAKE_DATA' } } as any);
 		}
 	});
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.FileReader = MockFileReader as any;
 
 // Mock canvas
 let mockCanvasWidth: number = 0;
 let mockCanvasHeight: number = 0;
 let mockCanvasData: Array<number> = [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
 	drawImage: vi.fn(),
 	getImageData: vi.fn(() => ({
@@ -59,6 +71,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
 })) as any;
 
 // Mock Image (onload)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.Image = class
 {
 	onload: () => void = () =>
@@ -68,6 +81,7 @@ global.Image = class
 	constructor()
 	{
 		Object.defineProperty(this, 'src', {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			set: function (_: any)
 			{
 				// Simulate async load delay if needed
@@ -172,5 +186,71 @@ describe('UploadQRCode', () =>
 			expect(setPatternName).toHaveBeenCalledWith('danDerp AC');
 			expect(setQrData).toHaveBeenCalledWith(['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#8c8a8c','#ffffff','#dedfde','#424542','#211000','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#211000','#000000','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#8c8a8c','#efefef','#ffffff','#efefef','#424542','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#311000','#9c9a00','#211000','#211000','#000000','#000000','#211000','#000000','#211000','#bdbabd','#efefef','#ffffff','#ffffff','#efefef','#bdbabd','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#8c7500','#ffcf63','#633010','#211000','#211000','#211000','#311000','#211000','#424542','#efefef','#ffffff','#ffffff','#ffffff','#efefef','#bdbabd','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#424542','#424542','#424542','#211000','#9c9a00','#ffcf63','#9c9a00','#211000','#311000','#311000','#311000','#211000','#633010','#dedfde','#ffffff','#ffffff','#ffffff','#efefef','#8c8a8c','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#8c8a8c','#dedfde','#efefef','#bdbabd','#633010','#ffcf63','#ffcf63','#9c9a00','#311000','#311000','#311000','#311000','#211000','#9c9a00','#8c8a8c','#ffffff','#ffffff','#ffffff','#efefef','#bdbabd','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#000000','#424542','#efefef','#efefef','#8c8a8c','#8c7500','#ffcf63','#ffcf63','#ffcf63','#633010','#211000','#311000','#311000','#311000','#9c9a00','#8c8a8c','#efefef','#ffffff','#ffffff','#ffffff','#efefef','#424542','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#000000','#000000','#000000','#000000','#8c8a8c','#efefef','#efefef','#424542','#9c9a00','#ffcf63','#ffcf63','#ffcf63','#8c7500','#211000','#311000','#311000','#633010','#9c9a00','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#000000','#211000','#bdbabd','#bdbabd','#efefef','#ffffff','#efefef','#424542','#9c9a00','#ffcf63','#ffcf63','#ffcf63','#9c9a00','#211000','#311000','#211000','#8c7500','#8c7500','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#000000','#000000','#bdbabd','#dedfde','#dedfde','#dedfde','#bdbabd','#211000','#ffcf63','#ffcf63','#ffcf63','#ffcf63','#9c9a00','#211000','#311000','#211000','#9c9a00','#633010','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#000000','#000000','#000000','#424542','#424542','#424542','#8c8a8c','#8c8a8c','#311000','#9c9a00','#9c9a00','#ffcf63','#ffcf63','#ffcf63','#633010','#211000','#211000','#9c9a00','#424542','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#424542','#8c8a8c','#8c8a8c','#efefef','#efefef','#efefef','#efefef','#dedfde','#424542','#9c9a00','#9c9a00','#ffcf63','#ffcf63','#ffcf63','#9c9a00','#211000','#311000','#9c9a00','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#211000','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#bdbabd','#424542','#9c9a00','#ffcf63','#ffcf63','#ffcf63','#9c9a00','#211000','#8c7500','#8c7500','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#211000','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#dedfde','#424542','#8c7500','#9c9a00','#ffcf63','#9c9a00','#633010','#9c9a00','#633010','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#424542','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#8c8a8c','#633010','#9c9a00','#9c9a00','#9c9a00','#9c9a00','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#211000','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#dedfde','#8c8a8c','#633010','#633010','#424542','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#211000','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#bdbabd','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#211000','#dedfde','#ffffff','#ffffff','#dedfde','#dedfde','#efefef','#ffffff','#dedfde','#bdbabd','#8c8a8c','#424542','#8c8a8c','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#424542','#efefef','#ffffff','#efefef','#424542','#211000','#424542','#8c8a8c','#424542','#bdbabd','#dedfde','#dedfde','#dedfde','#8c8a8c','#8c8a8c','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#424542','#efefef','#ffffff','#dedfde','#000000','#000000','#000000','#424542','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#424542','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#dedfde','#ffffff','#ffffff','#ffffff','#ffffff','#311000','#efefef','#ffffff','#bdbabd','#000000','#000000','#211000','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#bdbabd','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#dedfde','#ffffff','#ffffff','#8c2021','#bd0000','#311000','#dedfde','#ffffff','#8c8a8c','#000000','#000000','#424542','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#dedfde','#8c8a8c','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#dedfde','#ffffff','#8c2021','#bd0000','#bd0000','#311000','#bdbabd','#ffffff','#8c8a8c','#000000','#000000','#424542','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#bdbabd','#8c8a8c','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#dedfde','#ffffff','#bd0000','#bd0000','#bd0000','#8c2021','#424542','#efefef','#424542','#000000','#000000','#211000','#dedfde','#dedfde','#424542','#424542','#dedfde','#ffffff','#ffffff','#8c8a8c','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#dedfde','#dedfde','#8c2021','#bd0000','#bd0000','#bd0000','#bd0000','#311000','#dedfde','#424542','#000000','#000000','#424542','#8c8a8c','#8c8a8c','#000000','#000000','#424542','#ffffff','#efefef','#424542','#bdbabd','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#dedfde','#dedfde','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#311000','#8c8a8c','#8c8a8c','#000000','#000000','#bdbabd','#424542','#211000','#000000','#000000','#424542','#dedfde','#424542','#8c8a8c','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#efefef','#dedfde','#dedfde','#dedfde','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#211000','#bdbabd','#bdbabd','#bdbabd','#efefef','#efefef','#bdbabd','#424542','#211000','#211000','#424542','#8c8a8c','#efefef','#ffffff','#ffffff','#ffffff','#ffffff','#efefef','#efefef','#efefef','#efefef','#efefef','#dedfde','#dedfde','#dedfde','#dedfde','#8c2021','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#311000','#8c8a8c','#efefef','#efefef','#efefef','#efefef','#efefef','#dedfde','#bdbabd','#bdbabd','#dedfde','#efefef','#efefef','#ffffff','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#ffffff','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#311000','#8c8a8c','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#bdbabd','#ffffff','#ffffff','#ffffff','#8c2021','#bd0000','#bd0000','#bd0000','#bd0000','#311000','#8c8a8c','#dedfde','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#efefef','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#424542','#ffffff','#ffffff','#ffffff','#ffffff','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#311000','#424542','#bdbabd','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#dedfde','#bdbabd','#8c8a8c','#8c8a8c','#8c8a8c','#bdbabd','#dedfde','#bdbabd','#8c8a8c','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#bd0000','#bd0000','#bd0000','#bd0000','#bd0000','#8c2021','#311000','#424542','#8c8a8c','#8c8a8c','#8c8a8c','#8c8a8c','#8c8a8c','#8c8a8c','#8c8a8c','#424542','#424542','#211000','#211000','#211000','#000000','#000000','#000000','#000000','#424542','#8c8a8c','#8c8a8c']);
 		});
+	});
+
+	test('does nothing if no file is selected', () =>
+	{
+		// Arrange
+		const { setErrors, setQrData } = setup();
+	
+		// Act
+		fireEvent.change(screen.getByLabelText(fileInputText), { target: { files: [] } });
+	
+		// Assert
+		expect(setErrors).not.toHaveBeenCalled();
+		expect(setQrData).not.toHaveBeenCalled();
+	});
+	
+	test('sets error if QR binary data contains NaN', async () =>
+	{
+		// Arrange
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		mockJsQR.mockReturnValueOnce({ binaryData: [1, 2, NaN, 4] } as any);
+		mockCanvasWidth = 100;
+		mockCanvasHeight = 100;
+		mockCanvasData = new Array(100 * 100 * 4).fill(0);
+	
+		const { setErrors } = setup();
+	
+		// Act
+		fireEvent.change(screen.getByLabelText(fileInputText), { target: { files: [regularFile] } });
+	
+		// Assert
+		await waitFor(() =>
+		{
+			expect(setErrors).toHaveBeenCalledWith(['bad-format']);
+		});
+	});
+	
+	test('sets error if QR data length does not match expected', async () =>
+	{
+		// Arrange
+		const wrongLengthData = new Array(100).fill(0); // not qrCodeLength
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		mockJsQR.mockReturnValueOnce({ binaryData: wrongLengthData } as any);
+		mockCanvasWidth = 100;
+		mockCanvasHeight = 100;
+		mockCanvasData = new Array(100 * 100 * 4).fill(0);
+	
+		const { setErrors } = setup();
+	
+		// Act
+		fireEvent.change(screen.getByLabelText(fileInputText), { target: { files: [regularFile] } });
+	
+		// Assert
+		await waitFor(() =>
+		{
+			expect(setErrors).toHaveBeenCalledWith(['bad-format']);
+		});
+	});
+	
+	test('file input only accepts images', () =>
+	{
+		// Arrange & Act
+		setup();
+	
+		// Assert
+		const fileInput = screen.getByLabelText(fileInputText);
+		expect(fileInput.getAttribute('accept')).toBe('image/*');
 	});
 });

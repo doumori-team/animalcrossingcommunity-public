@@ -16,7 +16,7 @@ const UserLookup = ({
 			{
 				return users;
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				return [];
 			});
@@ -39,7 +39,9 @@ const UserLookup = ({
 type UserLookupProps = {
 	label: string
 	changeHandler: ChangeHandlerSelectType | ChangeHandleValueType
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	options?: any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	value: string | number | any[] | null
 };
 

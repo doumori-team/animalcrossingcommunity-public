@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import Tune from '@/components/tunes/Tune.tsx';
@@ -71,7 +71,7 @@ const TunesPage = ({ loaderData }: { loaderData: TunesPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, name, creator }: { page?: string, name?: string, creator?: string }): Promise<TunesPageProps>
+async function loadData(this: APIThisType, _: Params, { page, name, creator }: { page?: string, name?: string, creator?: string }): Promise<TunesPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/tunes', {

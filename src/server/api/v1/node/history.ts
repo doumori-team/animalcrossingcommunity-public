@@ -1,22 +1,21 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, NodeHistoryType } from '@types';
+import { APIThisType, NodeHistoryType, MarkupFormatType } from '@types';
 
 /*
  * Get change history of node.
  */
 async function history(this: APIThisType, { id }: historyProps): Promise<NodeHistoryType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-edit-history' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const nodes = await db.query(`
+	const nodes: {
+		id: number
+		time: Date
+		reviser_id: number
+		title: string | null
+		content: string | null
+		content_format: MarkupFormatType | null
+	}[] = await db.query(`
 		SELECT
 			id,
 			time,
@@ -28,10 +27,17 @@ async function history(this: APIThisType, { id }: historyProps): Promise<NodeHis
 		WHERE node_id = $1::int
 	`, id);
 
-	return await Promise.all(nodes.map(async (node: any) =>
+	return await Promise.all(nodes.map(async node =>
 	{
-		const nodeFiles = await db.query(`
-			SELECT file.id, file.file_id, file.name, file.width, file.height
+		const nodeFiles: {
+			id: number
+			file_id: string
+			name: string
+			width: number | null
+			height: number | null
+			caption: string
+		}[] = await db.query(`
+			SELECT file.id, file.file_id, file.name, file.width, file.height, file.caption
 			FROM node_revision_file
 			JOIN file ON (node_revision_file.file_id = file.id)
 			WHERE node_revision_file.node_revision_id = $1::int
@@ -46,7 +52,7 @@ async function history(this: APIThisType, { id }: historyProps): Promise<NodeHis
 				text: node.content,
 				format: node.content_format,
 			},
-			files: nodeFiles ? nodeFiles.map((file: any) =>
+			files: nodeFiles ? nodeFiles.map(file =>
 			{
 				return {
 					id: file.id,
@@ -54,12 +60,17 @@ async function history(this: APIThisType, { id }: historyProps): Promise<NodeHis
 					name: file.name,
 					width: file.width,
 					height: file.height,
+					caption: file.caption,
 				};
 			}) : [],
 			showImages: true,
 		};
 	}));
 }
+
+history.permissions = [
+	'view-edit-history',
+];
 
 history.apiTypes = {
 	id: {

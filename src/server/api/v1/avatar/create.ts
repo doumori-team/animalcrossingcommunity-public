@@ -5,11 +5,6 @@ import { APIThisType, AvatarsType } from '@types';
 
 async function create(this: APIThisType, { backgroundId, colorationId, characterId, accentId, accentPosition }: createProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// We can't have just a background or just foregrounds
 	if (backgroundId && !characterId || !backgroundId && characterId)
 	{
@@ -46,6 +41,10 @@ async function create(this: APIThisType, { backgroundId, colorationId, character
 		VALUES ($1::int, $2::int, $3::int, $4::int, $5::int, $6::int)
 	`, this.userId, characterId, accentId, backgroundId, colorationId, accentPosition);
 }
+
+create.permissions = [
+	'userId',
+];
 
 create.apiTypes = {
 	backgroundId: {

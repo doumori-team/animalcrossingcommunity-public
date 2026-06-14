@@ -183,7 +183,7 @@ const FeaturePage = ({ loaderData }: { loaderData: FeaturePageProps }) =>
 					<PermissionsContext.Consumer>
 						{permissions =>
 						{
-							let actions = [];
+							let actions: { form: string, text: string, newStatus: string }[] = [];
 
 							// Basic stuff
 							if (permissions.indexOf('claim-features') !== -1)
@@ -306,13 +306,13 @@ const FeaturePage = ({ loaderData }: { loaderData: FeaturePageProps }) =>
 
 async function loadData(this: APIThisType, { id }: { id: string }): Promise<FeaturePageProps>
 {
-	const [feature, currentUserEmojiSettings] = await Promise.all([
+	const [feature, currentUserEmojiSettings]: [FeatureType, EmojiSettingType[]] = await Promise.all([
 		this.query('v1/feature', { id: id }),
 		this.query('v1/settings/emoji'),
 	]);
 
 	const [userEmojiSettings] = await Promise.all([
-		feature.messages.length > 0 ? this.query('v1/settings/emoji', { userIds: feature.messages.map((m: any) => m.user?.id) }) : [],
+		feature.messages.length > 0 ? this.query('v1/settings/emoji', { userIds: feature.messages.map(m => m.user?.id) }) : [],
 	]);
 
 	return { feature, currentUserEmojiSettings, userEmojiSettings };

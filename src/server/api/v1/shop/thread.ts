@@ -3,25 +3,32 @@ import { UserError } from '@errors';
 import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
-import { APIThisType, ThreadOrderType, ThreadApplicationType, ThreadType, ACGameItemType } from '@types';
+import { APIThisType, ThreadOrderType, ThreadApplicationType, ThreadType, ACGameItemType, UserType, UserRatingType } from '@types';
 
 async function thread(this: APIThisType, { id, category, getItems = false }: threadProps): Promise<ThreadOrderType | ThreadApplicationType | ThreadType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	if (category === constants.shops.categories.orders)
 	{
-		const [[thread], items, claim] = await Promise.all([
+		const [[thread], items, claim]: [[{
+			id: number
+			node_id: number
+			customer_id: number
+			customer_username: string
+			employee_id: number
+			employee_username: string
+			ordered: Date
+			service: string
+			completed: boolean
+			shop_id: number
+			shop_name: string
+			granted: boolean
+			comment: string
+			game_id: number
+			shortname: string
+		} | undefined], {
+			catalog_item_id: string
+			quantity: number
+		}[], { id: number }[]] = await Promise.all([
 			db.query(`
 				SELECT
 					shop_order.id,
@@ -70,18 +77,23 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 			`, this.userId, id),
 		]);
 
+		if (!thread)
+		{
+			throw new UserError('no-such-order');
+		}
+
 		const [employeeShops] = await db.query(`
 			SELECT shop_user.id
 			FROM shop_user
 			WHERE shop_user.user_id = $1 AND shop_user.active = true AND shop_user.shop_id = $2
 		`, this.userId, thread.shop_id);
 
-		if (!employeeShops && thread.customer_id != this.userId)
+		if (!employeeShops && thread.customer_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
 
-		const catalogItems: ACGameItemType[number]['all']['items'] = getItems && items.length > 0 ? (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${thread.game_id}_all_items`)).filter((ci: any) => items.some((i: any) => ci.id === i.catalog_item_id)) : [];
+		const catalogItems: ACGameItemType[number]['all']['items'] = getItems && items.length > 0 ? (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${thread.game_id}_all_items`)).filter((ci: ACGameItemType[number]['all']['items'][number]) => items.some(i => ci.id === i.catalog_item_id)) : [];
 
 		this.query('v1/notification/destroy', { id: thread.id, type: constants.notification.types.shopOrder });
 
@@ -104,12 +116,12 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 			service: thread.service,
 			status: thread.completed ? 'Completed' : thread.employee_id ? 'In Progress' : 'Unclaimed',
 			comment: thread.comment,
-			items: getItems && items.length > 0 ? items.map((item: any) =>
+			items: getItems && items.length > 0 ? items.map(item =>
 			{
 				return {
 					id: item.catalog_item_id,
 					quantity: item.quantity,
-					name: catalogItems.find((ci: any) => ci.id === item.catalog_item_id)?.name,
+					name: catalogItems.find(ci => ci.id === item.catalog_item_id)?.name,
 				};
 			}) : [],
 			claim: !thread.employee_id && claim.length > 0,
@@ -121,7 +133,26 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 	}
 	else if (category === constants.shops.categories.applications)
 	{
-		const [[thread], owners, contacts, shopGames, activeLast30Days] = await Promise.all([
+		const [[thread], owners, contacts, shopGames, activeLast30Days]: [[{
+			id: number
+			node_id: number
+			user_id: number
+			username: string
+			shop_id: number
+			shop_name: string
+			applied: Date
+			role: string
+			waitlisted: boolean
+			granted: boolean
+			application: string
+			application_format: string
+		} | undefined], { id: number }[], { id: number }[], {
+			game_id: number
+			shortname: string
+		}[], {
+			count: number
+			start_date: string
+		}[]] = await Promise.all([
 			db.query(`
 				SELECT
 					shop_application.id,
@@ -190,7 +221,12 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 			`, id),
 		]);
 
-		const [[employeeApplications], threadUser, threadUserRatings] = await Promise.all([
+		if (!thread)
+		{
+			throw new UserError('no-such-application');
+		}
+
+		const [[employeeApplications], threadUser, threadUserRatings]: [[{ id: number } | undefined], UserType, UserRatingType, void] = await Promise.all([
 			db.query(`
 				SELECT shop_user.id
 				FROM shop_user
@@ -203,7 +239,7 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 			this.query('v1/notification/destroy', { id: thread.id, type: constants.notification.types.shopApplication }),
 		]);
 
-		if (!employeeApplications && thread.user_id != this.userId)
+		if (!employeeApplications && thread.user_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
@@ -234,7 +270,7 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 			role: thread.role,
 			waitlisted: thread.waitlisted,
 			contact: !thread.node_id && (owners.length > 0 || contacts.length > 0),
-			games: shopGames.map((sg: any) =>
+			games: shopGames.map(sg =>
 			{
 				return {
 					id: sg.game_id,
@@ -269,8 +305,8 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 			JOIN user_node_permission ON (user_node_permission.node_id = node.id)
 			WHERE node.id = $1 AND user_node_permission.user_id = $2 AND user_node_permission.node_permission_id = $3 AND user_node_permission.granted = true
 		`, id, this.userId, constants.nodePermissions.read),
-		db.getLatestPage(id, this.userId),
-		db.getLatestPost(id, this.userId),
+		db.getLatestPage(id, this.userId as number),
+		db.getLatestPost(id, this.userId as number),
 	]);
 
 	return <ThreadType>{
@@ -285,6 +321,11 @@ async function thread(this: APIThisType, { id, category, getItems = false }: thr
 		latestPost: latestPost ? latestPost.latest_post : null,
 	};
 }
+
+thread.permissions = [
+	'view-shops',
+	'userId',
+];
 
 thread.apiTypes = {
 	id: {

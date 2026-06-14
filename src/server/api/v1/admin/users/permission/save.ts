@@ -6,13 +6,6 @@ import { APIThisType, UserType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Confirm params
 	const user: UserType = await this.query('v1/user', { id: id });
 
@@ -78,11 +71,16 @@ async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions
 		// Precaution: admins cannot remove Permission Admin from admins
 		if (user.group.identifier === constants.staffIdentifiers.admin)
 		{
-			const [permissionAdminPerm] = await db.query(`
+			const [permissionAdminPerm]: [{ id: number } | undefined] = await db.query(`
 				SELECT id
 				FROM permission
 				WHERE identifier = 'permission-admin'
 			`);
+
+			if (!permissionAdminPerm)
+			{
+				throw new UserError('bad-format');
+			}
 
 			if (!sitePermissionIds.includes(permissionAdminPerm.id) && user.group.identifier !== constants.staffIdentifiers.owner)
 			{
@@ -95,9 +93,9 @@ async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions
 
 	const groupIds = await db.getUserGroups(user.id);
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
-		const [sitePermissions, boardPermissions] = await Promise.all([
+		const [sitePermissions, boardPermissions]: [{ id: number, description: string, granted: boolean }[], { node_id: number, node_permission_id: number, granted: boolean }[]] = await Promise.all([
 			query(`
 				SELECT
 					permissions.permission_id AS id,
@@ -214,7 +212,7 @@ async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions
 		// for each permission, check if value matches given value
 		// sitePermissionIds contains granted values, assume anything not in it is not granted
 
-		await Promise.all(sitePermissions.map(async (permission: any) =>
+		await Promise.all(sitePermissions.map(async permission =>
 		{
 			const newGranted = sitePermissionIds.includes(permission.id);
 
@@ -230,7 +228,7 @@ async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions
 
 		// Do forum permissions
 
-		await Promise.all(boardPermissions.map(async (board: any) =>
+		await Promise.all(boardPermissions.map(async board =>
 		{
 			const newGranted = forumPermissions.some(fp => fp.nodeId === board.node_id && fp.typeId === board.node_permission_id);
 
@@ -250,6 +248,11 @@ async function save(this: APIThisType, { id, sitePermissionIds, forumPermissions
 	};
 }
 
+save.permissions = [
+	'permission-admin',
+	'userId',
+];
+
 save.apiTypes = {
 	id: {
 		type: APITypes.userId,
@@ -265,8 +268,8 @@ save.apiTypes = {
 
 type saveProps = {
 	id: number
-	sitePermissionIds: any[]
-	forumPermissions: any[]
+	sitePermissionIds: string[] | number[]
+	forumPermissions: string[] | { nodeId: number, typeId: number }[]
 };
 
 export default save;

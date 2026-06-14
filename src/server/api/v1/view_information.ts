@@ -7,13 +7,6 @@ import { APIThisType, SuccessType } from '@types';
 
 async function view_information(this: APIThisType, { id }: viewInformationProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// only allow test accounts on test site
 	if (!constants.LIVE_SITE)
 	{
@@ -36,6 +29,11 @@ async function view_information(this: APIThisType, { id }: viewInformationProps)
 		_notice: `Birthday: ${dateUtils.formatDate(birthDate)} ; Email: ${userData.email}`,
 	};
 }
+
+view_information.permissions = [
+	'process-user-tickets',
+	'userId',
+];
 
 view_information.apiTypes = {
 	id: {

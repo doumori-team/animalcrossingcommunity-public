@@ -9,13 +9,6 @@ import { APIThisType, AdoptionThreadsType, UserType } from '@types';
  */
 async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers, locked }: threadsProps): Promise<AdoptionThreadsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'scout-pages' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	scoutIds = await Promise.all(scoutIds.map(async(id) =>
 	{
@@ -40,7 +33,7 @@ async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers,
 
 	const user: UserType = await this.query('v1/user', { id: this.userId });
 
-	if (user.group.identifier === constants.staffIdentifiers.scout && scoutIds.length === 0 && this.userId != null)
+	if (user.group.identifier === constants.staffIdentifiers.scout && scoutIds.length === 0 && this.userId !== null && this.userId !== undefined)
 	{
 		scoutIds = [this.userId];
 	}
@@ -48,9 +41,9 @@ async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers,
 	// Do actual search
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params: (number | string | number[])[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: AdoptionThreadsType['threads'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -83,7 +76,7 @@ async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers,
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (utils.realStringLength(adoptee) > 0)
 	{
@@ -154,7 +147,16 @@ async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers,
 	`;
 
 	// Run query
-	const [threads, scouts] = await Promise.all([
+	const [threads, scouts]: [{
+		node_id: number
+		scout_id: number
+		adoptee_id: number
+		adopted: Date
+		adoptee_username: string
+		scout_username: string
+		last_updated: Date
+		count: number
+	}[], { id: number, username: string }[]] = await Promise.all([
 		db.query(query, ...params),
 		db.query(`
 			SELECT user_account_cache.id, user_account_cache.username
@@ -167,7 +169,7 @@ async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers,
 
 	if (threads.length > 0)
 	{
-		results = await Promise.all(threads.map(async (thread: any) =>
+		results = await Promise.all(threads.map(async thread =>
 		{
 			return {
 				id: thread.node_id,
@@ -196,6 +198,11 @@ async function threads(this: APIThisType, { page, scoutIds, adoptee, newMembers,
 		scouts: scouts,
 	};
 }
+
+threads.permissions = [
+	'scout-pages',
+	'userId',
+];
 
 threads.apiTypes = {
 	page: {

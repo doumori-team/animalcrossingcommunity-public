@@ -1,15 +1,10 @@
 import * as db from '@db';
-import { UserError } from '@errors';
+import { constants } from '@utils';
 import { APIThisType, FeatureStatusType } from '@types';
 
-export default async function statuses(this: APIThisType): Promise<FeatureStatusType[]>
+async function statuses(this: APIThisType): Promise<FeatureStatusType[]>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	return await db.cacheQuery('v1/feature/statuses', `
+	return await db.cacheQuery(constants.cacheKeys.featureStatuses, `
 		SELECT
 			feature_status.id,
 			feature_status.name,
@@ -19,3 +14,9 @@ export default async function statuses(this: APIThisType): Promise<FeatureStatus
 		ORDER BY feature_status.sequence ASC
 	`);
 }
+
+statuses.permissions = [
+	'userId',
+];
+
+export default statuses;

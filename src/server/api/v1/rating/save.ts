@@ -6,18 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function save(this: APIThisType, { id, rating, comment, userId, listingId, adoptionNodeId, shopNodeId }: saveProps): Promise<number | null>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	if (adoptionNodeId > 0)
 	{
@@ -54,7 +42,7 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 
 		// only users involved in trade can submit
 		// only if listing in right status
-		if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId) ||
+		if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId as number) ||
 			![listingStatuses.completed, listingStatuses.failed].includes(listing.status))
 		{
 			throw new UserError('permission');
@@ -80,7 +68,7 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 	}
 
 	// Perform queries
-	if (id != null && id > 0)
+	if (id !== null && id > 0)
 	{
 		let [checkId] = await db.query(`
 			SELECT user_id
@@ -93,7 +81,7 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 			throw new UserError('no-such-rating');
 		}
 
-		if (checkId.user_id != this.userId)
+		if (checkId.user_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
@@ -118,7 +106,7 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 
 		if (listingId > 0)
 		{
-			await db.transaction(async (query: any) =>
+			await db.transaction(async (query: db.QueryType) =>
 			{
 				await Promise.all([
 					query(`
@@ -139,7 +127,7 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 				]);
 			});
 
-			const [updatedListing] = await Promise.all([
+			const [updatedListing]: [ListingType, void] = await Promise.all([
 				this.query('v1/trading_post/listing', { id: listingId }),
 				this.query('v1/notification/create', {
 					id: listingId,
@@ -147,7 +135,7 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 				}),
 			]);
 
-			if (updatedListing.offers.accepted.rating && updatedListing.rating)
+			if (updatedListing.offers.accepted?.rating && updatedListing.rating)
 			{
 				await db.query(`
 					UPDATE listing
@@ -181,8 +169,18 @@ async function save(this: APIThisType, { id, rating, comment, userId, listingId,
 		}
 	}
 
+	if (rating === constants.rating.configs.positive.id)
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.tenratings });
+	}
+
 	return id;
 }
+
+save.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {

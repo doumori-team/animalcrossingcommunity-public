@@ -1,5 +1,6 @@
 import { FileType } from '../fileType.ts';
 import { MarkupFormatType } from '../markupFormatType.ts';
+import { UserPollType } from './userPollType.ts';
 
 // based on v1/users/bio
 type UserBioType = {
@@ -9,6 +10,7 @@ type UserBioType = {
 	format: MarkupFormatType
 	email: string | null
 	files: FileType[]
+	polls: UserPollType[]
 };
 
 export type { UserBioType };

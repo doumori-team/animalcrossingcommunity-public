@@ -1,4 +1,4 @@
-import { redirect } from 'react-router';
+import { redirect, ActionFunctionArgs } from 'react-router';
 
 import { testSitePassword } from 'server/cookies.server.ts';
 import { constants } from '@utils';
@@ -6,7 +6,8 @@ import { RequireTestSite } from '../behavior';
 
 const acc_beta = process.env.TEST_SITE_PASSWORD;
 
-export async function action({ request }: { request: any }): Promise<any>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function action({ request }: { request: ActionFunctionArgs['request'] }): Promise<any>
 {
 	const formData: FormData = await request.formData();
 
@@ -31,12 +32,15 @@ export async function action({ request }: { request: any }): Promise<any>
 	};
 };
 
-const TestSitePassword = ({ actionData }: { actionData: any }) =>
+const TestSitePassword = ({ actionData }: { actionData?: { incorrect: string } }) =>
 {
 	return (
 		<RequireTestSite>
 			<form method='post' encType='multipart/form-data'>
-				<img src={`${constants.AWS_URL}/images/layout/acc-banner-logo.png`} alt='Animal Crossing Community' />
+				<img
+					src={constants.allImages['layout/acc-banner-logo.png']}
+					alt='Animal Crossing Community'
+				/>
 
 				<p>
 					{actionData?.incorrect ?

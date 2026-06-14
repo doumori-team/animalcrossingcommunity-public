@@ -7,18 +7,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, gameId, name, description, content }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-guides' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	if (id > 0)
 	{
 		const [checkId] = await db.query(`
@@ -56,6 +44,11 @@ async function save(this: APIThisType, { id, gameId, name, description, content 
 		id: id,
 	};
 }
+
+save.permissions = [
+	'modify-guides',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {

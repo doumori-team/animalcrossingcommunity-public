@@ -1,11 +1,11 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 
 import { URL } from 'url';
 
 import * as accounts from '@accounts';
 import * as db from '@db';
 import { iso } from 'common/iso.ts';
-import { dateUtils } from '@utils';
+import { dateUtils, constants } from '@utils';
 
 const handler = express();
 
@@ -15,9 +15,10 @@ const handler = express();
  */
 handler.get('/go', (request, response, next) =>
 {
+	const hostHeader = request.headers['x-forwarded-host'] || request.get('host');
 	response.set('Cache-Control', 'no-store');
 
-	const host = request.protocol + '://' + request.get('host');
+	const host = request.protocol + '://' + hostHeader;
 	const callbackUrl = new URL('/auth/ready', host);
 	accounts.initiate(callbackUrl.href)
 	.then(authorizeUrl => response.redirect(authorizeUrl))
@@ -30,27 +31,49 @@ handler.get('/go', (request, response, next) =>
  * redirect them to the homepage.
  * Their user ID can be retrieved as request.session.user later.
  */
-handler.get('/ready', (request: any, response: any, next: any) =>
+handler.get('/ready', (request: Request, response: Response, next: NextFunction) =>
 {
 	response.set('Cache-Control', 'no-store');
 
-	accounts.getToken(request.query.token, request.query.verifier)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	accounts.getToken((request as any).query.token, (request as any).query.verifier)
 	.then(db.updateAccountCache)
 	.then(async details =>
 	{
+		// you always have a session
+		// this tells session-management to log it into the db
+		// and associate it with a user
 		request.session.user = details.id;
 
 		const [user] = await db.query(`
 			SELECT
 				users.last_active_time,
 				user_account_cache.signup_date,
-				user_account_cache.username
+				user_account_cache.username,
+				users.stay_forever
 			FROM users
 			JOIN user_account_cache ON (user_account_cache.id = users.id)
 			WHERE users.id = $1
 		`, details.id);
 
 		request.session.username = user.username;
+
+		Promise.all([
+			(await iso).query(request.session.user, 'v1/users/badge/check', { badgeId: constants.badges.seasons }),
+			(await iso).query(request.session.user, 'v1/users/badge/check', { badgeId: constants.badges.oneyear }),
+			(await iso).query(request.session.user, 'v1/users/badge/check', { badgeId: constants.badges.fiveyears }),
+			(await iso).query(request.session.user, 'v1/users/badge/check', { badgeId: constants.badges.tenyears }),
+			(await iso).query(request.session.user, 'v1/users/badge/check', { badgeId: constants.badges.twentyyears }),
+		]);
+
+		if (user.stay_forever)
+		{
+			request.session.cookie.maxAge = 365 * 24 * 60 * 60 * 1000;
+		}
+
+		(await iso).query(details.id, 'v1/session/update', {
+			url: 'login',
+		});
 
 		if (user.last_active_time === null && dateUtils.isNewMember(user.signup_date))
 		{
@@ -74,7 +97,7 @@ handler.get('/ready', (request: any, response: any, next: any) =>
  * against CSRF (though it may dissuade a casual opportunist).
  * See: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)#Only_accepting_POST_requests
  */
-handler.post('/logout', async (request: any, response: any, next: any) =>
+handler.post('/logout', async (request: Request, response: Response, next: NextFunction) =>
 {
 	response.set('Cache-Control', 'no-store');
 
@@ -82,21 +105,28 @@ handler.post('/logout', async (request: any, response: any, next: any) =>
 
 	if (request.session.user)
 	{
-		// the user is logged in: these are the steps needed to log them out.
-		// logoutProcess will resolve when all the asynchronous steps have
-		//   completed.
 		const userId = request.session.user;
-		delete request.session.user;
-		delete request.session.username;
 
-		logoutProcess = Promise.all(
-			[
-				accounts.logout(userId),
-				db.logout(userId),
-				(await iso).query(userId, 'v1/session/update', {
-					url: 'logout',
-				}),
-			]);
+		// delete the session from the database
+		request.session.destroy((err: unknown) =>
+		{
+			if (err)
+			{
+				return next(err);
+			}
+
+			// delete the cookie from the browser
+			response.clearCookie('connect.sid');
+		});
+
+		logoutProcess = Promise.all([
+			accounts.logout(userId),
+			// remove any other instances of them being logged in
+			db.logout(userId),
+			(await iso).query(userId, 'v1/session/update', {
+				url: 'logout',
+			}),
+		]);
 	}
 	else
 	{
@@ -113,7 +143,7 @@ handler.post('/logout', async (request: any, response: any, next: any) =>
 });
 
 // Error handler
-handler.use((error: any, request: any, response: any, _: any) =>
+handler.use((error: unknown, request: Request, response: Response, _: NextFunction) =>
 {
 	response.set('Cache-Control', 'no-store');
 

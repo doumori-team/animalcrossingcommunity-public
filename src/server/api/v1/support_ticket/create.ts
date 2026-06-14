@@ -6,18 +6,6 @@ import { APIThisType, BanLengthType, MarkupStyleType } from '@types';
 
 async function create(this: APIThisType, { title, message, username, staffOnly, banLengthId, userTicketId, format }: createProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'submit-support-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	let userId = this.userId;
 
@@ -25,7 +13,7 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 
 	if (processSupportTickets)
 	{
-		userTicketId = userTicketId != null && userTicketId > 0 ? userTicketId : null;
+		userTicketId = userTicketId !== null && userTicketId > 0 ? userTicketId : null;
 
 		const [checkUser] = await db.query(`
 			SELECT id
@@ -40,9 +28,9 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 
 		userId = checkUser.id;
 
-		if (banLengthId != null && banLengthId > 0)
+		if (banLengthId !== null && banLengthId > 0)
 		{
-			const [ban] = await db.query(`
+			const [ban]: [{ days: number | null }] = await db.query(`
 				SELECT days
 				FROM ban_length
 				WHERE id = $1::int
@@ -60,10 +48,10 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 			{
 				if (currentBan.id === banLengthId)
 				{
-					banLengthId = null;
+					// continue, no change
 				}
 				// can't make a ban longer
-				else if (currentBan.days < ban.days)
+				else if (ban.days === null || currentBan.days !== null && currentBan.days < ban.days)
 				{
 					throw new UserError('longer-ban');
 				}
@@ -82,7 +70,7 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 	}
 
 	// Perform queries
-	const supportTicketId = await db.transaction(async (query: any) =>
+	const supportTicketId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [supportTicket] = await query(`
 			INSERT INTO support_ticket (title, user_id, user_ticket_id, ban_length_id, staff_only) VALUES
@@ -91,9 +79,9 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 		`, title, userId, userTicketId, banLengthId, staffOnly);
 
 		await query(`
-			INSERT INTO support_ticket_message (user_id, support_ticket_id, message, message_format) VALUES
-			($1::int, $2::int, $3, $4)
-		`, this.userId, supportTicket.id, message, format);
+			INSERT INTO support_ticket_message (user_id, support_ticket_id, message, message_format, staff_only) VALUES
+			($1::int, $2::int, $3, $4, $5)
+		`, this.userId, supportTicket.id, message, format, staffOnly);
 
 		await query(`
 			UPDATE users
@@ -116,6 +104,11 @@ async function create(this: APIThisType, { title, message, username, staffOnly, 
 		id: supportTicketId,
 	};
 }
+
+create.permissions = [
+	'submit-support-tickets',
+	'userId',
+];
 
 create.apiTypes = {
 	title: {

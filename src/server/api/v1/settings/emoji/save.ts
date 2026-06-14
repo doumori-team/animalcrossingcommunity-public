@@ -3,15 +3,10 @@ import { UserError } from '@errors';
 import emojiDefs from 'common/markup/emoji.json';
 import { APIThisType, EmojiSettingType, SuccessType } from '@types';
 
-export default async function save(this: APIThisType, emojiSettings: EmojiSettingType[]): Promise<SuccessType>
+async function save(this: APIThisType, emojiSettings: EmojiSettingType[]): Promise<SuccessType>
 {
 	// Check Params
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	let settings = [];
+	let settings: { type: string, category: string }[] = [];
 
 	for (let key of Object.keys(emojiSettings))
 	{
@@ -24,9 +19,9 @@ export default async function save(this: APIThisType, emojiSettings: EmojiSettin
 		}
 
 		// Confirm valid category
-		const category = String(emojiSettings[key as any] || '').trim();
+		const category = String(emojiSettings[key] || '').trim();
 
-		if (!(emojiDefs[2] as any).includes(category))
+		if (!(emojiDefs[2] as string[]).includes(category))
 		{
 			throw new UserError('bad-format');
 		}
@@ -40,7 +35,7 @@ export default async function save(this: APIThisType, emojiSettings: EmojiSettin
 
 	// Perform queries
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await query(`
 			DELETE FROM emoji_setting
@@ -65,3 +60,9 @@ export default async function save(this: APIThisType, emojiSettings: EmojiSettin
 		_success: 'Your emoji settings have been updated.',
 	};
 }
+
+save.permissions = [
+	'userId',
+];
+
+export default save;

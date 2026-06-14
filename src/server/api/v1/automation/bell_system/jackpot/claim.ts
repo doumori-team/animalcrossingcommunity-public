@@ -1,24 +1,12 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
-import { APIThisType, SuccessType } from '@types';
+import { APIThisType, SuccessType, UserType } from '@types';
 
 /*
  * Claim jackpot for yourself.
  */
-export default async function claim(this: APIThisType): Promise<SuccessType>
+async function claim(this: APIThisType): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
 
 	const bells: number = await this.query('v1/treasure/jackpot');
@@ -44,9 +32,9 @@ export default async function claim(this: APIThisType): Promise<SuccessType>
 		REFRESH MATERIALIZED VIEW top_bell_last_jackpot
 	`);
 
-	await db.regenerateTopBells({ userId: this.userId });
+	await db.regenerateTopBells({ userId: this.userId as number });
 
-	const [user] = await Promise.all([
+	const [user]: [UserType] = await Promise.all([
 		this.query('v1/user', { id: this.userId }),
 	]);
 
@@ -54,3 +42,10 @@ export default async function claim(this: APIThisType): Promise<SuccessType>
 		_success: `Congratulations! You have won the JACKPOT, bringing your total to ${user.bells} Bells!`,
 	};
 }
+
+claim.permissions = [
+	'TEST_SITE',
+	'userId',
+];
+
+export default claim;

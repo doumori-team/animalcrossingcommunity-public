@@ -3,17 +3,10 @@ import { UserError } from '@errors';
 import * as accounts from '@accounts';
 import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, ListingType } from '@types';
+import { APIThisType, ListingType, OfferType, UserType, UserRatingType, ACGameType, UserLiteType } from '@types';
 
 async function listing(this: APIThisType, { id }: listingProps): Promise<ListingType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [[listing]] = await Promise.all([
 		db.query(`
 			SELECT
@@ -36,8 +29,17 @@ async function listing(this: APIThisType, { id }: listingProps): Promise<Listing
 
 	const offerStatuses = constants.tradingPost.offerStatuses;
 
-	const [birthDate, offers, comments, [listingOfferId], [offerAcceptedId], creator, creatorRatings, game] = await Promise.all([
-		listing.game_id === null && this.userId != null ? accounts.getBirthDate(this.userId) : null,
+	const [birthDate, offers, comments, [listingOfferId], [offerAcceptedId], creator, creatorRatings, game]: [Date | null, {
+		id: number
+		status: string
+	}[], {
+		id: number
+		user_id: number
+		created: Date
+		comment: string
+		comment_format: string
+	}[], [{ id: number }], [{ id: number } | undefined], UserType, UserRatingType, ACGameType | null, void] = await Promise.all([
+		listing.game_id === null && this.userId !== null ? accounts.getBirthDate(this.userId) : null,
 		db.query(`
 			SELECT
 				listing_offer.id,
@@ -78,7 +80,7 @@ async function listing(this: APIThisType, { id }: listingProps): Promise<Listing
 	]);
 
 	// confirm age
-	if (birthDate != null)
+	if (birthDate !== null)
 	{
 		if (dateUtils.getAge(birthDate) < constants.tradingPost.realTradeAge)
 		{
@@ -86,14 +88,20 @@ async function listing(this: APIThisType, { id }: listingProps): Promise<Listing
 		}
 	}
 
-	const [listingOffer, offerAccepted, offersList, commentsList] = await Promise.all([
+	const [listingOffer, offerAccepted, offersList, commentsList]: [OfferType, OfferType | null, OfferType[], {
+		id: number
+		user: UserLiteType
+		formattedDate: string
+		comment: string
+		format: string
+	}[]] = await Promise.all([
 		this.query('v1/trading_post/listing/offer', { id: listingOfferId.id }),
 		offerAcceptedId ? this.query('v1/trading_post/listing/offer', { id: offerAcceptedId.id }) : null,
-		Promise.all(offers.filter((offer: any) => offer.status !== offerStatuses.accepted).map(async (offer: any) =>
+		Promise.all(offers.filter(offer => offer.status !== offerStatuses.accepted).map(async offer =>
 		{
 			return this.query('v1/trading_post/listing/offer', { id: offer.id });
 		})),
-		Promise.all(comments.map(async (comment: any) =>
+		Promise.all(comments.map(async comment =>
 		{
 			return {
 				id: comment.id,
@@ -133,6 +141,10 @@ async function listing(this: APIThisType, { id }: listingProps): Promise<Listing
 		bioLocation: listingOffer.bioLocation,
 	};
 }
+
+listing.permissions = [
+	'use-trading-post',
+];
 
 listing.apiTypes = {
 	id: {

@@ -16,14 +16,9 @@ async function follow(this: APIThisType, { id }: followProps): Promise<NodeType 
 		throw new UserError('permission');
 	}
 
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const node: NodeLiteType = await this.query('v1/node/lite', { id: id });
 
-	if (!['board', 'thread'].includes(node.type) || [id, node.parentId].includes(constants.boardIds.privateThreads) || [id, node.parentId].includes(constants.boardIds.publicThreads) || [id].includes(constants.boardIds.accForums) || [id].includes(constants.boardIds.announcements) || [id, node.parentId].includes(constants.boardIds.shopThread) || [id, node.parentId].includes(constants.boardIds.adopteeThread))
+	if ([id, node.parentId].includes(constants.boardIds.privateThreads) || [id, node.parentId].includes(constants.boardIds.publicThreads) || [id, node.parentId].includes(constants.boardIds.staffThreads) || [id].includes(constants.boardIds.accForums) || [id].includes(constants.boardIds.announcements) || [id, node.parentId, node.parentId2].includes(constants.boardIds.shopThread) || [id, node.parentId, node.parentId2].includes(constants.boardIds.adopteeThread))
 	{
 		// node/create will try to follow, just return null so it doesn't clog up logs
 		return null;
@@ -44,6 +39,10 @@ async function follow(this: APIThisType, { id }: followProps): Promise<NodeType 
 				DELETE FROM followed_node
 				WHERE node_id = $1::int AND user_id = $2::int
 			`, id, this.userId),
+			db.query(`
+				DELETE FROM notified_node
+				WHERE node_id = $1::int AND user_id = $2::int
+			`, id, this.userId),
 			this.query('v1/notification/destroy', { id: id, type: types.FT }),
 			this.query('v1/notification/destroy', { id: id, type: types.FB }),
 		]);
@@ -54,10 +53,20 @@ async function follow(this: APIThisType, { id }: followProps): Promise<NodeType 
 			INSERT INTO followed_node (node_id, user_id) VALUES
 			($1::int, $2::int)
 		`, id, this.userId);
+
+		await db.query(`
+			INSERT INTO notified_node (node_id, user_id) VALUES
+			($1::int, $2::int)
+			ON CONFLICT (node_id, user_id) DO NOTHING
+		`, id, this.userId);
 	}
 
 	return await this.query('v1/node/full', { id: id });
 }
+
+follow.permissions = [
+	'userId',
+];
 
 follow.apiTypes = {
 	id: {

@@ -7,13 +7,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pattern, placeholder, sequence, isEnabled }: saveProps): Promise<{ id: number }>
 {
-	const permission: boolean = await this.query('v1/permission', { permission: 'games-admin' });
-
-	if (!permission)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	if (!placeholder.match(new RegExp(pattern)))
 	{
@@ -26,7 +19,7 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 	}
 
 	// Save information
-	const result = await db.transaction(async (query: any) =>
+	const result = await db.transaction(async (query: db.QueryType) =>
 	{
 		if (id > 0)
 		{
@@ -173,6 +166,10 @@ async function save(this: APIThisType, { id, gameConsoleId, name, shortName, pat
 		id: result.id,
 	};
 }
+
+save.permissions = [
+	'games-admin',
+];
 
 save.apiTypes = {
 	id: {

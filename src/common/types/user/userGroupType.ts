@@ -3,7 +3,6 @@ type UserGroupType = {
 	id: number
 	identifier: string
 	name: string
-	parent_id: number
 	groups?: UserGroupType[]
 };
 

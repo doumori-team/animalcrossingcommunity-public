@@ -7,6 +7,8 @@ import BuddiesMenu from '@/components/layout/BuddiesMenu.tsx';
 import { Button } from '@form';
 import { LocationType, BuddiesType } from '@types';
 
+const navbardockmenubreakpoint = 1100;
+
 /*
  * Button that appears in the navbar to open a menu.
  * Props:
@@ -20,11 +22,13 @@ const NavbarMenuButton = ({
 	children,
 	fallbackLink,
 	buddies,
+	dockMenu = false,
 }: NavbarMenuButtonProps) =>
 {
-	const [menuOpen, setMenuOpen] = useState<boolean>(false);
+	const [menuOpen, setMenuOpen] = useState<boolean>(dockMenu);
 
 	const location = useLocation() as LocationType;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const ref = useRef<any>(null);
 
 	let className = 'NavbarMenuButton';
@@ -34,10 +38,29 @@ const NavbarMenuButton = ({
 		className += ' NavbarMenuButton-active';
 	}
 
+	if (buddies)
+	{
+		className += ' NavbarMenuButton-buddies';
+	}
+	else
+	{
+		if (dockMenu)
+		{
+			className += ' NavbarMenuButton-siteMenu';
+		}
+		else
+		{
+			className += ' NavbarMenuButton-siteMenuNotDocked';
+		}
+	}
+
 	// Close the menu whenever we navigate away from the current page.
 	useEffect(() =>
 	{
-		setMenuOpen(false);
+		if (!dockMenu || dockMenu && typeof window !== 'undefined' && window.innerWidth < navbardockmenubreakpoint)
+		{
+			setMenuOpen(false);
+		}
 	}, [location.pathname]);
 
 	// close the menu whenever we click outside the site menu
@@ -45,9 +68,12 @@ const NavbarMenuButton = ({
 	{
 		const handleClickOutside = (event: MouseEvent) =>
 		{
-			if (!ref.current?.contains(event.target))
+			if (!dockMenu || dockMenu && typeof window !== 'undefined' && window.innerWidth < navbardockmenubreakpoint)
 			{
-				setMenuOpen(false);
+				if (!ref.current?.contains(event.target))
+				{
+					setMenuOpen(false);
+				}
 			}
 		};
 
@@ -77,7 +103,7 @@ const NavbarMenuButton = ({
 				buddies ?
 					<BuddiesMenu dynamic closeFunc={toggleMenu} ref={ref} buddies={buddies} />
 					:
-					<SiteMenu dynamic closeFunc={toggleMenu} ref={ref} />
+					<SiteMenu dynamic closeFunc={toggleMenu} ref={ref} dockMenu={dockMenu} />
 
 			)}
 		</RequireClientJS>
@@ -85,9 +111,10 @@ const NavbarMenuButton = ({
 };
 
 type NavbarMenuButtonProps = {
-	children: ReactNode
+	children?: ReactNode
 	fallbackLink: string
 	buddies?: BuddiesType
+	dockMenu?: boolean
 };
 
 export default NavbarMenuButton;

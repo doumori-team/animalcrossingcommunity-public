@@ -9,12 +9,7 @@ import { APIThisType } from '@types';
  */
 async function remove(this: APIThisType, { nodeIds }: removeProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	nodeIds = await Promise.all(nodeIds.map(async (id) =>
+	nodeIds = await Promise.all((nodeIds as string[]).map(async id =>
 	{
 		const [node] = await db.query(`
 			SELECT id, parent_node_id
@@ -56,6 +51,10 @@ async function remove(this: APIThisType, { nodeIds }: removeProps): Promise<void
 	await db.updatePTsLookupMass(nodeIds);
 }
 
+remove.permissions = [
+	'userId',
+];
+
 remove.apiTypes = {
 	nodeIds: {
 		type: APITypes.array,
@@ -64,7 +63,7 @@ remove.apiTypes = {
 };
 
 type removeProps = {
-	nodeIds: any[]
+	nodeIds: string[] | number[]
 };
 
 export default remove;

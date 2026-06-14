@@ -7,13 +7,6 @@ import { APIThisType } from '@types';
 
 async function reply(this: APIThisType, { id, message }: replyProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [supportEmail] = await db.query(`
 		SELECT subject, from_user_id, from_email
 		FROM support_email
@@ -27,7 +20,12 @@ async function reply(this: APIThisType, { id, message }: replyProps): Promise<vo
 
 	const subject = `RE: ${supportEmail.subject}`;
 
-	let data: any = {
+	let data: {
+		subject: string
+		text: string
+		email?: string
+		user?: number
+	} = {
 		subject: subject,
 		text: message.replace(constants.regexes.newLineToHTML, '<br/>'),
 	};
@@ -59,6 +57,11 @@ async function reply(this: APIThisType, { id, message }: replyProps): Promise<vo
 		`, this.userId, supportEmail.from_user_id, supportEmail.from_email, subject, message),
 	]);
 }
+
+reply.permissions = [
+	'process-user-tickets',
+	'userId',
+];
 
 reply.apiTypes = {
 	id: {

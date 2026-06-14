@@ -12,7 +12,7 @@ const TownSummary = ({ id, name, game, userId, characters, residents, island }: 
 
 	const characterIconImg = (character: CharacterType) =>
 	{
-		let url = `${constants.AWS_URL}/images/icons/character.png`;
+		let url = constants.allImages['icons/character.png'];
 
 		const hasFaceIcon = [
 			constants.gameIds.ACGC,

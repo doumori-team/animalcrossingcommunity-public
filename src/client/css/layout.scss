@@ -12,9 +12,10 @@ $breakpoint-fullsize: 81.25rem;
 
 /* Dimensions: Kept at the top for easy modification. */
 $navbar-height: 2.8125rem;
-$navbar-width: $breakpoint-fullsize;
+$navbar-width: 20rem;
 $navbar-breakpoint: mixins.px2rem(1215px);
 $navbar-padding-thickness: .525rem;
+$navbar-dockmenu-breakpoint: mixins.px2rem(1100px);
 
 .App {
 	min-height: 100vh; /* ensure background extends over whole page */
@@ -29,8 +30,57 @@ $navbar-padding-thickness: .525rem;
 .SiteContent {
 	width: 100%;
 	max-width: $breakpoint-fullsize;
-	margin: 1.5rem auto;
+	margin-top: 1.5rem;
+	margin-bottom: 1.5rem;
+	margin-left: auto;
+	margin-right: auto;
 	flex-grow: 1; /* expand to push SiteFooter to bottom */
+}
+
+@include mixins.responsive($navbar-dockmenu-breakpoint) {
+	.App-dockMenu {
+		.SiteHeader > .Navbar,
+		.HomePageBanner,
+		.SiteContent,
+		.SiteFooter {
+			padding-left: $navbar-width;
+		}
+
+		.HomePageBanner {
+			background-origin: content-box;
+		}
+
+		.SiteContent {
+			max-width: 103rem;
+
+			.HomePage_button {
+				width: initial;
+			}
+		}
+
+		.SiteHeader > .Navbar > .Navbar_content {
+			max-width: 84rem;
+		}
+
+		.NavbarItem-siteMenu {
+			width: 0;
+
+			.NavbarMenuButton-siteMenu {
+				display: none;
+			}
+
+			.SiteMenu {
+				.Navbar {
+					display: none;
+				}
+			}
+		}
+
+		.NavbarItem-username,
+		.NavbarItem-logout {
+			display: none !important;
+		}
+	}
 }
 
 .Navbar {
@@ -58,7 +108,7 @@ $navbar-padding-thickness: .525rem;
 
 	/* Restrict the header from becoming too wide on big screens */
 	width: 100%;
-	max-width: $navbar-width;
+	max-width: $breakpoint-fullsize;
 	margin: auto;
 
 	/* Lay out elements so that spacers grow to fill the maximum available space */
@@ -191,9 +241,17 @@ $navbar-padding-thickness: .525rem;
 	&.Menu_link_indented {
 		padding-left: 2em;
 	}
-	
+
 	&.SiteMenu_userInfo {
 		flex-direction: column;
+
+		div {
+			display: flex;
+
+			.separator {
+				margin: 0 0.2rem;
+			}
+		}
 	}
 
 	&.Menu_link_header {
@@ -227,11 +285,12 @@ $navbar-padding-thickness: .525rem;
 		}
 	}
 
-	.Menu_link_subtext {
+	.Menu_link_subtext,
+	.LogoutButton {
 		font-size: 85%;
 		line-height: 1.5em;
 		font-weight: normal;
-	
+
 		&.Menu_link_subtext_separate_line {
 			padding-bottom: 0.9375em;
 		}
@@ -254,27 +313,55 @@ $navbar-padding-thickness: .525rem;
 	top: 0;
 	left: 0;
 
-	width: 80vw; max-width: 24rem;
+	width: 81vw;
+	max-width: $navbar-width;
 	height: 100vh;
 
 	/* scroll bar */
 	overflow: auto;
+}
 
-	@media only screen and (min-width: mixins.px2rem(2500px)) {
+@media only screen and (min-width: mixins.px2rem(2500px)) {
+	.SiteMenu-dynamic.SiteMenu-NotDocked {
 		left: 20%;
 	}
 }
 
-.NavbarMenuButton::before {
+.NavbarMenuButton-siteMenuNotDocked::before,
+.NavbarMenuButton-buddies::before {
 	content: '';
-	display: block; width: 100%; height: 100vh;
-	position: absolute; left: 0; top: 0;
+	display: block;
+	width: 100%;
+	height: 100vh;
+	position: absolute;
+	left: 0;
+	top: 0;
 	z-index: 29; /* just behind SiteMenu */
-	background: rgba(0, 0, 0, 0.4); cursor: default;
+	background: rgba(0, 0, 0, 0.4);
+	cursor: default;
 	opacity: 0;
 	will-change: opacity;
 	pointer-events: none;
 	transition: opacity 0.3s cubic-bezier(0, 0, 0.3, 1);
+}
+
+@media only screen and (max-width: $navbar-dockmenu-breakpoint) {
+	.NavbarMenuButton-siteMenu::before {
+		content: '';
+		display: block;
+		width: 100%;
+		height: 100vh;
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 29; /* just behind SiteMenu */
+		background: rgba(0, 0, 0, 0.4);
+		cursor: default;
+		opacity: 0;
+		will-change: opacity;
+		pointer-events: none;
+		transition: opacity 0.3s cubic-bezier(0, 0, 0.3, 1);
+	}
 }
 
 .NavbarMenuButton-active::before {
@@ -295,7 +382,8 @@ $navbar-padding-thickness: .525rem;
 
 @include mixins.responsive(48rem) {
 	.SiteFooter_gridContainer {
-		max-width: $breakpoint-fullsize; margin: auto;
+		max-width: $breakpoint-fullsize;
+		margin: auto;
 		display: grid;
 		grid: auto-flow / 1fr 1fr 1fr;
 		grid-gap: mixins.px2rem(24px); gap: mixins.px2rem(24px);
@@ -353,7 +441,7 @@ $navbar-padding-thickness: .525rem;
 
 .BuddiesMen_lastActive {
 	display: flex;
-    align-items: baseline;
+	align-items: baseline;
 }
 
 .SiteHeader_notificationCount, .SiteHeader_buddiesCount {
@@ -405,10 +493,14 @@ $navbar-padding-thickness: .525rem;
 			top: 100%;
 			left: -113%;
 
-			width: 354%;
+			width: 335%;
 			height: auto;
 			max-width: mixins.px2rem(159px);
 			line-height: mixins.px2rem(15px);
+
+			@media only screen and (max-width: mixins.px2rem(462px)){
+				width: 300%;
+			}
 
 			.SiteHeader_notificationArrow {
 				transform: translate(mixins.px2rem(66px));
@@ -478,24 +570,12 @@ $navbar-padding-thickness: .525rem;
 	fill: currentColor;
 }
 
-img[src*="/reaction/"],
-img[src*="/female-tone1/"],
-img[src*="/female-tone2/"],
-img[src*="/female-tone3/"],
-img[src*="/male-tone1/"],
-img[src*="/male-tone2/"],
-img[src*="/male-tone3/"] {
+.icon-reaction {
 	height: 25px;
 }
 
 .Markup {
-	img[src*="/reaction/"],
-	img[src*="/female-tone1/"],
-	img[src*="/female-tone2/"],
-	img[src*="/female-tone3/"],
-	img[src*="/male-tone1/"],
-	img[src*="/male-tone2/"],
-	img[src*="/male-tone3/"] {
+	.icon-reaction {
 		vertical-align: sub;
 	}
 }
@@ -847,35 +927,35 @@ img[src*="/male-tone3/"] {
 	@extend .GenericButtonWithCustomImage;
 
 	&_acgc {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_GC.png);
+		background-image: url(/src/client/images/boxart/GameButton_GC.png);
 	}
 
 	&_acww {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_WW.png);
+		background-image: url(/src/client/images/boxart/GameButton_WW.png);
 	}
 
 	&_accf {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_CF.png);
+		background-image: url(/src/client/images/boxart/GameButton_CF.png);
 	}
 
 	&_acnl {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_NL.png);
+		background-image: url(/src/client/images/boxart/GameButton_NL.png);
 	}
 
 	&_achhd {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_HHD.png);
+		background-image: url(/src/client/images/boxart/GameButton_HHD.png);
 	}
 
 	&_acaf {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_aF.png);
+		background-image: url(/src/client/images/boxart/GameButton_aF.png);
 	}
 
 	&_acpc {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_PC.png);
+		background-image: url(/src/client/images/boxart/GameButton_PC.png);
 	}
 
 	&_acnh {
-		background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/boxart/GameButton_NH.png);
+		background-image: url(/src/client/images/boxart/GameButton_NH.png);
 	}
 }
 
@@ -885,10 +965,6 @@ img[src*="/male-tone3/"] {
 	p {
 		display: none;
 	}
-}
-
-.ImageUpload {
-	@extend .GenericSection;
 }
 
 .HonoraryCitizensPage {
@@ -932,13 +1008,23 @@ img[src*="/male-tone3/"] {
 	width: mixins.px2rem(100px);
 }
 
-img[src*="/icons/"], input[src*="/icons/"] {
+img[src*="/assets/icons/"], input[src*="/assets/icons/"] {
 	padding-left: mixins.px2rem(2px);
 	padding-right: mixins.px2rem(2px);
 }
 
-input[src*="/icons/wifi"] {
+input[src*="/assets/icons/notifications"],
+input[src*="/assets/icons/nonotifications"] {
+	width: mixins.px2rem(30px);
+}
+
+input[src*="/assets/icons/wifi"] {
 	height: mixins.px2rem(24px);
+}
+
+.icon-sentence {
+	height: mixins.px2rem(15px);
+	vertical-align: sub;
 }
 
 .Modal_container {
@@ -1076,7 +1162,7 @@ input[src*="/icons/wifi"] {
 	}
 }
 
-/* 
+/*
  * Images render as display:inline by default, which stretches their containers slightly to make space for text descenders, adding artificial lower padding.
  * Change this to display:block so get rid of that, so that the pitfall icon can be cleanly vertically aligned with any text it accompanies.
  */
@@ -1084,4 +1170,74 @@ input[src*="/icons/wifi"] {
 	input[type="image"] {
 		display: block;
 	}
+}
+
+.ReportProblem-js {
+	display: none;
+}
+
+.ReportProblem.ReportProblem-js + .Node_dotSeparator {
+	display: none;
+}
+
+.show-reports .ReportProblem-js,
+.show-reports .Node_dotSeparator:not(:last-child) {
+	display: initial !important;
+}
+
+.ReportButton {
+	position: fixed;
+	bottom: mixins.px2rem(20px);
+	right: mixins.px2rem(20px);
+	z-index: 9999;
+	cursor: pointer;
+
+	background: #f8f8f8;
+	border-radius: 50%;
+	padding: 0.6rem;
+	height: mixins.px2rem(52px);
+
+	box-shadow: 0 -1px #0000004d inset,0 1px #ffffff4d inset;
+	border: 1px solid rgba(0, 0, 0, .7);
+}
+
+.tribute-container {
+	position: absolute;
+	overflow: hidden;
+	display: block;
+}
+
+.tribute-container ul {
+	margin: 0;
+	margin-top: mixins.px2rem(2px);
+	padding: 0;
+	list-style: none;
+	background: #efefef;
+	max-height: mixins.px2rem(400px);
+	overflow-y: auto;
+}
+
+.tribute-container li {
+	padding: mixins.px2rem(5px);
+	cursor: pointer;
+}
+
+.tribute-container li.highlight {
+	background: #ddd;
+}
+
+.tribute-container li span {
+	font-weight: bold;
+}
+
+.tribute-container li.no-match {
+	cursor: default;
+}
+
+.tribute-container .menu-highlighted {
+	font-weight: bold;
+}
+
+ol.alpha-list {
+  list-style-type: upper-alpha;
 }

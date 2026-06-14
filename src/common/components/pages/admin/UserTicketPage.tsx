@@ -31,6 +31,7 @@ const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 	const [rule, setRule] = useState<CurrentRuleType['currentRules'][number]['rules'][number] | undefined>(rules.find(c => c !== undefined)?.rules.find(r => r !== undefined));
 	const [actionId, setActionId] = useState<UserTicketActionType['id']>(noActionAction ? noActionAction.id : 0);
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const textareaRef = useRef<any>(null);
 
 	const referenceLink = utils.getReferenceLink(userTicket);
@@ -52,7 +53,7 @@ const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 	{
 		const ruleId = Number(value);
 
-		let rule = null;
+		let rule: CurrentRuleType['currentRules'][number]['rules'][number] | undefined | null = null;
 
 		for (let category of rules)
 		{
@@ -231,7 +232,7 @@ const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 									>
 										User Log
 									</Link>) {userTicket.info && <img
-										src={`${constants.AWS_URL}/images/icons/icon_pending.png`}
+										src={constants.allImages['icons/icon_pending.png']}
 										title={userTicket.info}
 										alt={userTicket.info}
 									/>}
@@ -459,6 +460,7 @@ const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 															options={rules.map(c => c.rules).flat().filter(r => r.reportable)}
 															optionsMapping={{
 																value: 'id',
+																// eslint-disable-next-line @typescript-eslint/no-explicit-any
 																label: (rule: any) => `${rule.categoryId}.${rule.number} - ${rule.name ? rule.name : rule.description}`,
 															}}
 															required
@@ -550,7 +552,7 @@ const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 															label='Current Ban Length'
 															name='banLengthId'
 															value={userTicket.currentBan?.id}
-															options={[{ id: null, description: 'Not Banned' } as any].concat(banLengths)}
+															options={[{ id: 0, description: 'Not Banned' }].concat(banLengths)}
 															optionsMapping={{ value: 'id', label: 'description' }}
 															required
 														/>
@@ -573,7 +575,7 @@ const UserTicketPage = ({ loaderData }: { loaderData: UserTicketPageProps }) =>
 
 async function loadData(this: APIThisType, { id }: { id: string }): Promise<UserTicketPageProps>
 {
-	const [userTicket, denyReasons, rules, actions, boards, banLengths, currentUserEmojiSettings] = await Promise.all([
+	const [userTicket, denyReasons, rules, actions, boards, banLengths, currentUserEmojiSettings]: [UserTicketType, DenyReasonType[], CurrentRuleType, UserTicketActionType[], NodeBoardType[], UserTicketBanLengthType[], EmojiSettingType[]] = await Promise.all([
 		this.query('v1/user_ticket', { id: id }),
 		this.query('v1/user_ticket/deny_reasons'),
 		this.query('v1/rule/current'),
@@ -585,14 +587,14 @@ async function loadData(this: APIThisType, { id }: { id: string }): Promise<User
 
 	const [ticketUserEmojiSettings, userEmojiSettings] = await Promise.all([
 		this.query('v1/settings/emoji', { userIds: [userTicket.violator.id] }),
-		userTicket.messages.length > 0 ? this.query('v1/settings/emoji', { userIds: userTicket.messages.map((m: any) => m.user.id) }) : null,
+		userTicket.messages.length > 0 ? this.query('v1/settings/emoji', { userIds: userTicket.messages.map(m => m.user.id) }) : null,
 	]);
 
 	return {
 		userTicket,
 		denyReasons,
 		rules: rules.currentRules,
-		actions: actions.filter((a: any) => a.types.includes(userTicket.type.identifier)),
+		actions: actions.filter(a => a.types.includes(userTicket.type.identifier)),
 		boards,
 		ticketUserEmojiSettings,
 		banLengths,

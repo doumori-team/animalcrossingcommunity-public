@@ -5,13 +5,6 @@ import { APIThisType, RuleType } from '@types';
 
 async function rule(this: APIThisType, { id }: ruleProps): Promise<RuleType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [rule] = await db.query(`
 		SELECT
 			rule.id,
@@ -38,6 +31,10 @@ async function rule(this: APIThisType, { id }: ruleProps): Promise<RuleType>
 		reportable: rule.reportable,
 	};
 }
+
+rule.permissions = [
+	'modify-rules-admin',
+];
 
 rule.apiTypes = {
 	id: {

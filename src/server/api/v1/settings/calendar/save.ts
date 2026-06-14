@@ -6,14 +6,9 @@ import { APIThisType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { gameIds, hemisphereId, categories }: saveProps): Promise<SuccessType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// check params
 
-	let settings: any = [];
+	let settings: { id: number, hemisphereId: number | null, categories: number[] }[] = [];
 
 	if (hemisphereId > 0)
 	{
@@ -31,14 +26,8 @@ async function save(this: APIThisType, { gameIds, hemisphereId, categories }: sa
 
 	await Promise.all(categories.map(async (value) =>
 	{
-		let gameId = value.substring(0, value.indexOf('_'));
+		let gameId: string | number = value.substring(0, value.indexOf('_'));
 		const categoryId = value.substring(value.indexOf('_') + '_'.length);
-
-		if (isNaN(gameId))
-		{
-			throw new Error(value);
-			// throw new UserError('no-such-ac-game');
-		}
 
 		const checkCatGameId = await db.query(`
 			SELECT id
@@ -49,11 +38,6 @@ async function save(this: APIThisType, { gameIds, hemisphereId, categories }: sa
 		if (!checkCatGameId)
 		{
 			throw new UserError('no-such-ac-game');
-		}
-
-		if (isNaN(categoryId))
-		{
-			throw new UserError('bad-format');
 		}
 
 		const checkCategoryId = await db.query(`
@@ -74,7 +58,7 @@ async function save(this: APIThisType, { gameIds, hemisphereId, categories }: sa
 			throw new UserError('missing-hemisphere');
 		}
 
-		const setting = settings.find((s: any) => s.id === gameId);
+		const setting = settings.find(s => s.id === gameId);
 
 		if (!setting)
 		{
@@ -92,7 +76,7 @@ async function save(this: APIThisType, { gameIds, hemisphereId, categories }: sa
 
 	// update settings
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await query(`
 			DELETE FROM calendar_setting WHERE user_id = $1::int
@@ -103,13 +87,13 @@ async function save(this: APIThisType, { gameIds, hemisphereId, categories }: sa
 			return { _success: 'Your calendar settings have been updated.' };
 		}
 
-		settings.map(async (setting: any) =>
+		settings.map(async setting =>
 		{
 			const [calendarSetting] = await query(`
 				INSERT INTO calendar_setting (user_id, game_id, hemisphere_id, homepage) VALUES
 				($1::int, $2::int, $3, $4)
 				RETURNING id
-			`, this.userId, setting.id, setting.hemisphereId, gameIds.includes(setting.id.toString()));
+			`, this.userId, setting.id, setting.hemisphereId, gameIds.includes(setting.id));
 
 			setting.categories.map(async (categoryId: number) =>
 			{
@@ -126,10 +110,16 @@ async function save(this: APIThisType, { gameIds, hemisphereId, categories }: sa
 	};
 }
 
+save.permissions = [
+	'userId',
+];
+
 save.apiTypes = {
 	gameIds: {
 		type: APITypes.array,
+		subType: 'number',
 		required: true,
+		error: 'no-game-ids',
 	},
 	hemisphereId: {
 		type: APITypes.number,
@@ -143,7 +133,7 @@ save.apiTypes = {
 type saveProps = {
 	gameIds: number[]
 	hemisphereId: number
-	categories: any[]
+	categories: string[]
 };
 
 export default save;

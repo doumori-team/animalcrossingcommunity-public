@@ -1,18 +1,13 @@
 import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
-import { APIThisType, SuccessType } from '@types';
+import { APIThisType, SuccessType, StatusType } from '@types';
 
 async function save(this: APIThisType, { headerIds }: saveProps): Promise<SuccessType>
 {
-	if (!this.userId)
+	await db.transaction(async (query: db.QueryType) =>
 	{
-		throw new UserError('login-needed');
-	}
-
-	await db.transaction(async (query: any) =>
-	{
-		const [status] = await Promise.all([
+		const [status]: [StatusType, void] = await Promise.all([
 			this.query('v1/status'),
 			query(`
 				DELETE FROM users_site_header
@@ -33,7 +28,7 @@ async function save(this: APIThisType, { headerIds }: saveProps): Promise<Succes
 				throw new UserError('bad-format');
 			}
 
-			if (siteHeader.permission != null && !status.permissions.includes(siteHeader.permission))
+			if (siteHeader.permission !== null && !status.permissions.includes(siteHeader.permission))
 			{
 				throw new UserError('permission');
 			}
@@ -51,6 +46,10 @@ async function save(this: APIThisType, { headerIds }: saveProps): Promise<Succes
 	};
 }
 
+save.permissions = [
+	'userId',
+];
+
 save.apiTypes = {
 	headerIds: {
 		type: APITypes.array,
@@ -58,7 +57,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	headerIds: any[]
+	headerIds: string[]
 };
 
 export default save;

@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 import { utils, constants } from '@utils';
 import { TownType } from '@types';
 
@@ -9,12 +11,11 @@ const Map = ({
 }: MapProps) =>
 {
 	const gameMapTiles = utils.getMapTiles(game.id);
-	const mapDir = `${constants.AWS_URL}/images/maps/${game.identifier}/`;
-	const rows = [];
+	const rows: ReactNode[] = [];
 
 	for (let y = 0; y < game.mapY; y++)
 	{
-		const cells = [];
+		const cells: ReactNode[] = [];
 
 		for (let x = 0; x < game.mapX; x++)
 		{
@@ -29,7 +30,11 @@ const Map = ({
 
 			const img = <img
 				key={key}
-				src={mapDir + gameMapTile.img_name}
+				src={
+					constants.allImages[
+						`maps/${game.identifier}/${gameMapTile.img_name}`
+					]
+				}
 				className={selectedAcreId === key ? 'selected' : ''}
 				onClick={onClickHandler ? () => onClickHandler(key, gameMapTile) : () =>
 				{}}

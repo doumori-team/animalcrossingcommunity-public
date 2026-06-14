@@ -7,6 +7,10 @@
 			@include mixins.responsive(1rem) {
 				@include mixins.grid($col-width: 15rem);
 			}
+
+			@media only screen and (max-width: mixins.px2rem(521px)) and (min-width: mixins.px2rem(372px)){
+				@include mixins.grid($col-width: 10rem);
+			}
 		}
 	}
 
@@ -16,6 +20,7 @@
 				display: flex;
 				justify-content: center;
 				align-items: center;
+				flex-wrap: wrap;
 
 				.Catalog_all, .Catalog_search, .Catalog_museum {
 					margin: mixins.px2rem(10px);
@@ -130,9 +135,18 @@
 						@include mixins.contentbox();
 						text-align: center;
 						padding: mixins.px2rem(5px);
+						display: flex;
+						flex-direction: column;
 
 						.CatalogCategory_itemName {
 							text-transform: capitalize;
+							margin-top: auto;
+						}
+
+						.CatalogCategory_itemImage {
+							margin: 0 auto;
+							max-width: mixins.px2rem(160px);
+							max-height: mixins.px2rem(100px);
 						}
 					}
 

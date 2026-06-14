@@ -86,13 +86,14 @@
 	display: flex;
 	justify-content: flex-end;
 
-	> a, form > button, > button {
+	> a, form > button, > button, > label {
 		@include button;
 		margin: px2rem(1px);
 		text-align: center;
+		cursor: pointer;
 	}
 
-	> a, > form, > button {
+	> a, > form, > button, > label {
 		flex: 0 1 px2rem($button-width);
 		display: flex;
 		justify-content: center;
@@ -107,5 +108,9 @@
 	> form button {
 		flex: 1 1 auto;
 		height: 100%;
+	}
+
+	input[type='file'] {
+		display: none;
 	}
 }

@@ -5,18 +5,6 @@ import { APIThisType, EmployeesType, ShopType } from '@types';
 
 async function employees(this: APIThisType, { id }: employeesProps): Promise<EmployeesType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
@@ -29,7 +17,33 @@ async function employees(this: APIThisType, { id }: employeesProps): Promise<Emp
 		throw new UserError('permission');
 	}
 
-	const [employees, roles, roleDefaultServices, roleServices, filledPositions] = await Promise.all([
+	const [employees, roles, roleDefaultServices, roleServices, filledPositions]: [{
+		id: number
+		username: string
+		role: string
+	}[], {
+		id: number
+		name: string
+		description: string
+		parent_id: number | null
+		positions: number
+		apply: boolean
+		contact: boolean
+		active: boolean
+		applications: boolean
+		stats: boolean
+	}[], {
+		id: string
+		name: string
+		shop_role_id: number
+	}[], {
+		id: string
+		name: string
+		shop_role_id: number
+	}[], {
+		id: number
+		count: number
+	}[]] = await Promise.all([
 		db.query(`
 			SELECT shop_user.user_id AS id, user_account_cache.username, shop_role.name AS role
 			FROM shop_user
@@ -78,7 +92,7 @@ async function employees(this: APIThisType, { id }: employeesProps): Promise<Emp
 			ORDER BY shop_default_service.name ASC
 		`, id),
 		db.query(`
-			SELECT shop_service.id, shop_service.name, shop_role_service.shop_role_id
+			SELECT shop_service.id::text AS id, shop_service.name, shop_role_service.shop_role_id
 			FROM shop_service
 			JOIN shop_role_service ON (shop_role_service.shop_service_id = shop_service.id)
 			WHERE shop_service.shop_id = $1
@@ -96,9 +110,9 @@ async function employees(this: APIThisType, { id }: employeesProps): Promise<Emp
 
 	return {
 		list: employees,
-		roles: roles.map((role: any) =>
+		roles: roles.map(role =>
 		{
-			const filled = filledPositions.find((f: any) => f.id === role.id);
+			const filled = filledPositions.find(f => f.id === role.id);
 			const positions = Number(role.positions);
 
 			return {
@@ -111,7 +125,7 @@ async function employees(this: APIThisType, { id }: employeesProps): Promise<Emp
 				apply: role.apply,
 				contact: role.contact,
 				active: role.active,
-				services: roleDefaultServices.filter((s: any) => s.shop_role_id === role.id).concat(roleServices.filter((s: any) => s.shop_role_id === role.id)).map((s: any) =>
+				services: roleDefaultServices.filter(s => s.shop_role_id === role.id).concat(roleServices.filter(s => s.shop_role_id === role.id)).map(s =>
 				{
 					return {
 						id: s.id,
@@ -125,6 +139,11 @@ async function employees(this: APIThisType, { id }: employeesProps): Promise<Emp
 		}),
 	};
 }
+
+employees.permissions = [
+	'modify-shops',
+	'userId',
+];
 
 employees.apiTypes = {
 	id: {

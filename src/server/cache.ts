@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Redis } from 'ioredis';
 
 import { constants } from '@utils';
@@ -28,24 +29,10 @@ class Cache
 	{
 		const useKey = `${constants.version}_${key}`;
 
-		let value = null, exists = false;
+		let value: any = null;
 
 		if ((this as any).cache)
 		{
-			try
-			{
-				exists = await (this as any).cache.exists(useKey);
-			}
-			catch (error: any)
-			{
-				console.error(`error: [Cache] Redis exists ${useKey}: ${error}`);
-			}
-		}
-
-		if (exists)
-		{
-			console.info(`info: [Cache] Redis hit: ${useKey}`);
-
 			try
 			{
 				value = await (this as any).cache.get(useKey);
@@ -54,6 +41,11 @@ class Cache
 			{
 				console.error(`error: [Cache] Redis get ${useKey}: ${error}`);
 			}
+		}
+
+		if (value)
+		{
+			console.info(`info: [Cache] Redis hit: ${useKey}`);
 		}
 
 		// if getting it from cache fails for any reason (key doesn't exist OR
@@ -250,6 +242,30 @@ class Cache
 		}
 	}
 
+	async deleteByPattern(pattern: string): Promise<void>
+	{
+		if (!(this as any).cache)
+		{
+			return;
+		}
+
+		const batchSize = 500;
+		const stream = (this as any).cache.scanStream({
+			match: pattern,
+			count: batchSize,
+		});
+
+		for await (const keys of stream)
+		{
+			if (!keys?.length)
+			{
+				continue;
+			}
+
+			await (this as any).cache.unlink(...keys);
+		}
+	}
+
 	async deleteMatch(match: string): Promise<void>
 	{
 		if ((this as any).cache)
@@ -258,12 +274,7 @@ class Cache
 
 			try
 			{
-				const keys = await (this as any).cache.keys(`${constants.version}_${match}*`);
-
-				if (keys.length > 0)
-				{
-					await (this as any).cache.del(keys);
-				}
+				await (this as any).deleteByPattern(`${constants.version}_${match}*`);
 			}
 			catch (error: any)
 			{
@@ -297,27 +308,15 @@ class Cache
 
 			const cacheKey = 'version';
 
-			let exists = false, version: string | null = null;
+			let version: string | null = null;
 
 			try
 			{
-				exists = await (this as any).cache.exists(cacheKey);
+				version = await (this as any).cache.get(cacheKey);
 			}
 			catch (error: any)
 			{
-				console.error(`error: [Cache] Redis checkVersion exists ${cacheKey}: ${error}`);
-			}
-
-			if (exists)
-			{
-				try
-				{
-					version = await (this as any).cache.get(cacheKey);
-				}
-				catch (error: any)
-				{
-					console.error(`error: [Cache] Redis checkVersion get ${cacheKey}: ${error}`);
-				}
+				console.error(`error: [Cache] Redis checkVersion get ${cacheKey}: ${error}`);
 			}
 
 			console.info(`info: [Cache] Cache version: ${version}`);
@@ -328,12 +327,7 @@ class Cache
 				{
 					console.info(`info: [Cache] Cache clearing old version`);
 
-					const keys = await (this as any).cache.keys(`${version}*`);
-
-					if (keys.length > 0)
-					{
-						await (this as any).cache.del(keys);
-					}
+					await (this as any).deleteByPattern(`${version}_*`);
 				}
 				catch (error: any)
 				{
@@ -346,12 +340,7 @@ class Cache
 				{
 					console.info(`info: [Cache] Cache clearing old version (again)`);
 
-					const keys = await (this as any).cache.keys(`${constants.lastVersion}*`);
-
-					if (keys.length > 0)
-					{
-						await (this as any).cache.del(keys);
-					}
+					await (this as any).deleteByPattern(`${constants.lastVersion}_*`);
 				}
 				catch (error: any)
 				{
@@ -363,7 +352,7 @@ class Cache
 			{
 				try
 				{
-					console.info(`info: [Cache] Cache setting version`);
+					console.info(`info: [Cache] Cache setting version ${constants.version}`);
 
 					await (this as any).cache.set(cacheKey, constants.version);
 				}
@@ -375,7 +364,7 @@ class Cache
 				console.info(`info: [Cache] Cache prewarming AC data`);
 
 				// pre-warm some AC data
-				const acData = await import('./data/catalog/data.ts');
+				let acData: any = await import('./data/catalog/data.ts');
 
 				const pipeline = (this as any).cache.pipeline();
 
@@ -393,15 +382,21 @@ class Cache
 				}
 
 				await pipeline.exec();
+
+				// clear the data from memory
+				acData = null;
+
+				console.info(`info: [Cache] Cache finished prewarming AC data`);
 			}
 		}
 	}
 }
 
 const ACCCache = new Cache(
-	process.env.REDISCLOUD_URL ? new Redis(process.env.REDISCLOUD_URL) : null,
+	process.env.REDISCLOUD_URL ? new Redis(process.env.REDISCLOUD_URL, { family: 6 }) : null,
 );
 
 export {
 	ACCCache,
+	Cache,
 };

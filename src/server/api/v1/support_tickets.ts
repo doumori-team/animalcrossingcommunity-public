@@ -1,30 +1,22 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SupportTicketsType } from '@types';
 
-async function support_tickets(this: APIThisType, { page, username, userTicketId, status }: supportTicketsProps): Promise<SupportTicketsType>
+async function support_tickets(this: APIThisType, { page, searchUser, userTicketId, status }: supportTicketsProps): Promise<SupportTicketsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-support-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Do actual search
 	const pageSize = 24;
-	let results = [], count = 0;
+	let results: SupportTicketsType['results'] = [], count = 0;
 
 	if (
-		utils.realStringLength(username) > 0 ||
+		utils.realStringLength(searchUser) > 0 ||
 		userTicketId > 0 ||
 		utils.realStringLength(status) > 0
 	)
 	{
 		const offset = page * pageSize - pageSize;
-		let params: any = [pageSize, offset];
+		let params: (number | string)[] = [pageSize, offset];
 		let paramIndex = params.length;
 
 		let query = `
@@ -35,7 +27,7 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 		`;
 
 		// Add joins
-		if (utils.realStringLength(username) > 0)
+		if (utils.realStringLength(searchUser) > 0)
 		{
 			query += `
 				JOIN user_account_cache ON (user_account_cache.id = support_ticket.user_id)
@@ -52,9 +44,9 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 		// Add wheres
 		let wheres: string[] = [];
 
-		if (utils.realStringLength(username) > 0)
+		if (utils.realStringLength(searchUser) > 0)
 		{
-			params[paramIndex] = username;
+			params[paramIndex] = searchUser;
 
 			paramIndex++;
 
@@ -103,11 +95,11 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 		`;
 
 		// Run query
-		const supportTickets = await db.query(query, ...params);
+		const supportTickets: { id: number, count: number }[] = await db.query(query, ...params);
 
 		if (supportTickets.length > 0)
 		{
-			results = await Promise.all(supportTickets.map(async (supportTicket: any) =>
+			results = await Promise.all(supportTickets.map(async supportTicket =>
 			{
 				return this.query('v1/support_ticket', { id: supportTicket.id });
 			}));
@@ -121,11 +113,15 @@ async function support_tickets(this: APIThisType, { page, username, userTicketId
 		count: count,
 		page: page,
 		pageSize: pageSize,
-		username: username,
+		searchUser: searchUser,
 		userTicketId: userTicketId,
 		status: status,
 	};
 }
+
+support_tickets.permissions = [
+	'process-support-tickets',
+];
 
 support_tickets.apiTypes = {
 	page: {
@@ -133,7 +129,7 @@ support_tickets.apiTypes = {
 		required: true,
 		min: 1,
 	},
-	username: {
+	searchUser: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
@@ -150,7 +146,7 @@ support_tickets.apiTypes = {
 
 type supportTicketsProps = {
 	page: number
-	username: string
+	searchUser: string
 	userTicketId: number
 	status: string
 };

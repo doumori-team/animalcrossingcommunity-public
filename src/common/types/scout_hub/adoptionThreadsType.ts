@@ -19,7 +19,7 @@ type AdoptionThreadsType = {
 	scoutIds: number[]
 	scouts: {
 		id: number
-		name: string
+		username: string
 	}[]
 };
 

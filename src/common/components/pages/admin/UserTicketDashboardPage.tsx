@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Select } from '@form';
@@ -48,7 +48,7 @@ const UserTicketDashboardPage = ({ loaderData }: { loaderData: UserTicketDashboa
 							label='Status'
 							name='statusId'
 							value={statusId}
-							options={[{ id: 0, name: 'All Statuses' } as any,{ id: -1, name: 'All Open Statuses' } as any].concat(statuses)}
+							options={[{ id: 0, name: 'All Statuses' },{ id: -1, name: 'All Open Statuses' }].concat(statuses)}
 							optionsMapping={{ value: 'id', label: 'name' }}
 						/>
 					</Form.Group>
@@ -57,9 +57,11 @@ const UserTicketDashboardPage = ({ loaderData }: { loaderData: UserTicketDashboa
 							label='Rule'
 							name='ruleId'
 							value={ruleId}
-							options={[{ id: 0, name: 'All Rules' } as any,{ id: -1, name: 'Any Rule' } as any].concat(rules.map(c => c.rules).flat().filter(r => r.reportable))}
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
+							options={[{ id: 0, name: 'All Rules' }, { id: -1, name: 'Any Rule' }].concat(rules.map(c => c.rules).flat().filter(r => r.reportable) as any)}
 							optionsMapping={{
 								value: 'id',
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
 								label: (rule: any) =>
 								{
 									if (!Object.prototype.hasOwnProperty.call(rule, 'number'))
@@ -78,7 +80,7 @@ const UserTicketDashboardPage = ({ loaderData }: { loaderData: UserTicketDashboa
 							label='Type'
 							name='typeId'
 							value={typeId}
-							options={[{ id: 0, description: 'All Types' } as any].concat(types)}
+							options={[{ id: 0, description: 'All Types' } ].concat(types)}
 							optionsMapping={{ value: 'id', label: 'description' }}
 						/>
 					</Form.Group>
@@ -179,7 +181,7 @@ const UserTicketDashboardPage = ({ loaderData }: { loaderData: UserTicketDashboa
 	);
 };
 
-async function loadData(this: APIThisType, _: any, query: { page?: string, statusId?: string, assignee?: string, ruleId?: string, typeId?: string, violator?: string, denyReasonId?: string }): Promise<UserTicketDashboardPageProps>
+async function loadData(this: APIThisType, _: Params, query: { page?: string, statusId?: string, assignee?: string, ruleId?: string, typeId?: string, violator?: string, denyReasonId?: string }): Promise<UserTicketDashboardPageProps>
 {
 	const { page, statusId, assignee, ruleId, typeId, violator, denyReasonId } = query;
 

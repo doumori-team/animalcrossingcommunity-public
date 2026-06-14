@@ -14,7 +14,7 @@ type NodesType = {
 		id: number,
 		title: string
 	}[]
-	childNodes: NodeChildNodesType[]
+	childNodes: NodeChildNodesType[] | NodeBoardType[]
 	page: number
 	totalCount: number
 	pageSize: number

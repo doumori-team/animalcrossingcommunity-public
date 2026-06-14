@@ -1,27 +1,14 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
 /*
  * Update the rule's thread.
  */
-export default async function update(this: APIThisType, { nodeId, content }: updateProps): Promise<void>
+async function update(this: APIThisType, { nodeId, content }: updateProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// update thread with latest info
-	const messageId = await db.transaction(async (query: any) =>
+	const messageId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [message] = await query(`
 			INSERT INTO node (parent_node_id, user_id, type)
@@ -42,7 +29,14 @@ export default async function update(this: APIThisType, { nodeId, content }: upd
 	await this.query('v1/notification/create', { id: messageId, type: constants.notification.types.FT });
 }
 
+update.permissions = [
+	'modify-rules-admin',
+	'userId',
+];
+
 type updateProps = {
 	nodeId: number
 	content: string
 };
+
+export default update;

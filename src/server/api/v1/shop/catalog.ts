@@ -5,18 +5,6 @@ import { APIThisType, ShopCatalogType, ShopType } from '@types';
 
 async function catalog(this: APIThisType, { id }: catalogProps): Promise<ShopCatalogType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
@@ -24,14 +12,14 @@ async function catalog(this: APIThisType, { id }: catalogProps): Promise<ShopCat
 		throw new UserError('no-such-shop');
 	}
 
-	const games = await db.query(`
+	const games: { game_id: number }[] = await db.query(`
 		SELECT shop_ac_game.game_id
 		FROM shop_ac_game
 		WHERE shop_ac_game.shop_id = $1
 	`, shop.id);
 
 	return await Promise.all(
-		games.map(async (game: any) =>
+		games.map(async game =>
 		{
 			return {
 				gameId: game.game_id,
@@ -40,6 +28,11 @@ async function catalog(this: APIThisType, { id }: catalogProps): Promise<ShopCat
 		}),
 	);
 }
+
+catalog.permissions = [
+	'view-shops',
+	'userId',
+];
 
 catalog.apiTypes = {
 	id: {

@@ -88,9 +88,11 @@ const EditFriendCode = ({
 									name='characterId'
 									value={friendCode && friendCode.character ? friendCode.character.id : 0}
 									label='Character'
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									options={[{ id: 0, label: 'None' }].concat(selectedCharacters as any)}
 									optionsMapping={{
 										value: 'id',
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
 										label: (character: any) =>
 										{
 											if (Object.prototype.hasOwnProperty.call(character, 'label'))
@@ -105,7 +107,7 @@ const EditFriendCode = ({
 									}}
 									useReactSelect
 									option={
-										(value: any) =>
+										(value: number) =>
 										{
 											if (value === 0)
 											{

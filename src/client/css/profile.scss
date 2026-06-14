@@ -115,17 +115,11 @@
 }
 
 .ProfileBioPage_bioContainer {
-	display: flex;
-	align-items: center;
 	word-break: break-word;
 }
 
 
 @include mixins.responsive(48rem) {
-	.ProfileBioPage_bioContainer {
-		align-items: normal;
-	}
-
 	.ProfileBioPage_option, .ProfileBioPage_bioContainer {
 		.ReportProblem {
 

@@ -1,0 +1,123 @@
+@use "mixins";
+
+.EmojiPicker {
+	position: relative;
+	display: inline-block;
+}
+
+.EmojiPicker_picker {
+	position: absolute;
+	bottom: 100%;
+	max-height: mixins.px2rem(130px);
+	border: 1px solid #ccc;
+	border-radius: mixins.px2rem(6px);
+	background: #fff;
+	box-shadow: 0 mixins.px2rem(2px) mixins.px2rem(6px) rgba(0,0,0,0.15);
+	display: flex;
+	flex-direction: column;
+	z-index: 1000;
+}
+
+.EmojiPicker_search {
+	padding: mixins.px2rem(4px);
+	border-bottom: mixins.px2rem(1px) solid #eee;
+}
+
+.EmojiPicker_search input {
+	width: 100%;
+	padding: mixins.px2rem(4px);
+	border: mixins.px2rem(1px) solid #ccc;
+	border-radius: mixins.px2rem(4px);
+	box-sizing: border-box;
+}
+
+.EmojiPicker_grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: mixins.px2rem(4px);
+	padding: mixins.px2rem(8px);
+	overflow-y: auto;
+}
+
+.EmojiPicker_grid button {
+	padding: mixins.px2rem(2px);
+	border-radius: mixins.px2rem(4px);
+}
+
+.EmojiPicker_grid button:hover {
+	background: #f0f0f0;
+}
+
+.EmojiPicker_search_nonFound {
+	width: mixins.px2rem(235px);
+	display: flex;
+	justify-content: center;
+	padding-bottom: mixins.px2rem(10px);
+}
+
+.EmojiUsersModal {
+  position: relative;
+  display: inline-block;
+  font-family: sans-serif;
+}
+
+.EmojiUsersModal_popover {
+  position: absolute;
+  bottom: 100%;
+  width: mixins.px2rem(250px);
+  background: #fff;
+  border: mixins.px2rem(1px) solid #ccc;
+  box-shadow: 0 mixins.px2rem(2px) mixins.px2rem(12px) rgba(0,0,0,0.15);
+  display: flex;
+  z-index: 100;
+}
+
+.EmojiUsersModal_emojiList {
+  width: mixins.px2rem(80px);
+  border-right: mixins.px2rem(1px) solid #eee;
+  overflow-y: auto;
+  max-height: mixins.px2rem(145px);
+}
+
+.EmojiUsersModal_emojiItem {
+  display: flex;
+  justify-content: space-between;
+  padding: mixins.px2rem(5px) mixins.px2rem(8px);
+  cursor: pointer;
+  align-items: center;
+}
+
+.EmojiUsersModal_emojiItem:hover {
+  background: #f0f0f0;
+}
+
+.EmojiUsersModal_userList {
+  flex: 1;
+  padding: mixins.px2rem(5px) mixins.px2rem(8px);
+  overflow-y: auto;
+  max-height: mixins.px2rem(145px);
+}
+
+.EmojiUsersModal_userList div {
+  padding: mixins.px2rem(2px) 0;
+  font-size: 0.9em;
+}
+
+img[src*="/reactions/"],
+input[src*="/reactions/"] {
+	height: mixins.px2rem(30px);
+}
+
+.EmojiPicker_addButton,
+.EmojiUsersModal_summaryButton {
+	display: inline-flex;
+	align-items: center;
+	gap: mixins.px2rem(4px);
+	padding: mixins.px2rem(4px) mixins.px2rem(8px);
+	margin: mixins.px2rem(2px);
+	color: #555;
+	background-color: #f0f0f0;
+	border-radius: mixins.px2rem(16px);
+	cursor: pointer;
+	user-select: none;
+}

@@ -17,6 +17,7 @@ const Switch = ({
 				{information ? <FontAwesomeIcon name='information' alt='Information' title={information} /> : ''}
 				<label htmlFor={name} className='Switch_switchLast'>{label}:</label>
 			</>}
+			<input type='hidden' name={name} value='false' />
 			<input
 				type='checkbox'
 				name={name}

@@ -8,7 +8,7 @@ type SessionsType = {
 	count: number
 	page: number
 	pageSize: number
-	username: string
+	searchUser: string
 	startDate: string
 	endDate: string
 	url: string

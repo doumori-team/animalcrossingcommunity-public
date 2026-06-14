@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 import Spinner from '@/components/form/Spinner.tsx';
 
 const Button = ({
@@ -21,6 +23,7 @@ const Button = ({
 				aria-label={label}
 				title={title}
 				onClick={clickHandler}
+				className={className}
 			/>
 			:
 			<button
@@ -45,9 +48,10 @@ const Button = ({
 
 type ButtonProps = {
 	label?: string
-	children?: any
+	children?: ReactNode
 	loading?: boolean
 	// MouseEvent<HTMLButtonElement> | MouseEvent<HTMLInputElement>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	clickHandler?: (e: any) => any
 	type?: 'button' | 'submit'
 	className?: string

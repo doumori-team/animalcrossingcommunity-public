@@ -6,13 +6,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, ruleId, severityId, number, violation }: saveProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [rule] = await db.query(`
 		SELECT node_id, description, name, number
 		FROM rule
@@ -48,7 +41,7 @@ async function save(this: APIThisType, { id, ruleId, severityId, number, violati
 		content = `${severityId} ${violation}`;
 	}
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		if (id > 0)
 		{
@@ -120,6 +113,10 @@ async function save(this: APIThisType, { id, ruleId, severityId, number, violati
 		}
 	});
 }
+
+save.permissions = [
+	'modify-rules-admin',
+];
 
 save.apiTypes = {
 	id: {

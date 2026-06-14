@@ -55,7 +55,7 @@ export default async function latest(this: APIThisType): Promise<LatestNotificat
 
 		// if global notification created after user notification
 		if (globalNotification && (
-			userNotification && dateUtils.isAfterTimezone(globalNotification.created, dateUtils.dateToTimezone(userNotification.created)) ||
+			userNotification && dateUtils.isAfterTimezone2(globalNotification.created, userNotification.created) ||
 			!userNotification)
 		)
 		{

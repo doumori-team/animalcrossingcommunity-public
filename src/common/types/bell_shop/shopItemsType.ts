@@ -3,7 +3,7 @@ import { BellShopItemsType } from '../data/bellShopItemsType.ts';
 
 // based on v1/bell_shop/items
 type ShopItemsType = {
-	results: BellShopItemsType[number]
+	results: BellShopItemsType[number]['items']
 	count: number
 	page: number
 	pageSize: number

@@ -4,13 +4,15 @@ import { NodeCategoryType } from './nodeCategoryType';
 type NodeBoardType = {
 	id: number
 	type: string
-	parentId: number
+	parentId: number | null
+	parentId2: number | null
 	title: string
 	content: {
 		text: string
 		format: string
 	},
 	followed: boolean
+	notified: boolean
 	boardType: string
 	forumCategory?: NodeCategoryType
 };

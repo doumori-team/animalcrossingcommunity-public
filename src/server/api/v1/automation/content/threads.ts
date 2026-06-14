@@ -1,8 +1,6 @@
 import { faker } from '@faker-js/faker/locale/en';
 
 import * as db from '@db';
-import { UserError } from '@errors';
-import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
@@ -11,19 +9,8 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function threads(this: APIThisType, { threads, posts, boardId }: threadsProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
-	const staffUserIds = await db.query(`
+	const staffUserIds: { id: number }[] = await db.query(`
 		SELECT users.id
 		FROM users
 		JOIN user_group ON (user_group.id = users.user_group_id)
@@ -34,9 +21,9 @@ async function threads(this: APIThisType, { threads, posts, boardId }: threadsPr
 	for (let i = 0; i < threads; i++)
 	{
 		// create thread with first post
-		const threadId = await db.transaction(async (query: any) =>
+		const threadId = await db.transaction(async (query: db.QueryType) =>
 		{
-			const threadUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+			const threadUserId = faker.helpers.arrayElement(staffUserIds).id;
 			const threadTitle = faker.lorem.words();
 			const threadText = faker.lorem.sentences();
 
@@ -69,10 +56,10 @@ async function threads(this: APIThisType, { threads, posts, boardId }: threadsPr
 
 		for (let j = 0; j < posts; j++)
 		{
-			const postUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+			const postUserId = faker.helpers.arrayElement(staffUserIds).id;
 			const postText = faker.lorem.sentences();
 
-			await db.transaction(async (query: any) =>
+			await db.transaction(async (query: db.QueryType) =>
 			{
 				const [post] = await query(`
 					INSERT INTO node (parent_node_id, user_id, type)
@@ -94,6 +81,11 @@ async function threads(this: APIThisType, { threads, posts, boardId }: threadsPr
 		_success: `Your thread(s) have been created!`,
 	};
 }
+
+threads.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 threads.apiTypes = {
 	threads: {

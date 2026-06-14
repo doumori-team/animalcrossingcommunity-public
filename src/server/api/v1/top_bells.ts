@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, TopBellsType } from '@types';
@@ -7,19 +6,14 @@ import { APIThisType, TopBellsType } from '@types';
 /*
  * Get users' bell information.
  */
-async function top_bells(this: APIThisType, { page, username, order, reverse }: topBellsProps): Promise<TopBellsType>
+async function top_bells(this: APIThisType, { page, searchUser, order, reverse, type }: topBellsProps): Promise<TopBellsType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Do actual search
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params: (number | string)[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: TopBellsType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -32,15 +26,27 @@ async function top_bells(this: APIThisType, { page, username, order, reverse }: 
 			top_bell.total_jackpot_bells,
 			top_bell.jackpots_found,
 			top_bell.jackpots_missed
-		FROM top_bell_search AS top_bell
 	`;
 
-	// Add wheres
-	let wheres = [];
-
-	if (utils.realStringLength(username) > 0)
+	if (type === 'seasonal')
 	{
-		params[paramIndex] = username;
+		query += `
+			FROM seasonal_bell_search AS top_bell
+		`;
+	}
+	else
+	{
+		query += `
+			FROM top_bell_search AS top_bell
+		`;
+	}
+
+	// Add wheres
+	let wheres: string[] = [];
+
+	if (utils.realStringLength(searchUser) > 0)
+	{
+		params[paramIndex] = searchUser;
 
 		paramIndex++;
 
@@ -71,7 +77,21 @@ async function top_bells(this: APIThisType, { page, username, order, reverse }: 
 	`;
 
 	// Run query
-	const [[lastJackpot], users] = await Promise.all([
+	const [[lastJackpot], users]: [[{
+		username: string
+		offer: Date
+		bells: number
+	} | undefined], {
+		count: number
+		id: number
+		username: string
+		rank: number
+		total_bells: number
+		missed_bells: number
+		total_jackpot_bells: number
+		jackpots_found: number
+		jackpots_missed: number
+	}[]] = await Promise.all([
 		db.query(`
 			SELECT user_account_cache.username, treasure_offer.offer, treasure_offer.bells
 			FROM treasure_offer
@@ -85,7 +105,7 @@ async function top_bells(this: APIThisType, { page, username, order, reverse }: 
 
 	if (users.length > 0)
 	{
-		results = users.map((user: any) =>
+		results = users.map(user =>
 		{
 			return {
 				id: user.id,
@@ -99,7 +119,7 @@ async function top_bells(this: APIThisType, { page, username, order, reverse }: 
 			};
 		});
 
-		count = utils.realStringLength(username) > 0 ? 1 : Number(users[0].count);
+		count = utils.realStringLength(searchUser) > 0 ? 1 : Number(users[0].count);
 	}
 
 	return <TopBellsType>{
@@ -107,18 +127,25 @@ async function top_bells(this: APIThisType, { page, username, order, reverse }: 
 		count: count,
 		page: page,
 		pageSize: pageSize,
-		username: username,
+		searchUser: searchUser,
 		order: order,
 		reverse: reverse,
 		lastJackpot: lastJackpot ? {
 			username: lastJackpot.username,
-			formattedOffered: dateUtils.formatDateTimezone(lastJackpot.offer),
+			formattedOffered: dateUtils.formatDateTime5(lastJackpot.offer),
 			amount: Number(lastJackpot.bells).toLocaleString(),
 		} : null,
+		type: type,
 	};
 }
 
+top_bells.permissions = [
+	'userId',
+];
+
 const orderOptions = constants.orderOptions.topBells.map(x => x.id);
+
+const typeOptions = constants.bellTypeOptions.map(x => x.id);
 
 top_bells.apiTypes = {
 	page: {
@@ -126,7 +153,7 @@ top_bells.apiTypes = {
 		required: true,
 		min: 1,
 	},
-	username: {
+	searchUser: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
@@ -140,13 +167,19 @@ top_bells.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
+	type: {
+		type: APITypes.string,
+		default: 'seasonal',
+		includes: typeOptions,
+	},
 };
 
 type topBellsProps = {
 	page: number
-	username: string
+	searchUser: string
 	order: typeof orderOptions[number]
 	reverse: boolean
+	type: typeof typeOptions[number]
 };
 
 export default top_bells;

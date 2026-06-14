@@ -92,8 +92,11 @@
 	}
 
 	.RichTextArea_file {
-		position: relative;
 		display: inline-block;
+
+		.RichTextArea_fileImg {
+			position: relative;
+		}
 
 		.RichTextArea_fileRemove {
 			position: absolute;
@@ -118,6 +121,10 @@
 // yet-another-react-lightbox
 .RichTextArea .react-photo-album--column {
 	min-width: mixins.px2rem(80px);
+}
+
+.RichTextArea .react-photo-album {
+	display: grid !important;
 }
 
 .yarl__toolbar {
@@ -145,6 +152,18 @@
 	padding: 1rem;
 	line-height: 1.7em;
 	min-height: 30vh;
+
+	pre {
+		white-space: pre-wrap;
+	}
+
+	.Markdown_Poll .Form_button {
+		display: none;
+	}
+
+	.Markdown_Poll:last-of-type .Form_button {
+		display: block;
+	}
 }
 
 %GenericFormControl {
@@ -487,8 +506,6 @@
 
 .Select {
 	@extend .GenericSelect;
-
-	z-index: 999;
 }
 
 .Select-multiple {
@@ -579,6 +596,13 @@
 
 .CheckboxContainer {
 	display: flex;
+	margin-right: mixins.px2rem(5px);
+}
+
+ol {
+	.CheckboxContainer {
+		display: inline-block !important;
+	}
 }
 
 .Spinner {
@@ -734,11 +758,10 @@
 }
 
 .GenericButtonWithCustomImage {
-	height: mixins.px2rem(210px);
-
 	background-repeat: no-repeat;
-	background-size: 85%, cover;
-	background-position: center, center;
+	background-size: contain;
+	background-position: center;
+	aspect-ratio: 1 / 1;
 
 	// hide link text behind image, show if image doesn't load
 	display: flex;
@@ -746,14 +769,6 @@
 	justify-content: center;
 	transform-style: preserve-3d;
 	text-align: center;
-
-	@media only screen and (max-width: mixins.px2rem(1265px)) {
-		height: mixins.px2rem(285px);
-	}
-
-	@media only screen and (max-width: mixins.px2rem(521px)) and (min-width: mixins.px2rem(372px)){
-		height: mixins.px2rem(300px);
-	}
 
 	p {
 		width: 125px;

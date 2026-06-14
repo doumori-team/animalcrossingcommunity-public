@@ -1,10 +1,14 @@
+import MarkdownIt from 'markdown-it';
+
 import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
 import { ACCCache } from '@cache';
-import { APIThisType, UserType, UserDonationsType, MarkupStyleType, SuccessType, NodeType } from '@types';
+import { APIThisType, UserType, UserDonationsType, MarkupStyleType, SuccessType, NodeType, UserLiteType, ScoutSettingsType } from '@types';
+import { sendNotificationToUser, getAllLiveModeUserIds } from 'server/notificationService.ts';
+import poll from 'common/markup/markdown-poll.ts';
 
 /*
  * Create thread, create post or edit post.
@@ -21,14 +25,9 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 	// NB: we DON'T check the user has permission to READ the parent node
 	// because sometimes users can post to private boards (User Submissions)
 
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
-	const [[parentDetails], editParentIdPermGranted, readParentIdPermGranted]: [[ParentDetailsType], boolean, boolean] = await Promise.all([
+	const [[parentDetails], editParentIdPermGranted, readParentIdPermGranted, [childNode]]: [[ParentDetailsType], boolean, boolean, [{ id: number }]] = await Promise.all([
 		// get thread if post, board if thread, post if editing post
 		db.query(`
 			SELECT
@@ -62,24 +61,41 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 		`, parentId),
 		this.query('v1/node/permission', { permission: 'edit', nodeId: parentId }),
 		this.query('v1/node/permission', { permission: 'read', nodeId: parentId }),
+		db.query(`
+			SELECT node.id
+			FROM node
+			JOIN node AS target ON target.id = $1::int
+			WHERE node.parent_node_id = target.parent_node_id
+			ORDER BY node.creation_time ASC
+			LIMIT 1
+		`, parentId),
 	]);
 
 	const editingPost = parentDetails.type === 'post';
+
+	const editingThreadPost = editingPost && childNode.id === parentId;
 
 	const editPermGranted: boolean = editParentIdPermGranted && readParentIdPermGranted;
 
 	// Determine whether we are just creating / editing a single post, or a whole new thread.
 	const newNodeType: NewNodeType = parentDetails.type === 'board' ? 'thread' : 'post';
 
+	const [editParentParentPermGranted, readParentParentPermGranted]: [boolean, boolean] = await Promise.all([
+		editingPost ? this.query('v1/node/permission', { permission: 'edit', nodeId: parentDetails.parent_node_id }) : false,
+		editingPost ? this.query('v1/node/permission', { permission: 'read', nodeId: parentDetails.parent_node_id }) : false,
+	]);
+
+	const editPermGrantedParent: boolean = editParentParentPermGranted && readParentParentPermGranted;
+
 	// Validate (bad-format) & Permissions
 	await Promise.all([
 		validateEditPost(editingPost, editPermGranted),
-		validateTextTitle.bind(this)(title, text, parentDetails, newNodeType, editingPost, editPermGranted),
+		validateTextTitle.bind(this)(title, text, parentDetails, newNodeType, editingPost, editPermGranted, editPermGrantedParent),
 		validateLock.bind(this)(lock, parentDetails),
 		validateAddRemoveUsers.bind(this)(addUsers, removeUsers, parentDetails),
 		validateThreadType.bind(this)(type, parentDetails),
 		validateBoardId.bind(this)(boardId, parentDetails),
-		validateFileArrays.bind(this)(fileIds, fileNames, fileWidths, fileHeights, fileCaptions),
+		validateFileArrays.bind(this)(newNodeType, editingThreadPost, fileIds, fileNames, fileWidths, fileHeights, fileCaptions),
 	]);
 
 	// replace text with scout hub closing template
@@ -95,7 +111,7 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 
 		if (adoption?.scout_id === this.userId)
 		{
-			const [scout, adoptee, scoutSettings] = await Promise.all([
+			const [scout, adoptee, scoutSettings]: [UserLiteType, UserLiteType, ScoutSettingsType] = await Promise.all([
 				this.query('v1/user_lite', { id: adoption.scout_id }),
 				this.query('v1/user_lite', { id: adoption.adoptee_id }),
 				this.query('v1/scout_hub/settings', { id: adoption.scout_id }),
@@ -121,6 +137,7 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 		removeUsers,
 		newNodeType,
 		editPermGranted,
+		editPermGrantedParent,
 		editingPost,
 		parentDetails,
 	);
@@ -142,6 +159,7 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 		fileHeights,
 		fileCaptions,
 		editingPost,
+		editingThreadPost,
 		newNodeType,
 		parentDetails,
 	);
@@ -149,12 +167,24 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 	// if creating a thread, insert post (separate)
 	if (newNodeType === 'thread')
 	{
+		if (fileIds.length > constants.max.imagesPost)
+		{
+			fileIds = fileNames = fileWidths = fileHeights = fileCaptions = [];
+		}
+
 		await this.query('v1/node/create', { parentId: newId, title, text, format, fileIds, fileNames, fileWidths, fileHeights, fileCaptions });
 	}
 
 	await Promise.all([
-		updateFollowAndNotifications.bind(this)(newNodeType, newId, parentDetails),
+		updateFollowAndNotifications.bind(this)(newNodeType, newId, parentDetails, editingPost),
 		db.updateThreadStats(newNodeType === 'thread' ? newId : parentDetails.id),
+	]);
+
+	Promise.all([
+		newNodeType === 'post' ? this.query('v1/users/badge/check', { badgeId: constants.badges.totpd }) : null,
+		newNodeType === 'thread' ? this.query('v1/users/badge/check', { badgeId: constants.badges.threadstickied }) : null,
+		newNodeType === 'post' ? this.query('v1/users/badge/check', { badgeId: constants.badges.tenwelcomes }) : null,
+		newNodeType === 'thread' ? this.query('v1/users/badge/check', { badgeId: constants.badges.tencreatorthreads }) : null,
 	]);
 
 	return {
@@ -162,7 +192,7 @@ async function create(this: APIThisType, { parentId, title, text, format, lock, 
 	};
 }
 
-export async function validateEditPost(editingPost: boolean, editPermGranted: boolean)
+export async function validateEditPost(editingPost: boolean, editPermGranted: boolean): Promise<void>
 {
 	// you can only edit a post if you can edit and read it
 	// (you have edit access if your post, but you should only be able to edit if read)
@@ -172,7 +202,7 @@ export async function validateEditPost(editingPost: boolean, editPermGranted: bo
 	}
 }
 
-export async function validateTextTitle(this: APIThisType, title: createProps['title'], text: createProps['text'], parentDetails: ParentDetailsType, newNodeType: NewNodeType, editingPost: boolean, editPermGranted: boolean): Promise<void>
+export async function validateTextTitle(this: APIThisType, title: createProps['title'], text: createProps['text'], parentDetails: ParentDetailsType, newNodeType: NewNodeType, editingPost: boolean, editPermGranted: boolean, editPermGrantedParent: boolean): Promise<void>
 {
 	// if you have a title for posting on a thread you can't edit
 	if (
@@ -181,19 +211,9 @@ export async function validateTextTitle(this: APIThisType, title: createProps['t
 		parentDetails.parent_node_id !== constants.boardIds.userSubmissions
 	)
 	{
-		if (editingPost)
+		if (editingPost && !editPermGrantedParent)
 		{
-			const [editParentParentPermGranted, readParentParentPermGranted]: [boolean, boolean] = await Promise.all([
-				editingPost ? this.query('v1/node/permission', { permission: 'edit', nodeId: parentDetails.parent_node_id }) : false,
-				editingPost ? this.query('v1/node/permission', { permission: 'read', nodeId: parentDetails.parent_node_id }) : false,
-			]);
-
-			const editPermGrantedParent: boolean = editParentParentPermGranted && readParentParentPermGranted;
-
-			if (!editPermGrantedParent)
-			{
-				throw new UserError('bad-format');
-			}
+			throw new UserError('bad-format');
 		}
 		else if (!editPermGranted)
 		{
@@ -209,7 +229,7 @@ export async function validateTextTitle(this: APIThisType, title: createProps['t
 			SELECT id
 			FROM node
 			WHERE type = 'board' AND board_type = 'staff'
-		`)).map((x: any) => x.id);
+		`)).map((x: { id: number }) => x.id);
 
 		if (parentDetails.id === constants.boardIds.userSubmissions ||
 			![parentDetails.id, parentDetails.parent_node_id, parentDetails.parent2_parent_id].some(pid => staffBoards.includes(pid)))
@@ -239,8 +259,8 @@ export async function validateLock(this: APIThisType, lock: createProps['lock'],
 {
 	if (lock)
 	{
-		// you can lock a board, but only when posting on a thread or editing a post
-		if (parentDetails.type === 'board')
+		// you can lock a thread, but only when posting on a thread
+		if (parentDetails.type !== 'thread')
 		{
 			throw new UserError('bad-format');
 		}
@@ -256,9 +276,11 @@ export async function validateLock(this: APIThisType, lock: createProps['lock'],
 
 export async function validateAddRemoveUsers(this: APIThisType, addUsers: createProps['addUsers'], removeUsers: createProps['removeUsers'], parentDetails: ParentDetailsType): Promise<void>
 {
+	// node/permission prevents adding / removing users on non-PTs/non-Shop-Threads
+
 	if (addUsers.length > 0)
 	{
-		const addUsersPermGranted: boolean = this.query('v1/node/permission', { permission: 'add-users', nodeId: parentDetails.id });
+		const addUsersPermGranted: boolean = await this.query('v1/node/permission', { permission: 'add-users', nodeId: parentDetails.id });
 
 		if (!addUsersPermGranted)
 		{
@@ -268,7 +290,7 @@ export async function validateAddRemoveUsers(this: APIThisType, addUsers: create
 
 	if (removeUsers.length > 0)
 	{
-		const removeUsersPermGranted: boolean = this.query('v1/node/permission', { permission: 'remove-users', nodeId: parentDetails.id });
+		const removeUsersPermGranted: boolean = await this.query('v1/node/permission', { permission: 'remove-users', nodeId: parentDetails.id });
 
 		if (!removeUsersPermGranted)
 		{
@@ -281,7 +303,7 @@ export async function validateThreadType(this: APIThisType, type: createProps['t
 {
 	if (type === 'sticky')
 	{
-		const stickyPermGranted: boolean = this.query('v1/node/permission', { permission: 'sticky', nodeId: parentDetails.id });
+		const stickyPermGranted: boolean = await this.query('v1/node/permission', { permission: 'sticky', nodeId: parentDetails.id });
 
 		if (!stickyPermGranted)
 		{
@@ -290,7 +312,7 @@ export async function validateThreadType(this: APIThisType, type: createProps['t
 	}
 	else if (type === 'admin')
 	{
-		const adminLockPermGranted: boolean = this.query('v1/node/permission', { permission: 'admin-lock', nodeId: parentDetails.id });
+		const adminLockPermGranted: boolean = await this.query('v1/node/permission', { permission: 'admin-lock', nodeId: parentDetails.id });
 
 		if (!adminLockPermGranted)
 		{
@@ -303,7 +325,7 @@ export async function validateBoardId(this: APIThisType, boardId: createProps['b
 {
 	if (boardId > 0)
 	{
-		// you can only do that when posting on a thread
+		// you can only move a thread when posting on a thread
 		if (parentDetails.type !== 'thread')
 		{
 			throw new UserError('bad-format');
@@ -332,7 +354,7 @@ export async function validateBoardId(this: APIThisType, boardId: createProps['b
 	}
 }
 
-export async function validateFileArrays(this: APIThisType, fileIds: createProps['fileIds'], fileNames: createProps['fileNames'], fileWidths: createProps['fileWidths'], fileHeights: createProps['fileHeights'], fileCaptions: createProps['fileCaptions']): Promise<void>
+export async function validateFileArrays(this: APIThisType, newNodeType: NewNodeType, editingThreadPost: boolean, fileIds: createProps['fileIds'], fileNames: createProps['fileNames'], fileWidths: createProps['fileWidths'], fileHeights: createProps['fileHeights'], fileCaptions: createProps['fileCaptions']): Promise<void>
 {
 	if (
 		fileIds.length !== fileNames.length ||
@@ -344,7 +366,14 @@ export async function validateFileArrays(this: APIThisType, fileIds: createProps
 		throw new UserError('bad-format');
 	}
 
-	if (fileIds.length > constants.max.imagesPost)
+	let maxImages = constants.max.imagesPost;
+
+	if (newNodeType === 'thread' || editingThreadPost)
+	{
+		maxImages = constants.max.imagesThread;
+	}
+
+	if (fileIds.length > maxImages)
 	{
 		throw new UserError('too-many-files');
 	}
@@ -368,13 +397,13 @@ export async function validateFileArrays(this: APIThisType, fileIds: createProps
 	}
 }
 
-export async function validateServerSide(this: APIThisType, title: createProps['title'], text: createProps['text'], addUsers: createProps['addUsers'], removeUsers: createProps['removeUsers'], newNodeType: NewNodeType, editPermGranted: boolean, editingPost: boolean, parentDetails: ParentDetailsType): Promise<[number[], number[]]>
+export async function validateServerSide(this: APIThisType, title: createProps['title'], text: createProps['text'], addUsers: createProps['addUsers'], removeUsers: createProps['removeUsers'], newNodeType: NewNodeType, editPermGranted: boolean, editPermGrantedParent: boolean, editingPost: boolean, parentDetails: ParentDetailsType): Promise<[number[], number[]]>
 {
 	// Save up any errors we find to display to the user all at once
 	let errors: string[] = [];
 
 	// Only threads have titles (if making a thread or have permissions to edit thread title while posting)
-	if (utils.realStringLength(title) === 0 && (newNodeType === 'thread' || editPermGranted))
+	if (utils.realStringLength(title) === 0 && (newNodeType === 'thread' || !editingPost && editPermGranted || editingPost && editPermGrantedParent))
 	{
 		errors.push('missing-title');
 	}
@@ -401,23 +430,27 @@ export async function validateServerSide(this: APIThisType, title: createProps['
 		{
 			errors.push('no-such-user');
 		}
-
-		const [blocked] = await db.query(`
-			SELECT user_id
-			FROM block_user
-			WHERE block_user_id = $1::int AND user_id = $2::int
-		`, this.userId, check.id);
-
-		if (blocked)
+		else
 		{
-			errors.push('blocked');
-		}
+			const [blocked] = await db.query(`
+				SELECT user_id
+				FROM block_user
+				WHERE block_user_id = $1::int AND user_id = $2::int
+			`, this.userId, check.id);
 
-		let userId = Number(check.id);
+			if (blocked)
+			{
+				errors.push('blocked');
+			}
+			else
+			{
+				let userId = Number(check.id);
 
-		if (check.id !== this.userId && !addUserIds.includes(userId))
-		{
-			addUserIds.push(userId);
+				if (check.id !== this.userId && !addUserIds.includes(userId))
+				{
+					addUserIds.push(userId);
+				}
+			}
 		}
 	}));
 
@@ -440,23 +473,27 @@ export async function validateServerSide(this: APIThisType, title: createProps['
 		{
 			errors.push('no-such-user');
 		}
-
-		const [blocked] = await db.query(`
-			SELECT user_id
-			FROM block_user
-			WHERE block_user_id = $1::int AND user_id = $2::int
-		`, this.userId, check.id);
-
-		if (blocked)
+		else
 		{
-			errors.push('blocked');
-		}
+			const [blocked] = await db.query(`
+				SELECT user_id
+				FROM block_user
+				WHERE block_user_id = $1::int AND user_id = $2::int
+			`, this.userId, check.id);
 
-		let userId = Number(check.id);
+			if (blocked)
+			{
+				errors.push('blocked');
+			}
+			else
+			{
+				let userId = Number(check.id);
 
-		if (!removeUserIds.includes(userId))
-		{
-			removeUserIds.push(userId);
+				if (!removeUserIds.includes(userId))
+				{
+					removeUserIds.push(userId);
+				}
+			}
 		}
 	}));
 
@@ -470,62 +507,65 @@ export async function validateServerSide(this: APIThisType, title: createProps['
 		1 minute between posts, public and private
 		5 minutes between threads, public and private
 		*/
-		const accountData = await accounts.getData(this.userId);
-
-		// if we're a new member, making a thread / post, and we're not in: Adoptee stuff
-		if (dateUtils.shouldHaveNewMemberRestrictions(accountData.signup_date) &&
+		if (
 			![parentDetails.id, parentDetails.parent_node_id].includes(constants.boardIds.adopteeBT) &&
 			![parentDetails.id, parentDetails.parent_node_id].includes(constants.boardIds.adopteeThread)
 		)
 		{
-			// if we're not in PTs, check count
-			if (![parentDetails.id, parentDetails.parent_node_id].includes(constants.boardIds.privateThreads))
+			const accountData = await accounts.getData(this.userId);
+
+			// if we're a new member, making a thread / post, and we're not in: Adoptee stuff
+			if (dateUtils.shouldHaveNewMemberRestrictions(accountData.signup_date))
 			{
-				const [typeCount] = await db.query(`
-					SELECT count(*) AS count
+				// if we're not in PTs, check count
+				if (![parentDetails.id, parentDetails.parent_node_id].includes(constants.boardIds.privateThreads))
+				{
+					const [typeCount] = await db.query(`
+						SELECT count(*) AS count
+						FROM node
+						WHERE type = $2 and user_id = $1::int AND creation_time > now() - interval '1' day
+					`, this.userId, newNodeType);
+
+					if (newNodeType === 'thread' && typeCount.count >= 10 || newNodeType === 'post' && typeCount.count >= 25)
+					{
+						errors.push('new-member-restrictions');
+					}
+				}
+
+				// check timing
+				const [lastNode]: [{ creation_time: Date } | undefined] = await db.query(`
+					SELECT creation_time
 					FROM node
-					WHERE type = $2 and user_id = $1::int AND creation_time > now() - interval '1' day
+					WHERE type = $2 and user_id = $1::int
+					ORDER BY creation_time DESC
+					LIMIT 1
 				`, this.userId, newNodeType);
 
-				if (newNodeType === 'thread' && typeCount.count >= 10 || newNodeType === 'post' && typeCount.count >= 25)
+				if (lastNode)
 				{
-					errors.push('new-member-restrictions');
-				}
-			}
-
-			// check timing
-			const [lastNode] = await db.query(`
-				SELECT creation_time
-				FROM node
-				WHERE type = $2 and user_id = $1::int
-				ORDER BY creation_time DESC
-				LIMIT 1
-			`, this.userId, newNodeType);
-
-			if (lastNode)
-			{
-				if (
-					newNodeType === 'post' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(1, 'minutes')) ||
-					newNodeType === 'thread' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(5, 'minutes')))
-				{
-					errors.push('new-member-restrictions');
+					if (
+						newNodeType === 'post' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(1, 'minutes')) ||
+						newNodeType === 'thread' && dateUtils.isAfterTimezone(lastNode.creation_time, dateUtils.subtractFromCurrentDateTimezone(5, 'minutes')))
+					{
+						errors.push('new-member-restrictions');
+					}
 				}
 			}
 		}
-	}
 
-	// cannot post on a thread where that user has blocked you
-	if (newNodeType === 'post' && !editingPost)
-	{
-		const [blocked] = await db.query(`
-			SELECT user_id
-			FROM block_user
-			WHERE block_user_id = $1::int AND user_id = $2::int
-		`, this.userId, parentDetails.user_id);
-
-		if (blocked)
+		// cannot post on a thread where that user has blocked you
+		if (newNodeType === 'post')
 		{
-			errors.push('blocked');
+			const [blocked] = await db.query(`
+				SELECT user_id
+				FROM block_user
+				WHERE block_user_id = $1::int AND user_id = $2::int
+			`, this.userId, parentDetails.user_id);
+
+			if (blocked)
+			{
+				errors.push('blocked');
+			}
 		}
 	}
 
@@ -537,10 +577,13 @@ export async function validateServerSide(this: APIThisType, title: createProps['
 	return [addUserIds, removeUserIds];
 }
 
-export async function updateTitleOrPost(this: APIThisType, title: createProps['title'], text: createProps['text'], format: createProps['format'], lock: createProps['lock'], addUserIds: number[], removeUserIds: number[], type: createProps['type'], boardId: createProps['boardId'], fileIds: createProps['fileIds'], fileNames: createProps['fileNames'], fileWidths: createProps['fileWidths'], fileHeights: createProps['fileHeights'], fileCaptions: createProps['fileCaptions'], editingPost: boolean, newNodeType: NewNodeType, parentDetails: ParentDetailsType): Promise<number>
+export async function updateTitleOrPost(this: APIThisType, title: createProps['title'], text: createProps['text'], format: createProps['format'], lock: createProps['lock'], addUserIds: number[], removeUserIds: number[], type: createProps['type'], boardId: createProps['boardId'], fileIds: createProps['fileIds'], fileNames: createProps['fileNames'], fileWidths: createProps['fileWidths'], fileHeights: createProps['fileHeights'], fileCaptions: createProps['fileCaptions'], editingPost: boolean, editingThreadPost: boolean, newNodeType: NewNodeType, parentDetails: ParentDetailsType): Promise<number>
 {
-	return await db.transaction(async (query: any) =>
+	return await db.transaction(async (query: db.QueryType) =>
 	{
+		let nodeRevisionParent: { id: number } | null = null;
+		const parentTitle = title;
+
 		// if changing the thread title, which happens when posting or editing a post, record it
 		if (newNodeType === 'post')
 		{
@@ -550,9 +593,10 @@ export async function updateTitleOrPost(this: APIThisType, title: createProps['t
 				editingPost && parentDetails.parent_title !== title)
 			)
 			{
-				await query(`
+				[nodeRevisionParent] = await query(`
 					INSERT INTO node_revision (node_id, reviser_id, title)
 					VALUES ($1::int, $2::int, $3::text)
+					RETURNING id
 				`, !editingPost ? parentDetails.id : parentDetails.parent_node_id, this.userId, title);
 			}
 
@@ -585,8 +629,19 @@ export async function updateTitleOrPost(this: APIThisType, title: createProps['t
 			RETURNING id
 		`, newId, this.userId, title, text, format);
 
-		if (newNodeType === 'post' && fileIds.length > 0)
+		if (fileIds.length > 0 && (newNodeType === 'post' && fileIds.length <= constants.max.imagesPost || (newNodeType === 'thread' || editingThreadPost) && fileIds.length > constants.max.imagesPost))
 		{
+			const useThread = editingThreadPost && fileIds.length > constants.max.imagesPost;
+
+			if (useThread && nodeRevisionParent === null)
+			{
+				[nodeRevisionParent] = await query(`
+					INSERT INTO node_revision (node_id, reviser_id, title)
+					VALUES ($1::int, $2::int, $3::text)
+					RETURNING id
+				`, parentDetails.parent_node_id, this.userId, parentTitle);
+			}
+
 			await Promise.all(
 				fileIds.map(async (id, index) =>
 				{
@@ -599,7 +654,7 @@ export async function updateTitleOrPost(this: APIThisType, title: createProps['t
 					await query(`
 						INSERT INTO node_revision_file (node_revision_id, file_id)
 						VALUES ($1, $2)
-					`, nodeRevision.id, file.id);
+					`, useThread ? nodeRevisionParent!.id : nodeRevision.id, file.id);
 				}),
 			);
 		}
@@ -635,6 +690,11 @@ export async function updateTitleOrPost(this: APIThisType, title: createProps['t
 					SELECT unnest($1::int[]), $2::int, $3::int, true
 					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 				`, addUserIds, userNodeId, constants.nodePermissions.reply) : null,
+				addUserIds.length > 0 ? query(`
+					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+					SELECT unnest($1::int[]), $2::int, $3::int, true
+					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+				`, addUserIds, userNodeId, constants.nodePermissions.react) : null,
 				removeUserIds.length > 0 ? query(`
 					DELETE FROM user_node_permission
 					WHERE user_id = ANY($1) AND node_id = $2::int
@@ -642,7 +702,7 @@ export async function updateTitleOrPost(this: APIThisType, title: createProps['t
 			]);
 		}
 
-		if (type === 'sticky' || type === 'admin')
+		if (utils.realStringLength(type) > 0)
 		{
 			await query(`
 				UPDATE node
@@ -675,11 +735,101 @@ export async function updateTitleOrPost(this: APIThisType, title: createProps['t
 			`, parentDetails.id, boardId);
 		}
 
+		if (newNodeType === 'post' && text !== null && format === 'markdown')
+		{
+			const md = new MarkdownIt();
+			md.use(poll);
+
+			const tokens = md.parse(text, {});
+
+			const quotes: string[] = [];
+
+			const polls: {
+				options: string[]
+				multi: boolean
+			}[] = [];
+
+			for (let i = 0; i < tokens.length; i++)
+			{
+				const token = tokens[i];
+
+				if (token.type === 'blockquote_open')
+				{
+					let content = '';
+					let j = i + 1;
+
+					while (tokens[j] && tokens[j].type !== 'blockquote_close')
+					{
+						if (tokens[j].type === 'inline')
+						{
+							content += tokens[j].content.trim() + '%';
+						}
+
+						j++;
+					}
+
+					quotes.push(content.replace(/[’‘']/g, '%').replace(/[“”"]/g, '%').replace(/%+/g, '%'));
+				}
+
+				if (token.type === 'poll_open' && token.meta)
+				{
+					const options = token.meta.options || [];
+					const multi = token.meta.pollType === 'multi';
+
+					polls.push({ options, multi });
+				}
+			}
+
+			if (quotes.length > 0)
+			{
+				await query(`
+					WITH quotes AS (
+						SELECT quote, ord
+						FROM unnest($2::text[]) WITH ORDINALITY AS t(quote, ord)
+					),
+					matched AS (
+						SELECT q.quote, q.ord, nr.node_id AS quoted_node_id
+						FROM quotes q
+						LEFT JOIN LATERAL (
+							SELECT nr.node_id
+							FROM node_revision nr
+							JOIN node AS parent ON (parent.id = nr.node_id)
+							WHERE parent.parent_node_id = $1 AND nr.content ILIKE '%' || q.quote || '%'
+							ORDER BY nr.node_id ASC, nr.time DESC
+							LIMIT 1
+						) nr ON TRUE
+					)
+					INSERT INTO node_revision_quote (node_revision_id, node_id, sort_order)
+					SELECT $3, quoted_node_id, ord
+					FROM matched
+					WHERE quoted_node_id IS NOT NULL AND quoted_node_id != $4
+					ORDER BY ord
+				`, editingPost ? parentDetails.parent_node_id : parentDetails.id, quotes, nodeRevision.id, newId);
+			}
+
+			if (polls.length > 0)
+			{
+				for (const [index, row] of polls.entries())
+				{
+					const [poll] = await query(`
+						INSERT INTO node_revision_poll (node_revision_id, is_multiple_choice, sort_order)
+						VALUES ($1, $2, $3)
+						RETURNING id
+					`, nodeRevision.id, row.multi, index);
+
+					await query(`
+						INSERT INTO node_revision_poll_option (poll_id, description, sequence)
+						SELECT $1, unnest($2::text[]), unnest($3::int[])
+					`, poll.id, row.options, row.options.map((_, idx) => idx + 1));
+				}
+			}
+		}
+
 		return newId;
 	});
 }
 
-export async function updateFollowAndNotifications(this: APIThisType, newNodeType: NewNodeType, newId: number, parentDetails: ParentDetailsType): Promise<void>
+export async function updateFollowAndNotifications(this: APIThisType, newNodeType: NewNodeType, newId: number, parentDetails: ParentDetailsType, editingPost: boolean = false): Promise<void>
 {
 	const [user] = await db.query(`
 		SELECT flag_option
@@ -719,7 +869,7 @@ export async function updateFollowAndNotifications(this: APIThisType, newNodeTyp
 	{
 		// follow thread if possible
 		// only need create_reply here because this is hit when creating a thread too
-		if (['create_reply'].includes(user.flag_option))
+		if (!editingPost && ['create_reply'].includes(user.flag_option))
 		{
 			const [followedNode] = await db.query(`
 				SELECT node_id
@@ -741,8 +891,9 @@ export async function updateFollowAndNotifications(this: APIThisType, newNodeTyp
 		}
 
 		Promise.all([
-			this.query('v1/notification/create', { id: newId, type: types.FT }),
+			this.query('v1/notification/create', { id: newId, type: editingPost ? types.FT_edit : types.FT }),
 			this.query('v1/notification/create', { id: newId, type: types.usernameTag }),
+			this.query('v1/notification/create', { id: newId, type: types.postQuote }),
 			parentDetails.parent_node_id === constants.boardIds.privateThreads ?
 				this.query('v1/notification/create', { id: newId, type: types.PT }) : null,
 			parentDetails.id === constants.boardIds.adopteeBT ?
@@ -752,8 +903,26 @@ export async function updateFollowAndNotifications(this: APIThisType, newNodeTyp
 			parentDetails.parent_node_id === constants.boardIds.shopThread ?
 				this.query('v1/notification/create', { id: newId, type: types.shopThread }) : null,
 		]);
+
+		for (const userId of await getAllLiveModeUserIds(parentDetails.id))
+		{
+			try
+			{
+				const post = await this.fullQuery(userId, 'v1/node/full', { id: newId, loadingNode: true });
+
+				sendNotificationToUser(userId, constants.webSocketTypes.post, post);
+			}
+			catch (err)
+			{
+				console.error('Error sending new post via WebSocket.', newId, userId, err);
+			}
+		}
 	}
 }
+
+create.permissions = [
+	'userId',
+];
 
 create.apiTypes = {
 	parentId: {
@@ -784,15 +953,17 @@ create.apiTypes = {
 	addUsers: {
 		type: APITypes.array,
 		length: constants.max.addMultipleUsers,
+		userInput: true,
 	},
 	removeUsers: {
 		type: APITypes.array,
 		length: constants.max.addMultipleUsers,
+		userInput: true,
 	},
 	type: {
 		type: APITypes.string,
-		default: 'normal',
-		includes: ['normal', 'sticky', 'admin'],
+		default: '',
+		includes: ['', 'normal', 'sticky', 'admin'],
 	},
 	boardId: {
 		type: APITypes.nodeId,

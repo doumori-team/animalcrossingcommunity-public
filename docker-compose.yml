@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:17.5
+    container_name: acc-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: acc
+      POSTGRES_PASSWORD: acc
+      POSTGRES_DB: acc_dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: acc-app
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    command: npm run serve
+
+volumes:
+  pgdata:

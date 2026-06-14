@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Header, Section, Grid, Pagination, InnerSection, SelectAllCheckbox } from '@layout';
@@ -148,14 +148,14 @@ const NotificationsPage = ({ loaderData }: { loaderData: NotificationsPageProps 
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, sort }: { page?: string, sort?: string }): Promise<NotificationsPageProps>
+async function loadData(this: APIThisType, _: Params, { page, sort }: { page?: string, sort?: string }): Promise<NotificationsPageProps>
 {
 	const sortBy = sort ? sort : '';
 
 	const [returnValue] = await Promise.all([
 		this.query('v1/users/notifications', {
 			page: page ? page : 1,
-			sort: sortBy,
+			sortBy: sortBy,
 		}),
 	]);
 

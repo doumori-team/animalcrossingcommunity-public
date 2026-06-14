@@ -2,17 +2,10 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { dateUtils, constants, utils } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, SessionType } from '@types';
+import { APIThisType, SessionType, UserLiteType } from '@types';
 
 async function session(this: APIThisType, { id, page, url }: sessionProps): Promise<SessionType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const [userSession] = await db.query(`
 		SELECT
@@ -27,28 +20,28 @@ async function session(this: APIThisType, { id, page, url }: sessionProps): Prom
 		throw new UserError('bad-format');
 	}
 
-	let urlId = null;
+	let urlId: number | null = null;
 
 	if (utils.realStringLength(url) > 0)
 	{
-		[urlId] = await db.query(`
+		const [checkUrl] = await db.query(`
 			SELECT id
 			FROM url
 			WHERE url = $1
 		`, url);
 
-		if (!urlId)
+		if (!checkUrl)
 		{
 			throw new UserError('bad-format');
 		}
 
-		urlId = urlId.id;
+		urlId = checkUrl.id;
 	}
 
 	// Do actual search
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params = [pageSize, offset];
 	let paramIndex = params.length;
 
 	let query = `
@@ -63,9 +56,9 @@ async function session(this: APIThisType, { id, page, url }: sessionProps): Prom
 	`;
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
-	if (urlId > 0)
+	if (urlId !== null && urlId > 0)
 	{
 		params[paramIndex] = urlId;
 
@@ -104,7 +97,13 @@ async function session(this: APIThisType, { id, page, url }: sessionProps): Prom
 	`;
 
 	// Run query
-	const [urls, user] = await Promise.all([
+	const [urls, user]: [{
+		date: Date
+		url: string
+		params: object
+		query: object
+		count: number
+	}[], UserLiteType] = await Promise.all([
 		db.query(query, ...params),
 		this.query('v1/user_lite', { id: userSession.user_id }),
 	]);
@@ -112,12 +111,17 @@ async function session(this: APIThisType, { id, page, url }: sessionProps): Prom
 	const result = {
 		id: userSession.id,
 		user: user,
-		urls: [],
+		urls: [] as {
+			formattedDate: string
+			url: string
+			params: string | null
+			query: string | null
+		}[],
 	};
 
 	if (urls.length > 0)
 	{
-		result.urls = urls.map((url: any) =>
+		result.urls = urls.map(url =>
 		{
 			return {
 				formattedDate: dateUtils.formatDateTime(url.date),
@@ -136,6 +140,10 @@ async function session(this: APIThisType, { id, page, url }: sessionProps): Prom
 		url: url,
 	};
 }
+
+session.permissions = [
+	'process-user-tickets',
+];
 
 session.apiTypes = {
 	id: {

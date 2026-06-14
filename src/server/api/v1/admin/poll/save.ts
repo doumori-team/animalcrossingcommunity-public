@@ -1,19 +1,12 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { utils, dateUtils, constants } from '@utils';
+import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, question, description, startDate, duration,
 	isMultipleChoice, isEnabled, options }: saveProps): Promise<{ id: number }>
 {
-	const permission: boolean = await this.query('v1/permission', { permission: 'polls-admin' });
-
-	if (!permission)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	if (id > 0)
 	{
@@ -30,7 +23,7 @@ async function save(this: APIThisType, { id, question, description, startDate, d
 		}
 	}
 
-	startDate = dateUtils.formatYearMonthDay(startDate) + ' 05:00:00';
+	startDate = startDate + ' 05:00:00';
 
 	const durationInterval = duration + ' days';
 
@@ -56,7 +49,7 @@ async function save(this: APIThisType, { id, question, description, startDate, d
 	}
 
 	// Perform queries
-	const pollResult = await db.transaction(async (query: any) =>
+	const pollResult = await db.transaction(async (query: db.QueryType) =>
 	{
 		if (id > 0)
 		{
@@ -131,6 +124,10 @@ async function save(this: APIThisType, { id, question, description, startDate, d
 	};
 }
 
+save.permissions = [
+	'polls-admin',
+];
+
 save.apiTypes = {
 	id: {
 		type: APITypes.pollId,
@@ -182,7 +179,7 @@ type saveProps = {
 	duration: number
 	isMultipleChoice: boolean
 	isEnabled: boolean
-	options: any[]
+	options: string[]
 };
 
 export default save;

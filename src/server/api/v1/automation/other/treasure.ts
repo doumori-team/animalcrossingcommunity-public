@@ -1,16 +1,8 @@
 import * as db from '@db';
-import { constants } from '@utils';
 import { APIThisType, TreasureType } from '@types';
-import { UserError } from '@errors';
 
-export default async function treasure(this: APIThisType): Promise<null | TreasureType>
+async function treasure(this: APIThisType): Promise<null | TreasureType>
 {
-	// You must be on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
 	if (!this.userId)
 	{
 		return null;
@@ -29,5 +21,12 @@ export default async function treasure(this: APIThisType): Promise<null | Treasu
 	return {
 		treasureTypeId,
 		id: offer.id,
+		location: 'content_bottom',
 	};
 }
+
+treasure.permissions = [
+	'TEST_SITE',
+];
+
+export default treasure;

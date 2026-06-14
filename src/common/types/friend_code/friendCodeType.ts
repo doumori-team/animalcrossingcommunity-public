@@ -20,7 +20,7 @@ type FriendCodeType = {
 		game: {
 			id: number
 		}
-	}
+	} | null
 	username: string
 };
 

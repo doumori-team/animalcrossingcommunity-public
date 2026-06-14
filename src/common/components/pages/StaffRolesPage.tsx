@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
@@ -41,7 +42,7 @@ const StaffRolesPage = ({ loaderData }: { loaderData: StaffRolesPageProps }) =>
 		}
 	}
 
-	const getGroupInfo = (selectedStaffGroup: UserGroupType): any =>
+	const getGroupInfo = (selectedStaffGroup: UserGroupType): ReactNode =>
 	{
 		switch (selectedStaffGroup.identifier)
 		{

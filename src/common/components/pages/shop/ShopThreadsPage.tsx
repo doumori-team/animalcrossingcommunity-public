@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import { Form, Check, Select, Switch, Alert, RichTextArea, Text } from '@form';
@@ -44,6 +44,8 @@ const ShopThreadsPage = ({ loaderData }: { loaderData: ShopThreadsPageProps }) =
 	{
 		setSelectedShopId(Number(e.target.value));
 	};
+
+	const myShops = shops.filter(s => s.employee);
 
 	return (
 		<div className='ShopThreadsPage'>
@@ -323,7 +325,7 @@ const ShopThreadsPage = ({ loaderData }: { loaderData: ShopThreadsPageProps }) =
 					/>
 				</Section>
 
-				{shops.some(s => s.employee) &&
+				{myShops.length > 0 &&
 					<fieldset className='NodeWritingInterface'>
 						<Form action='v1/shop/node/create' callback='/shops/threads/:id' showButton>
 							<div role='group'>
@@ -352,10 +354,11 @@ const ShopThreadsPage = ({ loaderData }: { loaderData: ShopThreadsPageProps }) =
 							<Select
 								label='Shop'
 								name='shopId'
-								options={shops.filter(s => s.employee)}
+								options={myShops}
 								optionsMapping={{ value: 'id', label: 'name' }}
 								placeholder='Choose a shop...'
 								required
+								value={myShops.length === 1 ? myShops[0].id : undefined}
 							/>
 
 							<RichTextArea
@@ -376,7 +379,7 @@ const ShopThreadsPage = ({ loaderData }: { loaderData: ShopThreadsPageProps }) =
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, shopId, category, type, status, waitlisted, locked }: { page?: string, shopId?: string, category?: string, type?: string, status?: string, waitlisted?: string, locked?: string }): Promise<ShopThreadsPageProps>
+async function loadData(this: APIThisType, _: Params, { page, shopId, category, type, status, waitlisted, locked }: { page?: string, shopId?: string, category?: string, type?: string, status?: string, waitlisted?: string, locked?: string }): Promise<ShopThreadsPageProps>
 {
 	const [returnValue, userEmojiSettings] = await Promise.all([
 		this.query('v1/shop/threads', {

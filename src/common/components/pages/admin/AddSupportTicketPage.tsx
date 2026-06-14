@@ -57,7 +57,7 @@ const AddSupportTicketPage = ({ loaderData }: { loaderData: AddSupportTicketPage
 								<Select
 									label='Current Ban Length'
 									name='banLengthId'
-									options={[{ id: null, description: 'Not Banned' } as any].concat(banLengths)}
+									options={[{ id: 0, description: 'Not Banned' }].concat(banLengths)}
 									optionsMapping={{ value: 'id', label: 'description' }}
 								/>
 							</Form.Group>

@@ -6,27 +6,15 @@ import { APIThisType } from '@types';
 
 async function message(this: APIThisType, { id, message, staffOnly, format }: messageProps): Promise<void>
 {
-	const [processUserTickets, reportContent] = await Promise.all([
+	const [processUserTickets, userTicket]: [boolean, { violator_id: number, status: string }] = await Promise.all([
 		this.query('v1/permission', { permission: 'process-user-tickets' }),
-		this.query('v1/permission', { permission: 'report-content' }),
+		db.query(`
+			SELECT user_ticket.violator_id, user_ticket_status.name AS status
+			FROM user_ticket
+			JOIN user_ticket_status ON (user_ticket.status_id = user_ticket_status.id)
+			WHERE user_ticket.id = $1::int
+		`, id),
 	]);
-
-	if (!(processUserTickets || reportContent))
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [userTicket] = await db.query(`
-		SELECT user_ticket.violator_id, user_ticket_status.name AS status
-		FROM user_ticket
-		JOIN user_ticket_status ON (user_ticket.status_id = user_ticket_status.id)
-		WHERE user_ticket.id = $1::int
-	`, id);
 
 	// UT violator may post message if Closed, or anyone (modmin) with UT power
 	if (!processUserTickets && (this.userId !== userTicket.violator_id || !['Closed'].includes(userTicket.status)))
@@ -45,7 +33,7 @@ async function message(this: APIThisType, { id, message, staffOnly, format }: me
 	}
 
 	// Perform queries
-	const userTicketMessageId = await db.transaction(async (query: any) =>
+	const userTicketMessageId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [userTicketMessage] = await query(`
 			INSERT INTO user_ticket_message (user_id, user_ticket_id, message, staff_only, message_format) VALUES
@@ -92,6 +80,12 @@ async function message(this: APIThisType, { id, message, staffOnly, format }: me
 		type: constants.notification.types.modminUTPost,
 	});
 }
+
+message.permissions = [
+	'process-user-tickets',
+	'report-content',
+	'userId',
+];
 
 message.apiTypes = {
 	id: {

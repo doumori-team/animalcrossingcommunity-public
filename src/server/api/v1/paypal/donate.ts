@@ -74,6 +74,7 @@ async function donate(this: APIThisType, { custom, type, amount }: donateProps):
 			id: planResponse.data.id,
 		};
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		console.error('Error donating to paypal:', error.response ? error.response.data : error.message);
@@ -95,8 +96,9 @@ donate.apiTypes = {
 	amount: {
 		type: APITypes.number,
 		required: true,
-		min: constants.min.number,
+		min: constants.min.donationAmount,
 		max: constants.max.donationAmount,
+		error: 'max-paypal-amount',
 	},
 };
 

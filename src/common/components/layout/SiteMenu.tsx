@@ -18,12 +18,21 @@ import { ClickHandlerButtonType } from '@types';
  * If the "dynamic" prop is present, you should also provide a "closeFunc" prop
  * that is a function the menu can call to close itself.
  */
-const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
+const SiteMenu = ({ dynamic, closeFunc, ref, dockMenu = false }: SiteMenuProps) =>
 {
 	let className = 'SiteMenu';
 	if (dynamic)
 	{
 		className += ' SiteMenu-dynamic';
+	}
+
+	if (dockMenu)
+	{
+		className += ' SiteMenu-dockMenu';
+	}
+	else
+	{
+		className += ' SiteMenu-NotDocked';
 	}
 
 	const [myACCOpen, setMyACCOpen] = useState<boolean>(true);
@@ -39,6 +48,7 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 			{user => user &&
 				<>
 					<SiteMenuLink to={`/threads/${encodeURIComponent(user.id)}`} indent={indent} label='My Threads' />
+					<SiteMenuLink to={`/catalog/${encodeURIComponent(user.id)}`} indent={indent} label='My Catalog' />
 					{user.adoptionThreadId &&
 						<SiteMenuLink to={`/scout-hub/adoption/${user.adoptionThreadId}`} indent={indent} label='Adoption Thread' />
 					}
@@ -48,6 +58,7 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 				</>
 			}
 		</UserContext.Consumer>
+		<SiteMenuLink to='/followed/post' indent={indent} label='Followed Posts' />
 		<SiteMenuLink to='/followed/thread' indent={indent} label='Followed Threads' />
 		<SiteMenuLink to='/followed/board' indent={indent} label='Followed Boards' />
 		<RequirePermission permission='use-buddy-system' silent>
@@ -89,9 +100,6 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 	</>;
 
 	const Staff: FC<{ indent?: boolean }> = ({ indent }) => <>
-		<RequireTestSite>
-			<SiteMenuLink to='/automation' indent={indent} label='Automation' />
-		</RequireTestSite>
 		<UserContext.Consumer>
 			{user => user &&
 				<RequirePermission permission='scout-pages' silent>
@@ -106,7 +114,6 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 			<SiteMenuLink to='/modmin' indent={indent} label='Modmin' />
 		</RequirePermission>
 	</>;
-
 
 	return (
 		<nav className={className} ref={ref}>
@@ -132,8 +139,12 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 						<li className='SiteMenu_link SiteMenu_userInfo'>
 							<div>
 								<Link to={`/profile/${encodeURIComponent(user.id)}`}>
-									{user.username} ∙ <span className='Menu_link_subtext'>Profile</span>
-								</Link> ∙ <Link to='/settings/account'><span className='Menu_link_subtext'>Settings</span></Link>
+									{user.username}<span className='separator'>∙</span><span className='Menu_link_subtext'>Profile</span>
+								</Link><span className='separator'>∙</span><Link
+									to='/settings/account'
+								>
+									<span className='Menu_link_subtext'>Settings</span>
+								</Link><span className='separator'>∙</span><LogoutButton />
 							</div>
 							<div>
 								<Link to='/faq#treasure'>
@@ -163,12 +174,12 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 							<div>Community</div>
 						</li>
 						<Community indent={true} />
-						<RequireUser silent>
+						<RequirePermission permission='staff-pages' silent>
 							<li className='SiteMenu_link Menu_link_header'>
 								<div>Staff</div>
 							</li>
 							<Staff indent={true} />
-						</RequireUser>
+						</RequirePermission>
 					</>
 				}
 				>
@@ -184,18 +195,23 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 						<ArrowToggle open={communityOpen} />
 					</li>
 					{communityOpen && <Community indent={true} />}
-					<RequireUser silent>
+					<RequirePermission permission='staff-pages' silent>
 						<li onClick={() => setStaffOpen(!staffOpen)} className='SiteMenu_link Menu_link_header Menu_link_header_cursorPointer'>
 							<div>Staff</div>
 							<ArrowToggle open={staffOpen} />
 						</li>
 						{staffOpen && <Staff indent={true} />}
-					</RequireUser>
+					</RequirePermission>
 				</RequireClientJS>
+				<RequireUser silent>
+					<RequireTestSite>
+						<SiteMenuLink to='/automation' label='Automation' />
+					</RequireTestSite>
+				</RequireUser>
 				<RequireUser silent>
 					<li className='SiteMenu_link'>
 						<Form
-							action='v1/user_lite'
+							action='v1/user_search'
 							callback='/profile/:id'
 							className='UsernameSearch'
 							showButton
@@ -204,7 +220,7 @@ const SiteMenu = ({ dynamic, closeFunc, ref }: SiteMenuProps) =>
 							<div className='UsernameSearch_option'>
 								<Text
 									label='Search for user'
-									name='username'
+									name='searchUser'
 									placeholder='e.g. hoggle'
 									maxLength={constants.max.searchUsername}
 									required
@@ -233,6 +249,7 @@ type SiteMenuProps = {
 	dynamic?: boolean
 	closeFunc?: ClickHandlerButtonType
 	ref?: Ref<HTMLElement>
+	dockMenu?: boolean
 };
 
 const SiteMenuLink = ({

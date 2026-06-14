@@ -33,7 +33,7 @@ async function loadData(this: APIThisType, { userId, characterId }: { userId: st
 {
 	const selectedCharacterId = Number(characterId);
 	const selectedUserId = Number(userId);
-	let acgameCatalog = null;
+	let acgameCatalog: GroupItemType[] | null = null;
 
 	by = by ? by : 'theme';
 	name = name ? name : '';
@@ -59,7 +59,7 @@ export const loader = routerUtils.wrapLoader(loadData);
 
 type CharacterCatalogPageProps = {
 	selectedCharacterId: number
-	acgameCatalog: GroupItemType[]
+	acgameCatalog: GroupItemType[] | null
 	by: string
 	category: string
 	userId: number

@@ -71,7 +71,7 @@ const AdminBoardPage = ({ loaderData }: { loaderData: AdminBoardPageProps }) =>
 								<Select
 									name='boardId'
 									label='Board'
-									options={[{ id: null, title: 'New Board' } as any].concat(boards)}
+									options={[{ id: 0, title: 'New Board' }].concat(boards)}
 									optionsMapping={{ value: 'id', label: 'title' }}
 									changeHandler={changeBoard}
 									useReactSelect
@@ -121,6 +121,7 @@ const AdminBoardPage = ({ loaderData }: { loaderData: AdminBoardPageProps }) =>
 									name='type'
 									defaultValue={type}
 									label='Type'
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									onChangeHandler={(e: any) => setType(e.target.value)}
 								/>
 							</Form.Group>

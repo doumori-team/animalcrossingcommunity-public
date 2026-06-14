@@ -3,14 +3,13 @@ import {
 	DataBackgroundType,
 	DataCharacterType,
 	DataColorationType,
-	DataAccentType
+	DataAccentType,
 } from '@types';
-
-import characters from './characters.json' assert { type: 'json'};
-import accents from './accents.json' assert { type: 'json'};
-import backgrounds from './backgrounds.json' assert { type: 'json'};
-import colorations from './colorations.json' assert { type: 'json'};
-import tags from './tags.json' assert { type: 'json'};
+import characters from './characters.json';
+import accents from './accents.json';
+import backgrounds from './backgrounds.json';
+import colorations from './colorations.json';
+import tags from './tags.json';
 
 export const indexedAvatarCharacters = getIndexedCharacters();
 export const alphabeticalAvatarCharacters = (characters as DataCharacterType[]).sort((a, b) => utils.sortingCollator.compare(a.name, b.name));
@@ -22,45 +21,45 @@ export const indexedAvatarColorations = getIndexedColorations();
 export const alphabeticalAvatarColorations = (colorations as DataColorationType[]).sort((a, b) => utils.sortingCollator.compare(a.name, b.name));
 export const avatarTags = tags;
 
-function getIndexedCharacters() : DataCharacterType[]
+function getIndexedCharacters(): DataCharacterType[]
 {
-	let indexedCharacters:DataCharacterType[] = [];
+	let indexedCharacters: DataCharacterType[] = [];
 
 	characters.forEach(character =>
-		indexedCharacters[character.id] = character
+		indexedCharacters[character.id] = character,
 	);
 
 	return indexedCharacters;
 }
 
-function getIndexedAccents() : DataAccentType[]
+function getIndexedAccents(): DataAccentType[]
 {
-	let indexedAccents:DataAccentType[] = [];
+	let indexedAccents: DataAccentType[] = [];
 
 	accents.forEach(accent =>
-		indexedAccents[accent.id] = accent
+		indexedAccents[accent.id] = accent,
 	);
 
 	return indexedAccents;
 }
 
-function getIndexedBackgrounds() : DataBackgroundType[]
+function getIndexedBackgrounds(): DataBackgroundType[]
 {
-	let indexedBackgrounds:DataBackgroundType[] = [];
+	let indexedBackgrounds: DataBackgroundType[] = [];
 
 	backgrounds.forEach(bg =>
-		indexedBackgrounds[bg.id] = bg
+		indexedBackgrounds[bg.id] = bg,
 	);
 
 	return indexedBackgrounds;
 }
 
-function getIndexedColorations() : DataColorationType[]
+function getIndexedColorations(): DataColorationType[]
 {
-	let indexedColorations:DataColorationType[] = [];
+	let indexedColorations: DataColorationType[] = [];
 
 	colorations.forEach(coloration =>
-		indexedColorations[coloration.id] = coloration
+		indexedColorations[coloration.id] = coloration,
 	);
 
 	return indexedColorations;

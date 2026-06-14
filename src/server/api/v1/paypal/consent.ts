@@ -54,6 +54,7 @@ async function consent(this: APIThisType, { id }: consentProps): Promise<{ id: s
 			id: response.data.id,
 		};
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		console.error('Error consenting with paypal:', error.response ? error.response.data : error.message);

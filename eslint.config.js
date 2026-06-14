@@ -69,7 +69,7 @@ export default [
 			'@stylistic/js/space-in-parens': ['error', 'never'],
 			'@stylistic/jsx/jsx-curly-spacing': ['error', { 'when': 'never', 'children': true }],
 			// Other
-			eqeqeq: ['warn', 'always'], // Can't enforce this without a significant core TS rewrite, so just discourage it
+			eqeqeq: ['error', 'always'],
 			'@stylistic/ts/comma-dangle': ['error', 'always-multiline'],
 			'react/jsx-closing-bracket-location': ['error', 'line-aligned'],
 			'no-extra-boolean-cast': 'error',
@@ -86,6 +86,7 @@ export default [
 				'varsIgnorePattern': '^_',
 				'caughtErrorsIgnorePattern': '^_',
 			}],
+			'@typescript-eslint/no-explicit-any': 'error',
 			'import/newline-after-import': ['error', { 'count': 1 }],
 			'import/order': [
 				'error',
@@ -115,7 +116,7 @@ export default [
 				'version': 'detect',
 			},
 			// for some reason to get @utils, etc, to be classified as internal
-			'import/internal-regex': '^@\\/components|^@\\/pages|^@accounts$|^@behavior$|^@contexts$|^@db$|^@errors$|^@form$|^@layout$|^@types$|^@utils$|^@apiTypes$|^@cache$|^common|^server|^client|^tests|^\\.{1,2}/'
+			'import/internal-regex': '^@\\/components|^@\\/pages|^@accounts$|^@behavior$|^@contexts$|^@db$|^@errors$|^@form$|^@layout$|^@types$|^@utils$|^@apiTypes$|^@apiPerms$|^@cache$|^common|^server|^client|^tests|^@hooks$|^\\.{1,2}/'
 		}
 	},
 	{

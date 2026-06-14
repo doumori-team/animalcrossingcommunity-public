@@ -47,6 +47,7 @@ type CheckboxProps = {
 	label: string
 	clickHandler?: ClickHandlerType
 	checked?: boolean
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	value?: any
 	type?: 'checkbox' | 'radio'
 	disabled?: boolean

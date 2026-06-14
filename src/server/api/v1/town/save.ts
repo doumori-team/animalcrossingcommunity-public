@@ -9,40 +9,8 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	fruit, grassShapeId, dreamAddress, ordinanceId, stores, nookId, pwps, islandName,
 	islandResidentId, residents, hemisphereId, stationShape, paintId }: saveProps): Promise<{ id: number, userId: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
-	fruit = await Promise.all(fruit.map(async (id) =>
-	{
-		if (isNaN(id))
-		{
-			throw new UserError('bad-format');
-		}
-
-		return Number(id);
-	}));
-
 	stores.push(nookId);
-
-	stores = await Promise.all(stores.map(async (id) =>
-	{
-		if (isNaN(id))
-		{
-			throw new UserError('bad-format');
-		}
-
-		return Number(id);
-	}));
 
 	if (gameId > constants.gameIds.ACNL)
 	{
@@ -55,7 +23,7 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 		paintId = null;
 	}
 
-	if (dreamAddress != null && [constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) && utils.realStringLength(dreamAddress) > 0)
+	if (dreamAddress !== null && [constants.gameIds.ACNL, constants.gameIds.ACNH].includes(gameId) && utils.realStringLength(dreamAddress) > 0)
 	{
 		dreamAddress = dreamAddress.toUpperCase();
 
@@ -75,22 +43,12 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 		ordinanceId = null;
 	}
 
-	pwps = pwps.map(id =>
-	{
-		return String(id);
-	});
-
-	residents = residents.map(id =>
-	{
-		return String(id);
-	});
-
 	if (gameId < constants.gameIds.ACNH)
 	{
 		hemisphereId = null;
 	}
 
-	if (gameId !== constants.gameIds.ACGC || stationShape === 0)
+	if (gameId !== constants.gameIds.ACGC)
 	{
 		stationShape = null;
 	}
@@ -117,17 +75,12 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	if (id > 0)
 	{
 		const [town] = await db.query(`
-			SELECT id, user_id
+			SELECT user_id
 			FROM town
 			WHERE town.id = $1::int
 		`, id);
 
-		if (!town)
-		{
-			throw new UserError('no-such-town');
-		}
-
-		if (town.user_id != this.userId)
+		if (town.user_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
@@ -142,17 +95,6 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	}
 	else
 	{
-		const [foundGameId] = await db.query(`
-			SELECT id
-			FROM ac_game
-			WHERE id = $1::int AND has_town = true
-		`, gameId);
-
-		if (!foundGameId)
-		{
-			throw new UserError('no-such-ac-game');
-		}
-
 		const [towns] = await db.query(`
 			SELECT count(*) AS count
 			FROM town
@@ -171,23 +113,18 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 		`, name, this.userId, gameId, grassShapeId, dreamAddress, ordinanceId, hemisphereId, stationShape, paintId);
 
 		id = Number(town.id);
-
-		await Promise.all([
-			createDefaultMap.bind(this)(id, gameId),
-		]);
-
 		townUserId = this.userId;
+
+		this.query('v1/users/badge/check', { badgeId: constants.badges.townallgames });
 	}
 
 	// Other areas
-	id = Number(id);
-
 	await Promise.all([
 		updateFruit.bind(this)(id, fruit, nativeTownFruit, islandFruitId1, islandFruitId2), // Fruit
 		updateStores(id, stores), // Stores
 		updatePublicWorkProjects(id, pwps), // Public Work Projects
 		updateResidents(id, residents), // Residents
-		updateIsland(id, islandName, Number(islandResidentId || 0), gameId), // AC:GC Island
+		updateIsland(id, islandName, utils.safeNumber(islandResidentId), gameId), // AC:GC Island
 	]);
 
 	return {
@@ -196,13 +133,13 @@ async function save(this: APIThisType, { gameId, id, name, nativeTownFruit, isla
 	};
 }
 
-async function validateFruit(this: APIThisType, gameId: number, fruit: any[], nativeTownFruit: number, islandFruitId1: number, islandFruitId2: number): Promise<void>
+export async function validateFruit(this: APIThisType, gameId: saveProps['gameId'], fruit: saveProps['fruit'], nativeTownFruit: saveProps['nativeTownFruit'], islandFruitId1: saveProps['islandFruitId1'], islandFruitId2: saveProps['islandFruitId2']): Promise<void>
 {
 	await Promise.all([
-		Promise.all([
+		Promise.all(
 			fruit.map(async (fruitId) =>
 			{
-				let [checkID] = await db.query(`
+				const [checkID] = await db.query(`
 					SELECT fruit.id
 					FROM fruit
 					JOIN ac_game_fruit ON (ac_game_fruit.fruit_id = fruit.id AND ac_game_fruit.game_id = $2::int)
@@ -214,10 +151,10 @@ async function validateFruit(this: APIThisType, gameId: number, fruit: any[], na
 					throw new UserError('bad-format');
 				}
 			}),
-		]),
-		async function (nativeTownFruit: number, gameId: number)
+		),
+		async function (nativeTownFruit: saveProps['nativeTownFruit'], gameId: saveProps['gameId'])
 		{
-			let [checkID] = await db.query(`
+			const [checkID] = await db.query(`
 				SELECT fruit.id
 				FROM fruit
 				JOIN ac_game_fruit ON (ac_game_fruit.fruit_id = fruit.id AND ac_game_fruit.game_id = $2::int)
@@ -229,11 +166,11 @@ async function validateFruit(this: APIThisType, gameId: number, fruit: any[], na
 				throw new UserError('bad-format');
 			}
 		}.bind(this)(nativeTownFruit, gameId),
-		async function (islandFruitId1: number, gameId: number)
+		async function (islandFruitId1: saveProps['islandFruitId1'], gameId: saveProps['gameId'])
 		{
 			if (islandFruitId1 > 0)
 			{
-				let [checkID] = await db.query(`
+				const [checkID] = await db.query(`
 					SELECT fruit.id
 					FROM fruit
 					JOIN ac_game_fruit ON (ac_game_fruit.fruit_id = fruit.id AND ac_game_fruit.game_id = $2::int)
@@ -246,11 +183,11 @@ async function validateFruit(this: APIThisType, gameId: number, fruit: any[], na
 				}
 			}
 		}.bind(this)(islandFruitId1, gameId),
-		async function (islandFruitId2: number, gameId: number)
+		async function (islandFruitId2: saveProps['islandFruitId2'], gameId: saveProps['gameId'])
 		{
 			if (islandFruitId2 > 0)
 			{
-				let [checkID] = await db.query(`
+				const [checkID] = await db.query(`
 					SELECT fruit.id
 					FROM fruit
 					JOIN ac_game_fruit ON (ac_game_fruit.fruit_id = fruit.id AND ac_game_fruit.game_id = $2::int)
@@ -266,7 +203,7 @@ async function validateFruit(this: APIThisType, gameId: number, fruit: any[], na
 	]);
 }
 
-async function updateFruit(this: APIThisType, id: number, fruit: any[], nativeTownFruit: number, islandFruitId1: number, islandFruitId2: number): Promise<void>
+export async function updateFruit(this: APIThisType, id: saveProps['id'], fruit: saveProps['fruit'], nativeTownFruit: saveProps['nativeTownFruit'], islandFruitId1: saveProps['islandFruitId1'], islandFruitId2: saveProps['islandFruitId2']): Promise<void>
 {
 	await Promise.all([
 		db.query(`
@@ -293,7 +230,7 @@ async function updateFruit(this: APIThisType, id: number, fruit: any[], nativeTo
 			INSERT INTO town_native_fruit (town_id, fruit_id)
 			VALUES ($1::int, $2::int)
 		`, id, nativeTownFruit),
-		async function (id: number, islandFruitId1: number)
+		async function (id: saveProps['id'], islandFruitId1: saveProps['islandFruitId1'])
 		{
 			if (islandFruitId1 > 0)
 			{
@@ -303,7 +240,7 @@ async function updateFruit(this: APIThisType, id: number, fruit: any[], nativeTo
 				`, id, islandFruitId1);
 			}
 		}.bind(this)(id, islandFruitId1),
-		async function (id: number, islandFruitId2: number)
+		async function (id: saveProps['id'], islandFruitId2: saveProps['islandFruitId2'])
 		{
 			if (islandFruitId2 > 0)
 			{
@@ -316,14 +253,14 @@ async function updateFruit(this: APIThisType, id: number, fruit: any[], nativeTo
 	]);
 }
 
-async function validateGrassShape(grassShapeId: number | null): Promise<void>
+export async function validateGrassShape(grassShapeId: saveProps['grassShapeId']): Promise<void>
 {
-	if (grassShapeId == null)
+	if (grassShapeId === null)
 	{
 		return;
 	}
 
-	let [checkID] = await db.query(`
+	const [checkID] = await db.query(`
 		SELECT grass_shape.id
 		FROM grass_shape
 		WHERE grass_shape.id = $1::int
@@ -335,14 +272,14 @@ async function validateGrassShape(grassShapeId: number | null): Promise<void>
 	}
 }
 
-async function validateOrdinance(ordinanceId: number | null): Promise<void>
+export async function validateOrdinance(ordinanceId: saveProps['ordinanceId']): Promise<void>
 {
 	if (ordinanceId === null)
 	{
 		return;
 	}
 
-	let [checkID] = await db.query(`
+	const [checkID] = await db.query(`
 		SELECT ordinance.id
 		FROM ordinance
 		WHERE ordinance.id = $1::int
@@ -354,12 +291,12 @@ async function validateOrdinance(ordinanceId: number | null): Promise<void>
 	}
 }
 
-async function validateStores(gameId: number, stores: any[]): Promise<void>
+export async function validateStores(gameId: saveProps['gameId'], stores: saveProps['stores']): Promise<void>
 {
-	await Promise.all([
+	await Promise.all(
 		stores.map(async (storeId) =>
 		{
-			let [checkID] = await db.query(`
+			const [checkID] = await db.query(`
 				SELECT store.id
 				FROM store
 				JOIN ac_game_store ON (ac_game_store.store_id = store.id AND ac_game_store.game_id = $2::int)
@@ -371,17 +308,17 @@ async function validateStores(gameId: number, stores: any[]): Promise<void>
 				throw new UserError('bad-format');
 			}
 		}),
-	]);
+	);
 }
 
-async function updateStores(id: number, stores: any[]): Promise<void>
+export async function updateStores(id: saveProps['id'], stores: saveProps['stores']): Promise<void>
 {
 	await db.query(`
 		DELETE FROM town_store
 		WHERE town_id = $1::int
 	`, id);
 
-	await Promise.all([
+	await Promise.all(
 		stores.map(async (storeId) =>
 		{
 			await db.query(`
@@ -389,35 +326,38 @@ async function updateStores(id: number, stores: any[]): Promise<void>
 				VALUES ($1::int, $2::int)
 			`, id, storeId);
 		}),
-	]);
+	);
 }
 
-async function validatePublicWorkProjects(gameId: number, pwps: any[]): Promise<void>
+export async function validatePublicWorkProjects(gameId: saveProps['gameId'], pwps: saveProps['pwps']): Promise<void>
 {
-	if (gameId != constants.gameIds.ACNL && pwps.length > 0 || pwps.length > 30)
+	if (gameId !== constants.gameIds.ACNL && pwps.length > 0 || pwps.length > 30)
 	{
 		throw new UserError('too-many-pwps');
 	}
 
-	const gamePWPs: PWPsType[number] = (await ACCCache.get(constants.cacheKeys.pwps))[gameId];
-
-	pwps.map(pwpId =>
+	if (pwps.length > 0)
 	{
-		if (!gamePWPs.find(p => p.id === pwpId))
+		const gamePWPs: PWPsType[number] = (await ACCCache.get(constants.cacheKeys.pwps))[gameId];
+
+		pwps.map(pwpId =>
 		{
-			throw new UserError('bad-format');
-		}
-	});
+			if (!gamePWPs.find(p => p.id === pwpId))
+			{
+				throw new UserError('bad-format');
+			}
+		});
+	}
 }
 
-async function updatePublicWorkProjects(id: number, pwps: any[]): Promise<void>
+export async function updatePublicWorkProjects(id: saveProps['id'], pwps: saveProps['pwps']): Promise<void>
 {
 	await db.query(`
 		DELETE FROM town_public_work_project
 		WHERE town_id = $1::int
 	`, id);
 
-	await Promise.all([
+	await Promise.all(
 		pwps.map(async (pwpId) =>
 		{
 			await db.query(`
@@ -425,48 +365,52 @@ async function updatePublicWorkProjects(id: number, pwps: any[]): Promise<void>
 				VALUES ($1::int, $2)
 			`, id, pwpId);
 		}),
-	]);
+	);
 }
 
-async function validateResidents(gameId: number, islandResidentId: string, residents: any[]): Promise<void>
+export async function validateResidents(gameId: saveProps['gameId'], islandResidentId: saveProps['islandResidentId'], residents: saveProps['residents']): Promise<void>
 {
-	const [acgame] = await db.query(`
-		SELECT max_residents
-		FROM ac_game
-		WHERE ac_game.id = $1::int
-	`, gameId);
-
-	if (residents.length > acgame.max_residents)
+	if (residents.length > 0)
 	{
-		throw new UserError('too-many-residents');
+		const [acgame] = await db.query(`
+			SELECT max_residents
+			FROM ac_game
+			WHERE ac_game.id = $1::int
+		`, gameId);
+
+		if (residents.length > acgame.max_residents)
+		{
+			throw new UserError('too-many-residents');
+		}
 	}
 
-	if (gameId == constants.gameIds.ACGC && Number(islandResidentId) > 0)
+	if (gameId === constants.gameIds.ACGC && islandResidentId > 0)
 	{
-		residents.push(islandResidentId);
+		residents.push(String(islandResidentId));
 	}
 
-	const gameResidents: ResidentsType[number] = (await ACCCache.get(constants.cacheKeys.residents))[gameId];
+	if (residents.length > 0)
+	{
+		const gameResidents: ResidentsType[number] = (await ACCCache.get(constants.cacheKeys.residents))[gameId];
 
-	await Promise.all([
-		residents.map(async (residentId) =>
+		residents.map(residentId =>
 		{
 			if (!gameResidents.find(r => r.id === residentId))
 			{
 				throw new UserError('bad-format');
 			}
-		}),
-	]);
+		});
+	}
 }
 
-async function updateResidents(id: number, residents: any[]): Promise<void>
+export async function updateResidents(id: saveProps['id'], residents: saveProps['residents']): Promise<void>
 {
 	await db.query(`
 		DELETE FROM town_resident
 		WHERE town_id = $1::int
 	`, id);
 
-	await Promise.all([
+	await Promise.all(
 		residents.map(async (residentId) =>
 		{
 			await db.query(`
@@ -474,17 +418,17 @@ async function updateResidents(id: number, residents: any[]): Promise<void>
 				VALUES ($1::int, $2)
 			`, id, residentId);
 		}),
-	]);
+	);
 }
 
-async function updateIsland(id: number, islandName: string, islandResidentId: number, gameId: number): Promise<void>
+export async function updateIsland(id: saveProps['id'], islandName: saveProps['islandName'], islandResidentId: saveProps['islandResidentId'], gameId: saveProps['gameId']): Promise<void>
 {
 	await db.query(`
 		DELETE FROM island
 		WHERE town_id = $1::int
 	`, id);
 
-	if (gameId != constants.gameIds.ACGC)
+	if (gameId !== constants.gameIds.ACGC)
 	{
 		return;
 	}
@@ -498,14 +442,14 @@ async function updateIsland(id: number, islandName: string, islandResidentId: nu
 	}
 }
 
-async function validateHemisphere(hemisphereId: number | null): Promise<void>
+export async function validateHemisphere(hemisphereId: saveProps['hemisphereId']): Promise<void>
 {
 	if (hemisphereId === null)
 	{
 		return;
 	}
 
-	let [checkID] = await db.query(`
+	const [checkID] = await db.query(`
 		SELECT hemisphere.id
 		FROM hemisphere
 		WHERE hemisphere.id = $1::int
@@ -517,20 +461,7 @@ async function validateHemisphere(hemisphereId: number | null): Promise<void>
 	}
 }
 
-async function createDefaultMap(this: APIThisType, id: number, gameId: number): Promise<void>
-{
-	if (gameId === constants.gameIds.ACNH)
-	{
-		// don't default a map for NH
-		return;
-	}
-
-	const acres = utils.getDefaultMapAcres(gameId);
-
-	await this.query('v1/town/map/save', { townId: id, acres: acres });
-}
-
-async function validatePaint(gameId: number, paintId: number | null): Promise<void>
+export async function validatePaint(gameId: saveProps['gameId'], paintId: saveProps['paintId']): Promise<void>
 {
 	if (paintId === null)
 	{
@@ -542,7 +473,7 @@ async function validatePaint(gameId: number, paintId: number | null): Promise<vo
 		throw new UserError('bad-format');
 	}
 
-	let [checkID] = await db.query(`
+	const [checkID] = await db.query(`
 		SELECT ac_game_paint.id
 		FROM ac_game_paint
 		WHERE ac_game_paint.id = $1::int AND ac_game_paint.game_id = $2::int
@@ -553,6 +484,11 @@ async function validatePaint(gameId: number, paintId: number | null): Promise<vo
 		throw new UserError('bad-format');
 	}
 }
+
+save.permissions = [
+	'modify-towns',
+	'userId',
+];
 
 save.apiTypes = {
 	gameId: {
@@ -572,15 +508,19 @@ save.apiTypes = {
 	},
 	nativeTownFruit: {
 		type: APITypes.number,
+		required: true,
 	},
 	islandFruitId1: {
 		type: APITypes.number,
+		default: 0,
 	},
 	islandFruitId2: {
 		type: APITypes.number,
+		default: 0,
 	},
 	fruit: {
 		type: APITypes.array,
+		subType: 'number',
 	},
 	grassShapeId: {
 		type: APITypes.number,
@@ -596,12 +536,15 @@ save.apiTypes = {
 	},
 	stores: {
 		type: APITypes.array,
+		subType: 'number',
 	},
 	nookId: {
 		type: APITypes.number,
+		default: 0,
 	},
 	pwps: {
 		type: APITypes.array,
+		subType: 'string',
 	},
 	islandName: {
 		type: APITypes.string,
@@ -609,14 +552,20 @@ save.apiTypes = {
 		profanity: true,
 	},
 	islandResidentId: {
-		type: APITypes.string,
+		type: APITypes.number,
+		default: 0,
 	},
 	residents: {
 		type: APITypes.array,
+		subType: 'string',
 	},
 	hemisphereId: {
 		type: APITypes.number,
 		default: 0,
+	},
+	stationShape: {
+		type: APITypes.number,
+		nullable: true,
 	},
 	paintId: {
 		type: APITypes.number,
@@ -631,16 +580,16 @@ type saveProps = {
 	nativeTownFruit: number
 	islandFruitId1: number
 	islandFruitId2: number
-	fruit: any[]
+	fruit: number[]
 	grassShapeId: number | null
 	dreamAddress: string | null
 	ordinanceId: number | null
-	stores: any[]
-	nookId: any[]
-	pwps: any[]
+	stores: number[]
+	nookId: number
+	pwps: string[]
 	islandName: string
-	islandResidentId: string
-	residents: any[]
+	islandResidentId: number
+	residents: string[]
 	hemisphereId: number | null
 	stationShape: number | null
 	paintId: number | null

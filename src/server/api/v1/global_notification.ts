@@ -6,11 +6,6 @@ import { APIThisType, NotificationType } from '@types';
 
 async function global_notification(this: APIThisType, { id }: globalNotificationProps): Promise<NotificationType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [notification] = await db.query(`
 		SELECT
 			global_notification.id,
@@ -52,6 +47,10 @@ async function global_notification(this: APIThisType, { id }: globalNotification
 
 	throw new UserError('no-such-notification');
 }
+
+global_notification.permissions = [
+	'userId',
+];
 
 global_notification.apiTypes = {
 	id: {

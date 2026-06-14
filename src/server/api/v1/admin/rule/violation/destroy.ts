@@ -5,13 +5,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [ruleViolation] = await db.query(`
 		SELECT start_date, rule_id, severity_id, violation
 		FROM rule_violation
@@ -46,6 +39,10 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		}),
 	]);
 }
+
+destroy.permissions = [
+	'modify-rules-admin',
+];
 
 destroy.apiTypes = {
 	id: {

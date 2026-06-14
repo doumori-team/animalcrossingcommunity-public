@@ -2,7 +2,7 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, NodeType } from '@types';
+import { APIThisType, NodeType, NodeLiteType, UserType } from '@types';
 
 /*
  * Retrieves all properties of a specific node needed to display it.
@@ -18,14 +18,15 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 	}
 
 	const [[result], [revisions], editPerm, replyPerm, lockPerm, adminLockPerm,
-		stickyPerm, movePerm, addUsersPerm, removeUsersPerm, users, [followedNode],
-		[numFollowed], viewFollowersPerm, userSettings] = await Promise.all([
+		stickyPerm, movePerm, addUsersPerm, removeUsersPerm, reactPerm, users,
+		followedNode, notifiedNode, [numFollowed], viewFollowersPerm, userSettings] = await Promise.all([
 		db.query(`
 			SELECT
 				node.id,
 				node.type,
 				node.user_id,
 				node.parent_node_id,
+				parent.parent_node_id AS parent_node_id2,
 				node.creation_time,
 				last_revision.id AS revision_id,
 				last_revision.title,
@@ -36,6 +37,7 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 				node.latest_reply_time,
 				node.reply_count
 			FROM node
+			LEFT JOIN node AS parent ON (parent.id = node.parent_node_id)
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
 				FROM node_revision
@@ -58,6 +60,7 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 		this.query('v1/node/permission', { permission: 'move', nodeId: id }),
 		this.query('v1/node/permission', { permission: 'add-users', nodeId: id }),
 		this.query('v1/node/permission', { permission: 'remove-users', nodeId: id }),
+		this.query('v1/node/permission', { permission: 'react', nodeId: id }),
 		db.query(`
 			SELECT
 				user_account_cache.id,
@@ -73,11 +76,16 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 			WHERE user_node_permission.node_id = $1::int AND user_node_permission.node_permission_id = $2::int
 			ORDER BY username ASC
 		`, id, constants.nodePermissions.read),
-		db.query(`
+		this.userId ? db.query(`
 			SELECT node_id
 			FROM followed_node
 			WHERE node_id = $1::int AND user_id = $2::int
-		`, id, this.userId),
+		`, id, this.userId) : null,
+		this.userId ? db.query(`
+			SELECT node_id
+			FROM notified_node
+			WHERE node_id = $1::int AND user_id = $2::int
+		`, id, this.userId) : null,
 		db.query(`
 			SELECT count(*) AS count
 			FROM followed_node
@@ -85,7 +93,7 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 		`, id),
 		this.query('v1/permission', { permission: 'view-followers' }),
 		this.userId ? db.query(`
-			SELECT markup_style, concise_mode, show_images
+			SELECT markup_style, concise_mode, show_images, hide_post_emojis
 			FROM users
 			WHERE id = $1
 		`, this.userId) : null,
@@ -103,23 +111,44 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 
 	const conciseMode: number = userSettings && userSettings[0] ? Number(userSettings[0].concise_mode) : 2;
 
-	const [parent, user, latestPage, latestPost, lastChecked, nodeFiles, unreadTotal] = await Promise.all([
+	const [parent, user, latestPage, latestPost, lastChecked, nodeFiles, unreadTotal, nodeEmoji, nodeEmojiUsers]: [NodeLiteType | null, UserType | null, [{
+		latest_page: number
+	}] | null, [{
+		latest_post: number
+	}] | null, {
+		last_checked: Date
+	}[], {
+		id: number
+		file_id: string
+		name: string
+		width: number | null
+		height: number | null
+		caption: string
+	}[], {
+		count: number
+	} | null, {
+		node_id: number
+		emoji: string
+		count: number
+	}[] | null, {
+		emoji: string
+	}[] | null, void] = await Promise.all([
 		result.type === 'thread' ? this.query('v1/node/lite', { id: result.parent_node_id }) : null,
 		result.user_id ? this.query('v1/user', { id: result.user_id }) : null,
 		!loadingNode && result.type === 'thread' && this.userId ? db.getLatestPage(result.id, this.userId) : null,
 		!loadingNode && result.type === 'thread' && this.userId ? db.getLatestPost(result.id, this.userId) : null,
-		!loadingNode && result.type === 'thread' ? db.query(`
+		!loadingNode && result.type === 'thread' && this.userId ? db.query(`
 			SELECT last_checked
 			FROM node_user
 			WHERE node_id = $1 AND user_id = $2
 		`, result.id, this.userId) : [],
-		result.type === 'post' ? db.query(`
+		db.query(`
 			SELECT file.id, file.file_id, file.name, file.width, file.height, file.caption
 			FROM node_revision_file
 			JOIN file ON (node_revision_file.file_id = file.id)
 			WHERE node_revision_file.node_revision_id = $1::int
 			ORDER BY file.sequence ASC
-		`, result.revision_id) : null,
+		`, result.revision_id),
 		!loadingNode && result.type === 'thread' && this.userId ? db.query(`
 			SELECT
 				(
@@ -133,6 +162,19 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 				WHERE node_id = $1 AND user_id = $2
 			) AS last_checked
 		`, result.id, this.userId) : null,
+		result.type === 'post' ? db.query(`
+			SELECT node_reaction.node_id, node_reaction.emoji, count(*) AS count
+			FROM node_reaction
+			WHERE node_reaction.node_id = $1::int
+			GROUP BY node_reaction.node_id, node_reaction.emoji
+			ORDER BY count(*) DESC
+		`, id) : null,
+		result.type === 'post' ? db.query(`
+			SELECT node_reaction.emoji
+			FROM node_reaction
+			WHERE node_reaction.node_id = $1::int AND node_reaction.user_id = $2::int
+			ORDER BY node_reaction.id ASC
+		`, id, this.userId) : null,
 		this.userId && result.type === 'thread' && loadingNode ? db.query(`
 			INSERT INTO node_user (node_id, user_id)
 			VALUES ($1, $2)
@@ -182,6 +224,11 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 		permissions.push('remove-users');
 	}
 
+	if (reactPerm)
+	{
+		permissions.push('react');
+	}
+
 	const returnLatestPost: number = latestPost && latestPost[0] ? latestPost[0].latest_post : 0;
 
 	const replies: number = result.reply_count ? Number(result.reply_count) - 1 : 0;
@@ -190,6 +237,7 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 		id: result.id,
 		type: result.type,
 		parentId: result.parent_node_id,
+		parentId2: result.parent_node_id2,
 		revisionId: result.revision_id,
 		title: result.title,
 		created: result.creation_time,
@@ -197,7 +245,8 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 		locked: result.locked,
 		threadType: result.thread_type,
 		edits: revisions - 1,
-		followed: followedNode ? true : false,
+		followed: followedNode && followedNode[0] ? true : false,
+		notified: notifiedNode && notifiedNode[0] ? true : false,
 		numFollowed: viewFollowersPerm ? Number(numFollowed.count) : 0,
 		board: parent ? parent.title : '',
 		permissions,
@@ -207,7 +256,7 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 		unread: this.userId && result.type === 'thread' ? lastChecked.length > 0 ? returnLatestPost > 0 ? true : false : result.locked ? false : true : false,
 		unreadTotal: unreadTotal ? unreadTotal[0] ? Number(unreadTotal[0].count) : replies + 1 : null,
 		markupStyle: userSettings ? userSettings[0].markup_style : null,
-		files: nodeFiles ? nodeFiles.map((file: any) =>
+		files: nodeFiles.map(file =>
 		{
 			return {
 				id: file.id,
@@ -217,11 +266,27 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 				height: file.height,
 				caption: file.caption,
 			};
-		}) : [],
+		}),
 		conciseMode: conciseMode,
 		content: null,
 		users: users,
 		showImages: userSettings ? userSettings[0].show_images : false,
+		reactions: nodeEmoji ? nodeEmoji.map(reaction =>
+		{
+			let usedByUser = false;
+
+			if (nodeEmojiUsers && nodeEmojiUsers.some(x => x.emoji === reaction.emoji))
+			{
+				usedByUser = true;
+			}
+
+			return {
+				...reaction,
+				src: reaction.emoji,
+				usedByUser: usedByUser,
+			};
+		}) : [],
+		hidePostEmojis: userSettings ? userSettings[0].hide_post_emojis : false,
 	};
 
 	if (result.user_id)
@@ -274,9 +339,12 @@ async function full(this: APIThisType, { id, loadingNode = false }: fullProps): 
 			else
 			{
 				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.FT });
+				await this.query('v1/notification/destroy', { id: returnVal.id, type: types.FT_edit });
 			}
 
 			await this.query('v1/notification/destroy', { id: returnVal.id, type: types.usernameTag });
+			await this.query('v1/notification/destroy', { id: returnVal.id, type: types.postQuote });
+			await this.query('v1/notification/destroy', { id: returnVal.id, type: types.postReaction });
 			await this.query('v1/notification/destroy', { id: returnVal.parentId, type: types.FB });
 		}
 		else if (returnVal.type === 'board')

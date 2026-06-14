@@ -9,18 +9,6 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 	noteId4, noteId5, noteId6, noteId7, noteId8, noteId9, noteId10, noteId11,
 	noteId12, noteId13, noteId14, noteId15 }: saveProps): Promise<number>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-tunes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	if (townId > 0)
 	{
@@ -30,7 +18,7 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 			WHERE town.id = $1::int
 		`, townId);
 
-		if (town.user_id != this.userId)
+		if (town.user_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
@@ -43,7 +31,7 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 
 	notes = notes.map((id) =>
 	{
-		if (!gameNotes[Number(id || 0)])
+		if (!gameNotes[utils.safeNumber(id)])
 		{
 			throw new UserError('bad-format');
 		}
@@ -57,7 +45,7 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 	}
 
 	// Perform query
-	if (id != null && id > 0)
+	if (id !== null && id > 0)
 	{
 		const [tune] = await db.query(`
 			SELECT town_tune.creator_id
@@ -70,7 +58,7 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 			throw new UserError('no-such-tune');
 		}
 
-		if (tune.creator_id != this.userId)
+		if (tune.creator_id !== this.userId)
 		{
 			throw new UserError('permission');
 		}
@@ -101,10 +89,17 @@ async function save(this: APIThisType, { townId, id, tuneName, noteId0, noteId1,
 		`, id, townId, notes.join(''), this.userId, tuneName);
 	}
 
+	this.query('v1/users/badge/check', { badgeId: constants.badges.tentunes });
+
 	ACCCache.deleteMatch(constants.cacheKeys.tunes);
 
 	return Number(id);
 }
+
+save.permissions = [
+	'modify-tunes',
+	'userId',
+];
 
 save.apiTypes = {
 	townId: {

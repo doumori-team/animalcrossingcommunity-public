@@ -8,18 +8,6 @@ import { APIThisType, ListingType, ACGameItemType } from '@types';
 
 async function save(this: APIThisType, { id, bells, items, quantities, residents, comment }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
@@ -36,7 +24,7 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 	// confirm age
 	if (!listing.game)
 	{
-		const birthDate = await accounts.getBirthDate(this.userId);
+		const birthDate = await accounts.getBirthDate(this.userId as number);
 
 		if (dateUtils.getAge(birthDate) < constants.tradingPost.realTradeAge)
 		{
@@ -45,7 +33,7 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 	}
 
 	const catalogItems: ACGameItemType[number]['all']['items'] = listing.game ?
-		(await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${listing.game.id}_all_items`)).filter((item: any) => item.tradeable) :
+		(await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${listing.game.id}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable) :
 		(await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['items'];
 
 	items = items.map((id) =>
@@ -58,16 +46,6 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 		return String(id).trim();
 	});
 
-	quantities = quantities.map((quantity) =>
-	{
-		if (isNaN(quantity))
-		{
-			throw new UserError('bad-format');
-		}
-
-		return Number(quantity);
-	});
-
 	const gameId = listing.game ? listing.game.id : 0;
 
 	// Confirm quantities is correct
@@ -78,15 +56,10 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 		throw new UserError('bad-format');
 	}
 
-	residents = residents.map(id =>
-	{
-		return String(id);
-	});
-
 	// AC:GC / real must only have items, all others must have at least bells OR items OR residents OR a comment
-	if (gameId === constants.gameIds.ACGC && (Number(bells || 0) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0 || items.length <= 0) ||
-		gameId > constants.gameIds.ACGC && (Number(bells || 0) <= 0 && residents.length <= 0 && utils.realStringLength(comment) <= 0 && items.length <= 0) ||
-		gameId === 0 && (Number(bells || 0) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0 || items.length <= 0))
+	if (gameId === constants.gameIds.ACGC && (utils.safeNumber(bells) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0 || items.length <= 0) ||
+		gameId > constants.gameIds.ACGC && (utils.safeNumber(bells) <= 0 && residents.length <= 0 && utils.realStringLength(comment) <= 0 && items.length <= 0) ||
+		gameId === 0 && (utils.safeNumber(bells) > 0 || residents.length > 0 || utils.realStringLength(comment) > 0 || items.length <= 0))
 	{
 		throw new UserError('bad-format');
 	}
@@ -108,7 +81,7 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 	}
 
 	// Perform queries
-	const listingOfferId = await db.transaction(async (query: any) =>
+	const listingOfferId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [listingOffer] = await query(`
 			INSERT INTO listing_offer (user_id, listing_id, bells, status, comment)
@@ -140,7 +113,7 @@ async function save(this: APIThisType, { id, bells, items, quantities, residents
 	};
 }
 
-async function updateItems(listingOfferId: number, gameId: number, items: any[], quantities: any[], query: any): Promise<void>
+async function updateItems(listingOfferId: number, gameId: number, items: string[], quantities: number[], query: db.QueryType): Promise<void>
 {
 	if (items.length <= 0)
 	{
@@ -163,7 +136,7 @@ async function updateItems(listingOfferId: number, gameId: number, items: any[],
 	]);
 }
 
-async function updateResidents(listingOfferId: number, residents: any[], query: any): Promise<void>
+async function updateResidents(listingOfferId: number, residents: string[], query: db.QueryType): Promise<void>
 {
 	if (residents.length <= 0)
 	{
@@ -181,6 +154,11 @@ async function updateResidents(listingOfferId: number, residents: any[], query: 
 	]);
 }
 
+save.permissions = [
+	'use-trading-post',
+	'userId',
+];
+
 save.apiTypes = {
 	id: {
 		type: APITypes.listingId,
@@ -195,9 +173,11 @@ save.apiTypes = {
 	},
 	quantities: {
 		type: APITypes.array,
+		subType: 'number',
 	},
 	residents: {
 		type: APITypes.array,
+		subType: 'string',
 	},
 	comment: {
 		type: APITypes.string,
@@ -210,9 +190,9 @@ save.apiTypes = {
 type saveProps = {
 	id: number
 	bells: number | null
-	items: any[]
-	quantities: any[]
-	residents: any[]
+	items: string[]
+	quantities: number[]
+	residents: string[]
 	comment: string
 };
 

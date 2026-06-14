@@ -21,9 +21,9 @@ const Pattern = ({
 	characterId,
 }: PatternProps) =>
 {
-	const encodedId = encodeURIComponent(Number(pattern.id || 0));
+	const encodedId = encodeURIComponent(utils.safeNumber(pattern.id));
 	const encodedPatternUserId = encodeURIComponent(pattern.creator.id);
-	const encodedTownId = encodeURIComponent(Number(townId || 0));
+	const encodedTownId = encodeURIComponent(utils.safeNumber(townId));
 
 	const shouldAllowHousePattern = pattern.gameId === constants.gameIds.ACGC || pattern.gameId === constants.gameIds.ACCF;
 
@@ -160,7 +160,7 @@ const Pattern = ({
 				<div className='Pattern_column'>
 					<h1 className='Pattern_name'>
 						<div className='Pattern_nameAlignment'>
-							<ReportProblem type={pattern.id ? constants.userTicket.types.pattern : constants.userTicket.types.townFlag} id={pattern.id ? pattern.id : Number(townId || 0)} />
+							<ReportProblem type={pattern.id ? constants.userTicket.types.pattern : constants.userTicket.types.townFlag} id={pattern.id ? pattern.id : utils.safeNumber(townId)} />
 							{pattern.id ?
 								<Link to={`/pattern/${encodedId}`}>{prefix()}{pattern.name}</Link>
 								:

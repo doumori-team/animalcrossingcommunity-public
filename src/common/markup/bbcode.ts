@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { escapeHtml, stringAt } from './utils.ts';
 import emojiDefs from 'common/markup/emoji.json';
 import { convertForUrl } from 'common/utils/utils.ts';
@@ -461,7 +462,7 @@ function *lexer(text: string)
 		{
 			// If we are within [code] tags, allow only [code] and [/code]
 			// (Also allow preservation of whitespace)
-			if ((tokenCount as any)[TOKENS.CODE_START] > 0
+			if (tokenCount[TOKENS.CODE_START] > 0
 				&& token !== TOKENS.CODE_END && token !== TOKENS.CODE_START
 				&& token !== TOKENS.DOUBLE_SPACE && token !== TOKENS.LINE_BREAK)
 			{
@@ -514,7 +515,7 @@ function *lexer(text: string)
 				// If it's a starting tag, add it to the count
 				if (PAIRED_TAGS.indexOf(token as any) > -1)
 				{
-					(tokenCount as any)[token] = ((tokenCount as any)[token] || 0) + 1;
+					tokenCount[token] = (tokenCount[token] || 0) + 1;
 				}
 
 				// If there are unmatched characters before the token,
@@ -530,7 +531,7 @@ function *lexer(text: string)
 				// If the token is an end tag, check whether there is an unclosed start tag to pair it to.
 				if (TAG_PAIRINGS.get(token as any))
 				{
-					const unclosedStartTags = (tokenCount as any)[TAG_PAIRINGS.get(token as any) as any];
+					const unclosedStartTags = tokenCount[TAG_PAIRINGS.get(token as any) as any];
 
 					// If there isn't, insert one.
 					if (unclosedStartTags === 0 || isNaN(unclosedStartTags))
@@ -540,7 +541,7 @@ function *lexer(text: string)
 					// If there is, decrement the count of unmatched start tags.
 					else
 					{
-						(tokenCount as any)[TAG_PAIRINGS.get(token as any) as any]--;
+						tokenCount[TAG_PAIRINGS.get(token as any) as any]--;
 					}
 				}
 
@@ -586,7 +587,7 @@ function *lexer(text: string)
 	// Add any missing closing tags
 	for (const token of TAG_PAIRINGS.keys())
 	{
-		for (let i = 0; i < (tokenCount as any)[TAG_PAIRINGS.get(token as any) as any]; i++)
+		for (let i = 0; i < tokenCount[TAG_PAIRINGS.get(token as any) as any]; i++)
 		{
 			yield [token, ''];
 		}
@@ -597,7 +598,7 @@ function getEmojiSrc(emojiSettings: EmojiSettingType[] | undefined, markup: any)
 {
 	const defs = { ...emojiDefs[0], ...emojiDefs[1] };
 
-	let src = '';
+	let src = '', className = '';
 	const setting = emojiSettings?.find(s => s.type === markup);
 
 	if (setting)
@@ -609,12 +610,21 @@ function getEmojiSrc(emojiSettings: EmojiSettingType[] | undefined, markup: any)
 		src = `reaction/`;
 	}
 
-	return `<img src='${constants.AWS_URL}/images/emoji/${src}${(defs as any)[markup]}.png' />`;
+	if (src.includes('reaction'))
+	{
+		className = 'icon-reaction';
+	}
+
+	return `<img class="${className}" src="${
+		constants.allImages[
+    		`emoji/${src}${(defs as any)[markup]}.png`
+		]
+	}" />`;
 }
 
-export default function parser(input: any, options: any, html: any = false)
+export default function parser(input: any, options: any, html: any = false): string
 {
-	const output = [];
+	const output: any[] = [];
 
 	for (let [token, ...matches] of lexer(input))
 	{

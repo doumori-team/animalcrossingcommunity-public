@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text } from '@form';
@@ -10,10 +10,10 @@ export const action = routerUtils.formAction;
 
 const UserSessionsPage = ({ loaderData }: { loaderData: UserSessionsPageProps }) =>
 {
-	const { username, startDate, endDate, url, sessions, page, pageSize,
+	const { searchUser, startDate, endDate, url, sessions, page, pageSize,
 		totalCount } = loaderData;
 
-	const link = `&username=${encodeURIComponent(username)}
+	const link = `&searchUser=${encodeURIComponent(searchUser)}
 		&startDate=${encodeURIComponent(startDate)}
 		&endDate=${encodeURIComponent(endDate)}
 		&url=${encodeURIComponent(url)}
@@ -31,8 +31,8 @@ const UserSessionsPage = ({ loaderData }: { loaderData: UserSessionsPageProps })
 					<Form.Group>
 						<Text
 							label='User'
-							name='username'
-							value={username}
+							name='searchUser'
+							value={searchUser}
 							maxLength={constants.max.searchUsername}
 							required
 						/>
@@ -101,12 +101,12 @@ const UserSessionsPage = ({ loaderData }: { loaderData: UserSessionsPageProps })
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, username, startDate, endDate, url }: { page?: string, username?: string, startDate?: string, endDate?: string, url?: string }): Promise<UserSessionsPageProps>
+async function loadData(this: APIThisType, _: Params, { page, searchUser, startDate, endDate, url }: { page?: string, searchUser?: string, startDate?: string, endDate?: string, url?: string }): Promise<UserSessionsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/session/sessions', {
 			page: page ? page : 1,
-			username: username ? username : '',
+			searchUser: searchUser ? searchUser : '',
 			startDate: startDate ? startDate : '',
 			endDate: endDate ? endDate : '',
 			url: url ? url : '',
@@ -118,7 +118,7 @@ async function loadData(this: APIThisType, _: any, { page, username, startDate, 
 		totalCount: returnValue.count,
 		page: returnValue.page,
 		pageSize: returnValue.pageSize,
-		username: returnValue.username,
+		searchUser: returnValue.searchUser,
 		startDate: returnValue.startDate,
 		endDate: returnValue.endDate,
 		url: returnValue.url,
@@ -132,7 +132,7 @@ type UserSessionsPageProps = {
 	totalCount: SessionsType['count']
 	page: SessionsType['page']
 	pageSize: SessionsType['pageSize']
-	username: SessionsType['username']
+	searchUser: SessionsType['searchUser']
 	startDate: SessionsType['startDate']
 	endDate: SessionsType['endDate']
 	url: SessionsType['url']

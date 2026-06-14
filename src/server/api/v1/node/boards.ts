@@ -26,7 +26,24 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 	}
 
 	const groupIds = await db.getUserGroups(this.userId);
-	let boards = [];
+
+	let boards: {
+		id: number
+		type: string
+		parent_node_id: number | null
+		parent_node_id2: number | null
+		title: string
+		content: string
+		content_format: string
+		followed: boolean
+		notified: boolean
+		board_type: string
+		forum_category: {
+			id: number
+			title: string
+			order: number
+		}
+	}[] = [];
 
 	if (Array.isArray(nodeIds) && nodeIds.length > 0)
 	{
@@ -35,6 +52,7 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 				node.id,
 				node.type,
 				node.parent_node_id,
+				parent.parent_node_id AS parent_node_id2,
 				last_revision.title,
 				last_revision.content,
 				last_revision.content_format,
@@ -43,9 +61,15 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 					FROM followed_node
 					WHERE followed_node.node_id = node.id AND user_id = $3
 				) THEN 1 ELSE 0 END AS followed,
+				 CASE WHEN EXISTS (
+					SELECT notified_node.node_id
+					FROM notified_node
+					WHERE notified_node.node_id = node.id AND user_id = $3
+				) THEN 1 ELSE 0 END AS notified,
 				node.board_type,
 				fc.forum_category
 			FROM node
+			LEFT JOIN node AS parent ON (parent.id = node.parent_node_id)
 			LEFT JOIN LATERAL (
 				SELECT id, title, content, content_format
 				FROM node_revision
@@ -107,6 +131,7 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 				last_revision.content,
 				last_revision.content_format,
 				0 AS followed,
+				0 AS notified,
 				node.board_type,
 				fc.forum_category
 			FROM node
@@ -161,18 +186,20 @@ export default async function boards(this: APIThisType, { nodeIds }: { nodeIds?:
 		`, groupIds, this.userId, constants.nodePermissions.read);
 	}
 
-	return boards.map((board: any) =>
+	return boards.map(board =>
 	{
 		return {
 			id: board.id,
 			type: board.type,
 			parentId: board.parent_node_id,
+			parentId2: board.parent_node_id2,
 			title: board.title,
 			content: {
 				text: board.content,
 				format: board.content_format,
 			},
 			followed: board.followed ? true : false,
+			notified: board.notified ? true : false,
 			boardType: board.board_type,
 			forumCategory: board.forum_category,
 		};

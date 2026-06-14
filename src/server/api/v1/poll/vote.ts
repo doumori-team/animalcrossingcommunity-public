@@ -5,18 +5,6 @@ import { APIThisType } from '@types';
 
 async function vote(this: APIThisType, { pollId, choices }: voteProps): Promise<{ pollId: number }>
 {
-	const permission: boolean = await this.query('v1/permission', { permission: 'vote-poll' });
-
-	if (!permission)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [poll] = await db.query(`
 		SELECT
 			poll.id,
@@ -32,7 +20,7 @@ async function vote(this: APIThisType, { pollId, choices }: voteProps): Promise<
 
 	// Gathers any errors that may come from invalid inputs
 	// to display them all at once.
-	let errors = [];
+	let errors: string[] = [];
 
 	// This poll is not running yet or is not enabled.
 	if (!poll.is_current || !poll.is_enabled)
@@ -47,16 +35,9 @@ async function vote(this: APIThisType, { pollId, choices }: voteProps): Promise<
 		errors.push('bad-format');
 	}
 
-	choices = choices.map((choice) =>
+	choices = choices.map((choice: number) =>
 	{
-		choice = Number(choice);
-
-		if (isNaN(choice))
-		{
-			errors.push('bad-format');
-		}
-		// Selected choice is not available within this Poll.
-		else if (choice <= 0 || poll.option_count < choice)
+		if (choice <= 0 || poll.option_count < choice)
 		{
 			errors.push('bad-format');
 		}
@@ -82,13 +63,13 @@ async function vote(this: APIThisType, { pollId, choices }: voteProps): Promise<
 		throw new UserError('bad-format');
 	}
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
 				UPDATE poll_option
 				SET votes = votes + 1
-				WHERE poll_id = $1::int AND sequence = ANY ($2)
+				WHERE poll_id = $1::int AND sequence = ANY($2)
 			`, pollId, choices),
 			query(`
 				INSERT INTO poll_answer (poll_id, user_id)
@@ -102,6 +83,11 @@ async function vote(this: APIThisType, { pollId, choices }: voteProps): Promise<
 	};
 }
 
+vote.permissions = [
+	'vote-poll',
+	'userId',
+];
+
 vote.apiTypes = {
 	pollId: {
 		type: APITypes.pollId,
@@ -109,12 +95,15 @@ vote.apiTypes = {
 	},
 	choices: {
 		type: APITypes.array,
+		subType: 'number',
+		required: true,
+		error: 'poll-choices-required',
 	},
 };
 
 type voteProps = {
 	pollId: number
-	choices: any[]
+	choices: number[]
 };
 
 export default vote;

@@ -5,12 +5,7 @@ import { APIThisType } from '@types';
 
 async function clear(this: APIThisType, { notificationIds }: clearProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	notificationIds = await Promise.all(notificationIds.map(async (id) =>
+	notificationIds = await Promise.all((notificationIds as string[]).map(async id =>
 	{
 		const [notification] = await db.query(`
 			SELECT id, user_id
@@ -42,15 +37,20 @@ async function clear(this: APIThisType, { notificationIds }: clearProps): Promis
 	`, this.userId, notificationIds);
 }
 
+clear.permissions = [
+	'userId',
+];
+
 clear.apiTypes = {
 	notificationIds: {
 		type: APITypes.array,
 		required: true,
+		error: 'no-notification-ids',
 	},
 };
 
 type clearProps = {
-	notificationIds: any[]
+	notificationIds: string[] | number[]
 };
 
 export default clear;

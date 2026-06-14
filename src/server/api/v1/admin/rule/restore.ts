@@ -5,13 +5,6 @@ import { APIThisType } from '@types';
 
 async function restore(this: APIThisType, { id }: restoreProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [rule] = await db.query(`
 		SELECT pending_expiration, node_id
 		FROM rule
@@ -24,7 +17,7 @@ async function restore(this: APIThisType, { id }: restoreProps): Promise<void>
 		throw new UserError('invalid-rule-restore');
 	}
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -45,6 +38,10 @@ async function restore(this: APIThisType, { id }: restoreProps): Promise<void>
 		]);
 	});
 }
+
+restore.permissions = [
+	'modify-rules-admin',
+];
 
 restore.apiTypes = {
 	id: {

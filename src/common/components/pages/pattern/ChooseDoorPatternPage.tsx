@@ -68,7 +68,7 @@ const ChooseDoorPatternPage = ({ loaderData }: { loaderData: ChooseTownFlagPageP
 									label={`Select character that will use this ${pattern.gameId === constants.gameIds.ACGC ? 'door' : 'house flag'} pattern`}
 									optionsMapping={{
 										id: 'id',
-										name: (character: any) => <Keyboard name={character.name} gameId={character.game.id} />,
+										name: (character: typeof useCharacters[number]) => <Keyboard name={character.name} gameId={character.game.id} />,
 									}}
 								/>
 							</Form.Group>

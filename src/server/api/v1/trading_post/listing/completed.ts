@@ -6,18 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function completed(this: APIThisType, { id }: completedProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
@@ -26,7 +14,7 @@ async function completed(this: APIThisType, { id }: completedProps): Promise<voi
 
 	// only users involved in trade can complete
 	// only if listing in right status
-	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId) ||
+	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId as number) ||
 		![listingStatuses.inProgress].includes(listing.status))
 	{
 		throw new UserError('permission');
@@ -54,6 +42,8 @@ async function completed(this: APIThisType, { id }: completedProps): Promise<voi
 			SET status = $2
 			WHERE listing_id = $1::int AND status = $3
 		`, id, offerStatuses.rejected, offerStatuses.onHold);
+
+		this.query('v1/users/badge/check', { badgeId: constants.badges.tentrades });
 	}
 
 	await Promise.all([
@@ -68,6 +58,11 @@ async function completed(this: APIThisType, { id }: completedProps): Promise<voi
 		}),
 	]);
 }
+
+completed.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 completed.apiTypes = {
 	id: {

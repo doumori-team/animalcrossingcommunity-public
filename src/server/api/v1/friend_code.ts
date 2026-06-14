@@ -5,16 +5,6 @@ import { APIThisType, FriendCodeType, UserLiteType } from '@types';
 
 async function friend_code(this: APIThisType, { id }: friendCodeProps): Promise<FriendCodeType | null>
 {
-	const [useFriendCodesPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', { permission: 'use-friend-codes' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-	]);
-
-	if (!(useFriendCodesPerm || useTradingPostPerm))
-	{
-		throw new UserError('permission');
-	}
-
 	const [friendCode] = await db.query(`
 		SELECT
 			friend_code.id,
@@ -90,7 +80,7 @@ async function friend_code(this: APIThisType, { id }: friendCodeProps): Promise<
 	const user: UserLiteType = await this.query('v1/user_lite', { id: friendCode.user_id });
 
 	// Create return object
-	let character: any = null;
+	let character: FriendCodeType['character'] = null;
 
 	if (friendCode.character_id > 0)
 	{
@@ -122,6 +112,12 @@ async function friend_code(this: APIThisType, { id }: friendCodeProps): Promise<
 		username: user.username,
 	};
 }
+
+friend_code.permissions = [
+	'use-friend-codes',
+	'use-trading-post',
+	'userId',
+];
 
 friend_code.apiTypes = {
 	id: {

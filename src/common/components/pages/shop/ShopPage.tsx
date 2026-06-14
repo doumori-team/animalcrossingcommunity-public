@@ -23,7 +23,7 @@ import {
 
 export const action = routerUtils.formAction;
 
-const ShopPage = ({ loaderData }: { loaderData: Promise<ShopPageProps> }) =>
+const ShopPage = ({ loaderData }: { loaderData: Promise<DeferredProps> }) =>
 {
 	const { shop, shopServices, currentUserEmojiSettings, shopRoles,
 		acGameCatalogs, acgames } = getData(use(loaderData));
@@ -115,7 +115,7 @@ const ShopPage = ({ loaderData }: { loaderData: Promise<ShopPageProps> }) =>
 							service.default ?
 								<li key={service.id}>{service.name}: {service.description}</li>
 								:
-								<li key={service.id}><ReportProblem type={constants.userTicket.types.shopServiceName} id={service.id} />{service.name}: <ReportProblem type={constants.userTicket.types.shopServiceDescription} id={service.id} />{service.description}</li>
+								<li key={service.id}><ReportProblem type={constants.userTicket.types.shopServiceName} id={Number(service.id)} />{service.name}: <ReportProblem type={constants.userTicket.types.shopServiceDescription} id={Number(service.id)} />{service.description}</li>
 							,
 						)}
 					</ul>
@@ -363,7 +363,7 @@ const ShopPage = ({ loaderData }: { loaderData: Promise<ShopPageProps> }) =>
 										<Tooltip />
 										<Legend />
 										{shopServices.map(s =>
-											<Bar dataKey={s.name} stackId='a' fill={utils.getRandomColor()} key={s.id} />,
+											<Bar dataKey={s.name} stackId='a' fill={utils.getRandomDarkColor()} key={s.id} />,
 										)}
 									</BarChart>
 								</RequireLargeScreen>
@@ -484,7 +484,7 @@ const ShopPage = ({ loaderData }: { loaderData: Promise<ShopPageProps> }) =>
 	);
 };
 
-async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<DeferredProps>
 {
 	return Promise.all([
 		this.query('v1/shop', { id: id }),
@@ -496,7 +496,7 @@ async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
 	]);
 }
 
-function getData(data: any): ShopPageProps
+function getData(data: DeferredProps): ShopPageProps
 {
 	const [shop, shopServices, currentUserEmojiSettings, shopRoles, acGameCatalogs, acgames] = data;
 
@@ -513,5 +513,14 @@ type ShopPageProps = {
 	acGameCatalogs: ShopCatalogType[]
 	acgames: ACGameType[]
 };
+
+type DeferredProps = [
+	ShopPageProps['shop'],
+	ShopPageProps['shopServices'],
+	ShopPageProps['currentUserEmojiSettings'],
+	ShopPageProps['shopRoles'],
+	ShopPageProps['acGameCatalogs'],
+	ShopPageProps['acgames'],
+];
 
 export default routerUtils.LoadingFunction(ShopPage);

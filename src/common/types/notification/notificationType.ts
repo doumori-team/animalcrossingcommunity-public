@@ -5,7 +5,7 @@ type NotificationType = {
 	url: string
 	formattedCreated: string
 	formattedNotified: string
-	anchor?: string
+	anchor?: number | null
 	type: string
 	icon: string
 	count?: number

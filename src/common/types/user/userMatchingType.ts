@@ -5,7 +5,7 @@ type UserMatchingType = {
 	results: {
 		user: UserType
 	}[]
-	username: string
+	searchUser: string
 	match: string
 };
 

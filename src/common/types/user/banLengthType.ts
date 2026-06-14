@@ -2,7 +2,7 @@
 type BanLengthType = {
 	id: number
 	description: string
-	days: number
+	days: number | null
 };
 
 export type { BanLengthType };

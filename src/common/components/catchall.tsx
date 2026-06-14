@@ -1,4 +1,4 @@
-import { redirect, matchPath, Link } from 'react-router';
+import { redirect, matchPath, Link, ActionFunctionArgs } from 'react-router';
 
 import { URL } from 'url';
 
@@ -12,7 +12,7 @@ export default function Component()
 	</div>;
 }
 
-export const loader = ({ request }: { request: any }) =>
+export const loader = ({ request }: { request: ActionFunctionArgs['request'] }) =>
 {
 	const url = new URL(request.url);
 
@@ -35,7 +35,7 @@ export const loader = ({ request }: { request: any }) =>
 
 				if (match)
 				{
-					return redirect(`/forums/${encodeURIComponent(match.params.id as any)}/${encodeURIComponent(match.params.page as any)}`);
+					return redirect(`/forums/${match.params.id}/${match.params.page}`);
 				}
 			}
 		}

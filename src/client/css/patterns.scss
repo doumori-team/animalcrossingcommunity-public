@@ -147,105 +147,252 @@
 }
 
 .PatternMaker {
-	margin-top: mixins.px2rem(5px);
+    margin-top: mixins.px2rem(5px);
 
-	.PatternMaker_grid {
-		display: flex;
-		flex-wrap: wrap;
+    .PatternMaker_editor {
+        @include mixins.contentbox($background: #ba8759);
+        padding: mixins.px2rem(12px);
 
-		.PatternMaker_canvas {
-			margin-right: mixins.px2rem(5px);
-			margin-bottom: mixins.px2rem(5px);
+        .PatternMaker_toolbar {
+            display: flex;
+            align-items: center;
+            gap: mixins.px2rem(6px);
+            padding: mixins.px2rem(6px) mixins.px2rem(8px);
+            margin-bottom: mixins.px2rem(10px);
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: mixins.px2rem(6px);
+            flex-wrap: wrap;
 
-			flex-shrink: 0;
-			max-height: mixins.px2rem(321px);
-		}
+            .PatternMaker_toolGroup {
+                display: flex;
+                gap: mixins.px2rem(3px);
+            }
 
-		.PatternMaker_palette {
-			@include mixins.contentbox($background: #ba8759);
-			padding: 1rem;
-			font-size: mixins.px2rem(14px);
+            .PatternMaker_toolSep {
+                width: mixins.px2rem(1px);
+                height: mixins.px2rem(30px);
+                background-color: rgba(0, 0, 0, 0.15);
+                margin: 0 mixins.px2rem(2px);
+            }
 
-			flex: 1;
+            .PatternMaker_toolBtn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: mixins.px2rem(34px);
+                height: mixins.px2rem(34px);
+                border: 1px solid rgba(0, 0, 0, 0.15);
+                border-radius: mixins.px2rem(6px);
+                background-color: rgba(255, 255, 255, 0.45);
+                cursor: pointer;
+                transition: background-color 0.1s, border-color 0.1s;
 
-			button {
-				@include mixins.button;
-				margin: mixins.px2rem(1px);
-				text-align: center;
+                .FontAwesomeIcon {
+                    width: mixins.px2rem(16px);
+                    height: mixins.px2rem(16px);
+                    fill: #4a3728;
+                }
 
-				margin-bottom: mixins.px2rem(5px);
-			}
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.7);
+                }
 
-			.PatternMaker_paletteInterface {
-				display: flex;
+                &.active {
+                    background-color: var(--seasonal-color-dark);
+                    border-color: var(--seasonal-color-dark);
+                    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 
-				.PatternMaker_paletteAll {
-					flex: 1;
+                    .FontAwesomeIcon {
+                        fill: #fff;
+                    }
+                }
 
-					.PatternMaker_palettes {
-						margin-top: mixins.px2rem(10px);
-						margin-bottom: mixins.px2rem(10px);
+                &:disabled {
+                    opacity: 0.35;
+                    cursor: default;
 
-						@include mixins.responsive(1rem) {
-							@include mixins.grid($col-width: 2rem);
-						}
+                    &:hover {
+                        background-color: rgba(255, 255, 255, 0.45);
+                    }
+                }
+            }
 
-						.paletteInterface {
-							width: mixins.px2rem(31px);
-							height: mixins.px2rem(31px);
+            .PatternMaker_toggleBtn {
+                display: flex;
+                align-items: center;
+                gap: mixins.px2rem(4px);
+                padding: mixins.px2rem(5px) mixins.px2rem(10px);
+                height: mixins.px2rem(34px);
+                border: 1px solid rgba(0, 0, 0, 0.15);
+                border-radius: mixins.px2rem(6px);
+                background-color: rgba(255, 255, 255, 0.45);
+                cursor: pointer;
+                font-size: mixins.px2rem(12px);
+                color: #4a3728;
+                transition: background-color 0.1s, border-color 0.1s;
 
-							@include mixins.contentbox();
-						}
+                .FontAwesomeIcon {
+                    width: mixins.px2rem(13px);
+                    height: mixins.px2rem(13px);
+                    fill: #4a3728;
+                }
 
-						.paletteInterface.selected {
-							border: 1px solid #000 !important;
-						}
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.7);
+                }
 
-						.paletteInterface.hidden {
-							display: none;
-						}
-					}
-				}
-			}
+                &.active {
+                    background-color: var(--seasonal-color-dark);
+                    border-color: var(--seasonal-color-dark);
+                    color: #fff;
+                    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 
-			.PatternMaker_buttons {
-				margin-top: mixins.px2rem(10px);
-				margin-bottom: mixins.px2rem(10px);
-			}
+                    .FontAwesomeIcon {
+                        fill: #fff;
+                    }
+                }
+            }
 
-			.PatternMaker_extended {
-				.PatternMaker_nlInterface {
-					max-height: mixins.px2rem(256px);
-				}
+            .PatternMaker_helpBtn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: mixins.px2rem(28px);
+                height: mixins.px2rem(28px);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 50%;
+                background-color: rgba(255, 255, 255, 0.3);
+                cursor: pointer;
+                transition: background-color 0.1s;
 
-				.PatternMaker_nhInterface {
-					.PatternMaker_nhDefault {
-						display: flex;
-						align-items: baseline;
-						margin-left: mixins.px2rem(15px);
+                .FontAwesomeIcon {
+                    width: mixins.px2rem(14px);
+                    height: mixins.px2rem(14px);
+                    fill: #4a3728;
+                }
 
-						h3 {
-							margin-right: mixins.px2rem(10px);
-						}
-					}
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.6);
+                }
 
-					.PatternMaker_nhHVB {
-						display: flex;
-						flex-wrap: wrap;
+                &.active {
+                    background-color: rgba(255, 255, 255, 0.6);
+                }
+            }
+        }
 
-						.FormGroup {
-							margin-left: mixins.px2rem(10px);
-							margin-right: mixins.px2rem(10px);
+        .PatternMaker_shortcuts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: mixins.px2rem(6px) mixins.px2rem(14px);
+            padding: mixins.px2rem(8px) mixins.px2rem(12px);
+            margin-bottom: mixins.px2rem(10px);
+            background-color: rgba(0, 0, 0, 0.08);
+            border-radius: mixins.px2rem(4px);
+            font-size: mixins.px2rem(11px);
+            color: #3a2a1a;
 
-							input[type='number'] {
-								max-width: mixins.px2rem(100px);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+            strong {
+                color: #1a1a1a;
+            }
+        }
+
+        .PatternMaker_grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: mixins.px2rem(10px);
+
+            .PatternMaker_canvas {
+                flex-shrink: 0;
+                max-height: mixins.px2rem(321px);
+            }
+
+            .PatternMaker_palette {
+                flex: 1;
+                min-width: mixins.px2rem(280px);
+
+                .PatternMaker_paletteName {
+                    margin-bottom: mixins.px2rem(6px);
+                }
+
+                .PatternMaker_paletteInterface {
+                    display: flex;
+
+                    .PatternMaker_paletteAll {
+                        flex: 1;
+
+                        .PatternMaker_palettes {
+                            margin-top: mixins.px2rem(10px);
+                            margin-bottom: mixins.px2rem(10px);
+                            @include mixins.responsive(1rem) {
+                                @include mixins.grid($col-width: 2rem);
+                            }
+
+                            .paletteInterface {
+                                width: mixins.px2rem(31px);
+                                height: mixins.px2rem(31px);
+                                @include mixins.contentbox();
+                                cursor: pointer;
+                            }
+
+                            .paletteInterface.selected {
+                                border: 1px solid #000 !important;
+                                box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+                            }
+
+                            .paletteInterface.hidden {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+
+                .PatternMaker_buttons {
+                    margin-top: mixins.px2rem(10px);
+                    margin-bottom: mixins.px2rem(10px);
+
+                    button {
+                        @include mixins.button;
+                        margin: mixins.px2rem(1px);
+                        text-align: center;
+                        margin-bottom: mixins.px2rem(5px);
+                    }
+                }
+
+                .PatternMaker_extended {
+                    .PatternMaker_nlInterface {
+                        max-height: mixins.px2rem(256px);
+                    }
+
+                    .PatternMaker_nhInterface {
+                        .PatternMaker_nhDefault {
+                            display: flex;
+                            align-items: baseline;
+                            margin-left: mixins.px2rem(15px);
+
+                            h3 {
+                                margin-right: mixins.px2rem(10px);
+                            }
+                        }
+
+                        .PatternMaker_nhHVB {
+                            display: flex;
+                            flex-wrap: wrap;
+
+                            .FormGroup {
+                                margin-left: mixins.px2rem(10px);
+                                margin-right: mixins.px2rem(10px);
+
+                                input[type='number'] {
+                                    max-width: mixins.px2rem(100px);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 .Pattern_transparent {

@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { constants, dateUtils } from '@utils';
 import { ACGameYearsType } from '@types';
-
-import acgcEvents from './acgc/seasonAndEvents.json' assert { type: 'json'};
-import acwwEvents from './acww/seasonAndEvents.json' assert { type: 'json'};
-import accfEvents from './accf/seasonAndEvents.json' assert { type: 'json'};
-import acnlEvents from './acnl/seasonAndEvents.json' assert { type: 'json'};
-import acnhEvents from '../acnh-sheet/seasonAndEvents.json' assert { type: 'json'};
+import acgcEvents from './acgc/seasonAndEvents.json';
+import acwwEvents from './acww/seasonAndEvents.json';
+import accfEvents from './accf/seasonAndEvents.json';
+import acnlEvents from './acnl/seasonAndEvents.json';
+import acnhEvents from '../acnh-sheet/seasonsAndEvents.json';
 
 // remove any events that aren't needed:
 // - Player's birthday
@@ -18,18 +18,19 @@ import acnhEvents from '../acnh-sheet/seasonAndEvents.json' assert { type: 'json
 // - Turkey Day subsection
 // - Bunny Day subsection
 // - Setsubun subsection
-const acnhEventsFiltered = acnhEvents.filter(event => {
-	return (!['Birthday'].includes(event.name)) &&
-		(!['Calendar season'].includes(event.type)) &&
-		((event.displayName === "New Year's Day" && event.name === event.displayName) || event.displayName !== "New Year's Day") &&
-		((event.displayName === "Wedding Season" && event.name === event.displayName) || event.displayName !== "Wedding Season") &&
-		((event.displayName === "Toy Day" && event.name === event.displayName) || event.displayName !== "Toy Day") &&
-		((event.displayName === "Festivale" && event.name === event.displayName) || event.displayName !== "Festivale") &&
-		((event.displayName === "Halloween" && event.name === event.displayName) || event.displayName !== "Halloween") &&
-		((event.displayName === "Turkey Day" && event.name === event.displayName) || event.displayName !== "Turkey Day") &&
-		((event.displayName === "Bunny Day" && event.name === event.displayName) || event.displayName !== "Bunny Day") &&
-		((event.displayName === "Setsubun" && event.name === event.displayName) || event.displayName !== "Setsubun");
-})
+const acnhEventsFiltered = acnhEvents.filter(event =>
+{
+	return !['Birthday'].includes(event.name) &&
+		!['Calendar season'].includes(event.type) &&
+		(event.displayName === "New Year's Day" && event.name === event.displayName || event.displayName !== "New Year's Day") &&
+		(event.displayName === 'Wedding Season' && event.name === event.displayName || event.displayName !== 'Wedding Season') &&
+		(event.displayName === 'Toy Day' && event.name === event.displayName || event.displayName !== 'Toy Day') &&
+		(event.displayName === 'Festivale' && event.name === event.displayName || event.displayName !== 'Festivale') &&
+		(event.displayName === 'Halloween' && event.name === event.displayName || event.displayName !== 'Halloween') &&
+		(event.displayName === 'Turkey Day' && event.name === event.displayName || event.displayName !== 'Turkey Day') &&
+		(event.displayName === 'Bunny Day' && event.name === event.displayName || event.displayName !== 'Bunny Day') &&
+		(event.displayName === 'Setsubun' && event.name === event.displayName || event.displayName !== 'Setsubun');
+});
 
 // Grabs the data from the files and sorts it in a way that's easier for the front-end
 
@@ -38,7 +39,7 @@ export const events = {
 	[constants.gameIds.ACWW]: acwwEvents,
 	[constants.gameIds.ACCF]: accfEvents,
 	[constants.gameIds.ACNL]: acnlEvents,
-	[constants.gameIds.ACNH]: acnhEventsFiltered
+	[constants.gameIds.ACNH]: acnhEventsFiltered,
 };
 
 export const years = {
@@ -46,27 +47,26 @@ export const years = {
 	[constants.gameIds.ACWW]: getEventYears(acwwEvents),
 	[constants.gameIds.ACCF]: getEventYears(accfEvents),
 	[constants.gameIds.ACNL]: getEventYears(acnlEvents),
-	[constants.gameIds.ACNH]: getEventYears(acnhEventsFiltered)
-}
+	[constants.gameIds.ACNH]: getEventYears(acnhEventsFiltered),
+};
 
 /*
  * For each game, gets the years that game supports.
  */
-function getEventYears(events:any) : ACGameYearsType[number]
+function getEventYears(events: any): ACGameYearsType[number]
 {
-	let acGameYears:ACGameYearsType[number] = [];
+	let acGameYears: ACGameYearsType[number] = [];
 
-	events.map((event:any) => {
+	events.map((event: any) =>
+	{
 		// get years that that event supports
-		Object.keys(event).map(key => {
-			const potentialYear:string = key.substring(0, 4);
+		Object.keys(event).map(key =>
+		{
+			const potentialYear: string = key.substring(0, 4);
 
-			if (Number(potentialYear||0) != 0)
+			if (dateUtils.isValid(potentialYear, 'year') && !acGameYears.includes(Number(dateUtils.format(potentialYear, 'yyyy', 'yyyy'))))
 			{
-				if (dateUtils.isValid(potentialYear, 'year') && !acGameYears.includes(Number(dateUtils.format(potentialYear, 'yyyy', 'yyyy'))))
-				{
-					acGameYears.push(Number(dateUtils.format(potentialYear, 'yyyy', 'yyyy')));
-				}
+				acGameYears.push(Number(dateUtils.format(potentialYear, 'yyyy', 'yyyy')));
 			}
 		});
 	});

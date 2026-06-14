@@ -9,30 +9,19 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 	perOrders, stackOrQuantities, completeOrders, items, vacationStartDate,
 	vacationEndDate, allowTransfer, active, fileId }: saveProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
+	// Check parameters
 	if (games.length !== perOrders.length)
 	{
 		throw new UserError('bad-format');
 	}
 
-	games = await Promise.all(games.map(async(id, index) =>
+	if (items.reduce((sum, arr) => sum + arr.length, 0) > 1000)
 	{
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-ac-game');
-		}
+		throw new UserError('shop-max-items');
+	}
 
+	games = await Promise.all((games as string[]).map(async(id, index) =>
+	{
 		const [game] = await db.query(`
 			SELECT id
 			FROM ac_game
@@ -48,9 +37,9 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 
 		if (items.length > 0)
 		{
-			const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable);
+			const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable);
 
-			items[index].map((id: any) =>
+			items[index].map(id =>
 			{
 				if (!catalogItems.find(item => item.id === id))
 				{
@@ -64,14 +53,10 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 		return gameId;
 	}));
 
-	if (items.length > 1000)
+	// Perform queries
+	const shopId = await db.transaction(async (query: db.QueryType) =>
 	{
-		throw new UserError('shop-max-items');
-	}
-
-	const shopId = await db.transaction(async (query: any) =>
-	{
-		if (id != null && id > 0)
+		if (id !== null && id > 0)
 		{
 			const shop: ShopType = await this.query('v1/shop', { id: id });
 
@@ -91,9 +76,9 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 			{
 				const [file] = await query(`
 					INSERT INTO file (file_id, name, caption, sequence)
-					VALUES ($1, $2, $3, 1)
+					VALUES ($1, $2, $2, 1)
 					RETURNING id
-				`, fileId, name, name);
+				`, fileId, name);
 
 				headerFileId = file.id;
 			}
@@ -154,7 +139,7 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 				if (items.length > 0)
 				{
 					await Promise.all([
-						items[index].map(async (itemId: any) =>
+						items[index].map(async itemId =>
 						{
 							await query(`
 								INSERT INTO shop_catalog_item (shop_id, catalog_item_id, game_id)
@@ -193,6 +178,11 @@ async function save(this: APIThisType, { id, name, shortDescription, description
 		id: shopId,
 	};
 }
+
+save.permissions = [
+	'modify-shops',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {
@@ -240,9 +230,11 @@ save.apiTypes = {
 	},
 	stackOrQuantities: {
 		type: APITypes.array,
+		subType: 'boolean',
 	},
 	completeOrders: {
 		type: APITypes.array,
+		subType: 'boolean',
 	},
 	items: {
 		type: APITypes.multiArray,
@@ -277,11 +269,11 @@ type saveProps = {
 	description: string
 	format: MarkupStyleType
 	fee: boolean
-	games: any[]
-	perOrders: any[]
-	stackOrQuantities: any[]
-	completeOrders: any[]
-	items: any
+	games: string[] | number[]
+	perOrders: string[]
+	stackOrQuantities: string[]
+	completeOrders: string[]
+	items: string[][]
 	vacationStartDate: string | null
 	vacationEndDate: string | null
 	allowTransfer: boolean

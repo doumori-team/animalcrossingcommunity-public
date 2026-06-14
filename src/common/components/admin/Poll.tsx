@@ -16,6 +16,7 @@ const Poll = ({
 	isEnabled,
 	userHasVoted,
 	options,
+	totalUsers,
 }: PollProps) =>
 {
 	const permissions = useContext(PermissionsContext);
@@ -51,7 +52,7 @@ const Poll = ({
 			}
 
 			{!userHasVoted && allowVotes && permissions.includes('vote-poll') ?
-				<Form action='v1/poll/vote' showButton buttonText='Vote!'>
+				<Form className='PollVoteButton' action='v1/poll/vote' showButton buttonText='Vote!'>
 					<input type='hidden' name='pollId' value={id} />
 
 					<div className='PollOptions'>
@@ -76,22 +77,24 @@ const Poll = ({
 				<div className='PollOptions'>
 					{options.map(option =>
 					{
-						const proportion = totalVotes > 0 ? option.votes / totalVotes : 0;
+						const proportion = totalVotes > 0 ? isMultipleChoice ? option.votes / totalUsers : option.votes / totalVotes : 0;
 						const amount = option.votes + ' vote' + (option.votes === 1 ? '' : 's');
 
 						return (
 							<div key={option.sequence} className='PollOption'>
 								<div className='PollOptionDescription Voted'>
-									{option.description}
+									- {option.description}
 								</div>
-								<div className='PollOptionVotes'>
-									{(proportion * 100).toFixed(1)}% ({amount})
+								<div className='PollOptionResult'>
+									<meter
+										className='PollOptionResult_meter'
+										value={proportion}
+										title={amount}
+									/>
+									<span className='PollOptionVotes'>
+										{(proportion * 100).toFixed(1)}% ({amount})
+									</span>
 								</div>
-								<meter
-									className='PollOptionResult_meter'
-									value={proportion}
-									title={amount}
-								/>
 							</div>
 						);
 					})}

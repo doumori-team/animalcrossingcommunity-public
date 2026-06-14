@@ -10,9 +10,9 @@ type GuideType = {
 		id: number
 		shortname: string
 	}
-	updatedName?: string
-	updatedDescription?: string
-	updatedContent?: string
+	updatedName?: string | null
+	updatedDescription?: string | null
+	updatedContent?: string | null
 	formattedLastUpdated?: string
 	user?: UserLiteType
 	formattedLastPublished?: string

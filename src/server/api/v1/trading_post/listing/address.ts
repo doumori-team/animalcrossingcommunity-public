@@ -10,32 +10,20 @@ import { APIThisType, ListingType } from '@types';
  */
 async function address(this: APIThisType, { id, address }: addressProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
 	// only users involved in trade can submit address info
 	// only if listing in right status
-	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId) ||
+	if (![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId as number) ||
 		![listingStatuses.offerAccepted, listingStatuses.inProgress].includes(listing.status))
 	{
 		throw new UserError('permission');
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await accounts.updateAddress(
 			{
@@ -69,6 +57,11 @@ async function address(this: APIThisType, { id, address }: addressProps): Promis
 		]);
 	});
 }
+
+address.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 address.apiTypes = {
 	id: {

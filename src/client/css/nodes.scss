@@ -31,6 +31,16 @@
 	border-left: 0.3333rem solid colors.$color-dev;
 }
 
+.Node-birthday {
+	border-image: linear-gradient(135deg, #ff8aa8, #ffbf6b) 1 !important;
+	border-left: 0.3333rem solid;
+}
+
+.Node-anniversary {
+	border-image: linear-gradient(135deg,#6bb8ff,#8c6bff) 1 !important;
+	border-left: 0.3333rem solid;
+}
+
 .Node-admin-locked .Node_main {
 	border-left: 0;
 	border-right: 0;
@@ -59,6 +69,10 @@
 
 .Node_main {
 	word-break: break-word;
+
+	pre {
+		white-space: pre-wrap;
+	}
 
 	> :last-child p {
 		margin-bottom: 0;
@@ -157,7 +171,7 @@
 
 .Node_signature {
 	display: flex;
-	margin: 1rem 0;
+	margin: 0.5rem 0;
 	padding: 0.6rem 1.0rem;
 	border-radius: mixins.px2rem(3px);
 	border: mixins.px2rem(1px) solid #9c846d;
@@ -166,8 +180,6 @@
 	font-size: mixins.px2rem(12px);
 	line-height: 1.4;
 	color: colors.$color-signature-text;
-
-	white-space: pre-wrap;
 
 	.Markup .spoiler {
 		color: colors.$color-signature-background;
@@ -201,6 +213,11 @@
 	}
 }
 
+.PostAuthorInfo_userbadge.birthday,
+.PostAuthorInfo_userbadge.anniversary {
+	display: none;
+}
+
 .PostAuthorInfo_title {
 	display: flex;
 	align-items: center;
@@ -222,7 +239,8 @@
 	overflow-wrap: break-word;
 }
 
-.PostAuthorInfo_userTitle {
+.PostAuthorInfo_userTitle,
+.PostAuthorInfo_name {
 	display: none;
 }
 
@@ -231,7 +249,7 @@
 	display: flex;
 	align-items: center;
 
-	img[src*="/icons/"] {
+	img[src*="/assets/icons/"] {
 		padding-left: 0;
 	}
 }
@@ -248,6 +266,7 @@
 	height: 5rem;
 	padding: 0.25rem;
 	margin-right: 0.75rem;
+	background: #808080;
 	border: 1px solid black;
 }
 
@@ -275,8 +294,16 @@
 	background-color: colors.$color-avatar-mint;
 }
 
+.Avatar[data-bg-coloration='mocha'] {
+	background-color: colors.$color-avatar-mocha;
+}
+
 .Avatar[data-bg-coloration='orange'] {
 	background-color: colors.$color-avatar-orange;
+}
+
+.Avatar[data-bg-coloration='pastel-pink'] {
+	background-color: colors.$color-avatar-pastel-pink;
 }
 
 .Avatar[data-bg-coloration='pink'] {
@@ -311,6 +338,14 @@
 	background-color: colors.$color-avatar-dark-green;
 }
 
+.Avatar[data-bg-coloration='grape'] {
+	background-color: colors.$color-avatar-grape;
+}
+
+.Avatar[data-bg-coloration='grapefruit'] {
+	background-color: colors.$color-avatar-grapefruit;
+}
+
 .Avatar[data-bg-coloration='graphite'] {
 	background-color: colors.$color-avatar-graphite;
 }
@@ -331,12 +366,20 @@
 	background-image: colors.$color-avatar-alien;
 }
 
+.Avatar[data-bg-coloration='aqua'] {
+	background-image: colors.$color-avatar-aqua;
+}
+
 .Avatar[data-bg-coloration='flare'] {
 	background-image: colors.$color-avatar-flare;
 }
 
 .Avatar[data-bg-coloration='frost'] {
 	background-image: colors.$color-avatar-frost;
+}
+
+.Avatar[data-bg-coloration='fruity'] {
+	background-image: colors.$color-avatar-fruity;
 }
 
 .Avatar[data-bg-coloration='gold'] {
@@ -349,6 +392,14 @@
 
 .Avatar[data-bg-coloration='lemon-drop'] {
 	background-image: colors.$color-avatar-lemon-drop;
+}
+
+.Avatar[data-bg-coloration='lilac'] {
+	background-image: colors.$color-avatar-lilac;
+}
+
+.Avatar[data-bg-coloration='sunrise'] {
+	background-image: colors.$color-avatar-sunrise;
 }
 
 .Avatar[data-bg-coloration='twilight'] {
@@ -485,7 +536,7 @@
 					align-content: flex-start;
 
 					input {
-						/* 
+						/*
 						 * Explanation: Signatures have a text size of 12px and a line height of unitless 1.4, or (1.4 * fontsize).
 						 * The line height being larger means there is empty space within the element above and below the text,
 						 * which has a height of (lineHeight - fontSize) / 2, or (1.4 * fontSize - fontSize) / 2, or (0.2 * fontSize).
@@ -513,7 +564,8 @@
 	.PostAuthorInfo_userbadge,
 	.PostAuthorInfo_username,
 	.PostAuthorInfo_lastactive,
-	.PostAuthorInfo_userTitle {
+	.PostAuthorInfo_userTitle,
+	.PostAuthorInfo_name {
 		width: mixins.px2rem(130px);
 		padding: 0.3333em 0.25rem;
 		margin-top: 0.1875rem;
@@ -532,6 +584,24 @@
 		}
 	}
 
+	.PostAuthorInfo_userbadge.anniversary,
+	.PostAuthorInfo_userbadge.birthday {
+		color: #fff;
+		border-color: rgba(0,0,0,.35);
+		text-shadow: 0 1px rgba(0,0,0,.25);
+		text-align: center;
+		font-size: inherit;
+		display: block;
+	}
+
+	.PostAuthorInfo_userbadge.birthday {
+		background: linear-gradient(135deg, #ff8aa8, #ffbf6b);
+	}
+
+	.PostAuthorInfo_userbadge.anniversary {
+		background: linear-gradient(135deg, #6bb8ff, #8c6bff);
+	}
+
 	.PostAuthorInfo_lastactive {
 		justify-content: flex-end;
 	}
@@ -546,7 +616,8 @@
 		}
 	}
 
-	.PostAuthorInfo_userTitle {
+	.PostAuthorInfo_userTitle,
+	.PostAuthorInfo_name {
 		display: flex;
 		justify-content: end;
 		align-items: center;
@@ -652,11 +723,24 @@
 			border-bottom: 1px solid var(--seasonal-color-dark);
 			border-right: 1px solid var(--seasonal-color-dark);
 
-			& > :first-child {
-				margin-top: 0;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+
+			svg {
+				fill: black;
+				width: mixins.px2rem(40px);
+				height: mixins.px2rem(40px);
 			}
-			& > :last-child {
-				margin-bottom: 0;
+
+			div {
+				& > :first-child {
+					margin-top: 0;
+				}
+
+				& > :last-child {
+					margin-bottom: 0;
+				}
 			}
 		}
 
@@ -806,7 +890,8 @@
 		color: #555;
 	}
 
-	.NodeWritingInterface_lock {
+	.NodeWritingInterface_lock,
+	.NodeWritingInterface_liveMode {
 		display: flex;
 		align-items: center;
 
@@ -835,7 +920,8 @@
 .NodeWritingInterface_lock label,
 .NodeWritingInterface label[for=boardId],
 .RichTextArea_file label,
-.NodeWritingInterface label[for=shopId] {
+.NodeWritingInterface label[for=shopId],
+.NodeWritingInterface_liveMode label {
 	margin: 0.5rem;
 	font-size: mixins.px2rem(17px);
 	line-height: 1.6;
@@ -893,4 +979,74 @@
 	img {
 		height: mixins.px2rem(24px);
 	}
+}
+
+.NodeWritingInterface_live {
+	> div:first-child {
+		display: flex !important;
+		justify-content: end !important;
+	}
+
+	> div:nth-child(2) {
+		display: flex;
+		justify-content: initial;
+		align-items: center;
+
+		.RichTextArea {
+			width: 100%;
+		}
+	}
+
+	.Form_button {
+		margin-left: mixins.px2rem(5px);
+	}
+}
+
+.NodePage_nodesLive {
+	overflow-y: auto;
+	max-height: mixins.px2rem(450px);
+}
+
+.Node_quote {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: mixins.px2rem(25px);
+	height: mixins.px2rem(25px);
+	border-radius: 50%;
+	border: mixins.px2rem(2px) solid black;
+	color: black;
+	padding: mixins.px2rem(2px);
+	cursor: pointer;
+}
+
+.Node_reactionsSection, .HomePage_announcementSection {
+	.Node_reactions, .HomePage_announcementReactions {
+		display: inline-flex;
+		align-items: center;
+
+		.Node_reaction, .HomePage_announcementReaction {
+			border-radius: 50%;
+			overflow: hidden;
+			border: mixins.px2rem(2px) solid white;
+			margin-left: mixins.px2rem(-13px);
+			background: white;
+		}
+
+		.Node_reaction:first-child, .HomePage_announcementReaction:first-child {
+			margin-left: 0;
+		}
+	}
+
+	.Node_reactionsCount, .HomePage_announcementReactionsCount {
+		margin-left: mixins.px2rem(3px);
+	}
+}
+
+.Node_main > :nth-child(2) {
+	margin-bottom: auto;
+}
+
+.Node_main .react-photo-album {
+	margin-top: 1em;
 }

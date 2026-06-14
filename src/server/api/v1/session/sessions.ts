@@ -4,43 +4,36 @@ import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SessionsType } from '@types';
 
-async function sessions(this: APIThisType, { page, username, startDate, endDate, url }: sessionsProps): Promise<SessionsType>
+async function sessions(this: APIThisType, { page, searchUser, startDate, endDate, url }: sessionsProps): Promise<SessionsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	let urlId = null;
+	let urlId: number | null = null;
 
 	if (utils.realStringLength(url) > 0)
 	{
-		[urlId] = await db.query(`
+		const [checkUrl] = await db.query(`
 			SELECT id
 			FROM url
 			WHERE url = $1
 		`, url);
 
-		if (!urlId)
+		if (!checkUrl)
 		{
 			throw new UserError('bad-format');
 		}
 
-		urlId = urlId.id;
+		urlId = checkUrl.id;
 	}
 
 	// Do actual search
 	const pageSize = 24;
-	let results = [], count = 0;
+	let results: SessionsType['results'] = [], count = 0;
 
 	if (
-		utils.realStringLength(username) > 0
+		utils.realStringLength(searchUser) > 0
 	)
 	{
 		const offset = page * pageSize - pageSize;
-		let params: any = [pageSize, offset];
+		let params: (number | string)[] = [pageSize, offset];
 		let paramIndex = params.length;
 
 		let query = `
@@ -53,7 +46,7 @@ async function sessions(this: APIThisType, { page, username, startDate, endDate,
 		`;
 
 		// Add joins
-		if (utils.realStringLength(username) > 0)
+		if (utils.realStringLength(searchUser) > 0)
 		{
 			query += `
 				JOIN user_account_cache ON (user_account_cache.id = user_session.user_id)
@@ -61,11 +54,11 @@ async function sessions(this: APIThisType, { page, username, startDate, endDate,
 		}
 
 		// Add wheres
-		let wheres = [];
+		let wheres: string[] = [];
 
-		if (utils.realStringLength(username) > 0)
+		if (utils.realStringLength(searchUser) > 0)
 		{
-			params[paramIndex] = username;
+			params[paramIndex] = searchUser;
 
 			paramIndex++;
 
@@ -90,14 +83,14 @@ async function sessions(this: APIThisType, { page, username, startDate, endDate,
 			wheres.push(`user_session.end_date <= $` + paramIndex);
 		}
 
-		if (urlId > 0)
+		if (urlId !== null && urlId > 0)
 		{
 			const sessionIds = (await db.query(`
 				SELECT
 					user_session_url.user_session_id
 				FROM user_session_url
 				WHERE user_session_url.url_id = $1::int
-			`, urlId)).map((usu: any) => usu.user_session_id);
+			`, urlId)).map((usu: { user_session_id: number }) => usu.user_session_id);
 
 			params[paramIndex] = sessionIds;
 
@@ -130,11 +123,16 @@ async function sessions(this: APIThisType, { page, username, startDate, endDate,
 		`;
 
 		// Run query
-		const userSessions = await db.query(query, ...params);
+		const userSessions: {
+			id: number
+			start_date: Date
+			end_date: Date | null
+			count: number
+		}[] = await db.query(query, ...params);
 
 		if (userSessions.length > 0)
 		{
-			results = userSessions.map((userSession: any) =>
+			results = userSessions.map(userSession =>
 			{
 				return {
 					id: userSession.id,
@@ -152,12 +150,16 @@ async function sessions(this: APIThisType, { page, username, startDate, endDate,
 		count: count,
 		page: page,
 		pageSize: pageSize,
-		username: username,
+		searchUser: searchUser,
 		startDate: startDate,
 		endDate: endDate,
 		url: url,
 	};
 }
+
+sessions.permissions = [
+	'process-user-tickets',
+];
 
 sessions.apiTypes = {
 	page: {
@@ -165,7 +167,7 @@ sessions.apiTypes = {
 		required: true,
 		min: 1,
 	},
-	username: {
+	searchUser: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
@@ -187,7 +189,7 @@ sessions.apiTypes = {
 
 type sessionsProps = {
 	page: number
-	username: string
+	searchUser: string
 	startDate: string
 	endDate: string
 	url: string

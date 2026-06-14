@@ -62,6 +62,7 @@ const EditProfileBioPage = ({ loaderData }: { loaderData: EditProfileBioPageProp
 								upload
 								maxImages={constants.max.imagesProfile}
 								files={bio.files}
+								pollMarkup
 							/>
 						</Form.Group>
 					</Form>

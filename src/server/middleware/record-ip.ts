@@ -1,23 +1,15 @@
-import * as db from '@db';
+import { Request, Response, NextFunction } from 'express';
 
-async function recordIP(request: any, _: any, next: any): Promise<Promise<void>>
+import * as db from '@db';
+import { utils } from '@utils';
+
+async function recordIP(request: Request, _: Response, next: NextFunction): Promise<Promise<void>>
 {
 	if (request.session?.user)
 	{
-		let ipAddresses = request.headers['x-forwarded-for'];
+		let ipAddresses: string | string[] = utils.getIPAddresses(request);
 
-		if (request.headers['cloudfront-viewer-address'])
-		{
-			ipAddresses = request.headers['cloudfront-viewer-address'].split(':');
-
-			if (ipAddresses.length > 1)
-			{
-				ipAddresses.pop();
-				ipAddresses = ipAddresses.join(':');
-			}
-		}
-
-		if (typeof ipAddresses === 'string')
+		if (ipAddresses)
 		{
 			ipAddresses = ipAddresses.split(',')
 				.map(item => item.trim());

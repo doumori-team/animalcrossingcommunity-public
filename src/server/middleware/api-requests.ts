@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import multer from 'multer';
 
 import * as errors from 'common/errors.ts';
@@ -15,7 +15,7 @@ handler.get('/*', handleRequest);
 handler.post('/*', upload.any(), handleRequest);
 
 // used when call API endpoint (useEffect)
-async function handleRequest(request: any, response: any): Promise<any>
+async function handleRequest(request: Request, response: Response): Promise<void>
 {
 	response.set('Cache-Control', 'no-store');
 
@@ -27,7 +27,6 @@ async function handleRequest(request: any, response: any): Promise<any>
 		'v1/users/upload_image',
 		'v1/users',
 		'v1/guide/upload_image',
-		'v1/notification/latest',
 		'v1/friend_code/whitelist/users',
 		'v1/user_lite',
 		'v1/acgame/catalog',
@@ -35,6 +34,15 @@ async function handleRequest(request: any, response: any): Promise<any>
 		'v1/shop/upload_image',
 		'v1/paypal/donate',
 		'v1/paypal/consent',
+		'v1/newsletter/article/upload_image',
+		'v1/newsletter/upload_image',
+		'v1/node/create',
+		'v1/notification/subscribe',
+		'v1/node/react',
+		'v1/node/reactions',
+		'v1/node/vote',
+		'v1/users/poll/vote',
+		'v1/town/map/upload_map',
 	].includes(query))
 	{
 		log += ` status=404`;
@@ -46,18 +54,20 @@ async function handleRequest(request: any, response: any): Promise<any>
 	}
 	else
 	{
-		let params = null;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let params: any = null;
 
 		if (request.method === 'GET')
 		{
-			const searchParams = new URLSearchParams(request._parsedUrl.search);
-			params = Object.fromEntries(searchParams.entries());
+			const url = new URL(`${request.protocol}://${request.get('host')}${request.originalUrl}`);
+			params = utils.entriesToObject(url.searchParams.entries());
 		}
 		else
 		{
 			params = request.body;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(await iso).query(request.session.user, query, params).then(async (data: any) =>
 		{
 			log += ` status=200`;
@@ -80,11 +90,17 @@ async function handleRequest(request: any, response: any): Promise<any>
 			{
 				response.json(data);
 			}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		}).catch((error: any) =>
 		{
 			console.error('Error while handling API query:', error);
 			console.error('API operation:', query);
 			console.error('Request body:', params);
+
+			if (request.session?.user)
+			{
+				console.error('User:', request.session?.user, request.session?.username);
+			}
 
 			if (error.name === 'NotFoundError')
 			{
@@ -112,7 +128,7 @@ async function handleRequest(request: any, response: any): Promise<any>
 
 				response.status(400);
 
-				response.json({ _errors: [{ name:'ProfanityError', message: `${(errors.ERROR_MESSAGES as any)[error.identifier].message} ${error.words}` }] });
+				response.json({ _errors: [{ name:'ProfanityError', message: `${errors.ERROR_MESSAGES[error.identifier].message} ${error.words}` }] });
 			}
 			else
 			{

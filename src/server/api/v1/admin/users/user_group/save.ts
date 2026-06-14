@@ -7,14 +7,6 @@ import { APIThisType, UserType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { userId, groupId }: saveProps): Promise<SuccessType>
 {
-	// Confirm perms
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Confirm params
 	const user: UserType = await this.query('v1/user', { id: userId });
 
@@ -59,12 +51,25 @@ async function save(this: APIThisType, { userId, groupId }: saveProps): Promise<
 		`, user.id);
 	}
 
+	Promise.all([
+		this.fullQuery(user.id, 'v1/users/badge/check', { badgeId: constants.badges.admin }),
+		this.fullQuery(user.id, 'v1/users/badge/check', { badgeId: constants.badges.mod }),
+		this.fullQuery(user.id, 'v1/users/badge/check', { badgeId: constants.badges.researcher }),
+		this.fullQuery(user.id, 'v1/users/badge/check', { badgeId: constants.badges.dev }),
+		this.fullQuery(user.id, 'v1/users/badge/check', { badgeId: constants.badges.scout }),
+	]);
+
 	ACCCache.deleteMatch(constants.cacheKeys.userGroupUsers);
 
 	return {
 		_success: `The user's group has been updated.`,
 	};
 }
+
+save.permissions = [
+	'permission-admin',
+	'userId',
+];
 
 save.apiTypes = {
 	userId: {

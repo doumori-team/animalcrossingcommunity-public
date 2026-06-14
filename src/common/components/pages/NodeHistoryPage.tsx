@@ -17,7 +17,7 @@ const NodeHistoryPage = ({ loaderData }: { loaderData: NodeHistoryPageProps }) =
 				<Header
 					name={`Post History #${parentNode.id}`}
 					links={
-						<Link to={`/forums/${encodeURIComponent(parentNode.parentId)}`}>
+						<Link to={`/forums/${encodeURIComponent(parentNode.parentId ?? 0)}`}>
 							Return to Thread
 						</Link>
 					}
@@ -48,7 +48,7 @@ const NodeHistoryPage = ({ loaderData }: { loaderData: NodeHistoryPageProps }) =
 										Content:
 										<Markup
 											text={node.content.text}
-											format={node.content ?
+											format={node.content.format ?
 												node.content.format :
 												'markdown'}
 											emojiSettings={nodeEmojiSettings}

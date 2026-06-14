@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserMatchingType } from '@types';
@@ -7,22 +6,15 @@ import { APIThisType, UserMatchingType } from '@types';
 /*
  * Find matching users based on: FCs, IPs
  */
-async function matching(this: APIThisType, { username, match }: matchingProps): Promise<UserMatchingType>
+async function matching(this: APIThisType, { searchUser, match }: matchingProps): Promise<UserMatchingType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	let results = [];
+	let results: UserMatchingType['results'] = [];
 
 	if (
-		utils.realStringLength(username) > 0
+		utils.realStringLength(searchUser) > 0
 	)
 	{
-		let matches = [];
+		let matches: { user_id: number }[] = [];
 
 		if (match === constants.matching.friendCodes)
 		{
@@ -37,7 +29,7 @@ async function matching(this: APIThisType, { username, match }: matchingProps): 
 				)
 				JOIN user_account_cache ON (friend_code.user_id = user_account_cache.id)
 				WHERE LOWER(user_account_cache.username) = LOWER($1)
-			`, username);
+			`, searchUser);
 		}
 		else if (match === constants.matching.ipAddresses)
 		{
@@ -51,12 +43,12 @@ async function matching(this: APIThisType, { username, match }: matchingProps): 
 				)
 				JOIN user_account_cache ON (user_ip_address.user_id = user_account_cache.id)
 				WHERE LOWER(user_account_cache.username) = LOWER($1)
-			`, username);
+			`, searchUser);
 		}
 
 		if (matches.length > 0)
 		{
-			results = await Promise.all(matches.map(async (match: any) =>
+			results = await Promise.all(matches.map(async match =>
 			{
 				return {
 					user: await this.query('v1/user', { id: match.user_id }),
@@ -67,13 +59,17 @@ async function matching(this: APIThisType, { username, match }: matchingProps): 
 
 	return <UserMatchingType>{
 		results: results,
-		username: username,
+		searchUser: searchUser,
 		match: match,
 	};
 }
 
+matching.permissions = [
+	'process-user-tickets',
+];
+
 matching.apiTypes = {
-	username: {
+	searchUser: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
@@ -86,7 +82,7 @@ matching.apiTypes = {
 };
 
 type matchingProps = {
-	username: string
+	searchUser: string
 	match: string
 };
 

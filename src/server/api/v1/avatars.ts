@@ -1,24 +1,43 @@
 import * as db from '@db';
-import { UserError } from '@errors';
-import { constants } from '@utils';
+import { constants, utils, dateUtils } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, AvatarsType, DataBackgroundType, DataAccentType, DataCharacterType, DataColorationType, BellShopItemsType, BellShopCategoryType, DataTagType } from '@types';
+import { UserError } from '@errors';
 
 /*
  * Gets available avatars for user.
  */
-export default async function avatars(this: APIThisType): Promise<AvatarsType>
+async function avatars(this: APIThisType, { debug }: avatarsProps): Promise<AvatarsType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const groupIds = await db.getUserGroups(this.userId);
 
 	const permissions = ['use-community-avatars', 'use-staff-avatars', 'use-modmin-avatars'];
 
-	const [grantedPerms, [grantedAvatarPerms], bellShopRedeemedItems, availableIdsEvents] = await Promise.all([
+	if (!constants.LIVE_SITE && utils.realStringLength(debug) > 0 && debug !== undefined)
+	{
+		if (!dateUtils.isValid(debug))
+		{
+			throw new UserError('bad-format');
+		}
+	}
+
+	const [grantedPerms, [grantedAvatarPerms], bellShopRedeemedItems, availableIdsEvents]: [{
+		identifier: string
+	}[], [{
+		accent_ids: number[]
+		character_ids: number[]
+		background_ids: number[]
+		coloration_ids: number[]
+	}], {
+		item_id: number
+	}[], {
+		accent_ids: number[]
+		character_ids: number[]
+		background_ids: number[]
+		coloration_ids: number[]
+		start_date: string
+		end_date: string
+	}[]] = await Promise.all([
 		db.query(`
 			SELECT *
 			FROM (
@@ -75,12 +94,12 @@ export default async function avatars(this: APIThisType): Promise<AvatarsType>
 		db.query(`
 			SELECT *
 			FROM avatars_events
-			WHERE current_date BETWEEN start_date AND end_date
-		`),
+			WHERE COALESCE($1, current_date) BETWEEN start_date AND end_date
+		`, debug),
 	]);
 
-	const mappedPerms = grantedPerms.map((p: any) => p.identifier);
-	const mappedBellShopRedeemedItems = bellShopRedeemedItems.map((i: any) => i.item_id);
+	const mappedPerms = grantedPerms.map(p => p.identifier);
+	const mappedBellShopRedeemedItems = bellShopRedeemedItems.map(i => i.item_id);
 
 	const avatarBackgrounds: DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.alphabeticalAvatarBackgrounds);
 	const sortedBellShopItems: BellShopItemsType = await ACCCache.get(constants.cacheKeys.sortedBellShopItems);
@@ -91,14 +110,16 @@ export default async function avatars(this: APIThisType): Promise<AvatarsType>
 	const availableBackgrounds = getAvailableAvatars(
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.background_ids : [],
-		mappedBellShopRedeemedItems.length > 0 && bellShopBackgroundCategory !== undefined ? sortedBellShopItems[bellShopBackgroundCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.background_ids).flat() : [],
+		mappedBellShopRedeemedItems.length > 0 && bellShopBackgroundCategory !== undefined ? sortedBellShopItems[bellShopBackgroundCategory.id]['items'].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map(ae => ae.background_ids).flat() : [],
 		avatarBackgrounds,
 		(bg: DataBackgroundType) =>
 		{
 			return {
 				id: bg.id,
 				name: bg.name,
+				subtitle: bg.subtitle,
+				game: bg.game,
 				image: bg.image,
 				colorable: bg.colorable,
 				tags: bg.tags,
@@ -113,14 +134,16 @@ export default async function avatars(this: APIThisType): Promise<AvatarsType>
 	const availableCharacters = getAvailableAvatars(
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.character_ids : [],
-		mappedBellShopRedeemedItems.length > 0 && bellShopCharacterCategory !== undefined ? sortedBellShopItems[bellShopCharacterCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.character_ids).flat() : [],
+		mappedBellShopRedeemedItems.length > 0 && bellShopCharacterCategory !== undefined ? sortedBellShopItems[bellShopCharacterCategory.id]['items'].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map(ae => ae.character_ids).flat() : [],
 		avatarCharacters,
 		(character: DataCharacterType) =>
 		{
 			return {
 				id: character.id,
 				name: character.name,
+				subtitle: character.subtitle,
+				game: character.game,
 				image: character.image,
 				tags: character.tags,
 			};
@@ -134,14 +157,16 @@ export default async function avatars(this: APIThisType): Promise<AvatarsType>
 	const availableAccents = getAvailableAvatars(
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.accent_ids : [],
-		mappedBellShopRedeemedItems.length > 0 && bellShopAccentCategory !== undefined ? sortedBellShopItems[bellShopAccentCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.accent_ids).flat() : [],
+		mappedBellShopRedeemedItems.length > 0 && bellShopAccentCategory !== undefined ? sortedBellShopItems[bellShopAccentCategory.id]['items'].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map(ae => ae.accent_ids).flat() : [],
 		avatarAccents,
 		(accent: DataAccentType) =>
 		{
 			return {
 				id: accent.id,
 				name: accent.name,
+				subtitle: accent.subtitle,
+				game: accent.game,
 				image: accent.image,
 				positionable: accent.positionable,
 				zIndex: accent.zIndex,
@@ -157,14 +182,16 @@ export default async function avatars(this: APIThisType): Promise<AvatarsType>
 	const availableColorations = getAvailableAvatars(
 		mappedPerms,
 		grantedAvatarPerms ? grantedAvatarPerms.coloration_ids : [],
-		mappedBellShopRedeemedItems.length > 0 && bellShopColorationCategory !== undefined ? sortedBellShopItems[bellShopColorationCategory.id].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
-		availableIdsEvents.length > 0 ? availableIdsEvents.map((ae: any) => ae.coloration_ids).flat() : [],
+		mappedBellShopRedeemedItems.length > 0 && bellShopColorationCategory !== undefined ? sortedBellShopItems[bellShopColorationCategory.id]['items'].filter(c => mappedBellShopRedeemedItems.includes(c.id)).map(c => Number(c.internalId)) : [],
+		availableIdsEvents.length > 0 ? availableIdsEvents.map(ae => ae.coloration_ids).flat() : [],
 		avatarColorations,
 		(coloration: DataColorationType) =>
 		{
 			return {
 				id: coloration.id,
 				name: coloration.name,
+				subtitle: coloration.subtitle,
+				game: coloration.game,
 				css: coloration.css,
 			};
 		},
@@ -286,3 +313,13 @@ function getAvailableAvatars(grantedPerms: string[], grantedAvatarPerms: number[
 
 	return { available, usedTags };
 }
+
+avatars.permissions = [
+	'userId',
+];
+
+type avatarsProps = {
+	debug?: string
+};
+
+export default avatars;

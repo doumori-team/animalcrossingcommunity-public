@@ -1,28 +1,15 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { utils, constants } from '@utils';
 import { APIThisType } from '@types';
 
 /*
  * Create the thread + original message for rule.
  */
-export default async function create(this: APIThisType, { ruleId, number, name, description, content }: createProps): Promise<number>
+async function create(this: APIThisType, { ruleId, number, name, description, content }: createProps): Promise<number>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	content = String(content || `A rule is being updated. Current rule is: ${description}`);
 
-	const threadId = await db.transaction(async (query: any) =>
+	const threadId = await db.transaction(async (query: db.QueryType) =>
 	{
 		// create thread
 		const [thread] = await query(`
@@ -69,6 +56,11 @@ export default async function create(this: APIThisType, { ruleId, number, name, 
 	return threadId;
 }
 
+create.permissions = [
+	'modify-rules-admin',
+	'userId',
+];
+
 type createProps = {
 	ruleId: number
 	number: number | string
@@ -76,3 +68,5 @@ type createProps = {
 	description: string
 	content: string
 };
+
+export default create;

@@ -18,7 +18,7 @@ const EditPattern = ({
 	userId,
 }: EditPatternProps) =>
 {
-	const [qrData, setQrData] = useState<any | null>(null);
+	const [qrData, setQrData] = useState<string[] | null>(null);
 	const [paletteId, setPaletteId] = useState<number>(1);
 	const [errors, setErrors] = useState<string[]>([]);
 	const [patternName, setPatternName] = useState<string>('');

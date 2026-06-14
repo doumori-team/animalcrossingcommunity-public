@@ -28,6 +28,8 @@ type UserType = {
 	awayStartDate: string | null
 	awayEndDate: string | null
 	reviewTOS: boolean
+	postName: boolean
+	name: string | null
 };
 
 export type { UserType };

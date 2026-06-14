@@ -77,6 +77,9 @@ const ProfileBioPage = ({ loaderData, params }: { loaderData: ProfileBioPageProp
 								format={bio.format}
 								emojiSettings={emojiSettings}
 								key={Math.random()}
+								polls={bio.polls}
+								pollVoteApiCall='v1/users/poll/vote'
+								pollVoteRedirect={`/profile/${user.id}`}
 							/>
 						</div>
 					</ContentBox>

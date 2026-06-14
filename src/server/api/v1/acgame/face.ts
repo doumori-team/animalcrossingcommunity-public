@@ -1,18 +1,10 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, FaceType } from '@types';
 
 async function face(this: APIThisType, { id }: faceProps): Promise<FaceType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	return await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			face.id,
@@ -23,6 +15,10 @@ async function face(this: APIThisType, { id }: faceProps): Promise<FaceType[]>
 		ORDER BY ac_game_face.id ASC
 	`, id);
 }
+
+face.permissions = [
+	'modify-towns',
+];
 
 face.apiTypes = {
 	id: {

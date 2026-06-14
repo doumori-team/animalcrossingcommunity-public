@@ -2,6 +2,11 @@
 // It is included in various places on both the server and client side, so be
 // careful what dependencies you add.
 
+import { Request } from 'express';
+import { ActionFunctionArgs } from 'react-router';
+
+import crypto from 'crypto';
+
 import * as constants from './constants.ts';
 import acgcMapTiles from '../maps/acgc.json';
 import acwwMapTiles from '../maps/acww.json';
@@ -13,7 +18,6 @@ import acwwPatterns from '../patterns/acww.json';
 import accfPatterns from '../patterns/accf.json';
 import acnlPatterns from '../patterns/acnl.json';
 import acnhPatterns from '../patterns/acnh.json';
-import acnhMaps from '../maps/acnh.json';
 import {
 	UserTicketType,
 	TicketType,
@@ -23,12 +27,10 @@ import {
 	PatternPalettesType,
 	PatternColorsType,
 	PatternColorInfoType,
-	MapDesignerColorsType,
-	MapDesignerImagesType,
-	MapDesignerMapInfoType,
 	GrassShapeType,
 	AppLoadContextType,
 } from '@types';
+import { UserError } from '@errors';
 
 // For case-insensitive, diacritical mark ignoring, natural number sorting
 export const sortingCollator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
@@ -50,6 +52,7 @@ export function getPossessiveNoun(noun: string): string
  * Returns the actual length of a string, counting 'astral plane'
  * characters like emoji as one character rather than two.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function realStringLength(string: any): number
 {
 	// JavaScript uses UTF-16 internally, so each astral character is encoded as
@@ -61,6 +64,7 @@ export function realStringLength(string: any): number
 /*
  * removes whitespace from the start and end of a string
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function trimString(string: any): string
 {
 	return String(string || '').replace(/(^\s+|\s+$)/g, '');
@@ -69,6 +73,7 @@ export function trimString(string: any): string
 /*
  * Update generatePath to handle hashes.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function generateHashPath(initialPath: string, data: any, serverSide: boolean = false): string
 {
 	const [path, hash] = initialPath.split('?reload=:');
@@ -216,45 +221,6 @@ export function convertForUrl(string: string): string
 }
 
 /*
- * Returns map colors for the given game.
- */
-export function getMapColors(gameId: number): MapDesignerColorsType
-{
-	switch (gameId)
-	{
-		default:
-		case constants.gameIds.ACNH:
-			return acnhMaps.colors;
-	}
-}
-
-/*
- * Returns map images for the given game.
- */
-export function getMapImages(gameId: number): MapDesignerImagesType
-{
-	switch (gameId)
-	{
-		default:
-		case constants.gameIds.ACNH:
-			return acnhMaps.images;
-	}
-}
-
-/*
- * Returns map info for the given game.
- */
-export function getMapInfo(gameId: number): MapDesignerMapInfoType
-{
-	switch (gameId)
-	{
-		default:
-		case constants.gameIds.ACNH:
-			return acnhMaps.info;
-	}
-}
-
-/*
  * Equivalent of test-transform: capitalize
  */
 export function capitalize(text: string): string
@@ -351,6 +317,13 @@ export function getReferenceLink(ticket: UserTicketType | TicketType): string
 	{
 		return `/shop/application/${encodeURIComponent(ticket.reference.id)}`;
 	}
+	else if ([types.articleComment].includes(type))
+	{
+		if (ticket.reference.parentId !== null)
+		{
+			return `/newsletter/${encodeURIComponent(ticket.reference.parentId)}`;
+		}
+	}
 	else if (type.startsWith('profile_') || type === types.rating)
 	{
 		return `/profile/${encodeURIComponent(ticket.violator.id)}`;
@@ -384,7 +357,7 @@ export function getDefaultMapAcres(gameId: number): number[] | null
 /*
  * Special words that will be replaced in scout templates
  */
-export function getScoutTemplateConfig(scout: UserLiteType, adoptee: UserType): { character: string, replace: string }[]
+export function getScoutTemplateConfig(scout: UserLiteType, adoptee: UserType | UserLiteType): { character: string, replace: string }[]
 {
 	return [
 		{ character: 'ScoutName', replace: scout?.username },
@@ -416,14 +389,14 @@ export function getPasswordResetEmail(link: string, orgEmail: string): string
  * For Permissions.
  * Recursively get children boards of each board.
  */
-export function getChildBoards(boardPermissions: any[], parentId: string | null)
+export function getChildBoards(boardPermissions: { parent_id: number, node_id: number, title: string, node_permission_id: number, granted: boolean, identifier: string }[], parentId: string | number | null): BoardPermission[]
 {
 	const boards = boardPermissions.filter(bp => bp.parent_id === parentId);
-	let returnBoardPerms: any = [];
+	let returnBoardPerms: BoardPermission[] = [];
 
 	for (let board of boards)
 	{
-		let found = returnBoardPerms.find((b: any) => b.id === board.node_id);
+		let found = returnBoardPerms.find(b => b.id === board.node_id);
 
 		if (!found)
 		{
@@ -456,10 +429,22 @@ export function getChildBoards(boardPermissions: any[], parentId: string | null)
 	return returnBoardPerms;
 }
 
+type BoardPermission = {
+	id: number | string
+	name: string
+	parentId: number | string | null
+	grantedTypes: {
+		id: number | string
+		granted: boolean
+		identifier: string
+	}[]
+	boards?: BoardPermission[]
+};
+
 /**
  * For Notifications.
  */
-export function getNotificationReferenceLink(notification: any, userCheck: boolean, currentUserId: number, extra: any): string
+export function getNotificationReferenceLink(notification: { identifier: string, reference_id: number, description: string, child_reference_id: number | null, count: number }, userCheck: boolean, currentUserId: number, extra: { post: number | null, parentId?: number, page?: number }): string
 {
 	const type = notification.identifier;
 
@@ -480,10 +465,18 @@ export function getNotificationReferenceLink(notification: any, userCheck: boole
 		[
 			constants.notification.types.PT,
 			constants.notification.types.FT,
+			constants.notification.types.FT_edit,
 			constants.notification.types.usernameTag,
+			constants.notification.types.postQuote,
+			constants.notification.types.postReaction,
 		].includes(type)
 	)
 	{
+		if (extra.parentId === undefined || extra.page === undefined)
+		{
+			throw new UserError('bad-format');
+		}
+
 		let url = `/forums/${encodeURIComponent(extra.parentId)}/${encodeURIComponent(extra.page)}`;
 
 		if (extra.post)
@@ -591,6 +584,8 @@ export function getNotificationReferenceLink(notification: any, userCheck: boole
 	else if (
 		[
 			constants.notification.types.giftDonation,
+			constants.notification.types.avatarCleared,
+			constants.notification.types.badge,
 		].includes(type)
 	)
 	{
@@ -598,6 +593,11 @@ export function getNotificationReferenceLink(notification: any, userCheck: boole
 	}
 	else if (type === constants.notification.types.shopThread)
 	{
+		if (extra.parentId === undefined || extra.page === undefined)
+		{
+			throw new UserError('bad-format');
+		}
+
 		let url = `/shops/threads/${encodeURIComponent(extra.parentId)}/${encodeURIComponent(extra.page)}`;
 
 		if (extra.post)
@@ -630,7 +630,7 @@ export function getNotificationReferenceLink(notification: any, userCheck: boole
 /**
  * For Global Notifications.
  */
-export function getGlobalNotificationReferenceLink(notification: any): string
+export function getGlobalNotificationReferenceLink(notification: { identifier: string, reference_id: number, description: string }): string
 {
 	const type = notification.identifier;
 
@@ -642,24 +642,25 @@ export function getGlobalNotificationReferenceLink(notification: any): string
 	return '';
 }
 
-export function getRandomColor(): string
+export function getRandomDarkColor(): string
 {
-	return '#' + (Math.random() * 0xFFFFFF << 0).toString(16);
+	const r = Math.floor(Math.random() * 128);
+	const g = Math.floor(Math.random() * 128);
+	const b = Math.floor(Math.random() * 128);
+	return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-export function startLog({ location, request, context }: { location: string, request?: any, context?: AppLoadContextType }): string
+export function getIPAddresses(request: Request | AppLoadContextType | ActionFunctionArgs['request']): string
 {
-	const useObject = request ?? context;
+	const isHeadersObject = typeof request.headers.get === 'function';
 
-	let ipAddresses: string | string[] = useObject.headers['x-forwarded-for'];
-	let protocol: string = useObject.headers['x-forwarded-proto'];
-	let httpVersion: string = useObject.httpVersion;
-	let tls = 'true';
-	let tlsVersion: string | string[] = 'unknown';
+	let ipAddresses: string | string[] = isHeadersObject ? (request.headers as ActionFunctionArgs['request']['headers']).get('x-forwarded-for') : request.headers['x-forwarded-for'];
 
-	if (useObject.headers['cloudfront-viewer-address'])
+	const cloudFrontIPAddresses = isHeadersObject ? (request.headers as ActionFunctionArgs['request']['headers']).get('cloudfront-viewer-address') : request.headers['cloudfront-viewer-address'];
+
+	if (cloudFrontIPAddresses)
 	{
-		ipAddresses = useObject.headers['cloudfront-viewer-address'].split(':');
+		ipAddresses = cloudFrontIPAddresses.split(':');
 
 		if (ipAddresses.length > 1)
 		{
@@ -667,6 +668,24 @@ export function startLog({ location, request, context }: { location: string, req
 			ipAddresses = (ipAddresses as string[]).join(':');
 		}
 	}
+
+	return ipAddresses as string;
+}
+
+export function startLog({ location, request, context }: { location: string, request?: Request, context?: AppLoadContextType }): string
+{
+	const useObject = request ?? context;
+
+	if (useObject === undefined)
+	{
+		return '';
+	}
+
+	let ipAddresses = getIPAddresses(useObject);
+	let protocol: string | string[] | undefined = useObject.headers['x-forwarded-proto'];
+	let httpVersion: string | string[] = useObject.httpVersion;
+	let tls = 'true';
+	let tlsVersion: string | string[] = 'unknown';
 
 	if (useObject.headers['cloudfront-forwarded-proto'])
 	{
@@ -680,7 +699,7 @@ export function startLog({ location, request, context }: { location: string, req
 
 	if (useObject.headers['cloudfront-viewer-tls'])
 	{
-		tlsVersion = useObject.headers['cloudfront-viewer-tls'].split(':');
+		tlsVersion = (useObject.headers['cloudfront-viewer-tls'] as string).split(':');
 
 		if (tlsVersion.length === 3)
 		{
@@ -711,6 +730,11 @@ export function startLog({ location, request, context }: { location: string, req
 		log += ` x_host=${useObject.headers['x-host']}`;
 	}
 
+	if (useObject.sessionID)
+	{
+		log += ` sessionID=${crypto.createHash('sha256').update(useObject.sessionID).digest('hex')}`;
+	}
+
 	log += ` version=${constants.version}`;
 
 	return log;
@@ -727,7 +751,7 @@ export function getIconDirectoryFromGameID(gameId: number): string
 /*
  * Get an icon URL for any villager given a name string and a game ID
  */
-export function villagerIconUrl(villagerName: string, gameId: number)
+export function villagerIconUrl(villagerName: string, gameId: number): string
 {
 	const filename = villagerName.toLowerCase().replace(/é/g, 'e').replace(/\s/g, '_').replace(/[^a-z_]/g, '');
 	const gameAbbrev = getIconDirectoryFromGameID(gameId);
@@ -744,6 +768,7 @@ export function grassTileFilename(shape: GrassShapeType, time: number): string
 		return '';
 	}
 
+	// outside of date-utils; don't copy. ok because just plain dates
 	const now = new Date(time);
 
 	const currentYear = now.getFullYear();
@@ -789,14 +814,17 @@ export function amenityIconUrl(name: string): string
 		replace(/\s+/g, '-')}.png`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function entriesToObject(entries: IterableIterator<[string, FormDataEntryValue] | [string, string]>): Record<string, any>
 {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const obj: Record<string, any> = {};
 
 	for (const [key, value] of entries)
 	{
 		if (Object.prototype.hasOwnProperty.call(obj, key))
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			obj[key] = [].concat(obj[key], value as any);
 		}
 		else
@@ -806,4 +834,31 @@ export function entriesToObject(entries: IterableIterator<[string, FormDataEntry
 	}
 
 	return obj;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function safeNumber(input: any, defaultValue: number = 0): number
+{
+	if (
+		input === null ||
+		input === undefined ||
+		typeof input === 'string' && realStringLength(input) === 0 ||
+		typeof input === 'object' ||
+		typeof input === 'boolean'
+	)
+	{
+		return defaultValue;
+	}
+
+	const n = Number(input);
+	return isNaN(n) ? defaultValue : n;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function log(...args: any[]): void
+{
+	if (!constants.LIVE_SITE)
+	{
+		console.info(...args);
+	}
 }

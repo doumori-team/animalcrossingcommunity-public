@@ -15,6 +15,8 @@ type BellShopItemType = {
 	id: number
 	internalId: string
 	name: string
+	subtitle: string | null
+	game: string | null
 	categoryId: number
 	description: string | null
 	avatar: {
@@ -28,10 +30,20 @@ type BellShopItemType = {
 	expires: string | null
 	prices: PriceType[]
 	releaseDate: string
+	image: string | null
+	packs: string[] | null
+};
+
+type BellShopPackType = {
+	name: string
+	items: BellShopItemType[]
 };
 
 type BellShopItemsType = {
-	[id: number]: BellShopItemType[]
+	[categoryId: number]: {
+		items: BellShopItemType[]
+		packs: BellShopPackType[]
+	}
 	all: {
 		[id: number]: BellShopItemType
 	}
@@ -45,4 +57,4 @@ type BellShopItemsType = {
 	}
 };
 
-export type { BellShopItemsType };
+export type { BellShopItemsType, BellShopPackType };

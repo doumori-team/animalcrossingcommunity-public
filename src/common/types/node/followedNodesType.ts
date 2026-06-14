@@ -5,7 +5,7 @@ type FollowedNodesType = {
 	page: number
 	pageSize: number
 	totalCount: number
-	type: 'board' | 'thread'
+	type: 'board' | 'thread' | 'post'
 };
 
 export type { FollowedNodesType };

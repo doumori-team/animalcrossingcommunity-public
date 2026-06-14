@@ -1,15 +1,15 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { useNavigate, generatePath, useLocation, useFetcher, redirect, useActionData, redirectDocument } from 'react-router';
+import { useNavigate, generatePath, useLocation, useFetcher, redirect, useActionData, redirectDocument, ActionFunctionArgs } from 'react-router';
 
 import { ErrorMessage } from '@layout';
 import Alert from '@/components/form/Alert.tsx';
 import Button from '@/components/form/Button.tsx';
 import { iso } from 'common/iso.ts';
 import { LocationType, ClickHandlerType, AppLoadContextType } from '@types';
-import { utils, constants } from '@utils';
+import { utils } from '@utils';
 import * as errors from 'common/errors.ts';
 
-export async function action(request: any, context: AppLoadContextType): Promise<any>
+export async function action(request: ActionFunctionArgs['request'], context: AppLoadContextType): Promise<object>
 {
 	const formData: FormData = await request.formData();
 
@@ -30,25 +30,25 @@ export async function action(request: any, context: AppLoadContextType): Promise
 	const formId = String(formData.get('_formId'));
 	formData.delete('_formId');
 
+	const reload = Boolean(formData.get('_reload'));
+	formData.delete('_reload');
+
 	const formSubmissionId = Math.random();
 
-	const params = utils.entriesToObject(formData.entries());
+	let params = utils.entriesToObject(formData.entries());
 
-	if (!constants.LIVE_SITE)
+	if (action === 'v1/signup/signup')
 	{
-		console.info('Inside Form Action');
-		console.info(action);
-		console.info(params);
+		params.ipAddresses = utils.getIPAddresses(request);
 	}
+
+	utils.log('Inside Form Action:', action, params);
 
 	try
 	{
-		const data: any = await (await iso).query(context.session?.user, action, params);
+		const data = await (await iso).query(context.session?.user, action, params);
 
-		if (!constants.LIVE_SITE)
-		{
-			console.info(data);
-		}
+		utils.log('Still inside Form Action:', action, data);
 
 		if (typeof data === 'object')
 		{
@@ -110,7 +110,7 @@ export async function action(request: any, context: AppLoadContextType): Promise
 
 			const path = utils.generateHashPath(callbackUri, data, true);
 
-			if (utils.realStringLength(callback) === 0)
+			if (utils.realStringLength(callback) === 0 || reload)
 			{
 				return redirectDocument(generatePath(path, data));
 			}
@@ -125,18 +125,24 @@ export async function action(request: any, context: AppLoadContextType): Promise
 
 		return redirect(callbackUri);
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		console.error('Form Action Error:', error);
 		console.error('API operation:', action);
 		console.error('Request body:', params);
 
+		if (context.session?.user)
+		{
+			console.error('User:', context.session?.user, context.session?.username);
+		}
+
 		if (typeof error === 'object')
 		{
 			if (error.name === 'ProfanityError')
 			{
 				return {
-					errors: [{ name:'ProfanityError', message: `${(errors.ERROR_MESSAGES as any)[error.identifier].message} ${error.words}` }],
+					errors: [{ name:'ProfanityError', message: `${errors.ERROR_MESSAGES[error.identifier].message} ${error.words}` }],
 					formId,
 					formSubmissionId,
 				};
@@ -204,6 +210,7 @@ const Form = ({
 	imageTitle,
 	id,
 	formId,
+	reload = false,
 }: FormProps) =>
 {
 	const navigate = useNavigate();
@@ -255,7 +262,11 @@ const Form = ({
 				const newSuccessCallbackTimeout = window.setTimeout(() =>
 				{
 					const path = utils.generateHashPath(callback, data?.data);
-					const filteredData = data?.data ? Object.fromEntries(Object.entries(data?.data).filter(([key]) => !key.startsWith('_'))) : {};
+					const filteredData = data?.data
+						? (Object.fromEntries(
+							Object.entries(data.data).filter(([key]) => !key.startsWith('_')),
+						) as Record<string, string>)
+						: {};
 
 					if (Object.keys(filteredData).length === 0)
 					{
@@ -330,9 +341,10 @@ const Form = ({
 			<input type='hidden' name='_defaultSubmitImage' value={defaultSubmitImage} />
 			<input type='hidden' name='_updateFunction' value={updateFunction ? 'true' : 'false'} />
 			<input type='hidden' name='_formId' value={formId || action} />
+			<input type='hidden' name='_reload' value={String(reload)} />
 			{!messagesAtBottom && children}
 			<div key={String(loading)}>
-				{data?.errors?.map((error: any, index: any) =>
+				{data?.errors?.map((error: { message: string } | string, index: number) =>
 				{
 					if (typeof error === 'object')
 					{
@@ -401,6 +413,7 @@ type FormProps = {
 	imageTitle?: string
 	id?: string
 	formId?: string
+	reload?: boolean
 };
 
 export default Form;

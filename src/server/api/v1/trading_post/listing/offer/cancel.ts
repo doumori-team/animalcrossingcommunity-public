@@ -6,13 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const [offer] = await db.query(`
 		SELECT
@@ -47,7 +40,7 @@ async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -78,6 +71,11 @@ async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 		type: constants.notification.types.listingOfferCancelled,
 	});
 }
+
+cancel.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 cancel.apiTypes = {
 	id: {

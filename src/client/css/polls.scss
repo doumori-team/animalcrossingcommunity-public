@@ -1,4 +1,6 @@
-.Poll {
+@use "mixins";
+
+.Poll, .Markdown_Poll {
 	.Markup {
 		font-size: 0.9em;
 	}
@@ -7,35 +9,39 @@
 		font-size: 1.2em;
 		font-weight: bold;
 		word-break: break-word;
+		text-align: center;
+		margin-bottom: mixins.px2rem(10px);
 	}
 
 	.PollOptionCheckboxes {
 		display: flex;
+		align-items: baseline;
 	}
 
 	.PollOptionDescription {
-		width: 60%;
 		font-weight: bold;
 		word-break: break-word;
+		margin-bottom: mixins.px2rem(8px);
 	}
 
 	.PollOptionDescription.Voted {
-		display: inline-block;
+		margin-bottom: auto;
 	}
 
 	.PollOptionVotes {
-		width: 40%;
-		display: inline-block;
-
 		font-size: 0.7em;
 		font-style: italic;
-		text-align: right;
-		white-space: pre;
+	}
+
+	.PollOptionResult {
+		margin-bottom: 1em;
+		display: flex;
+		align-items: center;
 	}
 
 	.PollOptionResult_meter {
-		width: 100%;
-		margin: 0 0.5em 1em 0;
+		width: 60%;
+		margin-right: 0.5em;
 
 		background: none;
 		background-color: var(--seasonal-color-light);
@@ -57,5 +63,9 @@
 
 	.PollOptionResult_meter:-moz-meter-optimum::-moz-meter-bar {
 	  background: var(--seasonal-color-dark);
+	}
+
+	.PollVoteButton {
+		margin-top: mixins.px2rem(5px);
 	}
 }

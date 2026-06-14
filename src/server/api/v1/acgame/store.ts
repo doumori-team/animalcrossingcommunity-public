@@ -1,19 +1,11 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, StoreType } from '@types';
 
 async function store(this: APIThisType, { id }: storeProps): Promise<StoreType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const stores = await db.cacheQuery(constants.cacheKeys.acGame, `
+	const stores: { id: number, name: string, filename: string, group: string }[] = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			store.id,
 			store.name,
@@ -25,10 +17,14 @@ async function store(this: APIThisType, { id }: storeProps): Promise<StoreType>
 	`, id);
 
 	return {
-		others: stores.filter((s: any) => s.group === 'other').sort((a: any, b: any) => a.name.localeCompare(b.name)),
-		nooks: stores.filter((s: any) => s.group === 'nook'),
+		others: stores.filter(s => s.group === 'other').sort((a, b) => a.name.localeCompare(b.name)),
+		nooks: stores.filter(s => s.group === 'nook'),
 	};
 }
+
+store.permissions = [
+	'modify-towns',
+];
 
 store.apiTypes = {
 	id: {

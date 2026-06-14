@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use strict';
 
 let TOKEN_TYPE = 'color_text';

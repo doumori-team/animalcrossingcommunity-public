@@ -13,7 +13,7 @@ const DonatePage = () =>
 		<div className='DonatePage'>
 			<ContentBox>
 				<p>
-					If you enjoy ACC and feel that we are providing a safe and fun service to you, you can help support <a href='http://financial.animalcrossingcommunity.com'>our costs</a> and express your appreciation by donating.
+					If you enjoy ACC and feel that we are providing a safe and fun service to you, you can help support <a href='https://financial.animalcrossingcommunity.com'>our costs</a> and express your appreciation by donating.
 				</p>
 				<RequireUser silent>
 					<p>

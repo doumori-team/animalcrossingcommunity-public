@@ -11,17 +11,6 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function reset_username_history(this: APIThisType, { username }: resetUsernameHistory): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
 	const [user] = await db.query(`
@@ -51,6 +40,11 @@ async function reset_username_history(this: APIThisType, { username }: resetUser
 		_success: `The user's username history has been cleared.`,
 	};
 }
+
+reset_username_history.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 reset_username_history.apiTypes = {
 	username: {

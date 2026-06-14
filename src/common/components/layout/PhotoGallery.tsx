@@ -3,7 +3,7 @@ import { ColumnsPhotoAlbum } from 'react-photo-album';
 import 'react-photo-album/columns.css';
 
 import { RequireClientJS } from '@behavior';
-import { constants } from '@utils';
+import { constants, utils } from '@utils';
 import { FileType, FileInProcessType } from '@types';
 import PhotoSlideshow from '@/components/layout/PhotoSlideshow.tsx';
 
@@ -24,8 +24,8 @@ const PhotoGallery = ({
 						src: `${constants.USER_FILE_DIR}${userId}/${file.fileId}`,
 						alt: file.caption,
 						title: file.caption,
-						width: Number(file.width || 0),
-						height: Number(file.height || 0),
+						width: utils.safeNumber(file.width),
+						height: utils.safeNumber(file.height),
 						id: file.id,
 						description: file.caption,
 					};

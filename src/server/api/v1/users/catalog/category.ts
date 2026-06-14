@@ -1,6 +1,5 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, UserCatalogCategoryType } from '@types';
@@ -10,13 +9,6 @@ import { APIThisType, UserCatalogCategoryType } from '@types';
  */
 async function category(this: APIThisType, { id }: categoryProps): Promise<UserCatalogCategoryType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-user-catalog' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// all categories in game
 	let categories: UserCatalogCategoryType = (await ACCCache.get(constants.cacheKeys.sortedCategories))['all']['theme'];
 
@@ -25,7 +17,7 @@ async function category(this: APIThisType, { id }: categoryProps): Promise<UserC
 		SELECT user_ac_item.item_id
 		FROM user_ac_item
 		WHERE user_ac_item.user_id = $1::int AND user_ac_item.is_inventory = $2
-	`, id, true)).map((cci: any) => cci.item_id);
+	`, id, true)).map((cci: { item_id: string }) => cci.item_id);
 
 	if (catalogItemIds.length > 0)
 	{
@@ -33,13 +25,17 @@ async function category(this: APIThisType, { id }: categoryProps): Promise<UserC
 		{
 			// all items in category that the user has
 			categories[key].count = categories[key].groups
-				.map((g: any) => g.items).flat()
-				.filter((item: any) => catalogItemIds.includes(item.id)).length;
+				.map(g => g.items).flat()
+				.filter(item => catalogItemIds.includes(item.id)).length;
 		}
 	}
 
 	return categories;
 }
+
+category.permissions = [
+	'view-user-catalog',
+];
 
 category.apiTypes = {
 	id: {

@@ -6,13 +6,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, number, name, description, categoryId, reportable }: saveProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const category = await db.query(`
 		SELECT id
@@ -100,6 +93,11 @@ async function save(this: APIThisType, { id, number, name, description, category
 		`, number, name, description, nodeId, categoryId, reportable);
 	}
 }
+
+save.permissions = [
+	'modify-rules-admin',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {

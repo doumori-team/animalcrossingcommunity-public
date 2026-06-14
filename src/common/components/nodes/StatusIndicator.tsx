@@ -5,7 +5,7 @@ const StatusIndicator = ({
 	showDate = false,
 }: StatusIndicatorProps) =>
 {
-	let date = null, active = false, idle = false;
+	let date: string | null = null, active = false, idle = false;
 
 	// never logged in
 	if (lastActiveTime === null)
@@ -44,10 +44,16 @@ const StatusIndicator = ({
 	return (
 		<>
 			{active &&
-				<img src={`${constants.AWS_URL}/images/icons/buddy_online.png`} alt={date} />
+				<img
+					src={constants.allImages['icons/buddy_online.png']}
+					alt={date}
+				/>
 			}
 			{idle &&
-				<img src={`${constants.AWS_URL}/images/icons/buddy_idle.png`} alt={date} />
+				<img
+					src={constants.allImages['icons/buddy_idle.png']}
+					alt={date}
+				/>
 			}
 			{showDate &&
 				<span> {date}</span>

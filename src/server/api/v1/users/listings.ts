@@ -1,21 +1,13 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserListingsType } from '@types';
 
 async function listings(this: APIThisType, { id, page }: listingsProps): Promise<UserListingsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
 
-	const results = await db.query(`
+	const results: { id: number, count: number }[] = await db.query(`
 		SELECT
 			listing.id,
 			count(*) over() AS count
@@ -25,7 +17,7 @@ async function listings(this: APIThisType, { id, page }: listingsProps): Promise
 		LIMIT $1::int OFFSET $2::int
 	`, pageSize, offset, id);
 
-	const listings = await Promise.all(results.map(async (listing: any) =>
+	const listings = await Promise.all(results.map(async listing =>
 	{
 		return this.query('v1/trading_post/listing', { id: listing.id });
 	}));
@@ -37,6 +29,10 @@ async function listings(this: APIThisType, { id, page }: listingsProps): Promise
 		pageSize: pageSize,
 	};
 }
+
+listings.permissions = [
+	'use-trading-post',
+];
 
 listings.apiTypes = {
 	id: {

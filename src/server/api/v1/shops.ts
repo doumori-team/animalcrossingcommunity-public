@@ -6,19 +6,12 @@ import { APIThisType, ShopsType } from '@types';
 
 async function shops(this: APIThisType, { page, services, fee, vacation, gameId, mine }: shopsProps): Promise<ShopsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
-	services = await Promise.all(services.map(async(serviceId) =>
+	services = await Promise.all((services as string[]).map(async serviceId =>
 	{
 		const id = serviceId.substring('default_'.length);
 
-		if (isNaN(id))
+		if (!id)
 		{
 			throw new UserError('no-such-service');
 		}
@@ -40,9 +33,10 @@ async function shops(this: APIThisType, { page, services, fee, vacation, gameId,
 	// Do actual search
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let params: any[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: ShopsType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -76,7 +70,7 @@ async function shops(this: APIThisType, { page, services, fee, vacation, gameId,
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (['yes', 'no'].includes(fee))
 	{
@@ -159,11 +153,11 @@ async function shops(this: APIThisType, { page, services, fee, vacation, gameId,
 	`;
 
 	// Run query
-	const shops = await db.query(query, ...params);
+	const shops: { id: number, count: number }[] = await db.query(query, ...params);
 
 	if (shops.length > 0)
 	{
-		results = await Promise.all(shops.map(async (shop: any) =>
+		results = await Promise.all(shops.map(async shop =>
 		{
 			return this.query('v1/shop', { id: shop.id });
 		}));
@@ -182,6 +176,11 @@ async function shops(this: APIThisType, { page, services, fee, vacation, gameId,
 		gameId: gameId,
 	};
 }
+
+shops.permissions = [
+	'view-shops',
+	'userId',
+];
 
 shops.apiTypes = {
 	page: {
@@ -218,7 +217,7 @@ type shopsProps = {
 	fee: string
 	vacation: string
 	gameId: number
-	services: any[]
+	services: string[] | number[]
 	mine: boolean
 };
 

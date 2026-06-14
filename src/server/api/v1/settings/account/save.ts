@@ -7,16 +7,11 @@ import { APIThisType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { email, showBirthday, showAge, awayStartDate, awayEndDate,
 	showEmail, emailNotifications, showStaff, shopDNC, southernHemisphere,
-	stayForever, consolidateCalendars }: saveProps): Promise<SuccessType>
+	stayForever, consolidateCalendars, dockMenu }: saveProps): Promise<SuccessType>
 {
-	if (!this.userId)
+	if (awayStartDate !== null && awayEndDate !== null && dateUtils.isAfterTimezone2(awayStartDate, awayEndDate))
 	{
-		throw new UserError('login-needed');
-	}
-
-	if (awayStartDate != null && awayEndDate != null && dateUtils.isAfter(dateUtils.dateToTimezone(awayStartDate), dateUtils.dateToTimezone(awayEndDate)))
-	{
-		throw new UserError('bad-format');
+		throw new UserError('away-dates-wrong');
 	}
 
 	const account = await accounts.getUserData(this.userId);
@@ -29,6 +24,7 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 				email: email,
 			});
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		// Some other user is using the email address
@@ -56,9 +52,10 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 				show_staff = $8,
 				southern_hemisphere = $9,
 				stay_forever = $10,
-				consolidate_calendars = $11
+				consolidate_calendars = $11,
+				dock_menu = $12
 			WHERE id = $1::int
-		`, account.id, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications, showStaff, southernHemisphere, stayForever, consolidateCalendars),
+		`, account.id, showBirthday, showAge, awayStartDate, awayEndDate, showEmail, emailNotifications, showStaff, southernHemisphere, stayForever, consolidateCalendars, dockMenu),
 		db.query(`
 			DELETE FROM shop_dnc
 			WHERE user_id = $1
@@ -73,6 +70,8 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 		`, account.id);
 	}
 
+	this.query('v1/users/badge/check', { badgeId: constants.badges.southernhemisphere });
+
 	if (email !== account.email)
 	{
 		try
@@ -83,7 +82,7 @@ async function save(this: APIThisType, { email, showBirthday, showAge, awayStart
 				text: getEmailText(account.username, email, account.email),
 			});
 		}
-		catch (error: any)
+		catch (error: unknown)
 		{
 			console.error('accounts.emailUser error:', error);
 		}
@@ -111,6 +110,10 @@ function getEmailText(username: string, newEmail: string, oldEmail: string): str
 
 	return '<span style="font-family: Verdana; font-size: 11px;">' + origSendTo + email + '</span>';
 }
+
+save.permissions = [
+	'userId',
+];
 
 save.apiTypes = {
 	email: {
@@ -163,6 +166,10 @@ save.apiTypes = {
 		type: APITypes.boolean,
 		default: 'false',
 	},
+	dockMenu: {
+		type: APITypes.boolean,
+		default: 'false',
+	},
 };
 
 type saveProps = {
@@ -178,6 +185,7 @@ type saveProps = {
 	southernHemisphere: boolean
 	stayForever: boolean
 	consolidateCalendars: boolean
+	dockMenu: boolean
 };
 
 export default save;

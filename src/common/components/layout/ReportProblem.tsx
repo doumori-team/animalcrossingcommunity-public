@@ -1,3 +1,5 @@
+import { ReactNode, useState, useEffect } from 'react';
+
 import { Confirm } from '@form';
 import { RequirePermission } from '@behavior';
 import { constants } from '@utils';
@@ -5,14 +7,25 @@ import { constants } from '@utils';
 const ReportProblem = ({
 	id,
 	type,
+	children,
 }: ReportProblemProps) =>
 {
+	const [className, setClassName] = useState<string>('');
+
+	useEffect(() =>
+	{
+		setClassName('ReportProblem-js');
+	}, []);
+
+	// see: PhotoSlideshow.tsx
 	return (
 		<RequirePermission permission='report-content' silent>
-			<div className='ReportProblem'>
+			<div className={`ReportProblem ${className}`}>
 				<Confirm
 					action='v1/rule/report'
-					defaultSubmitImage={`${constants.AWS_URL}/images/icons/report.png`}
+					defaultSubmitImage={
+						constants.allImages['icons/report.png']
+					}
 					imageTitle='Report a Problem'
 					additionalBody={
 						<>
@@ -25,6 +38,7 @@ const ReportProblem = ({
 					formId={`report-problem-${id}-${type}`}
 				/>
 			</div>
+			{children}
 		</RequirePermission>
 	);
 };
@@ -32,6 +46,7 @@ const ReportProblem = ({
 type ReportProblemProps = {
 	type: string
 	id: number
+	children?: ReactNode
 };
 
 export default ReportProblem;

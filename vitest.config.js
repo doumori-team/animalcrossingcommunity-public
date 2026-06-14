@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { loadEnv } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	test: {
 		globals: true,
 		environmentMatchGlobs: [
@@ -19,6 +20,7 @@ export default defineConfig({
 			include: ['src/server/api/**/*.{ts,js,tsx,jsx}', 'src/common/components/**/*.{ts,js,tsx,jsx}'],
 			exclude: ['**/node_modules/**', '**/tests/**'],
 		},
+		env: loadEnv(mode, process.cwd(), ''),
 	},
 	resolve: {
 		alias: {
@@ -37,8 +39,10 @@ export default defineConfig({
 			'@types': path.resolve(__dirname, 'src/common/types/index.ts'),
 			'@utils': path.resolve(__dirname, 'src/common/utils/index.ts'),
 			'@apiTypes': path.resolve(__dirname, 'src/server/api-types.ts'),
+			'@apiPerms': path.resolve(__dirname, 'src/server/api-permissions.ts'),
 			'@cache': path.resolve(__dirname, 'src/server/cache.ts'),
 			'tests': path.resolve(__dirname, 'tests'),
+			'@hooks': path.resolve(__dirname, 'src/common/hooks/index.ts'),
 		},
 	},
-});
+}));

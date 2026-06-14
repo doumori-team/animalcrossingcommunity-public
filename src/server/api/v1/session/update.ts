@@ -22,7 +22,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 			params = null;
 		}
 	}
-	catch (_: any)
+	catch (_: unknown)
 	{
 		params = null;
 	}
@@ -38,7 +38,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 			query = null;
 		}
 	}
-	catch (_: any)
+	catch (_: unknown)
 	{
 		query = null;
 	}
@@ -61,9 +61,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 	`, url);
 
 	// find last session and update it if necessary
-	let userSession: any;
-
-	[userSession] = await db.query(`
+	let [userSession] = await db.query(`
 		SELECT
 			user_session.id,
 			user_session.user_id,
@@ -71,6 +69,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 		FROM user_session
 		WHERE user_session.user_id = $1
 		ORDER BY start_date DESC
+		LIMIT 1
 	`, this.userId);
 
 	let insert = false, close = false;
@@ -82,7 +81,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 	}
 	else if (userSession.end_date === null)
 	{
-		const [userSessionUrl] = await db.query(`
+		const [userSessionUrl]: [{ date: Date } | undefined] = await db.query(`
 			SELECT user_session_url.date
 			FROM user_session_url
 			WHERE user_session_url.user_session_id = $1::int
@@ -90,7 +89,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 			LIMIT 1
 		`, userSession.id);
 
-		const [user] = await db.query(`
+		const [user]: [{ last_active_time: Date }] = await db.query(`
 			SELECT last_active_time
 			FROM users
 			WHERE id = $1::int
@@ -101,9 +100,14 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 		{
 			close = true;
 		}
+		else if (url === 'login')
+		{
+			close = true;
+			insert = true;
+		}
 		// if just inserted in a new one (multiple async promises going off) BUT no url
 		// OR if activity within 15 minutes of last session, continue it
-		else if (!userSessionUrl || dateUtils.isAfterTimezone(userSessionUrl?.date, dateUtils.subtract(dateUtils.dateToTimezone(user.last_active_time), 15, 'minutes')))
+		else if (!userSessionUrl || dateUtils.isAfterTimezone(userSessionUrl?.date, dateUtils.subtractDateTimezone(user.last_active_time, 15, 'minutes')))
 		{
 			// continue, so do nothing
 		}
@@ -115,7 +119,7 @@ async function update(this: APIThisType, { url, params, query }: updateProps): P
 		}
 	}
 
-	await db.transaction(async (dbQuery: any) =>
+	await db.transaction(async (dbQuery: db.QueryType) =>
 	{
 		if (close)
 		{
@@ -153,8 +157,8 @@ update.apiTypes = {
 
 type updateProps = {
 	url: string
-	params: any
-	query: any
+	params: string | null
+	query: string | null
 };
 
 export default update;

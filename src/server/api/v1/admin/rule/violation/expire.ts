@@ -5,13 +5,6 @@ import { APIThisType } from '@types';
 
 async function expire(this: APIThisType, { id }: expireProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [ruleViolation] = await db.query(`
 		SELECT rule_id, start_date, severity_id, violation
 		FROM rule_violation
@@ -36,7 +29,7 @@ async function expire(this: APIThisType, { id }: expireProps): Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		let nodeId = rule.node_id;
 
@@ -62,6 +55,10 @@ async function expire(this: APIThisType, { id }: expireProps): Promise<void>
 		]);
 	});
 }
+
+expire.permissions = [
+	'modify-rules-admin',
+];
 
 expire.apiTypes = {
 	id: {

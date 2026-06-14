@@ -2,6 +2,8 @@ import { constants } from '@utils';
 
 const _orderOptions = constants.orderOptions.topBells.map(x => x.id);
 
+const _typeOptions = constants.bellTypeOptions.map(x => x.id);
+
 type TopBellsType = {
 	results: {
 		id: number
@@ -16,7 +18,7 @@ type TopBellsType = {
 	count: number
 	page: number
 	pageSize: number
-	username: string
+	searchUser: string
 	order: typeof _orderOptions[number]
 	reverse: boolean
 	lastJackpot: {
@@ -24,6 +26,7 @@ type TopBellsType = {
 		formattedOffered: string
 		amount: string
 	} | null,
+	type: typeof _typeOptions[number],
 };
 
 export type { TopBellsType };

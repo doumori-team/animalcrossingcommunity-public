@@ -1,7 +1,7 @@
 @use "mixins";
 @use "forms";
 
-.MapMaker, .MapDesigner {
+.MapMaker {
 	@extend .GenericSection;
 }
 
@@ -54,57 +54,6 @@
 
 		img {
 			width: mixins.px2rem(64px);
-		}
-	}
-}
-
-.MapDesigner {
-	.MapDesigner_grid {
-		@include mixins.responsive(40rem) {
-			display: grid;
-			grid-gap: 0.5rem;
-			grid-template-areas: 'left right';
-		}
-	}
-
-	.MapPalette {
-		.MapPaletter_palettes {
-			@include mixins.responsive(1rem) {
-				@include mixins.grid($col-width: 2rem);
-			}
-
-			.paletteInterface {
-				width: mixins.px2rem(31px);
-				height: mixins.px2rem(31px);
-
-				@include mixins.contentbox();
-			}
-
-			.paletteInterface.selected {
-				border: mixins.px2rem(1px) solid #000 !important;
-			}
-		}
-	}
-
-	.MapDesigner_imageSection {
-		.Check {
-			@include mixins.responsive(1rem) {
-				@include mixins.grid($col-width: 2rem);
-			}
-		}
-
-		.Check_option {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-
-		img {
-			height: 100%
-		}
-
-		button {
-			@extend .GenericSubmitButton;
 		}
 	}
 }

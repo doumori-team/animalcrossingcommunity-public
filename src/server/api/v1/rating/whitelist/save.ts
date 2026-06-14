@@ -1,22 +1,9 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { whitelistUserId }: saveProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check if user already has whitelisted user
 	let [whitelist] = await db.query(`
 		SELECT id
@@ -35,6 +22,11 @@ async function save(this: APIThisType, { whitelistUserId }: saveProps): Promise<
 		VALUES ($1::int, $2::int)
 	`, this.userId, whitelistUserId);
 }
+
+save.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 save.apiTypes = {
 	whitelistUserId: {

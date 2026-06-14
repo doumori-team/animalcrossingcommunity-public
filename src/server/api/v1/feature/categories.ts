@@ -1,15 +1,10 @@
 import * as db from '@db';
-import { UserError } from '@errors';
+import { constants } from '@utils';
 import { APIThisType, FeatureCategoryType } from '@types';
 
-export default async function categories(this: APIThisType): Promise<FeatureCategoryType[]>
+async function categories(this: APIThisType): Promise<FeatureCategoryType[]>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	return await db.cacheQuery('v1/feature/categories', `
+	return await db.cacheQuery(constants.cacheKeys.featureCategories, `
 		SELECT
 			feature_category.id,
 			feature_category.name
@@ -17,3 +12,9 @@ export default async function categories(this: APIThisType): Promise<FeatureCate
 		ORDER BY name ASC
 	`);
 }
+
+categories.permissions = [
+	'userId',
+];
+
+export default categories;

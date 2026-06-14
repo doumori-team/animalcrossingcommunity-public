@@ -8,13 +8,6 @@ import { APIThisType } from '@types';
  */
 async function move(this: APIThisType, { id }: moveProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [message] = await db.query(`
 		SELECT staff_only
 		FROM user_ticket_message
@@ -37,6 +30,10 @@ async function move(this: APIThisType, { id }: moveProps): Promise<void>
 		WHERE id = $1::int
 	`, id);
 }
+
+move.permissions = [
+	'process-user-tickets',
+];
 
 move.apiTypes = {
 	id: {

@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
 
@@ -8,18 +7,6 @@ import { APIThisType } from '@types';
  */
 async function have_whitelisted(this: APIThisType, { id }: haveWhitelistedProps): Promise<boolean>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	if (id === this.userId)
 	{
 		return true;
@@ -71,6 +58,11 @@ async function have_whitelisted(this: APIThisType, { id }: haveWhitelistedProps)
 
 	return false;
 }
+
+have_whitelisted.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 have_whitelisted.apiTypes = {
 	id: {

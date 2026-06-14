@@ -94,7 +94,7 @@ const Catalog = ({
 							>
 								{category.count === category.total &&
 									<img
-										src={`${constants.AWS_URL}/images/catalog/icon_star7.gif`}
+										src={constants.allImages['catalog/icon_star7.gif']}
 										alt={`Collected all items in ${category.categoryName}`}
 									/>}
 								{category.categoryName} ({category.count}/{category.total})
@@ -104,7 +104,7 @@ const Catalog = ({
 				</div>
 			</Section>
 
-			{utils.realStringLength(selectedCategory) > 0 &&
+			{catalog !== null && utils.realStringLength(selectedCategory) > 0 &&
 				<div className='Catalog_categoryItems'>
 					<RequireUser id={userId} silent>
 						<div className='Catalog_links'>
@@ -217,7 +217,7 @@ const Catalog = ({
 
 type CatalogProps = {
 	catalogItems: CatalogItemsType[]
-	catalog: GroupItemType[]
+	catalog: GroupItemType[] | null
 	characterId?: number
 	sortBy: string
 	userId?: number

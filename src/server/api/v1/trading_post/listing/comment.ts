@@ -6,18 +6,6 @@ import { APIThisType, ListingType, MarkupStyleType } from '@types';
 
 async function comment(this: APIThisType, { id, comment, format }: commentProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
 	const listingStatuses = constants.tradingPost.listingStatuses;
@@ -26,7 +14,7 @@ async function comment(this: APIThisType, { id, comment, format }: commentProps)
 	// only if listing in right status
 	if (![listingStatuses.open, listingStatuses.offerAccepted, listingStatuses.inProgress, listingStatuses.completed].includes(listing.status) ||
 		[listingStatuses.offerAccepted, listingStatuses.inProgress, listingStatuses.completed].includes(listing.status) &&
-		![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId))
+		![listing.creator.id, listing.offers.accepted?.user.id].includes(this.userId as number))
 	{
 		throw new UserError('permission');
 	}
@@ -43,7 +31,7 @@ async function comment(this: APIThisType, { id, comment, format }: commentProps)
 	}
 
 	// Perform queries
-	const listingCommentId = await db.transaction(async (query: any) =>
+	const listingCommentId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [[listingComment]] = await Promise.all([
 			query(`
@@ -66,6 +54,11 @@ async function comment(this: APIThisType, { id, comment, format }: commentProps)
 		type: constants.notification.types.listingComment,
 	});
 }
+
+comment.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 comment.apiTypes = {
 	id: {

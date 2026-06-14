@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ListingType } from './listingType.ts';
 
 // based on v1/trading_post/listings

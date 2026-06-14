@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use strict';
 import { stringAt } from './utils.ts';
 import { convertForUrl } from 'common/utils/utils.ts';

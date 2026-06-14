@@ -10,12 +10,21 @@ import { APIThisType, BellShopItemsType, UserBellShopItemType } from '@types';
  */
 async function items(this: APIThisType, { id, ignoreExpired = true }: itemsProps): Promise<UserBellShopItemType[]>
 {
-	if (id != this.userId)
+	if (id !== this.userId)
 	{
 		throw new UserError('permission');
 	}
 
-	const userItems = await db.query(`
+	const userItems: {
+		id: number
+		item_id: number
+		redeemed: Date
+		price: number
+		currency: string
+		expires: Date | null
+		redeemed_by: number | null
+		username: string | null
+	}[] = await db.query(`
 		SELECT
 			user_bell_shop_redeemed.id,
 			user_bell_shop_redeemed.item_id,
@@ -37,7 +46,7 @@ async function items(this: APIThisType, { id, ignoreExpired = true }: itemsProps
 
 	const sortedBellShopItems: BellShopItemsType['all'] = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))['all'];
 
-	return userItems.map((userItem: any) =>
+	return userItems.map(userItem =>
 	{
 		const item = sortedBellShopItems[userItem.item_id];
 
@@ -47,10 +56,10 @@ async function items(this: APIThisType, { id, ignoreExpired = true }: itemsProps
 			name: item.name,
 			description: item.description,
 			avatar: item.avatar,
-			redeemed: dateUtils.formatDateTimezone(userItem.redeemed),
+			redeemed: dateUtils.formatDateTime5(userItem.redeemed),
 			price: `${Number(userItem.price).toLocaleString()} ${userItem.currency}`,
-			expires: userItem.expires === null ? null : dateUtils.formatDateTimezone(userItem.expires),
-			redeemedBy: userItem.redeemed_by && userItem.redeemed_by != id ? userItem.username : null,
+			expires: userItem.expires === null ? null : dateUtils.formatDateTime5(userItem.expires),
+			redeemedBy: userItem.redeemed_by && userItem.redeemed_by !== id ? userItem.username : null,
 		};
 	});
 }

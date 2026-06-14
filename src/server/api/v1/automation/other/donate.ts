@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
@@ -10,17 +9,6 @@ import { APIThisType, SuccessType, UserDonationsType } from '@types';
  */
 async function donate(this: APIThisType, { donateAction, amount }: donateProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
 	if (donateAction === 'remove')
 	{
@@ -51,6 +39,11 @@ async function donate(this: APIThisType, { donateAction, amount }: donateProps):
 		_success: `Your donations has been changed to have been donated more then 1 year ago.`,
 	};
 }
+
+donate.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 donate.apiTypes = {
 	donateAction: {

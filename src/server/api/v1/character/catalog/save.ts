@@ -7,18 +7,6 @@ import { APIThisType, ACGameItemType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { characterId, inventory, wishlist, museum, remove }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [character] = await db.query(`
 		SELECT town.user_id, town.game_id
@@ -34,7 +22,7 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 
 	const catalogItems: ACGameItemType[number]['all']['items'] = await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${character.game_id}_all_items`);
 
-	inventory = await Promise.all(inventory.map(async (id) =>
+	inventory = inventory.map(id =>
 	{
 		if (!catalogItems.find(item => item.id === id))
 		{
@@ -42,9 +30,9 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		}
 
 		return String(id).trim();
-	}));
+	});
 
-	wishlist = await Promise.all(wishlist.map(async (id) =>
+	wishlist = wishlist.map(id =>
 	{
 		if (!catalogItems.find(item => item.id === id))
 		{
@@ -52,9 +40,9 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		}
 
 		return String(id).trim();
-	}));
+	});
 
-	museum = await Promise.all(museum.map(async (id) =>
+	museum = museum.map(id =>
 	{
 		if (!catalogItems.find(item => item.id === id))
 		{
@@ -62,9 +50,9 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		}
 
 		return String(id).trim();
-	}));
+	});
 
-	remove = await Promise.all(remove.map(async (id) =>
+	remove = remove.map(id =>
 	{
 		if (!catalogItems.find(item => item.id === id))
 		{
@@ -72,7 +60,7 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		}
 
 		return String(id).trim();
-	}));
+	});
 
 	// Perform queries
 	if (wishlist.length > 0 || inventory.length > 0 || museum.length > 0 || remove.length > 0)
@@ -83,12 +71,35 @@ async function save(this: APIThisType, { characterId, inventory, wishlist, museu
 		]);
 	}
 
+	if (character.game_id === constants.gameIds.ACGC)
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.gcitems });
+	}
+	else if (character.game_id === constants.gameIds.ACWW)
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.wwitems });
+	}
+	else if (character.game_id === constants.gameIds.ACCF)
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.cfitems });
+	}
+	else if (character.game_id === constants.gameIds.ACNL)
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.nlitems });
+	}
+	else if (character.game_id === constants.gameIds.ACNH)
+	{
+		this.query('v1/users/badge/check', { badgeId: constants.badges.nhitems });
+	}
+
+	this.query('v1/users/badge/check', { badgeId: constants.badges.tenmuseum });
+
 	return {
 		_success: `Your catalog has been updated.`,
 	};
 }
 
-async function updateItems(characterId: number, inventory: any[], wishlist: any[], museum: any[]): Promise<void>
+async function updateItems(characterId: number, inventory: string[], wishlist: string[], museum: string[]): Promise<void>
 {
 	if (inventory.length > 0 || wishlist.length > 0 || museum.length > 0)
 	{
@@ -205,7 +216,7 @@ async function updateItems(characterId: number, inventory: any[], wishlist: any[
 	}
 }
 
-async function removeInventory(characterId: number, remove: any[]): Promise<void>
+async function removeInventory(characterId: number, remove: string[]): Promise<void>
 {
 	if (remove.length <= 0)
 	{
@@ -217,6 +228,11 @@ async function removeInventory(characterId: number, remove: any[]): Promise<void
 		WHERE character_id = $1::int AND catalog_item_id = ANY($2)
 	`, characterId, remove);
 }
+
+save.permissions = [
+	'modify-towns',
+	'userId',
+];
 
 save.apiTypes = {
 	characterId: {
@@ -234,15 +250,16 @@ save.apiTypes = {
 	},
 	remove: {
 		type: APITypes.array,
+		userInput: true,
 	},
 };
 
 type saveProps = {
 	characterId: number
-	inventory: any[]
-	wishlist: any[]
-	museum: any[]
-	remove: any[]
+	inventory: string[]
+	wishlist: string[]
+	museum: string[]
+	remove: string[]
 };
 
 export default save;

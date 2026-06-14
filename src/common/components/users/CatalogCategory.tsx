@@ -78,7 +78,7 @@ const CatalogCategory = ({
 									<>
 										{count === group.total &&
 											<img
-												src={`${constants.AWS_URL}/images/catalog/icon_star7.gif`}
+												src={constants.allImages['catalog/icon_star7.gif']}
 												alt={`Collected all items in ${group.groupName}`}
 											/>
 										}
@@ -127,6 +127,14 @@ const CatalogCategory = ({
 
 									return (
 										<div key={item.id} className={className}>
+											{item.imageName &&
+												<img
+													className='CatalogCategory_itemImage'
+													src={item.imageName}
+													alt={item.name}
+													loading='lazy'
+												/>
+											}
 											<div className='CatalogCategory_itemName'>
 												{item.name}
 											</div>

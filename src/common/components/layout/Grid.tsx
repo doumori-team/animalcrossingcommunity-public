@@ -28,6 +28,7 @@ const Grid = ({
 
 type GridProps = {
 	name?: string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	options: any[]
 	children: ReactNode
 	message?: string | ReactNode

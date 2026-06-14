@@ -1,16 +1,8 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { APIThisType, UserTicketStatusType } from '@types';
 
-export default async function statuses(this: APIThisType): Promise<UserTicketStatusType[]>
+async function statuses(this: APIThisType): Promise<UserTicketStatusType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	return await db.query(`
 		SELECT
 			id,
@@ -19,3 +11,9 @@ export default async function statuses(this: APIThisType): Promise<UserTicketSta
 		ORDER BY id ASC
 	`);
 }
+
+statuses.permissions = [
+	'process-user-tickets',
+];
+
+export default statuses;

@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Form, Text, Check, Select } from '@form';
@@ -10,11 +10,12 @@ export const action = routerUtils.formAction;
 
 const TopBellsPage = ({ loaderData }: { loaderData: TopBellsPageProps }) =>
 {
-	const { totalCount, users, page, pageSize, order, reverse, username, lastJackpot } = loaderData;
+	const { totalCount, users, page, pageSize, order, reverse, searchUser, lastJackpot, type } = loaderData;
 
-	const link = `&username=${encodeURIComponent(username)}
+	const link = `&searchUser=${encodeURIComponent(searchUser)}
 		&order=${encodeURIComponent(order)}
 		&reverse=${encodeURIComponent(reverse)}
+		&type=${encodeURIComponent(type)}
 	`;
 
 	return (
@@ -22,16 +23,16 @@ const TopBellsPage = ({ loaderData }: { loaderData: TopBellsPageProps }) =>
 			<RequireUser>
 				<Header
 					name='Top Bells'
-					description={`Top Bells shows you who has collected the most bells on ACC. You can also use the search features below to see a variety of other statistics like who has claimed the most recent jackpot and even who has missed the most bells. If you have more questions about how to get bells or the jackpot view our FAQ's`}
+					description={`Top Bells shows you who has collected the most bells on ACC. You can also use the search features below to see a variety of other statistics like who has claimed the most recent jackpot and even who has missed the most bells. If you have more questions about how to get bells or the jackpot view our FAQ's.`}
 					description2={lastJackpot ? `The last jackpot was claimed by ${lastJackpot.username} on ${lastJackpot.formattedOffered} for ${lastJackpot.amount} Bells.` : null}
 				/>
 
 				<Search callback='/top-bells'>
 					<Form.Group>
 						<Text
-							label='Username'
-							name='username'
-							value={username}
+							label='User'
+							name='searchUser'
+							value={searchUser}
 							maxLength={constants.max.searchUsername}
 						/>
 					</Form.Group>
@@ -50,6 +51,14 @@ const TopBellsPage = ({ loaderData }: { loaderData: TopBellsPageProps }) =>
 							options={constants.reverseOptions}
 							name='reverse'
 							defaultValue={[reverse]}
+						/>
+					</Form.Group>
+					<Form.Group>
+						<Check
+							label='Type'
+							options={constants.bellTypeOptions}
+							name='type'
+							defaultValue={[type]}
 						/>
 					</Form.Group>
 				</Search>
@@ -104,14 +113,15 @@ const TopBellsPage = ({ loaderData }: { loaderData: TopBellsPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, order, reverse, username }: { page?: string, order?: string, reverse?: string, username?: string }): Promise<TopBellsPageProps>
+async function loadData(this: APIThisType, _: Params, { page, order, reverse, searchUser, type }: { page?: string, order?: string, reverse?: string, searchUser?: string, type?: string }): Promise<TopBellsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/top_bells', {
 			page: page ? page : 1,
 			order: order ? order : 'rank',
 			reverse: reverse ? reverse : 'false',
-			username: username ? username : '',
+			searchUser: searchUser ? searchUser : '',
+			type: type ? type : 'seasonal',
 		}),
 	]);
 
@@ -120,10 +130,11 @@ async function loadData(this: APIThisType, _: any, { page, order, reverse, usern
 		totalCount: returnValue.count,
 		page: returnValue.page,
 		pageSize: returnValue.pageSize,
-		username: returnValue.username,
+		searchUser: returnValue.searchUser,
 		order: returnValue.order,
 		reverse: returnValue.reverse,
 		lastJackpot: returnValue.lastJackpot,
+		type: returnValue.type,
 	};
 }
 
@@ -134,10 +145,11 @@ type TopBellsPageProps = {
 	totalCount: TopBellsType['count']
 	page: TopBellsType['page']
 	pageSize: TopBellsType['pageSize']
-	username: TopBellsType['username']
+	searchUser: TopBellsType['searchUser']
 	order: TopBellsType['order']
 	reverse: TopBellsType['reverse']
 	lastJackpot: TopBellsType['lastJackpot']
+	type: TopBellsType['type']
 };
 
 export default TopBellsPage;

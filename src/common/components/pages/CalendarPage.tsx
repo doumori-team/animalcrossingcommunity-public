@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { constants, routerUtils } from '@utils';
@@ -12,7 +13,7 @@ const CalendarPage = ({ loaderData }: { loaderData: CalendarPageProps }) =>
 {
 	const { acgames, months, game, initialYears } = loaderData;
 
-	const [selectedGameId, setSelectedGameId] = useState<CalendarType['game']>(game.id);
+	const [selectedGameId, setSelectedGameId] = useState<CalendarType['game']['id']>(game.id);
 	const [years, setYears] = useState<number[]>(initialYears[game.id]);
 
 	const monthValue = months.length > 1 ? {
@@ -71,7 +72,7 @@ const CalendarPage = ({ loaderData }: { loaderData: CalendarPageProps }) =>
 					</Form.Group>
 				</Search>
 
-				{months.map((month: CalendarType['months']) =>
+				{months.map(month =>
 					<Section key={month.id}>
 						<div className='CalendarPage_monthSection'>
 							<div className='CalendarPage_monthName'>
@@ -79,7 +80,7 @@ const CalendarPage = ({ loaderData }: { loaderData: CalendarPageProps }) =>
 							</div>
 
 							<div className='CalendarPage_categorySections'>
-								{month.categories.map((category: CalendarType['months']['categories'], index: number) =>
+								{month.categories.map((category, index: number) =>
 									category.events.length > 0 &&
 										<div className='CalendarPage_categorySection' key={index}>
 											<div className='CalendarPage_categoryName'>
@@ -87,7 +88,7 @@ const CalendarPage = ({ loaderData }: { loaderData: CalendarPageProps }) =>
 											</div>
 
 											<div className='CalendarPage_eventSections'>
-												{category.events.map((event: CalendarType['months']['categories']['events'], index: number) =>
+												{category.events.map((event, index: number) =>
 													<div className='CalendarPage_eventSection' key={index}>
 														{Object.prototype.hasOwnProperty.call(event, 'img') &&
 															<div className='CalendarPage_eventImg'>
@@ -122,7 +123,7 @@ const CalendarPage = ({ loaderData }: { loaderData: CalendarPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { gameId, month, year }: { gameId?: string, month?: string, year?: string }): Promise<CalendarPageProps>
+async function loadData(this: APIThisType, _: Params, { gameId, month, year }: { gameId?: string, month?: string, year?: string }): Promise<CalendarPageProps>
 {
 	const [returnValue, acgames, years] = await Promise.all([
 		this.query('v1/acgame/calendar', {

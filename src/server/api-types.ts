@@ -30,7 +30,8 @@ export const characterId = 'characterId';
 export const userId = 'userId';
 export const listingId = 'listingId';
 
-export async function parse(this: APIThisType, apiTypes: any, params: any)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function parse(this: APIThisType, apiTypes: object, params: any)
 {
 	let newParams = { ...params };
 
@@ -39,6 +40,8 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 		const apiType = apiTypes[paramType];
 		const param = params[paramType];
 		let newParam = param;
+		const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
+		const defaultValue = getDefault(apiType);
 
 		switch (apiType.type)
 		{
@@ -58,15 +61,15 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 					}
 				}
 
-				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-					String(newParam || apiType.default) :
+				newParam = utils.trimString(defaultValue !== undefined ?
+					String(newParam || defaultValue) :
 					String(newParam));
 
 				if (Object.prototype.hasOwnProperty.call(apiType, 'length'))
 				{
 					if (utils.realStringLength(newParam) > apiType.length)
 					{
-						throw new UserError('bad-format');
+						throw new UserError(error);
 					}
 				}
 
@@ -74,7 +77,7 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (utils.realStringLength(newParam) < apiType.min)
 					{
-						throw new UserError('bad-format');
+						throw new UserError(error);
 					}
 				}
 
@@ -104,8 +107,6 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 
 				if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(constants.regexes.uuid)))
 				{
-					const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
-
 					throw new UserError(error);
 				}
 
@@ -129,8 +130,6 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 
 				if (utils.realStringLength(newParam) > 0 && !newParam.match(RegExp(apiType.regex)))
 				{
-					const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
-
 					throw new UserError(error);
 				}
 
@@ -150,15 +149,20 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 					}
 				}
 
-				newParam = Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-					Number(newParam || apiType.default) :
+				newParam = defaultValue !== undefined ?
+					utils.safeNumber(newParam, defaultValue) :
 					Number(newParam);
+
+				if (isNaN(newParam))
+				{
+					throw new UserError('bad-format');
+				}
 
 				if (Object.prototype.hasOwnProperty.call(apiType, 'min'))
 				{
 					if (newParam < apiType.min)
 					{
-						throw new UserError('bad-format');
+						throw new UserError(error);
 					}
 				}
 
@@ -166,15 +170,20 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam > apiType.max)
 					{
-						throw new UserError('bad-format');
+						throw new UserError(error);
 					}
 				}
 
 				break;
 			case wholeNumber:
-				newParam = Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-					Number(newParam || apiType.default) :
+				newParam = defaultValue !== undefined ?
+					utils.safeNumber(newParam, defaultValue) :
 					Number(newParam);
+
+				if (isNaN(newParam))
+				{
+					throw new UserError('bad-format');
+				}
 
 				if (!RegExp(constants.regexes.wholeNumber).test(newParam))
 				{
@@ -185,14 +194,22 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam > apiType.max)
 					{
-						throw new UserError('bad-format');
+						throw new UserError(error);
 					}
 				}
 
 				break;
 			case boolean:
-				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-					String(newParam || apiType.default) :
+				if (Array.isArray(newParam))
+				{
+					if (newParam[0] === 'false')
+					{
+						newParam = newParam[1];
+					}
+				}
+
+				newParam = utils.trimString(defaultValue !== undefined ?
+					String(newParam || defaultValue) :
 					String(newParam)).toLowerCase();
 
 				if (!['true', 'false'].includes(newParam))
@@ -218,11 +235,79 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 							}
 						}
 
-						newParam = newParam.split(',').map((np: string) => np.trim());
+						if (Object.prototype.hasOwnProperty.call(apiType, 'userInput') && apiType.userInput)
+						{
+							newParam = newParam.split(',').map((np: string) => np.trim());
+						}
+						else
+						{
+							newParam = [newParam];
+						}
 					}
 					else
 					{
 						newParam = [];
+					}
+				}
+
+				if (Object.prototype.hasOwnProperty.call(apiType, 'subType'))
+				{
+					if (apiType.subType === 'number')
+					{
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						newParam = newParam.map((id: any) =>
+						{
+							if (isNaN(id))
+							{
+								throw new UserError('bad-format');
+							}
+
+							return Number(id);
+						});
+					}
+					else if (apiType.subType === 'string')
+					{
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						newParam = newParam.map((id: any) =>
+						{
+							let newParamString = String(id).trim();
+
+							if (Object.prototype.hasOwnProperty.call(apiType, 'max'))
+							{
+								if (utils.realStringLength(newParamString) > apiType.max)
+								{
+									throw new UserError('bad-format');
+								}
+							}
+
+							return newParamString;
+						});
+					}
+					else if (apiType.subType === 'boolean')
+					{
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						newParam = newParam.reduce((acc: boolean[], curr: any) =>
+						{
+							const val = String(curr).trim() === 'true';
+
+							if (val)
+							{
+								if (acc[acc.length - 1] === false)
+								{
+									acc[acc.length - 1] = true;
+								}
+								else
+								{
+									acc.push(true);
+								}
+							}
+							else
+							{
+								acc.push(false);
+							}
+
+							return acc;
+						}, []);
 					}
 				}
 
@@ -240,6 +325,7 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 					}
 				}
 
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				newParam = newParam.map((np: any) =>
 				{
 					if (!Array.isArray(np))
@@ -259,15 +345,11 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 
 				break;
 			case date:
-				newParam = utils.trimString(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-					String(newParam || apiType.default) :
+				newParam = utils.trimString(defaultValue !== undefined ?
+					String(newParam || defaultValue) :
 					String(newParam));
 
-				if (dateUtils.isValid(newParam))
-				{
-					newParam = dateUtils.formatYearMonthDay(newParam);
-				}
-				else if (Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
+				if (!dateUtils.isValid(newParam) && Object.prototype.hasOwnProperty.call(apiType, 'nullable') && apiType.nullable)
 				{
 					newParam = null;
 				}
@@ -280,19 +362,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -319,19 +395,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 					// some searches, like TP and Shops, use -1 for 'all'
 					if (newParam === null || newParam === undefined || newParam == 0 || newParam == -1)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -357,19 +427,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -395,19 +459,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -434,19 +492,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -473,19 +525,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -512,19 +558,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -551,19 +591,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -590,19 +624,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -629,19 +657,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -668,19 +690,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -707,8 +723,8 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
 						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default === true ? this.userId : apiType.default :
+							(defaultValue !== undefined ?
+								defaultValue === true ? this.userId : defaultValue :
 								0));
 
 						if (isNaN(newParam) || newParam === null || newParam === undefined || newParam == 0)
@@ -721,8 +737,8 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				}
 
 				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default === true ? this.userId : apiType.default :
+					(defaultValue !== undefined ?
+						defaultValue === true ? this.userId : defaultValue :
 						0));
 
 				await this.query('v1/user_lite', { id: newParam });
@@ -734,19 +750,13 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 				{
 					if (newParam === null || newParam === undefined || newParam == 0)
 					{
-						newParam = Number(newParam ||
-							(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-								apiType.default :
-								0));
+						newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 						break;
 					}
 				}
 
-				newParam = Number(newParam ||
-					(Object.prototype.hasOwnProperty.call(apiType, 'default') ?
-						apiType.default :
-						0));
+				newParam = utils.safeNumber(newParam, defaultValue !== undefined ? defaultValue : 0);
 
 				if (isNaN(newParam))
 				{
@@ -771,8 +781,6 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 
 		if (Object.prototype.hasOwnProperty.call(apiType, 'required') && apiType.required)
 		{
-			const error = Object.prototype.hasOwnProperty.call(apiType, 'error') ? apiType.error : 'bad-format';
-
 			switch (apiType.type)
 			{
 				case string:
@@ -834,4 +842,15 @@ export async function parse(this: APIThisType, apiTypes: any, params: any)
 	}
 
 	return newParams;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getDefault(apiType: { default?: unknown }): any
+{
+	if (!Object.prototype.hasOwnProperty.call(apiType, 'default'))
+	{
+		return undefined;
+	}
+
+	return typeof apiType.default === 'function' ? apiType.default() : apiType.default;
 }

@@ -6,13 +6,6 @@ import { APIThisType, ShopType } from '@types';
 
 async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [shop] = await db.query(`
 		SELECT
 			shop.id,
@@ -145,12 +138,14 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 		this.query('v1/notification/destroy', { id: shop.id, type: constants.notification.types.shopEmployee }),
 	]);
 
-	let statData: any = [], extraStatData: any = null;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let statData: any[] = [], extraStatData: any = null;
 
 	if (shopServicesData.length > 0 || shopDefaultServicesData.length > 0)
 	{
-		shopDefaultServicesData.concat(shopServicesData).map((s: any) =>
+		shopDefaultServicesData.concat(shopServicesData).map((s: { count: number, name: string, shortname: string }) =>
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const stat = statData.find((x: any) => x.name === s.name);
 
 			if (stat)
@@ -167,7 +162,7 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 		});
 	}
 
-	if (statsUsers.find((u: any) => u.id === this.userId))
+	if (statsUsers.find((u: { id: number, username: string }) => u.id === this.userId))
 	{
 		extraStatData = {
 			stats: [],
@@ -206,8 +201,9 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 			`, id),
 		]);
 
-		shopDefaultServicesUsers.concat(shopServicesUsers).map((s: any) =>
+		shopDefaultServicesUsers.concat(shopServicesUsers).map((s: { count: number, name: string, username: string }) =>
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const stat = extraStatData.stats.find((x: any) => x.username === s.username);
 
 			if (stat)
@@ -223,7 +219,7 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 			}
 		});
 
-		extraStatData.employees = employees.map((u: any) =>
+		extraStatData.employees = employees.map((u: { id: number, username: string, last_active_time: Date | null }) =>
 		{
 			return {
 				id: u.id,
@@ -241,14 +237,14 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 			content: shop.description,
 			format: shop.description_format,
 		},
-		formattedDate: dateUtils.formatDateTimezone(shop.created),
+		formattedDate: dateUtils.formatDateTime5(shop.created),
 		free: shop.free,
 		vacation: shop.vacation_start_date ? {
 			formattedStartDate: dateUtils.formatDate(shop.vacation_start_date),
 			formattedEndDate: dateUtils.formatDate(shop.vacation_end_date),
-			current: (dateUtils.currentDateIsAfter(shop.vacation_start_date) || dateUtils.currentDateIsSame(shop.vacation_start_date)) && (dateUtils.currentDateIsBefore(shop.vacation_end_date) || dateUtils.currentDateIsSame(shop.vacation_end_date)),
-			startDate: dateUtils.formatYearMonthDay(shop.vacation_start_date),
-			endDate: dateUtils.formatYearMonthDay(shop.vacation_end_date),
+			current: (dateUtils.currentDateIsAfter(shop.vacation_start_date, 'yyyy-MM-dd') || dateUtils.currentDateIsSame(shop.vacation_start_date, 'yyyy-MM-dd')) && (dateUtils.currentDateIsBefore(shop.vacation_end_date, 'yyyy-MM-dd') || dateUtils.currentDateIsSame(shop.vacation_end_date, 'yyyy-MM-dd')),
+			startDate: shop.vacation_start_date,
+			endDate: shop.vacation_end_date,
 		} : null,
 		allowTransfer: shop.allow_transfer,
 		active: shop.active,
@@ -256,7 +252,14 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 		fileId: shop.file_id,
 		owners: owners,
 		games: games.length > 0 ?
-			games.map((game: any) =>
+			games.map((game: {
+				id: number
+				name: string
+				shortname: string
+				per_order: number
+				stack_or_quantity: boolean
+				complete_order: boolean
+			}) =>
 			{
 				let color = '';
 
@@ -286,7 +289,7 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 					perOrder: game.per_order,
 					stackOrQuantity: game.stack_or_quantity,
 					completeOrder: game.complete_order,
-					items: items.filter((i: any) => i.game_id === game.id).map((i: any) => i.catalog_item_id),
+					items: (items as { catalog_item_id: string, game_id: number }[]).filter(i => i.game_id === game.id).map(i => i.catalog_item_id),
 					color: color,
 				};
 			})
@@ -301,6 +304,11 @@ async function shop(this: APIThisType, { id }: shopProps): Promise<ShopType>
 		extraStatData: extraStatData,
 	};
 }
+
+shop.permissions = [
+	'view-shops',
+	'userId',
+];
 
 shop.apiTypes = {
 	id: {

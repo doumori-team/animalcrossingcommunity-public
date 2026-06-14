@@ -1,23 +1,15 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { APIThisType, ProfanityWordType } from '@types';
 
-export default async function word(this: APIThisType): Promise<ProfanityWordType[]>
+async function word(this: APIThisType): Promise<ProfanityWordType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'profanity-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const filteredWords = await db.query(`
+	const filteredWords: { id: number, word: string, active: boolean, node_id: number | null }[] = await db.query(`
 		SELECT id, word, active, node_id
 		FROM filter_word
 		ORDER BY word ASC
 	`);
 
-	return filteredWords.map((fw: any) =>
+	return filteredWords.map(fw =>
 	{
 		return {
 			id: fw.id,
@@ -27,3 +19,9 @@ export default async function word(this: APIThisType): Promise<ProfanityWordType
 		};
 	});
 }
+
+word.permissions = [
+	'profanity-admin',
+];
+
+export default word;

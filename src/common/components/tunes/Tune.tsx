@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 
-import { RequireUser, RequirePermission } from '@behavior';
+import { RequireUser, RequirePermission, RequireClientJS } from '@behavior';
+import TunePlayer from '@/components/tunes/TunePlayer.tsx';
 import { TuneType, TownType } from '@types';
 import { utils, constants } from '@utils';
 import { Confirm } from '@form';
@@ -13,7 +14,7 @@ const Tune = ({
 	townUserId,
 }: TuneProps) =>
 {
-	const encodedTownId = encodeURIComponent(Number(townId || 0));
+	const encodedTownId = encodeURIComponent(utils.safeNumber(townId));
 	const encodedId = encodeURIComponent(tune.id);
 	const gameNotes = utils.getTownTunes();
 	const encodedTuneUserId = encodeURIComponent(tune.creator.id);
@@ -67,7 +68,7 @@ const Tune = ({
 			</div>
 			<h1 className='Tune_name'>
 				<div className='Tune_nameAlignment'>
-					<ReportProblem type={tune.id ? constants.userTicket.types.tune : constants.userTicket.types.townTune} id={tune.id ? tune.id : Number(townId || 0)} />
+					<ReportProblem type={tune.id ? constants.userTicket.types.tune : constants.userTicket.types.townTune} id={tune.id ? tune.id : utils.safeNumber(townId)} />
 					{townId ? 'Town Tune: ' : ''}{tune.name}
 				</div>
 				{' '}
@@ -88,18 +89,27 @@ const Tune = ({
 					</cite>
 				</small>
 			</h1>
-
 			<div className='Tune_notes'>
 				{tune.notes.map((noteId, index) =>
 					<span key={index}>
 						<img
-							src={`${constants.AWS_URL}/images/tunes/` + gameNotes[noteId].img_name}
+							className='icon-tunes'
+							src={
+								constants.allImages[
+									`tunes/${gameNotes[noteId].img_name}`
+								]
+							}
 							alt='Tune Note'
 						/>
 						{++index % 8 ? '' : <br/>}
 					</span>,
 				)}
 			</div>
+			<RequireClientJS>
+				<div className='Tune_play'>
+					<TunePlayer notes={tune.notes} />
+				</div>
+			</RequireClientJS>
 		</div>
 	);
 };

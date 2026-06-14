@@ -25,6 +25,7 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 
 		throw new UserError('username-taken');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
@@ -46,6 +47,7 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 
 		throw new UserError('email-taken');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
@@ -64,7 +66,14 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 	const age = dateUtils.getAge(birthdate);
 	const consentNeeded = age < 16;
 
-	let request: any = {
+	let request: {
+		username: string
+		birth_date_day: number
+		birth_date_month: number
+		birth_date_year: number
+		consent_given: boolean
+		email?: string
+	} = {
 		username: username,
 		birth_date_day: birthdate.getDate(),
 		birth_date_month: birthdate.getMonth() + 1,
@@ -109,9 +118,9 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 
 	if (ipAddresses)
 	{
-		// see middleware
-		ipAddresses = ipAddresses.split(',')
-			.map((item: any) => item.trim());
+		// see recordIP middleware
+		ipAddresses = (ipAddresses as string).split(',')
+			.map(item => item.trim());
 
 		if (ipAddresses.length > 1)
 		{
@@ -121,8 +130,8 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 
 		if (ipAddresses.length > 0)
 		{
-			await Promise.all([
-				ipAddresses.map(async (ip: any) =>
+			await Promise.all(
+				ipAddresses.map(async ip =>
 				{
 					await db.query(`
 						INSERT INTO user_ip_address (user_id, ip_address)
@@ -130,7 +139,7 @@ async function signup(this: APIThisType, { username, email, birthday, ipAddresse
 						ON CONFLICT (user_id, ip_address) DO NOTHING
 					`, user.id, ip);
 				}),
-			]);
+			);
 		}
 	}
 
@@ -170,7 +179,7 @@ type signupProps = {
 	username: string
 	email: string
 	birthday: string
-	ipAddresses: any
+	ipAddresses: string | string[]
 };
 
 export default signup;

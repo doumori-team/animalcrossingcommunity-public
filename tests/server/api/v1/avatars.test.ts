@@ -4,6 +4,7 @@ import avatars from 'server/api/v1/avatars';
 import { UserError } from '@errors';
 import { mockAPIContext, mockDbQuery, mockACCCache } from 'tests/vitest.setup.ts';
 import * as avatarsData from 'server/data/avatar/avatars.ts';
+import * as APIPerms from '@apiPerms';
 
 describe('avatars API function', () =>
 {
@@ -13,10 +14,11 @@ describe('avatars API function', () =>
 		const tempAPIContext = {
 			userId: null,
 			query: vi.fn(),
+			fullQuery: vi.fn(),
 		};
 
 		// Act & Assert
-		await expect(avatars.call(tempAPIContext)).rejects.toThrow(new UserError('login-needed'));
+		await expect(APIPerms.check.call(tempAPIContext, avatars.permissions)).rejects.toThrow(new UserError('login-needed'));
 	});
 
 	test('returns avatars', async () =>
@@ -48,7 +50,7 @@ describe('avatars API function', () =>
 		mockACCCache.get.mockResolvedValueOnce(avatarsData.avatarTags);
 
 		// Act
-		const result = await avatars.call(mockAPIContext);
+		const result = await avatars.call(mockAPIContext, { debug: '' });
 
 		// Assert
 		expect(result).not.toBeUndefined();

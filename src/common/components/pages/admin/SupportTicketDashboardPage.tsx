@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Select } from '@form';
@@ -10,10 +10,10 @@ export const action = routerUtils.formAction;
 
 const SupportTicketDashboardPage = ({ loaderData }: { loaderData: SupportTicketDashboardPageProps }) =>
 {
-	const { username, userTicketId, supportTickets, page, pageSize, totalCount,
+	const { searchUser, userTicketId, supportTickets, page, pageSize, totalCount,
 		status } = loaderData;
 
-	const link = `&username=${encodeURIComponent(username)}
+	const link = `&searchUser=${encodeURIComponent(searchUser)}
 		&userTicketId=${encodeURIComponent(String(userTicketId || ''))}
 		&status=${encodeURIComponent(status)}
 	`;
@@ -34,9 +34,9 @@ const SupportTicketDashboardPage = ({ loaderData }: { loaderData: SupportTicketD
 				<Search callback='/support-tickets'>
 					<Form.Group>
 						<Text
-							label='Username'
-							name='username'
-							value={username}
+							label='User'
+							name='searchUser'
+							value={searchUser}
 							maxLength={constants.max.searchUsername}
 						/>
 					</Form.Group>
@@ -122,12 +122,12 @@ const SupportTicketDashboardPage = ({ loaderData }: { loaderData: SupportTicketD
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, username, userTicketId, status }: { page?: string, username?: string, userTicketId?: string, status?: string }): Promise<SupportTicketDashboardPageProps>
+async function loadData(this: APIThisType, _: Params, { page, searchUser, userTicketId, status }: { page?: string, searchUser?: string, userTicketId?: string, status?: string }): Promise<SupportTicketDashboardPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/support_tickets', {
 			page: page ? page : 1,
-			username: username ? username : '',
+			searchUser: searchUser ? searchUser : '',
 			userTicketId: userTicketId ? userTicketId : '',
 			status: status ? status : '',
 		}),
@@ -138,7 +138,7 @@ async function loadData(this: APIThisType, _: any, { page, username, userTicketI
 		totalCount: returnValue.count,
 		page: returnValue.page,
 		pageSize: returnValue.pageSize,
-		username: returnValue.username,
+		searchUser: returnValue.searchUser,
 		userTicketId: returnValue.userTicketId,
 		status: returnValue.status,
 	};
@@ -151,7 +151,7 @@ type SupportTicketDashboardPageProps = {
 	totalCount: SupportTicketsType['count']
 	page: SupportTicketsType['page']
 	pageSize: SupportTicketsType['pageSize']
-	username: SupportTicketsType['username']
+	searchUser: SupportTicketsType['searchUser']
 	userTicketId: SupportTicketsType['userTicketId']
 	status: SupportTicketsType['status']
 };

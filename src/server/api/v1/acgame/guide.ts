@@ -1,19 +1,18 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, ACGameGuideType } from '@types';
 
-async function guide(this: APIThisType, { id }: guideProps): Promise<ACGameGuideType>
+async function guide(this: APIThisType, { id }: guideProps): Promise<ACGameGuideType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-guides' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const [guides, modifyGuidesPerm] = await Promise.all([
+	const [guides, modifyGuidesPerm]: [{
+		id: number
+		name: string
+		updated_name: string | null
+		description: string
+		updated_description: string | null
+		last_published: Date | null
+	}[], boolean] = await Promise.all([
 		db.cacheQuery(constants.cacheKeys.guides, `
 			SELECT
 				id,
@@ -29,7 +28,7 @@ async function guide(this: APIThisType, { id }: guideProps): Promise<ACGameGuide
 		this.query('v1/permission', { permission: 'modify-guides' }),
 	]);
 
-	return guides.filter((g: any) => modifyGuidesPerm || !modifyGuidesPerm && g.last_published !== null).map((guide: any) =>
+	return guides.filter(g => modifyGuidesPerm || !modifyGuidesPerm && g.last_published !== null).map(guide =>
 	{
 		return {
 			id: guide.id,
@@ -38,6 +37,10 @@ async function guide(this: APIThisType, { id }: guideProps): Promise<ACGameGuide
 		};
 	});
 }
+
+guide.permissions = [
+	'view-guides',
+];
 
 guide.apiTypes = {
 	id: {

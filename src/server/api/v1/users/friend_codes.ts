@@ -1,23 +1,12 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType, UserFriendCodesType, FriendCodeType } from '@types';
 
 async function friend_codes(this: APIThisType, { id, page }: friendCodesProps): Promise<UserFriendCodesType>
 {
-	const [useTradingPostPerm, useFriendCodes] = await Promise.all([
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-		this.query('v1/permission', { permission: 'use-friend-codes' }),
-	]);
-
-	if (!(useTradingPostPerm || useFriendCodes))
-	{
-		throw new UserError('permission');
-	}
-
 	// Perform queries
 	const pageSize = 24;
-	const offset = isNaN(page) ? 0 : page * pageSize - pageSize;
+	const offset = page > 0 ? page * pageSize - pageSize : 0;
 
 	let query = `
 		SELECT
@@ -30,10 +19,10 @@ async function friend_codes(this: APIThisType, { id, page }: friendCodesProps): 
 		ORDER BY game_console.is_legacy NULLS FIRST, game_console.sequence, game.sequence, game.name, friend_code.id
 	`;
 
-	let params: any = [id];
+	let params = [id];
 	let paramIndex = params.length;
 
-	if (!isNaN(page) && page > 0)
+	if (page > 0)
 	{
 		params[paramIndex] = pageSize;
 
@@ -48,15 +37,15 @@ async function friend_codes(this: APIThisType, { id, page }: friendCodesProps): 
 		`;
 	}
 
-	const friendCodes = await db.query(query, ...params);
+	const friendCodes: { id: number, count: number }[] = await db.query(query, ...params);
 
-	const returnedFriendCodes = await Promise.all(friendCodes.map(async (friendCode: any) =>
+	const returnedFriendCodes = await Promise.all(friendCodes.map(async friendCode =>
 	{
 		return this.query('v1/friend_code', { id: friendCode.id });
 	}));
 
 	// either you're going to have access to all of them or not
-	const results = returnedFriendCodes.filter((value: FriendCodeType | null) => value != null);
+	const results = returnedFriendCodes.filter((value: FriendCodeType | null) => value !== null);
 
 	return {
 		results: results,
@@ -66,6 +55,11 @@ async function friend_codes(this: APIThisType, { id, page }: friendCodesProps): 
 	};
 }
 
+friend_codes.permissions = [
+	'use-trading-post',
+	'use-friend-codes',
+];
+
 friend_codes.apiTypes = {
 	id: {
 		type: APITypes.userId,
@@ -74,6 +68,7 @@ friend_codes.apiTypes = {
 	},
 	page: {
 		type: APITypes.number,
+		default: 0,
 	},
 };
 

@@ -5,13 +5,6 @@ import { APIThisType, GameConsoleType } from '@types';
 
 async function game_console(this: APIThisType, { id }: gameConsoleProps): Promise<GameConsoleType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'games-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [gameConsole] = await db.query(`
 		SELECT
 			game_console.id,
@@ -36,6 +29,10 @@ async function game_console(this: APIThisType, { id }: gameConsoleProps): Promis
 		isEnabled: gameConsole.is_enabled,
 	};
 }
+
+game_console.permissions = [
+	'games-admin',
+];
 
 game_console.apiTypes = {
 	id: {

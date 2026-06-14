@@ -13,18 +13,6 @@ import { APIThisType, UserType, ShopType } from '@types';
  */
 async function upload_image(this: APIThisType, { imageExtension, shopId }: uploadImageProps): Promise<{ s3PresignedUrl: string, fileName: string }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const user: UserType = await this.query('v1/user', { id: this.userId });
 
 	if (dateUtils.isNewMember(user.signupDate))
@@ -47,18 +35,18 @@ async function upload_image(this: APIThisType, { imageExtension, shopId }: uploa
 	const fileName = `${crypto.randomUUID()}.${imageExtension}`;
 
 	const s3Client = new S3Client({
-		region: (process.env as any).AWS_BUCKET_REGION,
+		region: process.env.AWS_BUCKET_REGION as string,
+		endpoint: process.env.AWS_ENDPOINT_URL_S3 as string,
 		credentials: {
-			accessKeyId: (process.env as any).AWS_ACCESS_KEY,
-			secretAccessKey: (process.env as any).AWS_SECRET_KEY,
+			accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+			secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
 		},
 	});
-
-	// AWS Bucket Policy allows: *.png, *.jpg / *.jpeg
 
 	const command = new PutObjectCommand({
 		Bucket: process.env.AWS_BUCKET_NAME,
 		Key: `${constants.SHOP_FILE_DIR2}${shop.id}/${fileName}`,
+		ContentType: 'image/png',
 	});
 
 	return {
@@ -68,6 +56,11 @@ async function upload_image(this: APIThisType, { imageExtension, shopId }: uploa
 		fileName: fileName,
 	};
 }
+
+upload_image.permissions = [
+	'modify-shops',
+	'userId',
+];
 
 upload_image.apiTypes = {
 	imageExtension: {

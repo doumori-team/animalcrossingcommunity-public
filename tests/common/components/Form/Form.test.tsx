@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { act } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
@@ -60,8 +61,9 @@ const createFakeFormData = (data: Record<string, string>) =>
 	};
 };
 
-const mockFormRequest = {
+const mockFormRequest: any = {
 	formData: vi.fn(),
+	headers: [],
 };
 
 describe('Form Component', () =>
@@ -101,7 +103,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData({ data });
 
@@ -120,8 +122,8 @@ describe('Form Component', () =>
 	test('shows success image for X seconds', async () =>
 	{
 		// Arrange
-		const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
-		const defaultSubmitImage = `${constants.AWS_URL}/images/icons/report.png`;
+		const successImage = constants.allImages['icons/icon_check.png'];
+		const defaultSubmitImage = constants.allImages['icons/report.png'];
 		const data = { _successImage: successImage };
 		const props = { defaultSubmitImage: defaultSubmitImage };
 		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
@@ -134,7 +136,7 @@ describe('Form Component', () =>
 		vi.useFakeTimers();
 		const { rerender } = setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -166,8 +168,8 @@ describe('Form Component', () =>
 	test('shows success image (SSR)', async () =>
 	{
 		// Arrange
-		const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
-		const defaultSubmitImage = `${constants.AWS_URL}/images/icons/report.png`;
+		const successImage = constants.allImages['icons/icon_check.png'];
+		const defaultSubmitImage = constants.allImages['icons/report.png'];
 		const props = { defaultSubmitImage: defaultSubmitImage, formId: 'success-image' };
 		const data = { _successImage: successImage, formId: props.formId };
 		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
@@ -181,7 +183,7 @@ describe('Form Component', () =>
 		vi.useFakeTimers();
 		const { rerender } = setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockActionData = createMockFetcherData(data);
 
@@ -212,7 +214,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -242,7 +244,7 @@ describe('Form Component', () =>
 		vi.useFakeTimers();
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -286,7 +288,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockActionData = createMockFetcherData(data);
 
@@ -339,7 +341,7 @@ describe('Form Component', () =>
 		vi.useFakeTimers();
 		const { rerender } = setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -378,12 +380,12 @@ describe('Form Component', () =>
 			_action: action,
 			_callback: callback,
 		}));
-		mockISOQuery.mockResolvedValueOnce({ _success: 'Success!', _successImage: `${constants.AWS_URL}/images/icons/icon_check.png` });
+		mockISOQuery.mockResolvedValueOnce({ _success: 'Success!', _successImage: constants.allImages['icons/icon_check.png'] });
 
 		// Act
 		setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		// Assert
 		expect(result).toEqual({ type: 'redirect', path: callback });
@@ -402,7 +404,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -444,7 +446,7 @@ describe('Form Component', () =>
 		vi.useFakeTimers();
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -488,7 +490,7 @@ describe('Form Component', () =>
 		// Act
 		setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		// Assert
 		expect(result).toEqual({ type: 'redirect', path: callback });
@@ -508,10 +510,31 @@ describe('Form Component', () =>
 		// Act
 		setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		// Assert
 		expect(result).toEqual({ type: 'redirect', path: `/pattern/${patternId}` });
+	});
+
+	test('executes generated callback forced reload', async () =>
+	{
+		// Arrange
+		const patternId = 584;
+		const props = { callback: '/pattern/:id', reload: true };
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: action,
+			_callback: props.callback,
+			_reload: String(props.reload),
+		}));
+		mockISOQuery.mockResolvedValueOnce({ id: patternId });
+
+		// Act
+		setup(props);
+
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
+
+		// Assert
+		expect(result).toEqual({ type: 'redirectDocument', path: `/pattern/${patternId}` });
 	});
 
 	test('executes current location with data', async () =>
@@ -527,7 +550,7 @@ describe('Form Component', () =>
 		// Act
 		setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		// Assert
 		expect(result).toEqual({ type: 'redirectDocument', path: `/pattern/${patternId}` });
@@ -542,12 +565,12 @@ describe('Form Component', () =>
 			_action: action,
 			_callback: props.callback,
 		}));
-		mockISOQuery.mockResolvedValueOnce();
+		mockISOQuery.mockResolvedValueOnce(undefined);
 
 		// Act
 		setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		// Assert
 		expect(result).toEqual({ type: 'redirect', path: callback });
@@ -561,12 +584,12 @@ describe('Form Component', () =>
 			_action: action,
 			_callback_uri: callback,
 		}));
-		mockISOQuery.mockResolvedValueOnce();
+		mockISOQuery.mockResolvedValueOnce(undefined);
 
 		// Act
 		setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		// Assert
 		expect(result).toEqual({ type: 'redirectDocument', path: callback });
@@ -586,7 +609,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -616,7 +639,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -645,7 +668,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -674,7 +697,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -702,7 +725,7 @@ describe('Form Component', () =>
 
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -719,7 +742,7 @@ describe('Form Component', () =>
 		const data2 = { _success: 'Success!' };
 		mockISOQuery.mockResolvedValueOnce({ _success: 'Success!' });
 
-		const result2 = await Form.action(mockFormRequest, mockAppContext);
+		const result2 = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data2);
 
@@ -747,7 +770,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup(props);
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -778,7 +801,7 @@ describe('Form Component', () =>
 		// Act
 		const { rerender } = setup();
 
-		const result = await Form.action(mockFormRequest, mockAppContext);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
 
 		mockFetcherData = createMockFetcherData(data);
 
@@ -832,5 +855,260 @@ describe('Form Component', () =>
 		rerender(MemoryRouterForm(props));
 
 		expect(button.getAttribute('disabled')).toBeNull();
+	});
+
+	test('signup action includes IP addresses', async () =>
+	{
+		// Arrange
+		const signupAction = 'v1/signup/signup';
+		const ipAddress = '192.168.1.1';
+		const callback = '/signup-complete';
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: signupAction,
+			_callback: callback,
+		}));
+		mockFormRequest.headers = {
+			get: (key: string) => key === 'x-forwarded-for' ? ipAddress : null,
+		};
+		mockISOQuery.mockResolvedValueOnce({ _callback: callback });
+
+		// Act
+		setup();
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
+
+		// Assert
+		expect(mockISOQuery).toHaveBeenCalledWith(
+			mockAppContext.session.user,
+			signupAction,
+			expect.objectContaining({ ipAddresses: ipAddress }),
+		);
+		expect(result).toEqual({ type: 'redirect', path: callback });
+	});
+
+	test('session-less context (logged out user)', async () =>
+	{
+		// Arrange
+		const callback = '/patterns';
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: action,
+			_callback: callback,
+		}));
+		mockISOQuery.mockResolvedValueOnce(undefined);
+
+		const noSessionContext = { session: undefined };
+
+		// Act
+		const result = await Form.action(mockFormRequest, noSessionContext as any);
+
+		// Assert
+		expect(mockISOQuery).toHaveBeenCalledWith(
+			undefined,
+			action,
+			expect.any(Object),
+		);
+		expect(result).toEqual({ type: 'redirect', path: callback });
+	});
+
+	test('hash path callback with data', async () =>
+	{
+		// Arrange
+		const props = { callback: '/forums?reload=:threadId' };
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: action,
+			_callback: props.callback,
+		}));
+		mockISOQuery.mockResolvedValueOnce({ threadId: 42 });
+
+		// Act
+		setup(props);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
+
+		// Assert
+		expect(result).toEqual({ type: 'redirect', path: '/forums#42' });
+	});
+
+	test('hash path on current location (no callback)', async () =>
+	{
+		// Arrange
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: action,
+			_callback_uri: '/forums?reload=:threadId',
+		}));
+		mockISOQuery.mockResolvedValueOnce({ threadId: 99 });
+
+		// Act
+		setup();
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
+
+		// Assert
+		expect(result).toEqual({ type: 'redirectDocument', path: '/forums#99' });
+	});
+
+	test('non-object return (string) redirects to callback', async () =>
+	{
+		// Arrange
+		const callback = '/patterns';
+		const props = { callback };
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: action,
+			_callback: callback,
+		}));
+		mockISOQuery.mockResolvedValueOnce('some string result');
+
+		// Act
+		setup(props);
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
+
+		// Assert
+		expect(result).toEqual({ type: 'redirect', path: callback });
+	});
+
+	test('non-object return (number) redirects to current location', async () =>
+	{
+		// Arrange
+		const currentUri = '/some-page';
+		mockFormRequest.formData.mockResolvedValue(createFakeFormData({
+			_action: action,
+			_callback_uri: currentUri,
+		}));
+		mockISOQuery.mockResolvedValueOnce(42);
+
+		// Act
+		setup();
+		const result = await Form.action(mockFormRequest, mockAppContext as any);
+
+		// Assert
+		expect(result).toEqual({ type: 'redirectDocument', path: currentUri });
+	});
+
+	test('redirect via SSR actionData', async () =>
+	{
+		// Arrange
+		const redirect = 'https://example.com/other';
+		const props = { formId: 'redirect-ssr' };
+		const data = { _redirect: redirect, formId: props.formId };
+
+		// Act
+		const { rerender } = setup(props);
+
+		mockActionData = createMockFetcherData(data);
+
+		rerender(MemoryRouterForm(props));
+
+		// Assert
+		expect(window.location.href).toBe(redirect);
+	});
+
+	test('formId matches action string (SSR)', async () =>
+	{
+		// Arrange
+		const successMessage = 'It worked!';
+		// formId on data matches the action string, not a custom formId prop
+		const data = { _success: successMessage, formId: action };
+
+		// Act
+		const { rerender } = setup(); // no formId prop, so form uses action as formId
+
+		mockActionData = createMockFetcherData(data);
+
+		rerender(MemoryRouterForm());
+
+		// Assert
+		const alert = screen.getByRole('alert');
+		expect(alert).toBeDefined();
+		expect(alert.classList).toContain('Alert-success');
+		expect(alert.innerHTML).toBe(successMessage);
+	});
+
+	test('rapid resubmission clears previous success timeout', async () =>
+	{
+		// Arrange
+		const data1 = { _success: 'First success' };
+		const data2 = { _success: 'Second success' };
+
+		// Act
+		vi.useFakeTimers();
+		const { rerender } = setup();
+
+		// First submission
+		mockFetcherData = createMockFetcherData(data1);
+		rerender(MemoryRouterForm());
+
+		expect(screen.getByRole('alert').innerHTML).toBe('First success');
+
+		// Advance partway (not enough to clear first timeout)
+		await act(async () =>
+		{
+			vi.advanceTimersByTime(3 * 1000);
+		});
+
+		// Second submission before first timeout fires
+		mockFetcherData = createMockFetcherData(data2);
+		rerender(MemoryRouterForm());
+
+		expect(screen.getByRole('alert').innerHTML).toBe('Second success');
+
+		// First timeout would have fired at 10s (7s from now) — but it was cleared
+		// Second timeout fires at 10s from second submission (10s from now)
+		// At 7s, message should still be visible
+		await act(async () =>
+		{
+			vi.advanceTimersByTime(7 * 1000);
+		});
+
+		expect(screen.getByRole('alert')).toBeDefined();
+		expect(screen.getByRole('alert').innerHTML).toBe('Second success');
+
+		// Now expire the second timeout
+		await act(async () =>
+		{
+			vi.advanceTimersByTime(3 * 1000);
+		});
+
+		expect(screen.queryByRole('alert')).toBeNull();
+
+		// Cleanup
+		vi.useRealTimers();
+	});
+
+	test('success callback navigates with data params', async () =>
+	{
+		// Arrange
+		const callback = '/pattern/:id';
+		const returnData = { id: 123, _internal: 'filtered' };
+		const data = { _success: 'Saved!', data: returnData };
+		const props = { callback };
+
+		// Act
+		vi.useFakeTimers();
+		const { rerender } = setup(props);
+
+		mockFetcherData = createMockFetcherData(data);
+		rerender(MemoryRouterForm(props));
+
+		// Assert
+		expect(screen.getByRole('alert').innerHTML).toBe('Saved!');
+
+		await act(async () =>
+		{
+			vi.advanceTimersByTime(5 * 1000);
+		});
+
+		// Should navigate with data params, filtering out underscore-prefixed keys
+		expect(mockUseNavigate).toHaveBeenCalledWith('/pattern/123');
+
+		// Cleanup
+		vi.useRealTimers();
+	});
+
+	test('className and id props pass through to form element', () =>
+	{
+		// Arrange & Act
+		setup({ className: 'my-form-class', id: 'my-form-id' });
+
+		// Assert
+		const form = screen.getByRole('form');
+		expect(form.getAttribute('class')).toBe('my-form-class');
+		expect(form.getAttribute('id')).toBe('my-form-id');
 	});
 });

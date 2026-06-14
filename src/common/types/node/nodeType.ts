@@ -7,7 +7,8 @@ import { MarkupFormatType, MarkupStyleType } from '../markupFormatType.ts';
 type NodeType = {
 	id: number
 	type: 'board' | 'thread' | 'post'
-	parentId: number
+	parentId: number | null
+	parentId2: number | null
 	revisionId: number
 	title: string
 	created: string
@@ -16,6 +17,7 @@ type NodeType = {
 	threadType: 'normal' | 'sticky' | 'admin'
 	edits: number
 	followed: boolean
+	notified: boolean
 	numFollowed: number
 	board: string
 	permissions: string[]
@@ -37,10 +39,17 @@ type NodeType = {
 		granted: boolean
 		viewed: string
 	}[]
-	user?: UserType
+	user?: UserType | null
 	lastReply?: string
 	showImages: boolean
 	userDonations?: UserDonationsType
+	reactions: {
+		emoji: string
+		src: string
+		count: number
+		usedByUser: boolean
+	}[]
+	hidePostEmojis: boolean
 };
 
 export type { NodeType };

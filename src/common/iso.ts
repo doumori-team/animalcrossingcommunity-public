@@ -1,5 +1,6 @@
 let isoModule;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 if ((import.meta as any).env.SSR)
 {
 	isoModule = import('server/iso-server.ts');

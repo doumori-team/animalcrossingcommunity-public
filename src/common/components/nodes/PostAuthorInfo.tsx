@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import Avatar from '@/components/nodes/Avatar.tsx';
-import { UserType } from '@types';
+import { UserType, BirthdaysType } from '@types';
 import StatusIndicator from '@/components/nodes/StatusIndicator.tsx';
 import { constants, dateUtils } from '@utils';
 import { ReportProblem } from '@layout';
@@ -16,9 +16,12 @@ const PostAuthorInfo = ({
 	userTitle,
 	perks,
 	signupDate,
+	postName,
+	name,
+	birthdays,
 }: PostAuthorInfoProps) =>
 {
-	let badges = [];
+	let badges: { id: string, label: string, link?: string }[] = [];
 
 	if (group.identifier !== constants.groupIdentifiers.user)
 	{
@@ -36,7 +39,16 @@ const PostAuthorInfo = ({
 
 	if (dateUtils.isNewMember(signupDate))
 	{
-		badges.push({ id: 'New Member', label: 'New Member' });
+		badges.push({ id: 'new', label: 'New Member' });
+	}
+	else if (dateUtils.isSameCurrentDate(signupDate, 'yyyy-MM-dd'))
+	{
+		badges.push({ id: 'anniversary', label: 'Happy ACCversary!' });
+	}
+
+	if (birthdays && birthdays.some(x => x.id === id))
+	{
+		badges.push({ id: 'birthday', label: 'Happy Birthday!' });
 	}
 
 	return (
@@ -72,6 +84,15 @@ const PostAuthorInfo = ({
 				</UserContext.Consumer>
 			</span>
 
+			{postName && name !== username &&
+				<span className='PostAuthorInfo_name'>
+					<ReportProblem
+						type={constants.userTicket.types.profileName}
+						id={id}
+					/>{name}
+				</span>
+			}
+
 			{userTitle &&
 				<span className='PostAuthorInfo_userTitle'>
 					<ReportProblem
@@ -87,7 +108,7 @@ const PostAuthorInfo = ({
 						{badge.label}
 					</Link>
 					:
-					<span key={badge.id} className='PostAuthorInfo_userbadge'>
+					<span key={badge.id} className={`PostAuthorInfo_userbadge ${badge.id}`}>
 						{badge.label}
 					</span>,
 
@@ -103,6 +124,7 @@ const PostAuthorInfo = ({
 
 type PostAuthorInfoProps = UserType & {
 	perks: number
+	birthdays?: BirthdaysType[]
 };
 
 export default PostAuthorInfo;

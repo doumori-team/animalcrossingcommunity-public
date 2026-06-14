@@ -6,23 +6,12 @@ import { constants } from '@utils';
 import { ACCCache } from '@cache';
 import { APIThisType, SuccessType, ACGameItemType } from '@types';
 
-export default async function shop(this: APIThisType): Promise<SuccessType>
+async function shop(this: APIThisType): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
 
 	// get info
-	const [gameIds] = await Promise.all([
+	const [gameIds]: [{ id: number }[]] = await Promise.all([
 		db.query(`
 			SELECT id
 			FROM ac_game
@@ -30,7 +19,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 		`),
 	]);
 
-	let staffUserIds = await db.query(`
+	let staffUserIds: { id: number }[] = await db.query(`
 		SELECT users.id
 		FROM users
 		JOIN user_group ON (user_group.id = users.user_group_id)
@@ -43,7 +32,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 		throw new UserError('bad-format');
 	}
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		// Create Shop
 
@@ -87,7 +76,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 				INSERT INTO shop_user_role (shop_role_id, shop_user_id)
 				VALUES ($1, $2)
 			`, role.id, shopUser.id),
-			games.map(async (game: any) =>
+			games.map(async game =>
 			{
 				const perOrder = faker.number.int(100);
 				const stackOrQuantity = faker.datatype.boolean();
@@ -98,12 +87,12 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					VALUES ($1, $2, $3, $4, $5)
 				`, shopId, game.id, perOrder, stackOrQuantity, completeOrder);
 
-				const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${game.id}_all_items`)).filter((item: any) => item.tradeable);
+				const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${game.id}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable);
 
 				const items = faker.helpers.arrayElements(catalogItems, 5);
 
 				await Promise.all([
-					items.map(async (item: any) =>
+					items.map(async item =>
 					{
 						await query(`
 							INSERT INTO shop_catalog_item (shop_id, catalog_item_id, game_id)
@@ -139,14 +128,14 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 		console.info('Creating services');
 
 		// Get more info
-		const [shopServices, [ownerRole]] = await Promise.all([
+		const [shopServices, [ownerRole]]: [{ id: number }[], [{ id: number }]] = await Promise.all([
 			query(`
 				SELECT shop_default_service.id
 				FROM shop_default_service
 				JOIN shop_default_service_ac_game ON (shop_default_service.id = shop_default_service_ac_game.shop_default_service_id)
 				WHERE shop_default_service_ac_game.game_id = ANY($1)
 				GROUP BY shop_default_service.id
-			`, games.map((g: any) => g.id)),
+			`, games.map((g: { id: number }) => g.id)),
 			query(`
 				SELECT id
 				FROM shop_role
@@ -166,7 +155,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 				RETURNING id
 			`, serviceName, serviceDescription, shopId),
 			Promise.all(
-				defaultServices.map(async (service: any) =>
+				defaultServices.map(async service =>
 				{
 					await query(`
 						INSERT INTO shop_default_service_shop (shop_default_service_id, shop_id, active)
@@ -178,7 +167,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 		]);
 
 		await Promise.all([
-			games.map(async (game: any) =>
+			games.map(async game =>
 			{
 				await query(`
 					INSERT INTO shop_service_ac_game (shop_service_id, game_id)
@@ -202,7 +191,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 		console.info('Creating roles');
 
 		const numberOfDepartments = faker.number.int(4);
-		let roleIds = [], shopEmployeeIds = [];
+		let roleIds: number[] = [], shopEmployeeIds: number[] = [];
 
 		for (let i = 0; i < numberOfDepartments; i++)
 		{
@@ -225,9 +214,9 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 			const roleId = role.id;
 			roleIds.push(roleId);
 
-			const roleUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+			const roleUserId = faker.helpers.arrayElement(staffUserIds).id;
 			shopEmployeeIds.push(roleUserId);
-			staffUserIds = staffUserIds.filter((sui: any) => sui.id !== roleUserId);
+			staffUserIds = staffUserIds.filter(sui => sui.id !== roleUserId);
 
 			const [[shopUser]] = await Promise.all([
 				query(`
@@ -240,7 +229,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					VALUES ($1, $2)
 				`, roleId, shopService.id),
 				Promise.all([
-					defaultServices.map(async (service: any) =>
+					defaultServices.map(async service =>
 					{
 						await query(`
 							INSERT INTO shop_role_default_service (shop_role_id, shop_default_service_id)
@@ -290,8 +279,8 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 				const userRoleId = userRole.id;
 
-				const userRoleUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
-				staffUserIds = staffUserIds.filter((sui: any) => sui.id !== userRoleUserId);
+				const userRoleUserId = faker.helpers.arrayElement(staffUserIds).id;
+				staffUserIds = staffUserIds.filter(sui => sui.id !== userRoleUserId);
 
 				const [[userShopUser]] = await Promise.all([
 					query(`
@@ -304,7 +293,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 						VALUES ($1, $2)
 					`, userRoleId, shopService.id),
 					Promise.all([
-						defaultServices.map(async (service: any) =>
+						defaultServices.map(async service =>
 						{
 							await query(`
 								INSERT INTO shop_role_default_service (shop_role_id, shop_default_service_id)
@@ -348,15 +337,15 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 				const defaultOrCustom = faker.datatype.boolean();
 				let order;
 
-				const orderUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+				const orderUserId = faker.helpers.arrayElement(staffUserIds).id;
 
 				const orderComment = faker.lorem.sentence();
-				const gameId = (faker.helpers.arrayElement(games) as any).id;
+				const gameId = faker.helpers.arrayElement(games).id;
 				const ordered = faker.date.between({ from: 0, to: 1893456000000 });
 
 				if (defaultOrCustom)
 				{
-					const serviceId = (faker.helpers.arrayElement(defaultServices) as any).id;
+					const serviceId = faker.helpers.arrayElement(defaultServices).id;
 
 					[order] = await query(`
 						INSERT INTO shop_order (shop_id, customer_id, shop_default_service_id, comment, game_id, ordered)
@@ -373,12 +362,12 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					`, shopId, orderUserId, shopService.id, orderComment, gameId, ordered);
 				}
 
-				const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable);
+				const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable);
 
 				const items = faker.helpers.arrayElements(catalogItems, 5);
 
 				await Promise.all(
-					items.map(async (item: any) =>
+					items.map(async item =>
 					{
 						const quantity = faker.string.numeric({ length: 1, exclude: ['0'] });
 
@@ -393,7 +382,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 
 				// Claim Order
 
-				const claimUsers = await query(`
+				const claimUsers: { user_id: number }[] = await query(`
 					SELECT shop_user.user_id
 					FROM shop_order
 					LEFT JOIN shop_default_service ON (shop_default_service.id = shop_order.shop_default_service_id)
@@ -406,7 +395,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					GROUP BY shop_user.user_id
 				`, order.id);
 
-				const employeeId = (faker.helpers.arrayElement(claimUsers) as any).user_id;
+				const employeeId = faker.helpers.arrayElement(claimUsers).user_id;
 				const orderTitle = `Order #${order.id}`;
 				const orderText = faker.lorem.sentence();
 				const orderFormat = 'plaintext';
@@ -433,13 +422,13 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
 				`, message.id, employeeId, orderText, orderFormat);
 
-				let userIds = [];
+				let userIds: number[] = [];
 				userIds.push(orderUserId);
 
-				let employeeIds = [];
+				let employeeIds: number[] = [];
 				employeeIds.push(employeeId);
 
-				const [owners, chain] = await Promise.all([
+				const [owners, chain]: [{ user_id: number }[], { parent_id: number, id: number, user_id: number }[]] = await Promise.all([
 					query(`
 						SELECT shop_user.user_id
 						FROM shop_user
@@ -466,7 +455,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					`, shopId, employeeId),
 				]);
 
-				owners.concat(chain).map((user: any) =>
+				owners.concat(chain).map(user =>
 				{
 					if (!employeeIds.includes(user.user_id))
 					{
@@ -488,6 +477,12 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 							VALUES ($1::int, $2::int, $3::int, true)
 							ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 						`, userId, thread.id, constants.nodePermissions.reply);
+
+						await query(`
+							INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+							VALUES ($1::int, $2::int, $3::int, true)
+							ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+						`, userId, thread.id, constants.nodePermissions.react);
 					}),
 					employeeIds.map(async (userId) =>
 					{
@@ -502,6 +497,12 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 							VALUES ($1::int, $2::int, $3::int, true)
 							ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 						`, userId, thread.id, constants.nodePermissions.reply);
+
+						await query(`
+							INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+							VALUES ($1::int, $2::int, $3::int, true)
+							ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+						`, userId, thread.id, constants.nodePermissions.react);
 
 						await query(`
 							INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
@@ -588,7 +589,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 			{
 				// Create Application
 
-				const applicationUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+				const applicationUserId = faker.helpers.arrayElement(staffUserIds).id;
 				const applicationText = faker.lorem.sentence();
 				const applicationRoleId = faker.helpers.arrayElement(roleIds);
 
@@ -599,7 +600,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 				`, shopId, applicationUserId, applicationRoleId, applicationText, 'plaintext');
 
 				await Promise.all([
-					games.map(async (game: any) =>
+					games.map(async game =>
 					{
 						await query(`
 							INSERT INTO shop_application_ac_game (shop_application_id, game_id)
@@ -625,7 +626,7 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 			// Create Thread
 
 			const employeeId = faker.helpers.arrayElement(shopEmployeeIds);
-			const customerId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+			const customerId = faker.helpers.arrayElement(staffUserIds).id;
 			const threadTitle = faker.lorem.words();
 			const threadText = faker.lorem.sentences();
 
@@ -651,13 +652,13 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 				VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
 			`, message.id, employeeId, threadText, 'plaintext');
 
-			let userIds = [];
+			let userIds: number[] = [];
 			userIds.push(customerId);
 
-			let employeeIds = [];
+			let employeeIds: number[] = [];
 			employeeIds.push(employeeId);
 
-			const [owners, chain] = await Promise.all([
+			const [owners, chain]: [{ user_id: number }[], { parent_id: number, id: number, user_id: number }[]] = await Promise.all([
 				query(`
 					SELECT shop_user.user_id
 					FROM shop_user
@@ -682,10 +683,9 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 					)
 					SELECT distinct user_id from Descendants
 				`, shopId, employeeId),
-				this.query('v1/user_lite', { id: customerId }),
 			]);
 
-			owners.concat(chain).map((user: any) =>
+			owners.concat(chain).map(user =>
 			{
 				if (!employeeIds.includes(user.user_id))
 				{
@@ -707,6 +707,12 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 						VALUES ($1::int, $2::int, $3::int, true)
 						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 					`, userId, thread.id, constants.nodePermissions.reply);
+
+					await query(`
+						INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+						VALUES ($1::int, $2::int, $3::int, true)
+						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+					`, userId, thread.id, constants.nodePermissions.react);
 				}),
 				employeeIds.map(async (userId) =>
 				{
@@ -721,6 +727,12 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 						VALUES ($1::int, $2::int, $3::int, true)
 						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 					`, userId, thread.id, constants.nodePermissions.reply);
+
+					await query(`
+						INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+						VALUES ($1::int, $2::int, $3::int, true)
+						ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+					`, userId, thread.id, constants.nodePermissions.react);
 
 					await query(`
 						INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
@@ -772,3 +784,10 @@ export default async function shop(this: APIThisType): Promise<SuccessType>
 		_success: `Your shop has been created!`,
 	};
 }
+
+shop.permissions = [
+	'TEST_SITE',
+	'userId',
+];
+
+export default shop;

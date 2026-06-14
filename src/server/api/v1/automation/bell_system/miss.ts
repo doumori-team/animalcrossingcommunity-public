@@ -1,25 +1,13 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, SuccessType } from '@types';
+import { APIThisType, SuccessType, UserType } from '@types';
 
 /*
  * Add missed bells, by type, to your account
  */
 async function miss(this: APIThisType, { type }: missProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
 
 	const amount: number = type === 'jackpot' ? await this.query('v1/treasure/jackpot') : Number(type);
@@ -32,15 +20,20 @@ async function miss(this: APIThisType, { type }: missProps): Promise<SuccessType
 		`, this.userId, amount, type === 'jackpot' ? 'jackpot' : 'amount', constants.bellThreshold + 10);
 	}
 
-	const [user] = await Promise.all([
+	const [user]: [UserType, void] = await Promise.all([
 		this.query('v1/user', { id: this.userId }),
-		db.regenerateTopBells({ userId: this.userId }),
+		db.regenerateTopBells({ userId: this.userId as number }),
 	]);
 
 	return {
 		_success: `Oh no! You've missed ${user.missedBells} Bells!`,
 	};
 }
+
+miss.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 miss.apiTypes = {
 	type: {

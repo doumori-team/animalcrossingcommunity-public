@@ -1,18 +1,10 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, PaintType } from '@types';
 
 async function paint(this: APIThisType, { id }: paintProps): Promise<PaintType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const paintColors = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			ac_game_paint.id,
@@ -26,6 +18,10 @@ async function paint(this: APIThisType, { id }: paintProps): Promise<PaintType[]
 
 	return paintColors;
 }
+
+paint.permissions = [
+	'modify-towns',
+];
 
 paint.apiTypes = {
 	id: {

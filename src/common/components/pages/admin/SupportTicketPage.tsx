@@ -175,16 +175,15 @@ const SupportTicketPage = ({ loaderData }: { loaderData: SupportTicketPageProps 
 
 async function loadData(this: APIThisType, { id }: { id: string }): Promise<SupportTicketPageProps>
 {
-	const [supportTicket, currentUserEmojiSettings] = await Promise.all([
+	const [supportTicket, currentUserEmojiSettings]: [SupportTicketType, EmojiSettingType[]] = await Promise.all([
 		this.query('v1/support_ticket', { id: id }),
 		this.query('v1/settings/emoji'),
 	]);
 
+	const stMessageUserIds = supportTicket.messages.length > 0 ? supportTicket.messages.filter(m => m.user).map(m => m.user!.id) : [];
+
 	const [userEmojiSettings, usernameHistory] = await Promise.all([
-		supportTicket.messages.length > 0 ?
-			this.query('v1/settings/emoji', {
-				userIds: supportTicket.messages.filter((m: any) => m.user).map((m: any) => m.user.id),
-			}) : null,
+		stMessageUserIds.length > 0 ? this.query('v1/settings/emoji', { userIds: stMessageUserIds }) : null,
 		this.query('v1/users/username_history', { id: supportTicket.user.id }),
 	]);
 

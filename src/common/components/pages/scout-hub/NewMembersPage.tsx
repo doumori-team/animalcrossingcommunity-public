@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission, RequireGroup } from '@behavior';
 import { constants, dateUtils, routerUtils } from '@utils';
@@ -97,7 +97,7 @@ const NewMembersPage = ({ loaderData }: { loaderData: NewMembersPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<NewMembersPageProps>
+async function loadData(this: APIThisType, _: Params, { page }: { page?: string }): Promise<NewMembersPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/users/new', {

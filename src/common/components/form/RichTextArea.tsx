@@ -1,4 +1,4 @@
-import { KeyboardEvent, ReactNode, useState, useRef } from 'react';
+import { KeyboardEvent, ReactNode, useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { ColumnsPhotoAlbum } from 'react-photo-album';
 import Compressor from 'compressorjs';
@@ -8,10 +8,10 @@ import * as markup from 'common/markup.ts';
 import { RequireClientJS, RequirePermission } from '@behavior';
 import MarkupButton from '@/components/form/MarkupButton.tsx';
 import Select from '@/components/form/Select.tsx';
-import { constants } from '@utils';
+import { constants, utils } from '@utils';
 import EmojiButton from '@/components/form/EmojiButton.tsx';
 import emojiDefs from 'common/markup/emoji.json';
-import { EmojiSettingType, FileType, MarkupFormatType, FileInProcessType, ElementClickButtonType, MarkupStyleType } from '@types';
+import { EmojiSettingType, FileType, MarkupFormatType, FileInProcessType, ElementClickButtonType, MarkupStyleType, UsersType } from '@types';
 import { ErrorMessage, Tabs, PhotoSlideshow, PhotoGallery, Markup, FontAwesomeIcon } from '@layout';
 import { iso } from 'common/iso.ts';
 import { UserContext } from '@contexts';
@@ -38,6 +38,12 @@ const RichTextArea = ({
 	maxImages = constants.max.imagesPost,
 	files = [],
 	previewSignature = false,
+	liveMode = false,
+	text,
+	setText,
+	clickHandler,
+	rows = 4,
+	pollMarkup = false,
 }: RichTextAreaProps) =>
 {
 	const [format, setFormat] = useState<MarkupFormatType>(formatValue);
@@ -47,11 +53,43 @@ const RichTextArea = ({
 	const [loading, setLoading] = useState<boolean>(false);
 	const [fileIndex, setFileIndex] = useState<number>(-1);
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const textareaRef = useRef<any>(null);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const didMount = useRef<any>(false);
+
+	useEffect(() =>
+	{
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		if (!(didMount as any).mounted)
+		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(didMount as any).mounted = true;
+			return;
+		}
+
+		if (!text || utils.realStringLength(text) === 0)
+		{
+			return;
+		}
+
+		setCurTextValue(text);
+
+		if (setText)
+		{
+			setText(text);
+		}
+	}, [text]);
 
 	const onChangeText = (): void =>
 	{
-		setCurTextValue(textareaRef.current?.value);
+		const value = textareaRef.current?.value;
+		setCurTextValue(value);
+
+		if (setText)
+		{
+			setText(value);
+		}
 	};
 
 	const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) =>
@@ -78,35 +116,44 @@ const RichTextArea = ({
 				doQuickMarkup(getTagDetails('underline'));
 			}
 		}
+		else if (clickHandler && event.key === 'Enter' && !event.shiftKey)
+		{
+			event.preventDefault();
+
+			clickHandler();
+			setCurTextValue('');
+		}
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const getTagDetails = (type: string): any | null =>
 	{
 		if (format === 'markdown')
 		{
-			return (markup.markdownTags as any)[type];
+			return markup.markdownTags[type];
 		}
 		else if (format === 'markdown+html')
 		{
-			return (markup.markdownHtmlTags as any)[type];
+			return markup.markdownHtmlTags[type];
 		}
 		else if (format === 'bbcode' || format === 'bbcode+html')
 		{
-			return (markup.traditionalTags as any)[type];
+			return markup.traditionalTags[type];
 		}
 
 		return null;
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const getEmojiTagDetails = (type: string): any | null =>
 	{
 		if (format === 'markdown' || format === 'markdown+html')
 		{
-			return (markup.markdownEmoji as any)[type];
+			return markup.markdownEmoji[type];
 		}
 		else if (format === 'bbcode' || format === 'bbcode+html')
 		{
-			return (markup.traditionalEmoji as any)[type];
+			return markup.traditionalEmoji[type];
 		}
 
 		return null;
@@ -128,6 +175,7 @@ const RichTextArea = ({
 		onChangeText();
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const doQuickMarkup = (tag: any): void =>
 	{
 		const textarea = textareaRef.current;
@@ -176,6 +224,7 @@ const RichTextArea = ({
 		onChangeText();
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const scanFile = async (e: any): Promise<void> =>
 	{
 		setErrors([]);
@@ -224,6 +273,114 @@ const RichTextArea = ({
 		setLoading(false);
 	};
 
+	useEffect(() =>
+	{
+		if (!textareaRef.current || !upload)
+		{
+			return;
+		}
+
+		const handlePaste = async (e: ClipboardEvent) =>
+		{
+			if (!e.clipboardData)
+			{
+				return;
+			}
+
+			const items = e.clipboardData.items;
+			const files: File[] = [];
+
+			for (let i = 0; i < items.length; i++)
+			{
+				const item = items[i];
+
+				if (item.type.indexOf('image') !== -1)
+				{
+					const blob = item.getAsFile();
+
+					if (blob)
+					{
+						const file = new File([blob], `pasted-image-${Date.now()}-${i}.png`, { type: blob.type });
+						files.push(file);
+					}
+				}
+			}
+
+			if (files.length > 0)
+			{
+				await scanFile({ target: { files: files } });
+			}
+		};
+
+		const textarea = textareaRef.current;
+		textarea.addEventListener('paste', handlePaste);
+
+		return () =>
+		{
+			textarea.removeEventListener('paste', handlePaste);
+		};
+	}, [textareaRef, scanFile, nodeFiles, maxImages, upload]);
+
+	useEffect(() =>
+	{
+		const textarea = textareaRef.current;
+
+		if (!textarea)
+		{
+			return;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let tribute: any;
+		let cancelled = false;
+
+		queueMicrotask(async () =>
+		{
+			if (cancelled || !textarea.isConnected)
+			{
+				return;
+			}
+
+			const { default: Tribute } = await import('tributejs');
+
+			tribute = new Tribute({
+				trigger: '@',
+				noMatchTemplate: () => '<span style="visibility:hidden;"></span>',
+				values: async (text, cb) =>
+				{
+					try
+					{
+						if (utils.realStringLength(text) < 3)
+						{
+							return cb([]);
+						}
+
+						const users: UsersType[] = await (await iso).query(null, 'v1/users', { query: text });
+
+						cb(users.map(u => ({ key: u.username, value: u.username })));
+					}
+					catch
+					{
+						cb([]);
+					}
+				},
+			});
+
+			tribute.attach(textarea);
+		});
+
+		return () =>
+		{
+			cancelled = true;
+
+			if (tribute && textarea)
+			{
+				tribute.detach(textarea);
+			}
+		};
+	}, [textareaRef.current]);
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const compressImage = async (file: File | Blob): Promise<any> =>
 	{
 		return new Promise((resolve, reject) =>
@@ -236,6 +393,7 @@ const RichTextArea = ({
 		});
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const uploadImage = async (file: any) =>
 	{
 		const params = {
@@ -251,7 +409,7 @@ const RichTextArea = ({
 
 					return fileName;
 				}
-				catch (error: any)
+				catch (error: unknown)
 				{
 					console.error('Error attempting to upload.', error);
 
@@ -259,7 +417,7 @@ const RichTextArea = ({
 					setLoading(false);
 				}
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				setErrors(['bad-format']);
 				setLoading(false);
@@ -363,6 +521,13 @@ const RichTextArea = ({
 							clickHandler={doQuickMarkup.bind(this)}
 							name='Center' icon='center'
 						/>
+						{pollMarkup &&
+							<MarkupButton
+								tag={getTagDetails('poll')}
+								clickHandler={doQuickMarkup.bind(this)}
+								name='Poll' icon='poll'
+							/>
+						}
 					</span>
 					<span className='RichTextArea_quickMarkupGroup'>
 						{format === 'markdown+html' &&
@@ -413,6 +578,7 @@ const RichTextArea = ({
 					name={formatName}
 					label='Markup style'
 					value={format}
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					changeHandler={(event: any) => setFormat(event.target.value)}
 					options={[
 						{ value: 'markdown', label: 'Markdown' },
@@ -424,27 +590,34 @@ const RichTextArea = ({
 		);
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const renderPhoto = (imageProps: any, photo: any, width: any) =>
 	{
 		return (
 			<div
 				style={{
-					width: width,
 					paddingBottom: 0,
 				}}
 				className='RichTextArea_file'
 			>
-				<button
-					className='RichTextArea_fileRemove'
-					title='Remove'
-					aria-label='Remove'
-					onClick={(e) => removeFile(e, photo.index)}
+				<div
+					style={{
+						width: width,
+					}}
+					className='RichTextArea_fileImg'
 				>
-					x
-				</button>
-				<img
-					style={{ width: '100%', padding: 0, paddingBottom: `5px` }} {...imageProps}
-				/>
+					<button
+						className='RichTextArea_fileRemove'
+						title='Remove'
+						aria-label='Remove'
+						onClick={(e) => removeFile(e, photo.index)}
+					>
+						x
+					</button>
+					<img
+						style={{ width: '100%', padding: 0, paddingBottom: `5px` }} {...imageProps}
+					/>
+				</div>
 				<Form.Group>
 					<Text
 						label='Caption'
@@ -482,28 +655,30 @@ const RichTextArea = ({
 	{
 		return (
 			<>
-				<RequireClientJS fallback={
-					formatName &&
+				{!liveMode &&
+					<RequireClientJS fallback={
+						formatName &&
+							<div className='RichTextArea_quickMarkup'>
+								{getQuickMarkupButtons()}
+								{getMarkupStyle()}
+							</div>
+
+					}
+					>
 						<div className='RichTextArea_quickMarkup'>
 							{getQuickMarkupButtons()}
-							{getMarkupStyle()}
+							{formatName &&
+								getMarkupStyle()
+							}
 						</div>
-
+					</RequireClientJS>
 				}
-				>
-					<div className='RichTextArea_quickMarkup'>
-						{getQuickMarkupButtons()}
-						{formatName &&
-							getMarkupStyle()
-						}
-					</div>
-				</RequireClientJS>
 				<div className='RichTextArea_textarea'>
 					<textarea
 						className='RichTextArea_textbox'
 						name={textName}
 						id={htmlId}
-						defaultValue={curTextValue}
+						value={curTextValue}
 						maxLength={maxLength}
 						ref={textareaRef}
 						onKeyDown={onKeyDown}
@@ -513,29 +688,30 @@ const RichTextArea = ({
 						aria-label={label}
 						placeholder={placeholder}
 						required={required}
+						rows={rows}
 					/>
 					{!hideEmojis &&
 						<RequireClientJS>
 							<div className='RichTextArea_emoji'>
-								{Object.keys((emojiDefs as any)[0]).map((def, index) =>
+								{Object.keys(emojiDefs[0]).map((def, index) =>
 									<EmojiButton
 										key={index}
 										tag={getEmojiTagDetails(def)}
 										clickHandler={doEmojiMarkup.bind(this)}
-										name={(emojiDefs as any)[0][def]}
-										icon={(emojiDefs as any)[0][def]}
+										name={emojiDefs[def]}
+										icon={emojiDefs[0][def]}
 										type={def}
 										emojiSettings={emojiSettings}
 									/>,
 								)}
 								<hr />
-								{Object.keys((emojiDefs as any)[1]).map((def, index) =>
+								{Object.keys(emojiDefs[1]).map((def, index) =>
 									<EmojiButton
 										key={index}
 										tag={getEmojiTagDetails(def)}
 										clickHandler={doEmojiMarkup.bind(this)}
-										name={(emojiDefs as any)[1][def]}
-										icon={(emojiDefs as any)[1][def]}
+										name={emojiDefs[1][def]}
+										icon={emojiDefs[1][def]}
 										type={def}
 										emojiSettings={emojiSettings}
 									/>,
@@ -559,22 +735,23 @@ const RichTextArea = ({
 				(identifier, index) =>
 					<ErrorMessage identifier={identifier} key={index} />,
 			)}
-			<Tabs defaultActiveKey='write' variant='light' fallback={getWriteSection()}>
-				<Tabs.Tab eventKey='write' title='Write'>
-					{getWriteSection()}
-				</Tabs.Tab>
-				<Tabs.Tab eventKey='preview' title='Preview'>
-					<input type='hidden' name={textName} defaultValue={curTextValue} />
-					<input type='hidden' name={formatName} defaultValue={format} />
+			{!liveMode ?
+				<Tabs defaultActiveKey='write' variant='light' fallback={getWriteSection()}>
+					<Tabs.Tab eventKey='write' title='Write'>
+						{getWriteSection()}
+					</Tabs.Tab>
+					<Tabs.Tab eventKey='preview' title='Preview'>
+						<input type='hidden' name={textName} defaultValue={curTextValue} />
+						<input type='hidden' name={formatName} defaultValue={format} />
 
-					<div className='RichTextArea_preview'>
-						<Markup
-							text={curTextValue ? curTextValue : ''}
-							format={format}
-							emojiSettings={emojiSettings}
-						/>
+						<div className='RichTextArea_preview'>
+							<Markup
+								text={curTextValue ? curTextValue : ''}
+								format={format}
+								emojiSettings={emojiSettings}
+							/>
 
-						{previewSignature &&
+							{previewSignature &&
 							<UserContext.Consumer>
 								{currentUser => currentUser &&
 									<>
@@ -617,10 +794,13 @@ const RichTextArea = ({
 									</>
 								}
 							</UserContext.Consumer>
-						}
-					</div>
-				</Tabs.Tab>
-			</Tabs>
+							}
+						</div>
+					</Tabs.Tab>
+				</Tabs>
+				:
+				getWriteSection()
+			}
 			{loading &&
 				<Spinner />
 			}
@@ -628,6 +808,7 @@ const RichTextArea = ({
 				<UserContext.Consumer>
 					{currentUser => currentUser &&
 						<ColumnsPhotoAlbum
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							photos={(nodeFiles as any).map((file: FileType, index: number) =>
 							{
 								return {
@@ -646,7 +827,7 @@ const RichTextArea = ({
 							padding={0}
 							columns={4}
 							render={{
-								image: (props: any, { photo, width }: any) =>
+								image: (props, { photo, width }) =>
 									renderPhoto(props, photo, width)
 								,
 							}}
@@ -675,6 +856,12 @@ type RichTextAreaProps = {
 	maxImages?: number
 	files?: FileType[],
 	previewSignature?: boolean
+	liveMode?: boolean
+	text?: string
+	setText?: (value: string) => void
+	clickHandler?: () => void
+	rows?: number
+	pollMarkup?: boolean
 };
 
 export default RichTextArea;

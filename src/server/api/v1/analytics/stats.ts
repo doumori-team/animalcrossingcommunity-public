@@ -1,17 +1,11 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SiteStatsType } from '@types';
 
 async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStatsType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [scoutPerm, userTicketPerm, supportTicketPerm] = await Promise.all([
+	const [scoutPerm, userTicketPerm, supportTicketPerm]: [boolean, boolean, boolean] = await Promise.all([
 		this.query('v1/permission', { permission: 'scout-pages' }),
 		this.query('v1/permission', { permission: 'process-user-tickets' }),
 		this.query('v1/permission', { permission: 'process-support-tickets' }),
@@ -342,21 +336,22 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 		`), // yearTotalShopOrders
 	]);
 
-	lastTotalRequests.map((r: any) =>
+	lastTotalRequests.map((r: lastType) =>
 	{
-		const posts = lastTotalPosts.find((x: any) => x.day === r.day);
-		const threads = lastTotalThreads.find((x: any) => x.day === r.day);
-		const patterns = lastTotalPatterns.find((x: any) => x.day === r.day);
-		const tunes = lastTotalTunes.find((x: any) => x.day === r.day);
-		const trades = lastTotalTrades.find((x: any) => x.day === r.day);
-		const signups = lastTotalSignups.find((x: any) => x.day === r.day);
-		const treasures = lastTotalOffers.find((x: any) => x.day === r.day);
-		const users = lastTotalMembers.find((x: any) => x.day === r.day);
-		const features = lastTotalFeatures.find((x: any) => x.day === r.day);
-		const donations = lastTotalDonations.find((x: any) => x.day === r.day);
-		const bellShopPurchases = lastTotalBellShopPurchases.find((x: any) => x.day === r.day);
-		const shopOrders = lastTotalShopOrders.find((x: any) => x.day === r.day);
+		const posts = lastTotalPosts.find((x: lastType) => x.day === r.day);
+		const threads = lastTotalThreads.find((x: lastType) => x.day === r.day);
+		const patterns = lastTotalPatterns.find((x: lastType) => x.day === r.day);
+		const tunes = lastTotalTunes.find((x: lastType) => x.day === r.day);
+		const trades = lastTotalTrades.find((x: lastType) => x.day === r.day);
+		const signups = lastTotalSignups.find((x: lastType) => x.day === r.day);
+		const treasures = lastTotalOffers.find((x: lastType) => x.day === r.day);
+		const users = lastTotalMembers.find((x: lastType) => x.day === r.day);
+		const features = lastTotalFeatures.find((x: lastType) => x.day === r.day);
+		const donations = lastTotalDonations.find((x: lastType) => x.day === r.day);
+		const bellShopPurchases = lastTotalBellShopPurchases.find((x: lastType) => x.day === r.day);
+		const shopOrders = lastTotalShopOrders.find((x: lastType) => x.day === r.day);
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let statData: any = {
 			'name': r.day,
 			'Posts': posts ? Number(posts.count) : 0,
@@ -376,15 +371,15 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 
 		if (scoutPerm)
 		{
-			const adoptions = lastTotalAdoptions.find((x: any) => x.day === r.day);
+			const adoptions = lastTotalAdoptions.find((x: lastType) => x.day === r.day);
 
 			statData['Adoptions'] = adoptions ? Number(adoptions.count) : 0;
 		}
 
 		if (userTicketPerm)
 		{
-			const uts = lastTotalUTs.find((x: any) => x.day === r.day);
-			const emails = lastTotalEmails.find((x: any) => x.day === r.day);
+			const uts = lastTotalUTs.find((x: lastType) => x.day === r.day);
+			const emails = lastTotalEmails.find((x: lastType) => x.day === r.day);
 
 			statData['UTs'] = uts ? Number(uts.count) : 0;
 			statData['Emails'] = emails ? Number(emails.count) : 0;
@@ -392,7 +387,7 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 
 		if (supportTicketPerm)
 		{
-			const sts = lastTotalSTs.find((x: any) => x.day === r.day);
+			const sts = lastTotalSTs.find((x: lastType) => x.day === r.day);
 
 			statData['STs'] = sts ? Number(sts.count) : 0;
 		}
@@ -400,20 +395,20 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 		lineGraphStats.statData.push(statData);
 	});
 
-	yearTotalSignups.map((s: any) =>
+	yearTotalSignups.map((s: yearType) =>
 	{
-		const posts = yearTotalPosts.find((x: any) => x.year === s.year);
-		const threads = yearTotalThreads.find((x: any) => x.year === s.year);
-		const patterns = yearTotalPatterns.find((x: any) => x.year === s.year);
-		const tunes = yearTotalTunes.find((x: any) => x.year === s.year);
-		const trades = yearTotalTrades.find((x: any) => x.year === s.year);
-		const treasures = yearTotalOffers.find((x: any) => x.year === s.year);
-		const users = yearTotalMembers.find((x: any) => x.year === s.year);
-		const features = yearTotalFeatures.find((x: any) => x.year === s.year);
-		const requests = yearTotalRequests.find((x: any) => x.year === s.year);
-		const donations = yearTotalDonations.find((x: any) => x.year === s.year);
-		const bellShopPurchases = yearTotalBellShopPurchases.find((x: any) => x.year === s.year);
-		const shopOrders = yearTotalShopOrders.find((x: any) => x.year === s.year);
+		const posts = yearTotalPosts.find((x: yearType) => x.year === s.year);
+		const threads = yearTotalThreads.find((x: yearType) => x.year === s.year);
+		const patterns = yearTotalPatterns.find((x: yearType) => x.year === s.year);
+		const tunes = yearTotalTunes.find((x: yearType) => x.year === s.year);
+		const trades = yearTotalTrades.find((x: yearType) => x.year === s.year);
+		const treasures = yearTotalOffers.find((x: yearType) => x.year === s.year);
+		const users = yearTotalMembers.find((x: yearType) => x.year === s.year);
+		const features = yearTotalFeatures.find((x: yearType) => x.year === s.year);
+		const requests = yearTotalRequests.find((x: yearType) => x.year === s.year);
+		const donations = yearTotalDonations.find((x: yearType) => x.year === s.year);
+		const bellShopPurchases = yearTotalBellShopPurchases.find((x: yearType) => x.year === s.year);
+		const shopOrders = yearTotalShopOrders.find((x: yearType) => x.year === s.year);
 
 		barGraphStats = setYearResults(barGraphStats, 'Posts', posts, s.year);
 		barGraphStats = setYearResults(barGraphStats, 'Threads', threads, s.year);
@@ -431,15 +426,15 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 
 		if (scoutPerm)
 		{
-			const adoptions = yearTotalAdoptions.find((x: any) => x.year === s.year);
+			const adoptions = yearTotalAdoptions.find((x: yearType) => x.year === s.year);
 
 			barGraphStats = setYearResults(barGraphStats, 'Adoptions', adoptions, s.year);
 		}
 
 		if (userTicketPerm)
 		{
-			const uts = yearTotalUTs.find((x: any) => x.year === s.year);
-			const emails = yearTotalEmails.find((x: any) => x.year === s.year);
+			const uts = yearTotalUTs.find((x: yearType) => x.year === s.year);
+			const emails = yearTotalEmails.find((x: yearType) => x.year === s.year);
 
 			barGraphStats = setYearResults(barGraphStats, 'UTs', uts, s.year);
 			barGraphStats = setYearResults(barGraphStats, 'Emails', emails, s.year);
@@ -447,7 +442,7 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 
 		if (supportTicketPerm)
 		{
-			const sts = yearTotalSTs.find((x: any) => x.year === s.year);
+			const sts = yearTotalSTs.find((x: yearType) => x.year === s.year);
 
 			barGraphStats = setYearResults(barGraphStats, 'STs', sts, s.year);
 		}
@@ -574,9 +569,9 @@ async function stats(this: APIThisType, { date }: statsProps): Promise<SiteStats
 	};
 }
 
-function setYearResults(barGraphStats: SiteStatsType['barGraphStats'], name: string, data: any, year: number)
+function setYearResults(barGraphStats: SiteStatsType['barGraphStats'], name: string, data: yearType, year: number): SiteStatsType['barGraphStats']
 {
-	const stat = barGraphStats.find((x: any) => x.name === name);
+	const stat = barGraphStats.find(x => x.name === name);
 
 	if (stat)
 	{
@@ -601,15 +596,23 @@ function setYearResults(barGraphStats: SiteStatsType['barGraphStats'], name: str
 	return barGraphStats;
 }
 
+stats.permissions = [
+	'userId',
+];
+
 stats.apiTypes = {
 	date: {
 		type: APITypes.date,
-		default: dateUtils.formatYesterdayYearMonthDay(),
+		default: () => dateUtils.formatYesterdayYearMonthDay(),
 	},
 };
 
 type statsProps = {
 	date: string
 };
+
+type lastType = { count: number, day: string };
+
+type yearType = { count: number, year: number };
 
 export default stats;

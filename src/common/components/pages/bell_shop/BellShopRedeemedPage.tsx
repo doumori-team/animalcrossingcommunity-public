@@ -38,9 +38,11 @@ const BellShopRedeemedPage = ({ loaderData }: { loaderData: BellShopRedeemedPage
 									Redeemed: {item.redeemed}
 								</div>
 
-								<div className='BellShopRedeemedPage_expires'>
-									Expires: {item.expires === null ? 'Never' : item.expires}
-								</div>
+								{item.expires !== null &&
+									<div className='BellShopRedeemedPage_expires'>
+										Expires: {item.expires}
+									</div>
+								}
 
 								<div className='BellShopRedeemedPage_price'>
 									Redeemed For: {item.price}

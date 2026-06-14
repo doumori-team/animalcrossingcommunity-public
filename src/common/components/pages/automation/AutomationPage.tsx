@@ -128,7 +128,7 @@ const AutomationPage = ({ loaderData }: { loaderData: AutomationPageProps }) =>
 									/>
 
 									{treasure &&
-										<TreasureOffer size='728x90' treasure={treasure} />
+										<TreasureOffer size='728x90' treasure={treasure} location='content_bottom' />
 									}
 								</div>
 							</RequireClientJS>
@@ -381,6 +381,7 @@ const AutomationPage = ({ loaderData }: { loaderData: AutomationPageProps }) =>
 											name='gameId'
 											label='Game'
 											options={[
+												// eslint-disable-next-line @typescript-eslint/no-explicit-any
 												{ id: 'real-world', name: 'Real-World' } as any,
 											].concat(acgames.filter(g => g.hasTown))}
 											optionsMapping={{ value: 'id', label: 'name' }}
@@ -399,6 +400,14 @@ const AutomationPage = ({ loaderData }: { loaderData: AutomationPageProps }) =>
 								</div>
 							</Form>
 						</div>
+
+						<hr/>
+
+						<Form
+							action='v1/automation/other/polls'
+							showButton
+							buttonText='Add Homepage Polls'
+						/>
 					</Section>
 				</div>
 			</RequireUser>

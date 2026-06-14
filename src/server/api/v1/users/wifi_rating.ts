@@ -1,22 +1,9 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, RatingType } from '@types';
 
 async function wifi_rating(this: APIThisType, { id }: wifiRatingProps): Promise<RatingType | null>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Confirm whitelists
 	let [whitelist] = await db.query(`
 		SELECT id
@@ -69,6 +56,11 @@ async function wifi_rating(this: APIThisType, { id }: wifiRatingProps): Promise<
 
 	return null;
 }
+
+wifi_rating.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 wifi_rating.apiTypes = {
 	id: {

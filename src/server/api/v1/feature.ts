@@ -2,16 +2,27 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { dateUtils, constants } from '@utils';
-import { APIThisType, FeatureType } from '@types';
+import { APIThisType, FeatureType, UserLiteType } from '@types';
 
 async function feature(this: APIThisType, { id }: featureProps): Promise<FeatureType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [[feature], advancedPermission] = await Promise.all([
+	const [[feature], advancedPermission]: [[{
+		id: number
+		title: string
+		description: string
+		status_id: string
+		status_name: string
+		category_id: number | null
+		category_name: string
+		is_bug: boolean
+		staff_only: boolean
+		read_only: boolean
+		created_user_id: number
+		created: Date
+		format: string
+		staff_description: string | null
+		staff_description_format: string | null
+	} | undefined], boolean] = await Promise.all([
 		db.query(`
 			SELECT
 				feature.id,
@@ -35,7 +46,6 @@ async function feature(this: APIThisType, { id }: featureProps): Promise<Feature
 			WHERE feature.id = $1::int
 		`, id),
 		this.query('v1/permission', { permission: 'advanced-features' }),
-		this.query('v1/user_lite', { id: this.userId }),
 	]);
 
 	if (!feature)
@@ -48,7 +58,14 @@ async function feature(this: APIThisType, { id }: featureProps): Promise<Feature
 		throw new UserError('permission');
 	}
 
-	const [messages, createdUser, [followed], users] = await Promise.all([
+	const [messages, createdUser, [followed], users]: [{
+		id: number
+		user_id: number
+		message: string
+		created: Date
+		message_format: string
+		staff_only: boolean
+	}[], UserLiteType | null, [{ feature_id: number } | undefined], { user_id: number }[], void, void, void] = await Promise.all([
 		db.query(`
 			SELECT id, user_id, message, created, message_format, staff_only
 			FROM feature_message
@@ -94,7 +111,7 @@ async function feature(this: APIThisType, { id }: featureProps): Promise<Feature
 		readOnly: feature.read_only,
 		user: createdUser,
 		formattedCreated: dateUtils.formatDateTime(feature.created),
-		messages: await Promise.all(messages.filter((m: any) => advancedPermission || !m.staff_only).map(async (message: any) =>
+		messages: await Promise.all(messages.filter(m => advancedPermission || !m.staff_only).map(async message =>
 		{
 			return {
 				id: message.id,
@@ -109,11 +126,15 @@ async function feature(this: APIThisType, { id }: featureProps): Promise<Feature
 		staffDescription: advancedPermission ? feature.staff_description : null,
 		staffDescriptionFormat: advancedPermission ? feature.staff_description_format : null,
 		assignedUsers: advancedPermission ? await Promise.all(
-			users.map(async (user: any) => await this.query('v1/user_lite', { id: user.user_id })),
+			users.map(async user => await this.query('v1/user_lite', { id: user.user_id })),
 		) : [],
-		claimed: users.some((u: any) => u.user_id === this.userId),
+		claimed: users.some(u => u.user_id === this.userId),
 	};
 }
+
+feature.permissions = [
+	'userId',
+];
 
 feature.apiTypes = {
 	id: {

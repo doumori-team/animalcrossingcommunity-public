@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UserLiteType } from '@types';
@@ -7,17 +6,10 @@ import { APIThisType, UserLiteType } from '@types';
 /*
  * Save settings for adoption buddy thread.
  */
-async function save(this: APIThisType, { username, action }: saveProps): Promise<void>
+async function save(this: APIThisType, { addUser, action }: saveProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-bt-settings' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
-	const user: UserLiteType = await this.query('v1/user_lite', { username: username });
+	const user: UserLiteType = await this.query('v1/user_lite', { username: addUser });
 
 	// Update permissions
 	const nodeId = constants.boardIds.adopteeBT;
@@ -30,7 +22,7 @@ async function save(this: APIThisType, { username, action }: saveProps): Promise
 		{
 			await db.query(`
 				DELETE FROM user_node_permission
-				WHERE node_id = $1::int and user_id = $2::int
+				WHERE node_id = $1::int AND user_id = $2::int
 			`, nodeId, user.id);
 		}
 
@@ -43,12 +35,16 @@ async function save(this: APIThisType, { username, action }: saveProps): Promise
 
 	await db.query(`
 		INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
-		VALUES ($1::int, $2::int, $3::int, true), ($1::int, $2::int, $4::int, true);
-	`, user.id, nodeId, constants.nodePermissions.read, constants.nodePermissions.reply);
+		VALUES ($1::int, $2::int, $3::int, true), ($1::int, $2::int, $4::int, true), ($1::int, $2::int, $5::int, true);
+	`, user.id, nodeId, constants.nodePermissions.read, constants.nodePermissions.reply, constants.nodePermissions.react);
 }
 
+save.permissions = [
+	'adoption-bt-settings',
+];
+
 save.apiTypes = {
-	username: {
+	addUser: {
 		type: APITypes.string,
 		default: '',
 		length: constants.max.searchUsername,
@@ -62,7 +58,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	username: string
+	addUser: string
 	action: 'add' | 'remove'
 };
 

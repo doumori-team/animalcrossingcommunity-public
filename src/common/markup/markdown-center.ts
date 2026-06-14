@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use strict';
 
 const TOKEN_TYPE = 'center_text';
@@ -30,7 +31,7 @@ function render(tokens: any, idx: any): string
 {
 	const token = tokens[idx];
 
-	if (token.nesting === -1)
+	if (token.level === 1)
 	{
 		return '</span>';
 	}

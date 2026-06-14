@@ -1,16 +1,10 @@
 import * as db from '@db';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType, UserThreadsType } from '@types';
 
 async function threads(this: APIThisType, { id, page }: threadsProps): Promise<UserThreadsType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const offset = page * constants.threadPageSize - constants.threadPageSize;
 
 	// check permissions: users are granted node read access through user or group level
@@ -22,7 +16,7 @@ async function threads(this: APIThisType, { id, page }: threadsProps): Promise<U
 		db.getUserGroups(id),
 	]);
 
-	const resultsQuery = await db.query(`
+	const resultsQuery = db.query(`
 		WITH RECURSIVE BOARDS as (
 			SELECT n1.id, n1.parent_node_id, 1 AS level, n1.id AS root_id
 			FROM node AS n1
@@ -44,6 +38,9 @@ async function threads(this: APIThisType, { id, page }: threadsProps): Promise<U
 				node.type,
 				node.user_id,
 				node.parent_node_id,
+				parent.parent_node_id AS parent_node_id2,
+				0 AS post_number,
+				0 AS page_number,
 				node.creation_time,
 				node.locked,
 				node.thread_type,
@@ -51,6 +48,7 @@ async function threads(this: APIThisType, { id, page }: threadsProps): Promise<U
 				node.reply_count,
 				count(*) over() AS count
 			FROM node
+			LEFT JOIN node AS parent ON (parent.id = node.parent_node_id)
 			JOIN (
 				SELECT DISTINCT ON (inner_node_id) *
 				FROM (
@@ -127,6 +125,10 @@ async function threads(this: APIThisType, { id, page }: threadsProps): Promise<U
 		totalCount: count,
 	};
 }
+
+threads.permissions = [
+	'userId',
+];
 
 threads.apiTypes = {
 	id: {

@@ -11,17 +11,6 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function rating(this: APIThisType, { username }: ratingProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
 	const [whitelistUser] = await db.query(`
@@ -81,6 +70,11 @@ async function rating(this: APIThisType, { username }: ratingProps): Promise<Suc
 		_success: `The ratings have been given!`,
 	};
 }
+
+rating.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 rating.apiTypes = {
 	username: {

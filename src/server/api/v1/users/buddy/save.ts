@@ -6,18 +6,6 @@ import { APIThisType, SuccessType, UserDonationsType } from '@types';
 
 async function save(this: APIThisType, { buddyUsers, action }: saveProps): Promise<SuccessType | boolean>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-buddy-system' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	let buddyUserIds = await Promise.all(buddyUsers.map(async (username: string) =>
 	{
@@ -95,16 +83,24 @@ async function save(this: APIThisType, { buddyUsers, action }: saveProps): Promi
 		`, this.userId, buddyUserIds);
 	}
 
+	this.query('v1/users/badge/check', { badgeId: constants.badges.tenbuddies });
+
 	return {
-		_successImage: `${constants.AWS_URL}/images/icons/icon_check.png`,
+		_successImage: constants.allImages['icons/icon_check.png'],
 		_success: `You have updated your buddy list.`,
 	};
 }
+
+save.permissions = [
+	'use-buddy-system',
+	'userId',
+];
 
 save.apiTypes = {
 	buddyUsers: {
 		type: APITypes.array,
 		length: constants.max.addMultipleUsers,
+		userInput: true,
 	},
 	action: {
 		type: APITypes.string,

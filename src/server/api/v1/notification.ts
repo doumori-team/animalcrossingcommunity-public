@@ -6,11 +6,6 @@ import { APIThisType, NotificationType } from '@types';
 
 async function notification(this: APIThisType, { id }: notificationProps): Promise<NotificationType | null>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [notification] = await db.query(`
 		SELECT
 			notification.id,
@@ -47,6 +42,7 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 	if ([
 		constants.notification.types.PT,
 		constants.notification.types.FT,
+		constants.notification.types.FT_edit,
 		constants.notification.types.FB,
 		constants.notification.types.usernameTag,
 		constants.notification.types.scoutAdoption,
@@ -54,10 +50,15 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 		constants.notification.types.scoutClosed,
 		constants.notification.types.scoutFeedback,
 		constants.notification.types.scoutBT,
+		constants.notification.types.postQuote,
 	].includes(type)
 	)
 	{
 		permission = await this.query('v1/node/permission', { permission: 'read', nodeId: notification.reference_id });
+	}
+	else if (type === constants.notification.types.postReaction)
+	{
+		permission = await this.query('v1/node/permission', { permission: 'react', nodeId: notification.reference_id });
 	}
 	else if (
 		[
@@ -142,7 +143,11 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 		userCheck = await this.query('v1/permission', { permission: 'process-user-tickets' });
 	}
 
-	let extra: any = {
+	let extra: {
+		parentId?: number
+		page?: number
+		post: number | null
+	} = {
 		post: null,
 	};
 
@@ -150,90 +155,149 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 		[
 			constants.notification.types.PT,
 			constants.notification.types.FT,
+			constants.notification.types.FT_edit,
 			constants.notification.types.usernameTag,
 			constants.notification.types.shopThread,
+			constants.notification.types.postQuote,
+			constants.notification.types.postReaction,
 		].includes(notification.identifier)
 	)
 	{
-		let children = [], nodeUser = null, parentId: number = notification.reference_id, post: number | null = notification.reference_id;
-
-		if (constants.notification.types.usernameTag === notification.identifier)
+		if (notification.child_reference_id && constants.notification.types.FT_edit === notification.identifier)
 		{
+			// Edited post — link directly to that post
 			const [parent] = await db.query(`
 				SELECT node.parent_node_id AS id
 				FROM node
 				WHERE node.id = $1
-			`, notification.reference_id);
+			`, notification.child_reference_id);
 
-			children = await db.query(`
-				SELECT node.id, node.creation_time
+			const children = await db.query(`
+				SELECT node.id
 				FROM node
 				WHERE node.parent_node_id = $1
 				ORDER BY creation_time ASC
 			`, parent.id);
 
-			parentId = parent.id;
+			let page = 1, index = 0;
+
+			for (let child of children)
+			{
+				if (index % constants.threadPageSize === 0 && index)
+				{
+					page++;
+				}
+
+				if (child.id === notification.child_reference_id)
+				{
+					break;
+				}
+
+				index++;
+			}
+
+			extra = {
+				parentId: parent.id,
+				page: page,
+				post: notification.child_reference_id,
+			};
 		}
 		else
 		{
-			[nodeUser] = await db.query(`
-				SELECT last_checked
-				FROM node_user
-				WHERE node_id = $1 AND user_id = $2
-			`, notification.reference_id, this.userId);
+			let children: {
+				id: number
+				creation_time: Date
+			}[] = [];
+			let nodeUser: { last_checked: Date } | null = null, parentId: number = notification.reference_id, post: number | null = notification.reference_id;
 
-			if (nodeUser)
+			if ([
+				constants.notification.types.usernameTag,
+				constants.notification.types.postQuote,
+				constants.notification.types.postReaction,
+			].includes(notification.identifier)
+			)
 			{
+				const [parent] = await db.query(`
+					SELECT node.parent_node_id AS id
+					FROM node
+					WHERE node.id = $1
+				`, notification.reference_id);
+
 				children = await db.query(`
 					SELECT node.id, node.creation_time
 					FROM node
 					WHERE node.parent_node_id = $1
 					ORDER BY creation_time ASC
-				`, notification.reference_id);
-			}
+				`, parent.id);
 
-			post = null;
-		}
-
-		let page = 1, index = 0;
-
-		for (let child of children)
-		{
-			if (index % constants.threadPageSize === 0 && index)
-			{
-				page++;
-			}
-
-			if (constants.notification.types.usernameTag === notification.identifier)
-			{
-				if (child.id === notification.reference_id)
-				{
-					break;
-				}
+				parentId = parent.id;
 			}
 			else
 			{
-				if (dateUtils.isAfter(child.creation_time, nodeUser.last_checked))
+				[nodeUser] = await db.query(`
+					SELECT last_checked
+					FROM node_user
+					WHERE node_id = $1 AND user_id = $2
+				`, notification.reference_id, this.userId);
+
+				if (nodeUser)
 				{
-					post = child.id;
-					break;
+					children = await db.query(`
+						SELECT node.id, node.creation_time
+						FROM node
+						WHERE node.parent_node_id = $1
+						ORDER BY creation_time ASC
+					`, notification.reference_id);
 				}
+
+				post = null;
 			}
 
-			index++;
-		}
+			let page = 1, index = 0;
 
-		extra = {
-			parentId: parentId,
-			page: page,
-			post: post,
-		};
+			for (let child of children)
+			{
+				if (index % constants.threadPageSize === 0 && index)
+				{
+					page++;
+				}
+
+				if ([
+					constants.notification.types.usernameTag,
+					constants.notification.types.postQuote,
+					constants.notification.types.postReaction,
+				].includes(notification.identifier)
+				)
+				{
+					if (child.id === notification.reference_id)
+					{
+						break;
+					}
+				}
+				else
+				{
+					if (nodeUser && dateUtils.isAfter(child.creation_time, nodeUser.last_checked))
+					{
+						post = child.id;
+						break;
+					}
+				}
+
+				index++;
+			}
+
+			extra = {
+				parentId: parentId,
+				page: page,
+				post: post,
+			};
+		}
 	}
 
 	return <NotificationType>{
 		id: notification.id,
 		description: notification.description.replace('%count%', notification?.count && notification.count > 1 ? notification?.count.toString() : 'multiple'),
-		url: utils.getNotificationReferenceLink(notification, userCheck, this.userId, extra),
+		url: utils.getNotificationReferenceLink(notification, userCheck, this.userId as number, extra),
 		formattedCreated: dateUtils.formatDateTime(notification.created),
 		formattedNotified: dateUtils.formatDateTime(notified),
 		anchor: extra.post,
@@ -242,6 +306,10 @@ async function notification(this: APIThisType, { id }: notificationProps): Promi
 		count: notification.count,
 	};
 }
+
+notification.permissions = [
+	'userId',
+];
 
 notification.apiTypes = {
 	id: {

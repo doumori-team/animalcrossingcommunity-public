@@ -10,7 +10,7 @@ import { routerUtils } from '@utils';
 
 export const action = routerUtils.formAction;
 
-const UserTownsPage = ({ loaderData, params }: { loaderData: Promise<UserTownsPageProps>, params: Params }) =>
+const UserTownsPage = ({ loaderData, params }: { loaderData: Promise<DeferredProps>, params: Params }) =>
 {
 	const { towns } = getData(use(loaderData));
 	const { id } = params;
@@ -45,14 +45,14 @@ const UserTownsPage = ({ loaderData, params }: { loaderData: Promise<UserTownsPa
 	);
 };
 
-async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<DeferredProps>
 {
 	return Promise.all([
 		this.query('v1/users/towns', { id }),
 	]);
 }
 
-function getData(data: any): UserTownsPageProps
+function getData(data: DeferredProps): UserTownsPageProps
 {
 	const [towns] = data;
 
@@ -64,5 +64,7 @@ export const loader = routerUtils.deferLoader(loadData);
 type UserTownsPageProps = {
 	towns: TownType[]
 };
+
+type DeferredProps = [UserTownsPageProps['towns']];
 
 export default routerUtils.LoadingFunction(UserTownsPage);

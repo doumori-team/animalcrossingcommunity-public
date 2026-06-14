@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { Form, Text, Switch, Button } from '@form';
 import { PollType } from '@types';
 import { dateUtils, constants } from '@utils';
-import { InnerSection } from '@layout';
+import { InnerSection, ErrorMessage } from '@layout';
 import { RequireClientJS } from '@behavior';
-import { ErrorMessage } from '@layout';
 
 const EditPoll = ({
 	id,
@@ -18,7 +17,7 @@ const EditPoll = ({
 	options,
 }: EditPollProps) =>
 {
-	const [curOptions, setCurOptions] = useState<any>(options ? options : [
+	const [curOptions, setCurOptions] = useState(options ? options : [
 		{ description: '' },
 		{ description: '' },
 	]);
@@ -68,11 +67,9 @@ const EditPoll = ({
 						type='date'
 						name='startDate'
 						label='Start Date'
-						value={startDate ? dateUtils.formatYearMonthDay(startDate) : ''}
+						value={startDate ? dateUtils.formatYearMonthDay2(startDate) : ''}
 						required
-						min={startDate ?
-							dateUtils.formatYearMonthDay2(startDate) :
-							dateUtils.formatCurrentDateYearMonthDay()}
+						min={dateUtils.formatCurrentDateYearMonthDay()}
 						placeholder='MM/DD/YYYY'
 					/>
 				</Form.Group>
@@ -118,7 +115,7 @@ const EditPoll = ({
 							/>
 						</div>
 
-						{curOptions.map((option: any, index: any) =>
+						{curOptions.map((option: typeof curOptions[number], index: number) =>
 							<div key={index} className='EditPoll_option'>
 								<Form.Group>
 									<Text

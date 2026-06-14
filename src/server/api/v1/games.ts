@@ -1,21 +1,17 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, GamesType } from '@types';
 
-export default async function games(this: APIThisType): Promise<GamesType[]>
+async function games(this: APIThisType): Promise<GamesType[]>
 {
-	const [useFriendCodesPerm, useTradingPostPerm] = await Promise.all([
-		this.query('v1/permission', { permission: 'use-friend-codes' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-	]);
-
-	if (!(useFriendCodesPerm || useTradingPostPerm))
-	{
-		throw new UserError('permission');
-	}
-
-	const games = await db.cacheQuery(constants.cacheKeys.games, `
+	const games: {
+		id: number
+		name: string
+		pattern: string
+		placeholder: string
+		console_name: string
+		acgame_id: number | null
+	}[] = await db.cacheQuery(constants.cacheKeys.games, `
 		SELECT
 			game.id,
 			game.name,
@@ -30,7 +26,7 @@ export default async function games(this: APIThisType): Promise<GamesType[]>
 		ORDER BY game_console.is_legacy NULLS FIRST, game_console.sequence, game.sequence, game.name
 	`);
 
-	return Promise.all(games.map((game: any) =>
+	return games.map(game =>
 	{
 		return {
 			id: game.id,
@@ -40,5 +36,12 @@ export default async function games(this: APIThisType): Promise<GamesType[]>
 			consoleName: game.console_name,
 			acGameId: game.acgame_id,
 		};
-	}));
+	});
 }
+
+games.permissions = [
+	'use-friend-codes',
+	'use-trading-post',
+];
+
+export default games;

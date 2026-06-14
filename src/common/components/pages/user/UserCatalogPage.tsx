@@ -8,7 +8,7 @@ import { LocationType, GroupItemType, APIThisType, CatalogItemsType, UserCatalog
 
 export const action = routerUtils.formAction;
 
-const UserCatalogPage = ({ loaderData, params }: { loaderData: Promise<UserCatalogPageProps>, params: Params }) =>
+const UserCatalogPage = ({ loaderData, params }: { loaderData: Promise<DeferredProps>, params: Params }) =>
 {
 	const { catalogItems, catalog, catalogCategories } = getData(use(loaderData));
 	let { userId } = params;
@@ -41,7 +41,7 @@ const UserCatalogPage = ({ loaderData, params }: { loaderData: Promise<UserCatal
 	);
 };
 
-async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<any>
+async function loadData(this: APIThisType, { userId }: { userId: string }, { by, name, category }: { by?: string, name?: string, category?: string }): Promise<DeferredProps>
 {
 	const selectedUserId = Number(userId);
 
@@ -56,7 +56,7 @@ async function loadData(this: APIThisType, { userId }: { userId: string }, { by,
 	]);
 }
 
-function getData(data: any): UserCatalogPageProps
+function getData(data: DeferredProps): UserCatalogPageProps
 {
 	const [catalogCategories, catalogItems, catalog] = data;
 
@@ -70,5 +70,11 @@ type UserCatalogPageProps = {
 	catalogItems: CatalogItemsType[]
 	catalogCategories: UserCatalogCategoryType
 };
+
+type DeferredProps = [
+	UserCatalogPageProps['catalog'],
+	UserCatalogPageProps['catalogItems'],
+	UserCatalogPageProps['catalogCategories'],
+];
 
 export default routerUtils.LoadingFunction(UserCatalogPage);

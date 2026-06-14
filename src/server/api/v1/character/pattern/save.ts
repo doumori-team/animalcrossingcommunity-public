@@ -5,18 +5,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { patternId, id }: saveProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [pattern] = await db.query(`
 		SELECT name, creator_id, data_url
@@ -48,6 +36,11 @@ async function save(this: APIThisType, { patternId, id }: saveProps): Promise<vo
 		WHERE id = $2::int
 	`, pattern.creator_id === this.userId ? patternId : null, id, pattern.data_url, pattern.creator_id, pattern.name);
 }
+
+save.permissions = [
+	'modify-towns',
+	'userId',
+];
 
 save.apiTypes = {
 	patternId: {

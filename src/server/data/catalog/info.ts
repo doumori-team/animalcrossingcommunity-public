@@ -7,18 +7,17 @@ import {
 	DataBackgroundType,
 	DataCharacterType,
 	DataColorationType,
-	DataAccentType
+	DataAccentType,
 } from '@types';
+import acnlPwps from './acnl/pwps.json';
+import bellShop from './bell-shop.json';
 
-import acnlPwps from './acnl/pwps.json' assert { type: 'json' };
-import bellShop from './bell-shop.json' assert { type: 'json'};
+const avatarBackgrounds: DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds);
+const avatarCharacters: DataCharacterType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters);
+const avatarColorations: DataColorationType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
+const avatarAccents: DataAccentType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
 
-const avatarBackgrounds:DataBackgroundType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarBackgrounds);
-const avatarCharacters:DataCharacterType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarCharacters);
-const avatarColorations:DataColorationType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
-const avatarAccents:DataAccentType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
-
-export const pwps:PWPsType = {
+export const pwps: PWPsType = {
 	[constants.gameIds.ACGC]: [],
 	[constants.gameIds.ACWW]: [],
 	[constants.gameIds.ACCF]: [],
@@ -27,18 +26,18 @@ export const pwps:PWPsType = {
 	[constants.gameIds.ACPC]: [],
 };
 
-export const bellShopCategories:BellShopCategoryType[] = bellShop[0];
+export const bellShopCategories: BellShopCategoryType[] = bellShop[0] as BellShopCategoryType[];
 
 export const sortedBellShopItems = getSortedBellShopItems();
 
 /*
  * Get Bell Shop Items.
  */
-export function getSortedBellShopItems() : BellShopItemsType
+export function getSortedBellShopItems(): BellShopItemsType
 {
 	const bellShopItems = bellShop[1] as {
 		internalId: string
-		name: string
+		name?: string
 		categoryId: number
 		id: number
 		releaseDate: string
@@ -49,34 +48,62 @@ export function getSortedBellShopItems() : BellShopItemsType
 		}[]
 		expireDurationMonths?: number
 		description?: string
+		image?: string
+		packs?: string[]
 	}[];
 
-	let sortedBellShopItems:BellShopItemsType = {
+	let sortedBellShopItems: BellShopItemsType = {
 		'all': {},
 		'price': {},
 	};
 
-	bellShopItems.map(item => {
+	bellShopItems.map(item =>
+	{
 		const categoryName = bellShopCategories.find(c => c.id === item.categoryId)?.name;
-		const expireDurationMonths = item.hasOwnProperty('expireDurationMonths') && item.expireDurationMonths != null ? item.expireDurationMonths : null;
+		const expireDurationMonths = Object.prototype.hasOwnProperty.call(item, 'expireDurationMonths') && item.expireDurationMonths !== undefined ? item.expireDurationMonths : null;
 
-		const modifiedItem:BellShopItemsType[number][number] = {
+		let avatarSource: DataBackgroundType | DataCharacterType | DataColorationType | DataAccentType | null = null;
+
+		if (categoryName === constants.bellShop.categories.avatarBackgrounds)
+		{
+			avatarSource = (avatarBackgrounds as DataBackgroundType[])[item.internalId];
+		}
+		else if (categoryName === constants.bellShop.categories.avatarCharacters)
+		{
+			avatarSource = (avatarCharacters as DataCharacterType[])[item.internalId];
+		}
+		else if (categoryName === constants.bellShop.categories.avatarAccents)
+		{
+			avatarSource = (avatarAccents as DataAccentType[])[item.internalId];
+		}
+		else if (categoryName === constants.bellShop.categories.backgroundColorations)
+		{
+			avatarSource = (avatarColorations as DataColorationType[])[item.internalId];
+		}
+
+		const modifiedItem: BellShopItemsType[number]['items'][number] = {
 			id: item.id,
 			internalId: item.internalId,
-			name: item.name,
+			name: avatarSource?.name ?? (item.name ?? 'Unknown'),
+			subtitle: avatarSource?.subtitle ?? null,
+			game: avatarSource?.game ?? null,
 			categoryId: item.categoryId,
-			description: item.hasOwnProperty('description') && item.description != null ? item.description : null,
-			avatar: categoryName != null && [constants.bellShop.categories.avatarBackgrounds, constants.bellShop.categories.avatarCharacters, constants.bellShop.categories.avatarAccents, constants.bellShop.categories.backgroundColorations].includes(categoryName) ? {
-				background: categoryName === constants.bellShop.categories.avatarBackgrounds ? (avatarBackgrounds as any)[item.internalId] : null,
-				character: categoryName === constants.bellShop.categories.avatarCharacters ? (avatarCharacters as any)[item.internalId] : null,
-				accent: categoryName === constants.bellShop.categories.avatarAccents ? (avatarAccents as any)[item.internalId] : null,
-				accentPosition: categoryName === constants.bellShop.categories.avatarAccents && (avatarAccents as any)[item.internalId].positionable ? 4 : null,
-				coloration: categoryName === constants.bellShop.categories.backgroundColorations ? (avatarColorations as any)[item.internalId] : null,
+			description: Object.prototype.hasOwnProperty.call(item, 'description') && item.description !== undefined ? item.description : null,
+			avatar: avatarSource ? {
+				background: categoryName === constants.bellShop.categories.avatarBackgrounds ? avatarSource as DataBackgroundType : null,
+				character: categoryName === constants.bellShop.categories.avatarCharacters ? avatarSource as DataCharacterType : null,
+				accent: categoryName === constants.bellShop.categories.avatarAccents ? avatarSource as DataAccentType : null,
+				accentPosition:
+				categoryName === constants.bellShop.categories.avatarAccents && (avatarSource as DataAccentType).positionable
+					? 4
+					: null,
+				coloration: categoryName === constants.bellShop.categories.backgroundColorations ? avatarSource as DataColorationType : null,
 			} : null,
 			expireDurationMonths: expireDurationMonths,
-			expires: expireDurationMonths == null ? null :
-				dateUtils.formatDate(dateUtils.addToCurrentDateTimezone(expireDurationMonths, 'months')),
-			prices: item.prices.map(price => {
+			expires: expireDurationMonths === null ? null :
+				dateUtils.formatDate3(dateUtils.addToCurrentDateTimezone(expireDurationMonths, 'months')),
+			prices: item.prices.map(price =>
+			{
 				return {
 					id: price.id,
 					price: `${Number(price.price).toLocaleString()} ${price.currency}`,
@@ -86,18 +113,24 @@ export function getSortedBellShopItems() : BellShopItemsType
 				};
 			}),
 			releaseDate: item.releaseDate,
+			image: Object.prototype.hasOwnProperty.call(item, 'image') && item.image !== undefined ? item.image : null,
+			packs: Object.prototype.hasOwnProperty.call(item, 'packs') && item.packs !== undefined ? item.packs : null,
 		};
 
-		if (!sortedBellShopItems.hasOwnProperty(item.categoryId))
+		if (!Object.prototype.hasOwnProperty.call(sortedBellShopItems, item.categoryId))
 		{
-			sortedBellShopItems[item.categoryId] = [];
+			sortedBellShopItems[item.categoryId] = {
+				'items': [],
+				'packs': [],
+			};
 		}
 
-		sortedBellShopItems[item.categoryId].push(modifiedItem);
+		sortedBellShopItems[item.categoryId]['items'].push(modifiedItem);
 		sortedBellShopItems['all'][item.id] = modifiedItem;
 
-		modifiedItem.prices.map(price => {
-			if (!sortedBellShopItems['price'].hasOwnProperty(price.id))
+		modifiedItem.prices.map(price =>
+		{
+			if (!Object.prototype.hasOwnProperty.call(sortedBellShopItems['price'], price.id))
 			{
 				sortedBellShopItems['price'][price.id] = [];
 			}
@@ -106,6 +139,23 @@ export function getSortedBellShopItems() : BellShopItemsType
 				'item': modifiedItem,
 				'price': price,
 			};
+		});
+
+		modifiedItem.packs?.map(packName =>
+		{
+			const pack = sortedBellShopItems[item.categoryId]['packs'].find(x => x.name === packName);
+
+			if (!pack)
+			{
+				sortedBellShopItems[item.categoryId]['packs'].push({
+					name: packName,
+					items: [modifiedItem],
+				});
+			}
+			else
+			{
+				pack.items.push(modifiedItem);
+			}
 		});
 	});
 

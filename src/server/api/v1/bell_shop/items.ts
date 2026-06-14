@@ -6,18 +6,11 @@ import { APIThisType, BellShopItemsType, DataTagType, ShopItemsType } from '@typ
 
 async function items(this: APIThisType, { page, categoryId, sortBy, groupBy, debug }: itemsProps): Promise<ShopItemsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'purchase-bell-shop' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let results: any = [], count = 0;
+	let results: ShopItemsType['results'] = [], count = 0;
 
-	let items: BellShopItemsType[number] = [];
+	let items: BellShopItemsType[number]['items'] = [];
 
 	if (!constants.LIVE_SITE && utils.realStringLength(debug) > 0)
 	{
@@ -26,11 +19,11 @@ async function items(this: APIThisType, { page, categoryId, sortBy, groupBy, deb
 			throw new UserError('bad-format');
 		}
 
-		items = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))[categoryId].filter((item: BellShopItemsType[number][number]) => dateUtils.isBeforeTimezone2(item.releaseDate, debug) || dateUtils.isSameTimezone2(item.releaseDate, debug));
+		items = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))[categoryId]['items'].filter((item: BellShopItemsType[number]['items'][number]) => dateUtils.isBeforeTimezone2(item.releaseDate, debug) || dateUtils.isSameTimezone2(item.releaseDate, debug));
 	}
 	else
 	{
-		items = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))[categoryId].filter((item: BellShopItemsType[number][number]) => dateUtils.isBeforeCurrentDateTimezone(item.releaseDate) || dateUtils.isSameCurrentDateTimezone(item.releaseDate));
+		items = (await ACCCache.get(constants.cacheKeys.sortedBellShopItems))[categoryId]['items'].filter((item: BellShopItemsType[number]['items'][number]) => dateUtils.isBeforeCurrentDateTimezone(item.releaseDate) || dateUtils.currentDateIsSame(item.releaseDate, 'yyyy-MM-dd'));
 	}
 
 	if (!items)
@@ -38,7 +31,7 @@ async function items(this: APIThisType, { page, categoryId, sortBy, groupBy, deb
 		throw new UserError('bad-format');
 	}
 
-	let tags: any = [];
+	let tags: { id: DataTagType['id'], name: DataTagType['name'] }[] = [];
 
 	const categories = constants.bellShop.categories;
 
@@ -63,7 +56,7 @@ async function items(this: APIThisType, { page, categoryId, sortBy, groupBy, deb
 		});
 	}
 
-	if (utils.realStringLength(groupBy) > 0 && !tags.find((t: any) => t.id === groupBy))
+	if (utils.realStringLength(groupBy) > 0 && !tags.find(t => t.id === groupBy))
 	{
 		throw new UserError('bad-format');
 	}
@@ -117,9 +110,13 @@ async function items(this: APIThisType, { page, categoryId, sortBy, groupBy, deb
 		pageSize: pageSize,
 		sortBy: sortBy,
 		groupBy: groupBy,
-		tags: tags.sort((a: any, b: any) => a.name.localeCompare(b.name)),
+		tags: tags.sort((a, b) => a.name.localeCompare(b.name)),
 	};
 }
+
+items.permissions = [
+	'purchase-bell-shop',
+];
 
 items.apiTypes = {
 	page: {

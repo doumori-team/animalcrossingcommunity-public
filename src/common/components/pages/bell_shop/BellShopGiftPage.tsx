@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 
 import { RequireUser, RequireClientJS } from '@behavior';
 import { Form, Button } from '@form';
@@ -53,9 +53,11 @@ const BellShopGiftPage = ({ loaderData }: { loaderData: BellShopGiftPageProps })
 											/>
 										}
 
-										<div className='BellShopGiftPage_expires'>
-											Expires: {item.expires === null ? 'Never' : item.expires}
-										</div>
+										{item.expires !== null &&
+											<div className='BellShopGiftPage_expires'>
+												Expires: {item.expires}
+											</div>
+										}
 
 										<div className='BellShopGiftPage_prices'>
 											{item.prices.map(price =>
@@ -86,7 +88,7 @@ const BellShopGiftPage = ({ loaderData }: { loaderData: BellShopGiftPageProps })
 												else
 												{
 													return (
-														<>
+														<Fragment key={price.id}>
 															<UserLookup
 																label='User To Gift To'
 																value={chosenUserId}
@@ -105,7 +107,7 @@ const BellShopGiftPage = ({ loaderData }: { loaderData: BellShopGiftPageProps })
 																	<input type='hidden' name='itemId' value={item.id} />
 																</Form>
 															}
-														</>
+														</Fragment>
 													);
 												}
 											})}

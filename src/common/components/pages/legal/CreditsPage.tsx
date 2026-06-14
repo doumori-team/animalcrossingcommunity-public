@@ -26,6 +26,12 @@ const CreditsPage = () =>
 					<li>
 						Thanks to <a href={`https://youtube.com/@Hunter-R./`}>Hunter R.</a> for providing the time data that controls grass shapes in the user town feature.
 					</li>
+					<li>
+						The <a href={`https://docs.google.com/spreadsheets/d/1aGEu_eoS3a-g_Tf--ewS0fLhyOHbNzpSc5jtaEE8nrA`}>Data Spreadsheet for Animal Crossing: Wild World</a> has been used for images on Animal Crossing: Wild World. You'll find it used in places such as the AC:WW Catalogs.
+					</li>
+					<li>
+						The <a href={`https://docs.google.com/spreadsheets/d/1gnVVn8JeP4KHAvjxoBC8I8TK4mBcrbzwdpFzTaw20s8`}>Data Spreadsheet for Animal Crossing: City Folk</a> has been used for images on Animal Crossing: City Folk. You'll find it used in places such as the AC:CF Catalogs.
+					</li>
 				</ul>
 			</ContentBox>
 		</div>

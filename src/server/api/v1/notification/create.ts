@@ -1,23 +1,22 @@
+import webpush from 'web-push';
+
 import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
-import { APIThisType, UserType, ListingType } from '@types';
+import { APIThisType, UserType, ListingType, NodeType } from '@types';
+import { sendNotificationToUser, getAllConnectedUserIds } from 'server/notificationService.ts';
+
+webpush.setVapidDetails(
+	'mailto:admin@animalcrossingcommunity.com',
+	process.env.VAPID_PUBLIC_KEY as string,
+	process.env.VAPID_PRIVATE_KEY as string,
+);
 
 async function create(this: APIThisType, { id, type }: createProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const referenceId = Number(id);
-
-	if (isNaN(referenceId))
-	{
-		throw new UserError('bad-format');
-	}
+	const referenceId = id;
 
 	const [notificationType] = await db.query(`
 		SELECT id
@@ -39,32 +38,33 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 	let multiDescription = '';
 	let childReferenceId: number | null = null;
 
+	// Note: final access is checked in v1/notification
+
 	if (
 		[
 			types.PT,
 			types.FT,
+			types.FT_edit,
 			types.FB,
 			types.usernameTag,
 			types.announcement,
+			types.postQuote,
+			types.postReaction,
 		].includes(type)
 	)
 	{
-		let nodeId = referenceId, childNode: any;
+		let nodeId = referenceId, childNode: {
+			parent_node_id: NonNullable<NodeType['parentId']>
+			user_id: NonNullable<NodeType['user']>['id']
+			title?: NodeType['title'] | null
+		} | null = null;
 
 		if (type === types.PT)
 		{
 			[childNode] = await db.query(`
 				SELECT
 					node.parent_node_id,
-					node.user_id,
-					node.type,
-					(
-						SELECT title
-						FROM node_revision
-						WHERE node_revision.node_id = node.id
-						ORDER BY time DESC
-						LIMIT 1
-					) AS title
+					node.user_id
 				FROM node
 				WHERE node.id = $1::int
 			`, referenceId);
@@ -74,32 +74,13 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				throw new UserError('no-such-node');
 			}
 
-			if (childNode.type === 'post')
-			{
-				nodeId = childNode.parent_node_id;
-				useReferenceId = nodeId;
-
-				const [parent] = await db.query(`
-					SELECT title
-					FROM node_revision
-					WHERE node_revision.node_id = $1::int
-					ORDER BY time DESC
-					LIMIT 1
-				`, childNode.parent_node_id);
-
-				description = `${user.username} has posted on PT '${parent.title}'`;
-				multiDescription = `There are %count% new posts on PT '${parent.title}'`;
-			}
-			else
-			{
-				description = `${user.username} has sent you a new PT: '${childNode.title}`;
-			}
+			nodeId = childNode.parent_node_id;
+			useReferenceId = nodeId;
 		}
-		else if ([types.FT, types.FB].includes(type))
+		else if ([types.FT, types.FT_edit, types.FB].includes(type))
 		{
 			[childNode] = await db.query(`
 				SELECT
-					node.id,
 					node.parent_node_id,
 					node.user_id,
 					(
@@ -121,36 +102,32 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			nodeId = childNode.parent_node_id;
 			useReferenceId = nodeId;
 
-			const [parent] = await db.query(`
-				SELECT title
-				FROM node_revision
-				WHERE node_revision.node_id = $1::int
-				ORDER BY time DESC
-				LIMIT 1
-			`, childNode.parent_node_id);
-
-			if (type === types.FT)
+			if (type === types.FB)
 			{
-				description = `${user.username} has posted on thread '${parent.title}'`;
-				multiDescription = `There are %count% new posts on thread '${parent.title}'`;
+				childReferenceId = referenceId;
 			}
-			else if (type === types.FB)
+			else if (type === types.FT_edit)
 			{
-				description = `${user.username} has created '${childNode.title}' on board '${parent.title}'`;
-				multiDescription = `There are %count% new threads on board '${parent.title}'`;
-				childReferenceId = childNode.id;
+				childReferenceId = referenceId;
 			}
 		}
 
-		const [node] = await db.query(`
+		const [node]: [{
+			content: NonNullable<NodeType['content']>['text']
+			parent_node_id: NodeType['parentId']
+			title: NodeType['title']
+			node_revision_id: number
+			user_id: number | null
+		}] = await db.query(`
 			SELECT
-				node.id,
 				last_revision.content,
 				node.parent_node_id,
-				last_revision.title
+				last_revision.title,
+				last_revision.id AS node_revision_id,
+				node.user_id
 			FROM node
 			LEFT JOIN LATERAL (
-				SELECT title, content
+				SELECT title, content, id
 				FROM node_revision
 				WHERE node_revision.node_id = node.id
 				ORDER BY time DESC
@@ -164,23 +141,43 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			throw new UserError('no-such-node');
 		}
 
-		// Note: final access is checked in v1/notification
-
 		if (type === types.PT)
 		{
+			description = `${user.username} has posted on PT '${node.title}'`;
+			multiDescription = `There are %count% new posts on PT '${node.title}'`;
+
 			userIds = (await db.query(`
 				SELECT user_id
 				FROM user_node_permission
 				WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
 			`, nodeId, constants.nodePermissions.read))
-				.filter((u: any) => u.user_id !== childNode.user_id)
-				.map((u: any) => u.user_id);
+				.filter((u: { user_id: number }) => u.user_id !== childNode!.user_id)
+				.map((u: { user_id: number }) => u.user_id);
 		}
-		else if ([types.FT, types.FB].includes(type))
+		else if ([types.FT, types.FT_edit, types.FB].includes(type))
 		{
+			if (type === types.FT || type === types.FT_edit)
+			{
+				if (type === types.FT_edit)
+				{
+					description = `${user.username} has edited a post on thread '${node.title}'`;
+					multiDescription = `There are %count% edited posts on thread '${node.title}'`;
+				}
+				else
+				{
+					description = `${user.username} has posted on thread '${node.title}'`;
+					multiDescription = `There are %count% new posts on thread '${node.title}'`;
+				}
+			}
+			else if (type === types.FB)
+			{
+				description = `${user.username} has created '${childNode!.title}' on board '${node.title}'`;
+				multiDescription = `There are %count% new threads on board '${node.title}'`;
+			}
+
 			let favoritedUsers = await db.query(`
 				SELECT user_id
-				FROM followed_node
+				FROM notified_node
 				WHERE node_id = $1::int
 			`, nodeId);
 
@@ -198,11 +195,11 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 					WHERE node.id = $1::int
 				`, nodeId);
 
-				if (parentNode.type === 'board')
+				if (parentNode.type === 'board' && parentNode.id !== constants.boardIds.accForums)
 				{
 					favoritedUsers = favoritedUsers.concat(await db.query(`
 						SELECT user_id
-						FROM followed_node
+						FROM notified_node
 						WHERE node_id = $1::int
 					`, parentNode.id));
 				}
@@ -211,18 +208,20 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			if (favoritedUsers.length > 0)
 			{
 				userIds = favoritedUsers
-					.filter((u: any) => u.user_id !== childNode.user_id)
-					.map((u: any) => u.user_id);
+					.filter((u: { user_id: number }) => u.user_id !== childNode!.user_id)
+					.map((u: { user_id: number }) => u.user_id);
 			}
 		}
 		else if (type === types.usernameTag)
 		{
-			const usernames = node.content.match(RegExp(constants.regexes.userTag));
+			const rawMatches = [...node.content.matchAll(constants.regexes.userTag3)];
 
-			if (usernames === null)
+			if (rawMatches.length === 0)
 			{
 				return;
 			}
+
+			const usernames = rawMatches.map(m => m[1]);
 
 			userIds = (await Promise.all(usernames.map(async (username: string) =>
 			{
@@ -232,11 +231,16 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 					WHERE LOWER(username) = LOWER($1)
 				`, username);
 
-				if (checkId && checkId.id != this.userId)
+				if (checkId && checkId.id !== this.userId)
 				{
 					return Number(checkId.id);
 				}
-			}))).filter(id => id);
+			}))).filter(id => id) as number[];
+
+			if (userIds.length === 0)
+			{
+				return;
+			}
 
 			const [parent] = await db.query(`
 				SELECT title
@@ -248,9 +252,56 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 
 			description = `${user.username} has tagged you in thread '${parent.title}'`;
 		}
+		else if (type === types.postQuote)
+		{
+			const nodeUsers = await db.query(`
+				SELECT node.user_id
+				FROM node
+				JOIN node_revision_quote ON (node.id = node_revision_quote.node_id)
+				WHERE node_revision_quote.node_revision_id = $1 AND node.user_id != $2
+			`, node.node_revision_id, this.userId);
+
+			if (nodeUsers.length === 0)
+			{
+				return;
+			}
+
+			userIds = nodeUsers.map(nu => nu.user_id);
+
+			const [parent] = await db.query(`
+				SELECT title
+				FROM node_revision
+				WHERE node_revision.node_id = $1::int
+				ORDER BY time DESC
+				LIMIT 1
+			`, node.parent_node_id);
+
+			description = `${user.username} has quoted you in thread '${parent.title}'`;
+		}
 		else if (type === types.announcement)
 		{
 			description = `A new announcement has been posted: '${node.title}'`;
+		}
+		else if (type === types.postReaction)
+		{
+			description = `${user.username} has reacted to post`;
+			multiDescription = `There are %count% new reactions on post`;
+
+			if (node.user_id && this.userId !== node.user_id)
+			{
+				const [setting] = await db.query(`
+					SELECT disable_post_reaction_notifications
+					FROM users
+					WHERE id = $1
+				`, node.user_id);
+
+				if (setting.disable_post_reaction_notifications === true)
+				{
+					return;
+				}
+
+				userIds = [node.user_id];
+			}
 		}
 	}
 	else if (
@@ -268,7 +319,10 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		].includes(type)
 	)
 	{
-		let listingId = referenceId, offer, listingComment: any;
+		let listingId = referenceId, listingComment: {
+			listing_id: ListingType['id']
+			user_id: ListingType['creator']['id']
+		} | null;
 
 		if (
 			[
@@ -277,7 +331,10 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			].includes(type)
 		)
 		{
-			[offer] = await db.query(`
+			const [offer]: [{
+				listing_id: ListingType['id']
+				user_id: ListingType['creator']['id']
+			}] = await db.query(`
 				SELECT
 					listing_offer.listing_id,
 					listing_offer.user_id
@@ -292,6 +349,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 
 			listingId = offer.listing_id;
 			useReferenceId = listingId;
+
+			userIds.push(offer.user_id);
 
 			if (type === types.listingOfferAccepted)
 			{
@@ -323,124 +382,124 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 
 			listingId = listingComment.listing_id;
 			useReferenceId = listingId;
-
-			description = `${user.username} has commented on a trade`;
-			multiDescription = `There are %count% new comments on a trade`;
 		}
-
-		const listing: ListingType = await this.query('v1/trading_post/listing', { id: listingId });
-		const offerStatuses = constants.tradingPost.offerStatuses;
 
 		if (
-			[
-				types.listingCancelled,
-			].includes(type)
-		)
-		{
-			if (listing.offers.accepted)
-			{
-				userIds.push(listing.offers.accepted.user.id);
-			}
-
-			listing.offers.list.map(offer =>
-			{
-				if ([offerStatuses.pending, offerStatuses.onHold].includes(offer.status))
-				{
-					userIds.push(offer.user.id);
-				}
-			});
-
-			if (type === types.listingCancelled)
-			{
-				description = `${user.username} has cancelled the listing`;
-			}
-		}
-		else if (
-			[
-				types.listingComment,
-			].includes(type)
-		)
-		{
-			if (listingComment.user_id !== listing.creator.id)
-			{
-				userIds.push(listing.creator.id);
-			}
-
-			if (listing.offers.accepted)
-			{
-				userIds.push(listing.offers.accepted.user.id);
-			}
-
-			listing.offers.list.map(offer =>
-			{
-				if (listingComment.user_id !== offer.user.id &&
-					[offerStatuses.pending, offerStatuses.onHold].includes(offer.status)
-				)
-				{
-					userIds.push(offer.user.id);
-				}
-			});
-		}
-		else if (
-			[
-				types.listingOffer,
-				types.listingOfferCancelled,
-			].includes(type)
-		)
-		{
-			userIds.push(listing.creator.id);
-
-			if (type === types.listingOffer)
-			{
-				description = `${user.username} has submitted an offer on your listing`;
-			}
-			else if (type === types.listingOfferCancelled)
-			{
-				description = `${user.username} has cancelled their offer`;
-			}
-		}
-		else if (
-			[
+			![
 				types.listingOfferAccepted,
 				types.listingOfferRejected,
 			].includes(type)
 		)
 		{
-			userIds.push(offer.user_id);
-		}
-		else if (
-			[
-				types.listingContact,
-				types.listingCompleted,
-				types.listingFailed,
-				types.listingFeedback,
-			].includes(type)
-		)
-		{
-			if (this.userId !== listing.creator.id)
+			const listing: ListingType = await this.query('v1/trading_post/listing', { id: listingId });
+			const offerStatuses = constants.tradingPost.offerStatuses;
+
+			if (
+				[
+					types.listingCancelled,
+				].includes(type)
+			)
+			{
+				if (listing.offers.accepted)
+				{
+					userIds.push(listing.offers.accepted.user.id);
+				}
+
+				listing.offers.list.map(offer =>
+				{
+					if ([offerStatuses.pending, offerStatuses.onHold].includes(offer.status))
+					{
+						userIds.push(offer.user.id);
+					}
+				});
+
+				if (type === types.listingCancelled)
+				{
+					description = `${user.username} has cancelled the listing`;
+				}
+			}
+			else if (
+				[
+					types.listingComment,
+				].includes(type)
+			)
+			{
+				if (listingComment!.user_id !== listing.creator.id)
+				{
+					userIds.push(listing.creator.id);
+				}
+
+				if (listing.offers.accepted && listingComment!.user_id !== listing.offers.accepted.user.id)
+				{
+					userIds.push(listing.offers.accepted.user.id);
+				}
+
+				listing.offers.list.map(offer =>
+				{
+					if (
+						listingComment!.user_id !== offer.user.id &&
+						[offerStatuses.pending, offerStatuses.onHold].includes(offer.status)
+					)
+					{
+						userIds.push(offer.user.id);
+					}
+				});
+
+				description = `${user.username} has commented on a trade`;
+				multiDescription = `There are %count% new comments on a trade`;
+			}
+			else if (
+				[
+					types.listingOffer,
+					types.listingOfferCancelled,
+				].includes(type)
+			)
 			{
 				userIds.push(listing.creator.id);
-			}
-			else if (listing.offers.accepted != null)
-			{
-				userIds.push(listing.offers.accepted.user.id);
-			}
 
-			if (type === types.listingContact)
-			{
-				description = `${user.username} has submitted contact information on a trade`;
+				if (type === types.listingOffer)
+				{
+					description = `${user.username} has submitted an offer on your listing`;
+				}
+				else if (type === types.listingOfferCancelled)
+				{
+					description = `${user.username} has cancelled their offer`;
+				}
 			}
-			else if (type === types.listingCompleted)
+			else if (
+				[
+					types.listingContact,
+					types.listingCompleted,
+					types.listingFailed,
+					types.listingFeedback,
+				].includes(type)
+			)
 			{
-				description = `${user.username} has marked the trade as completed`;
-			}
-			else if (type === types.listingFailed)
-			{
-				description = `${user.username} has marked the trade as failed`;
-			}
-			else if (type === types.listingFeedback)
-			{
-				description = `${user.username} has given feedback on a trade`;
+				if (this.userId !== listing.creator.id)
+				{
+					userIds.push(listing.creator.id);
+				}
+				else if (listing.offers.accepted !== null)
+				{
+					userIds.push(listing.offers.accepted.user.id);
+				}
+
+				if (type === types.listingContact)
+				{
+					description = `${user.username} has submitted contact information on a trade`;
+				}
+				else if (type === types.listingCompleted)
+				{
+					description = `${user.username} has marked the trade as completed`;
+				}
+				else if (type === types.listingFailed)
+				{
+					description = `${user.username} has marked the trade as failed`;
+				}
+				else if (type === types.listingFeedback)
+				{
+					description = `${user.username} has given feedback on a trade`;
+				}
 			}
 		}
 	}
@@ -453,7 +512,10 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		].includes(type)
 	)
 	{
-		let nodeId = referenceId, childNode: any;
+		let nodeId = referenceId, childNode: {
+			parent_node_id: NonNullable<NodeType['parentId']>
+			user_id: NonNullable<NodeType['user']>['id']
+		} | null;
 
 		if (
 			[
@@ -478,93 +540,91 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			nodeId = childNode.parent_node_id;
 			useReferenceId = nodeId;
 
-			if (type === types.scoutThread)
+			if (type === types.scoutBT)
+			{
+				description = `${user.username} has posted on the Adoptee BT`;
+				multiDescription = `There are %count% new posts on the Adoptee BT`;
+
+				// only users have user access
+				// mods given access in node/permission
+				// scouts given access in node/permission AND via group access
+				userIds = (await db.query(`
+					SELECT user_id
+					FROM user_node_permission
+					WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
+				`, nodeId, constants.nodePermissions.read))
+					.filter((u: { user_id: number }) => u.user_id !== childNode!.user_id)
+					.map((u: { user_id: number }) => u.user_id);
+
+				userIds = userIds.concat(
+					(await db.query(`
+						SELECT users.id
+						FROM user_group
+						JOIN users ON (user_group.id = users.user_group_id)
+						WHERE user_group.identifier = $1
+					`, constants.staffIdentifiers.scout))
+						.filter((u: { id: number }) => u.id !== childNode!.user_id)
+						.map((u: { id: number }) => u.id),
+				);
+			}
+		}
+
+		if (type !== types.scoutBT)
+		{
+			const [node] = await db.query(`
+				SELECT
+					adoption.scout_id,
+					adoption.adoptee_id,
+					user_account_cache.username AS adoptee
+				FROM node
+				JOIN adoption ON (adoption.node_id = node.id)
+				JOIN user_account_cache ON (user_account_cache.id = adoption.adoptee_id)
+				WHERE node.id = $1::int
+			`, nodeId);
+
+			if (!node)
+			{
+				throw new UserError('no-such-node');
+			}
+
+			if (
+				[
+					types.scoutAdoption,
+					types.scoutFeedback,
+				].includes(type)
+			)
+			{
+				userIds.push(node.scout_id);
+
+				if (type === types.scoutAdoption)
+				{
+					description = `You've adopted ${node.adoptee}`;
+				}
+				else if (type === types.scoutFeedback)
+				{
+					description = `${user.username} has submitted scout feedback`;
+				}
+			}
+			else if (type === types.scoutThread)
 			{
 				description = `${user.username} has posted on the Adoptee Thread`;
-			}
-			else if (type === types.scoutBT)
-			{
-				multiDescription = `There are %count% new posts on the Adoptee BT`;
-				description = `${user.username} has posted on the Adoptee BT`;
+
+				userIds.push(childNode!.user_id === node.scout_id ? node.adoptee_id : node.scout_id);
 			}
 		}
-
-		const [node] = await db.query(`
-			SELECT
-				node.id,
-				adoption.scout_id,
-				adoption.adoptee_id
-			FROM node
-			LEFT JOIN adoption ON (adoption.node_id = node.id)
-			WHERE node.id = $1::int
-		`, nodeId);
-
-		if (!node)
-		{
-			throw new UserError('no-such-node');
-		}
-
-		if (
-			[
-				types.scoutAdoption,
-				types.scoutFeedback,
-			].includes(type)
-		)
-		{
-			userIds.push(node.scout_id);
-
-			if (type === types.scoutAdoption)
-			{
-				description = `You've adopted ${user.username}`;
-			}
-			else if (type === types.scoutFeedback)
-			{
-				description = `${user.username} has submitted scout feedback`;
-			}
-		}
-		else if (type === types.scoutThread)
-		{
-			userIds.push(childNode.user_id === node.scout_id ? node.adoptee_id : node.scout_id);
-		}
-		else if (type === types.scoutBT)
-		{
-			userIds = (await db.query(`
-				SELECT user_id
-				FROM user_node_permission
-				WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
-			`, nodeId, constants.nodePermissions.read))
-				.filter((u: any) => u.user_id !== childNode.user_id)
-				.map((u: any) => u.user_id);
-
-			// we don't want to grab whomever has access to the Adoptee BT, only scouts
-			// Note: final access is checked in v1/notification
-			userIds = userIds.concat(
-				(await db.query(`
-					SELECT users.id
-					FROM user_group
-					JOIN users ON (user_group.id = users.user_group_id)
-					WHERE user_group.identifier = $1
-				`, constants.staffIdentifiers.scout))
-					.filter((u: any) => u.id !== childNode.user_id)
-					.map((u: any) => u.id),
-			);
-		}
-	}
-	else if (type === types.scoutClosed || type === types.listingExpired)
-	{
-		// see scheduler/daily
-
-		throw new UserError('bad-format');
 	}
 	else if (
 		[
 			types.supportEmail,
 			types.donationReminder,
+			types.scoutClosed,
+			types.listingExpired,
+			types.avatarCleared,
 		].includes(type)
 	)
 	{
 		// see server/middleware/mail-parse for support emails
-		// see daily.cjs for donation reminder
+		// see scheduler daily for donationReminder, scoutClosed, listingExpired, avatarCleared
 
 		throw new UserError('bad-format');
 	}
@@ -577,14 +637,32 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		].includes(type)
 	)
 	{
-		let userTicketId = referenceId, child;
+		let userTicketId = referenceId, child, notifyAllModmins = false;
 
-		if (type === types.modminUTPost)
+		if (type === types.modminUTMany)
+		{
+			const [userCount] = await db.query(`
+				SELECT count(*) AS count
+				FROM user_violation
+				WHERE user_ticket_id = $1::int
+			`, userTicketId);
+
+			if (userCount.count > 5)
+			{
+				notifyAllModmins = true;
+			}
+			else
+			{
+				return;
+			}
+
+			description = `5+ people have submitted the same UT`;
+		}
+		else if (type === types.modminUTPost)
 		{
 			[child] = await db.query(`
 				SELECT
 					user_ticket_message.user_ticket_id,
-					user_ticket_message.user_id,
 					user_group.identifier,
 					user_ticket_message.staff_only
 				FROM user_ticket_message
@@ -605,111 +683,97 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			multiDescription = `There are %count% new posts on a UT`;
 		}
 
-		const [userTicket] = await db.query(`
-			SELECT
-				user_ticket.assignee_id,
-				user_group.identifier,
-				user_ticket_status.name AS status,
-				user_ticket.violator_id
-			FROM user_ticket
-			JOIN user_ticket_status ON (user_ticket_status.id = user_ticket.status_id)
-			LEFT JOIN users ON (users.id = user_ticket.assignee_id)
-			LEFT JOIN user_group ON (users.user_group_id = user_group.id)
-			WHERE user_ticket.id = $1::int
-		`, userTicketId);
-
-		if (!userTicket)
+		if (type !== types.modminUTMany)
 		{
-			throw new UserError('no-such-user-ticket');
-		}
-
-		let notifyAllModmins = false;
-
-		// Note: final access is checked in v1/notification
-
-		if (type === types.modminUT)
-		{
-			userIds = (await db.query(`
-				SELECT users.id
-				FROM user_group
-				JOIN users ON (user_group.id = users.user_group_id)
-				WHERE user_group.identifier = $1
-			`, constants.staffIdentifiers.mod))
-				.filter((u: any) => u.id !== userTicket.assignee_id)
-				.map((u: any) => u.id);
-
-			description = `${user.username} has submitted a UT`;
-		}
-		else if (type === types.modminUTMany)
-		{
-			const [userCount] = await db.query(`
-				SELECT count(*) AS count
-				FROM user_violation
-				WHERE user_ticket_id = $1::int
+			const [userTicket] = await db.query(`
+				SELECT
+					user_ticket.assignee_id,
+					user_group.identifier,
+					user_ticket_status.name AS status,
+					user_ticket.violator_id
+				FROM user_ticket
+				JOIN user_ticket_status ON (user_ticket_status.id = user_ticket.status_id)
+				LEFT JOIN users ON (users.id = user_ticket.assignee_id)
+				LEFT JOIN user_group ON (users.user_group_id = user_group.id)
+				WHERE user_ticket.id = $1::int
 			`, userTicketId);
 
-			if (userCount.count > 10)
+			if (!userTicket)
 			{
-				notifyAllModmins = true;
+				throw new UserError('no-such-user-ticket');
 			}
 
-			description = `10+ people have submitted the same UT`;
-		}
-		else if (type === types.modminUTPost)
-		{
-			// if user who posted is not modmin
-			if (!
-			[
-				constants.staffIdentifiers.admin,
-				constants.staffIdentifiers.mod,
-				constants.staffIdentifiers.owner,
-			].includes(child.identifier)
-			)
+			if (type === types.modminUT)
 			{
-				if (
-					[
-						constants.staffIdentifiers.mod,
-						constants.staffIdentifiers.admin,
-						constants.staffIdentifiers.owner,
-					].includes(userTicket.identifier)
+				userIds = (await db.query(`
+					SELECT users.id
+					FROM user_group
+					JOIN users ON (user_group.id = users.user_group_id)
+					WHERE user_group.identifier = $1
+				`, constants.staffIdentifiers.mod))
+					// sometimes UTs do get created with modmin assigned to them
+					// example: modmin is the one who reported the UT
+					.filter((u: { id: number }) => u.id !== userTicket.assignee_id)
+					.map((u: { id: number }) => u.id);
+
+				description = `${user.username} has submitted a UT`;
+			}
+			else if (type === types.modminUTPost)
+			{
+				// if user who posted is not modmin
+				if (!
+				[
+					constants.staffIdentifiers.admin,
+					constants.staffIdentifiers.mod,
+					constants.staffIdentifiers.owner,
+				].includes(child.identifier)
 				)
 				{
-					userIds.push(userTicket.assignee_id);
+					if (
+						[
+							constants.staffIdentifiers.mod,
+							constants.staffIdentifiers.admin,
+							constants.staffIdentifiers.owner,
+						].includes(userTicket.identifier)
+					)
+					{
+						userIds.push(userTicket.assignee_id);
+					}
+					else
+					{
+						notifyAllModmins = true;
+					}
 				}
+				// if modmin sent back to user
+				else if (!child.staff_only && [
+					constants.userTicket.statuses.closed,
+					constants.userTicket.statuses.inUserDiscussion,
+				].includes(userTicket.status))
+				{
+					userIds.push(userTicket.violator_id);
+
+					description = `You have received a new notification from the staff`;
+				}
+				// otherwise let all modmins know of new post
+				// (it's ok if modmin who posted is notified, notification will instant disappear)
 				else
 				{
 					notifyAllModmins = true;
 				}
 			}
-			// if modmin sent back to user
-			else if (!child.staff_only && [
-				constants.userTicket.statuses.closed,
-				constants.userTicket.statuses.inUserDiscussion,
-			].includes(userTicket.status))
+			else if (type === types.modminUTDiscussion)
 			{
-				userIds.push(userTicket.violator_id);
+				userIds = (await db.query(`
+					SELECT users.id
+					FROM user_group
+					JOIN users ON (user_group.id = users.user_group_id)
+					WHERE user_group.identifier = ANY($1)
+				`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
+					.filter((u: { id: number }) => u.id !== userTicket.assignee_id)
+					.map((u: { id: number }) => u.id);
 
-				description = `You have received a new notification from the staff`;
+				description = `${user.username} has moved a UT to discussion`;
 			}
-			// otherwise let all modmins know of new post
-			// (it's ok if modmin who posted is notified, notification will instant disappear)
-			else
-			{
-				notifyAllModmins = true;
-			}
-		}
-		else if (type === types.modminUTDiscussion)
-		{
-			userIds = (await db.query(`
-				SELECT users.id
-				FROM user_group
-				JOIN users ON (user_group.id = users.user_group_id)
-				WHERE user_group.identifier = ANY($1)
-			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.filter((u: any) => u.id !== userTicket.assignee_id)
-				.map((u: any) => u.id);
-
-			description = `${user.username} has moved a UT to discussion`;
 		}
 
 		if (notifyAllModmins)
@@ -720,7 +784,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = ANY($1)
 			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.map((u: any) => u.id);
+				.map((u: { id: number }) => u.id);
 		}
 	}
 	else if (type === types.ticketProcessed)
@@ -755,8 +819,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			[child] = await db.query(`
 				SELECT
 					support_ticket_message.support_ticket_id,
-					support_ticket_message.user_id,
-					user_group.identifier
+					user_group.identifier,
+					support_ticket_message.staff_only
 				FROM support_ticket_message
 				JOIN users ON (users.id = support_ticket_message.user_id)
 				JOIN user_group ON (users.user_group_id = user_group.id)
@@ -766,6 +830,11 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			if (!child)
 			{
 				throw new UserError('bad-format');
+			}
+
+			if (child.staff_only)
+			{
+				return;
 			}
 
 			supportTicketId = child.support_ticket_id;
@@ -800,7 +869,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				JOIN users ON (user_group.id = users.user_group_id)
 				WHERE user_group.identifier = ANY($1)
 			`, [constants.staffIdentifiers.mod, constants.staffIdentifiers.admin]))
-				.map((u: any) => u.id);
+				.map((u: { id: number }) => u.id);
 		}
 		else
 		{
@@ -869,8 +938,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				constants.staffIdentifiers.devTL,
 				constants.staffIdentifiers.dev,
 			]))
-				.filter((u: any) => u.id !== feature.created_user_id)
-				.map((u: any) => u.id);
+				.filter((u: { id: number }) => u.id !== feature.created_user_id)
+				.map((u: { id: number }) => u.id);
 		}
 		else
 		{
@@ -901,8 +970,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 					constants.staffIdentifiers.scout,
 					constants.staffIdentifiers.mod,
 				], featureId))
-					.filter((u: any) => u.id !== feature.created_user_id)
-					.map((u: any) => u.id);
+					.filter((u: { id: number }) => u.id !== feature.created_user_id)
+					.map((u: { id: number }) => u.id);
 			}
 			else
 			{
@@ -911,8 +980,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 					FROM followed_feature
 					WHERE feature_id = $1::int
 				`, featureId))
-					.filter((u: any) => u.user_id !== this.userId)
-					.map((u: any) => u.user_id);
+					.filter((u: { user_id: number }) => u.user_id !== this.userId)
+					.map((u: { user_id: number }) => u.user_id);
 			}
 		}
 	}
@@ -925,10 +994,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		const [userRedeemed] = await db.query(`
 			SELECT
 				user_bell_shop_redeemed.user_id,
-				user_bell_shop_redeemed.redeemed_by,
-				user_account_cache.username
+				user_bell_shop_redeemed.redeemed_by
 			FROM user_bell_shop_redeemed
-			LEFT JOIN user_account_cache ON (user_account_cache.id = user_bell_shop_redeemed.redeemed_by)
 			WHERE user_bell_shop_redeemed.id = $1::int
 		`, referenceId);
 
@@ -944,7 +1011,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 
 		userIds.push(userRedeemed.user_id);
 
-		description = `${userRedeemed.username} has gifted you an item from the Bell Shop`;
+		description = `${user.username} has gifted you an item from the Bell Shop`;
 	}
 	else if (
 		[
@@ -955,10 +1022,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		const [userDonation] = await db.query(`
 			SELECT
 				user_donation.user_id,
-				user_donation.donated_by_user_id,
-				user_account_cache.username
+				user_donation.donated_by_user_id
 			FROM user_donation
-			LEFT JOIN user_account_cache ON (user_account_cache.id = user_donation.donated_by_user_id)
 			WHERE user_donation.id = $1::int
 		`, referenceId);
 
@@ -974,37 +1039,29 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 
 		userIds.push(userDonation.user_id);
 
-		description = `${userDonation.username} has donated on your behalf`;
+		description = `${user.username} has donated on your behalf`;
 	}
 	else if (type === types.shopThread)
 	{
+		// node = thread = v1/shop/contact or v1/shop/node/create
+		// childNode = post = v1/node/create
 		const [[node], [childNode]] = await Promise.all([
 			db.query(`
-				SELECT
-					node.id,
-					last_revision.title,
-					node.type
-				FROM node
-				JOIN shop_node ON (shop_node.node_id = node.id)
-				LEFT JOIN LATERAL (
-					SELECT title, content
-					FROM node_revision
-					WHERE node_revision.node_id = node.id
-					ORDER BY time DESC
-					LIMIT 1
-				) last_revision ON true
-				WHERE node.id = $1::int
+				SELECT title
+				FROM node_revision
+				JOIN shop_node ON (shop_node.node_id = node_revision.node_id)
+				WHERE node_revision.node_id = $1::int
+				ORDER BY time DESC
+				LIMIT 1
 			`, referenceId),
 			db.query(`
 				SELECT
-					node.id,
 					node.parent_node_id,
-					last_revision.title,
-					node.type
+					last_revision.title
 				FROM node
 				JOIN shop_node ON (shop_node.node_id = node.parent_node_id)
 				LEFT JOIN LATERAL (
-					SELECT title, content
+					SELECT title
 					FROM node_revision
 					WHERE node_revision.node_id = node.parent_node_id
 					ORDER BY time DESC
@@ -1036,8 +1093,8 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			FROM user_node_permission
 			WHERE node_id = $1::int AND node_permission_id = $2::int AND granted = true
 		`, useReferenceId, constants.nodePermissions.read))
-			.filter((u: any) => u.user_id !== this.userId)
-			.map((u: any) => u.user_id);
+			.filter((u: { user_id: number }) => u.user_id !== this.userId)
+			.map((u: { user_id: number }) => u.user_id);
 	}
 	else if (type === types.shopEmployee)
 	{
@@ -1092,7 +1149,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			JOIN shop_user_role ON (shop_user_role.shop_role_id = shop_role_service.shop_role_id OR shop_user_role.shop_role_id = shop_role_default_service.shop_role_id)
 			JOIN shop_user ON (shop_user.id = shop_user_role.shop_user_id)
 			WHERE shop_user.active = true AND shop_order.id = $1
-		`, referenceId)).map((u: any) => u.user_id);
+		`, referenceId)).map((u: { user_id: number }) => u.user_id);
 	}
 	else if (type === types.shopApplication)
 	{
@@ -1143,13 +1200,31 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			`, referenceId),
 		]);
 
-		owners.concat(contacts).map((u: any) =>
+		owners.concat(contacts).map((u: { user_id: number }) =>
 		{
 			if (!userIds.includes(u.user_id))
 			{
 				userIds.push(u.user_id);
 			}
 		});
+	}
+	else if (type === types.badge)
+	{
+		const [userBadge] = await db.query(`
+			SELECT user_badge.user_id, badge.name
+			FROM user_badge
+			JOIN badge ON (badge.id = user_badge.badge_id)
+			WHERE user_badge.badge_id = $1 AND user_badge.user_id = $2
+		`, referenceId, this.userId);
+
+		if (!userBadge)
+		{
+			throw new UserError('no-such-badge');
+		}
+
+		description = `Congrats! You have earned the badge: '${userBadge.name}'`;
+
+		userIds = [userBadge.user_id];
 	}
 	else
 	{
@@ -1170,35 +1245,57 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			RETURNING id
 		`, useReferenceId, notificationType.id, description);
 
+		for (let userId of await getAllConnectedUserIds())
+		{
+			try
+			{
+				const latestNotification = await this.fullQuery(userId, 'v1/notification/latest');
+
+				sendNotificationToUser(userId, constants.webSocketTypes.notification, latestNotification);
+			}
+			catch (err)
+			{
+				console.error('Error sending global announcement via WebSocket.', userId, err);
+			}
+		}
+
 		const emailUsers = await db.query(`
 			SELECT id
 			FROM users
 			WHERE email_notifications = true
 		`);
 
-		let globalNotification: any = {
-			identifier: type,
-			reference_id: useReferenceId,
-			description: description,
-		};
-
-		globalNotification.url = utils.getGlobalNotificationReferenceLink(globalNotification);
-
-		await Promise.all(emailUsers.map(async (emailUser: any) =>
+		if (emailUsers.length > 0)
 		{
-			try
+			let globalNotification: {
+				identifier: string
+				reference_id: number
+				description: string
+				url?: string
+			} = {
+				identifier: type,
+				reference_id: useReferenceId,
+				description: description,
+			};
+
+			globalNotification.url = utils.getGlobalNotificationReferenceLink(globalNotification);
+
+			await Promise.all(emailUsers.map(async (emailUser: { id: number }) =>
 			{
-				await accounts.emailUser({
-					user: emailUser.id,
-					subject: 'Notification: ' + globalNotification.description,
-					text: getEmailText(globalNotification, emailUser.id),
-				});
-			}
-			catch (error: any)
-			{
-				console.error('Error sending (global) email notification:', error);
-			}
-		}));
+				try
+				{
+					await accounts.emailUser({
+						user: emailUser.id,
+						subject: 'Notification: ' + globalNotification.description,
+						text: getEmailText(globalNotification, emailUser.id),
+					});
+				}
+				catch (error: unknown)
+				{
+					console.error('Error sending (global) email notification:', error);
+				}
+			}));
+		}
 
 		return;
 	}
@@ -1223,7 +1320,7 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 				SELECT user_id
 				FROM notification
 				WHERE user_id = ANY($1) AND reference_id = $2 AND reference_type_id = $3
-			`, chunkedUserIds, useReferenceId, notificationType.id)).map((n: any) => n.user_id);
+			`, chunkedUserIds, useReferenceId, notificationType.id)).map((n: { user_id: number }) => n.user_id);
 
 			// if notification already exists for that object and type, re-notify them with latest
 			if (existingNotificationUserIds.length > 0)
@@ -1268,23 +1365,98 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 		}
 	}
 
+	const connectedUserIds = await getAllConnectedUserIds();
+
+	for (let userId of connectedUserIds.filter(x => userIds.includes(x)))
+	{
+		try
+		{
+			const latestNotification = await this.fullQuery(userId, 'v1/notification/latest');
+
+			sendNotificationToUser(userId, constants.webSocketTypes.notification, latestNotification);
+		}
+		catch (err)
+		{
+			console.error('Error sending notification via WebSocket.', userId, err);
+		}
+	}
+
 	const accountSettings = await db.query(`
-		SELECT users.id
+		SELECT
+			users.id,
+			users.email_notifications,
+			string_agg(user_subscription.subscription, ';') AS subscriptions
 		FROM users
-		WHERE users.id = ANY($1) AND users.email_notifications = true
+		LEFT JOIN user_subscription ON user_subscription.user_id = users.id
+		WHERE users.id = ANY($1) AND (users.email_notifications = true
+		OR (
+				(user_subscription.desktop = true
+					AND EXISTS (
+						SELECT 1
+						FROM user_subscription ua
+						WHERE ua.user_id = users.id
+						AND ua.desktop = true
+						AND ua.last_active_time >= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - INTERVAL '10 minutes'
+					)
+				)
+				OR (user_subscription.desktop = false
+					AND NOT EXISTS (
+						SELECT 1
+						FROM user_subscription ua
+						WHERE ua.user_id = users.id
+						AND ua.desktop = true
+						AND ua.last_active_time >= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - INTERVAL '10 minutes'
+					)
+				)
+		))
+		GROUP BY users.id, users.email_notifications
 	`, userIds);
 
-	await Promise.all(accountSettings.map(async (user: any) =>
+	await Promise.all(accountSettings.map(async (user: { id: number, email_notifications: boolean, subscriptions: string }) =>
 	{
 		const userId = user.id;
 
-		let userNotification: any = {
+		let userNotification: {
+			identifier: string
+			reference_id: number
+			description: string
+			child_reference_id: number | null
+			count: number
+			url?: string
+		} = {
 			identifier: type,
 			reference_id: useReferenceId,
 			description: description,
+			child_reference_id: childReferenceId,
+			// since this is email, they'll get a notification everytime anyways
+			count: 1,
 		};
 
 		// see v1/notification.js
+		let permission = true;
+
+		if ([
+			constants.notification.types.PT,
+			constants.notification.types.FT,
+			constants.notification.types.FT_edit,
+			constants.notification.types.FB,
+			constants.notification.types.usernameTag,
+			constants.notification.types.postQuote,
+		].includes(type)
+		)
+		{
+			permission = await this.fullQuery(userId, 'v1/node/permission', { permission: 'read', nodeId: userNotification.reference_id });
+		}
+		else if (type === constants.notification.types.postReaction)
+		{
+			permission = await this.query('v1/node/permission', { permission: 'react', nodeId: userNotification.reference_id });
+		}
+
+		if (!permission)
+		{
+			return;
+		}
+
 		let userCheck = false;
 
 		if (userNotification.identifier === constants.notification.types.modminUTPost)
@@ -1324,7 +1496,11 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			userCheck = permissionGranted.length > 0;
 		}
 
-		let extra: any = {
+		let extra: {
+			parentId?: number
+			page?: number
+			post: number | null
+		} = {
 			post: null,
 		};
 
@@ -1332,103 +1508,194 @@ async function create(this: APIThisType, { id, type }: createProps): Promise<voi
 			[
 				constants.notification.types.PT,
 				constants.notification.types.FT,
+				constants.notification.types.FT_edit,
 				constants.notification.types.usernameTag,
+				constants.notification.types.shopThread,
+				constants.notification.types.postQuote,
+				constants.notification.types.postReaction,
 			].includes(userNotification.identifier)
 		)
 		{
-			let children = [], nodeUser = null, parentId = userNotification.reference_id, post = userNotification.reference_id;
-
-			if (constants.notification.types.usernameTag === userNotification.identifier)
+			if (childReferenceId && constants.notification.types.FT_edit === userNotification.identifier)
 			{
+				// Edited post — link directly to that post
 				const [parent] = await db.query(`
 					SELECT node.parent_node_id AS id
 					FROM node
 					WHERE node.id = $1
-				`, userNotification.reference_id);
+				`, childReferenceId);
 
-				children = await db.query(`
-					SELECT node.id, node.creation_time
+				const children = await db.query(`
+					SELECT node.id
 					FROM node
 					WHERE node.parent_node_id = $1
 					ORDER BY creation_time ASC
 				`, parent.id);
 
-				parentId = parent.id;
+				let page = 1, index = 0;
+
+				for (let child of children)
+				{
+					if (index % constants.threadPageSize === 0 && index !== 0)
+					{
+						page++;
+					}
+
+					if (child.id === childReferenceId)
+					{
+						break;
+					}
+
+					index++;
+				}
+
+				extra = {
+					parentId: parent.id,
+					page: page,
+					post: childReferenceId,
+				};
 			}
 			else
 			{
-				[nodeUser] = await db.query(`
-					SELECT last_checked
-					FROM node_user
-					WHERE node_id = $1 AND user_id = $2
-				`, userNotification.reference_id, userId);
+				let children: {
+					id: number
+					creation_time: Date
+				}[] = [];
+				let nodeUser: { last_checked: Date } | null = null, parentId = userNotification.reference_id, post: number | null = userNotification.reference_id;
 
-				if (nodeUser)
+				if ([
+					constants.notification.types.usernameTag,
+					constants.notification.types.postQuote,
+					constants.notification.types.postReaction,
+				].includes(userNotification.identifier)
+				)
 				{
+					const [parent] = await db.query(`
+						SELECT node.parent_node_id AS id
+						FROM node
+						WHERE node.id = $1
+					`, userNotification.reference_id);
+
 					children = await db.query(`
-						SELECT node.id, node.creation_time
+						SELECT node.id
 						FROM node
 						WHERE node.parent_node_id = $1
 						ORDER BY creation_time ASC
-					`, userNotification.reference_id);
-				}
+					`, parent.id);
 
-				post = null;
-			}
-
-			let page = 1, index = 0;
-
-			for (let child of children)
-			{
-				if (index % constants.threadPageSize === 0 && index !== 0)
-				{
-					page++;
-				}
-
-				if (constants.notification.types.usernameTag === userNotification.identifier)
-				{
-					if (child.id === userNotification.reference_id)
-					{
-						break;
-					}
+					parentId = parent.id;
 				}
 				else
 				{
-					if (dateUtils.isAfter(child.creation_time, nodeUser.last_checked))
+					[nodeUser] = await db.query(`
+						SELECT last_checked
+						FROM node_user
+						WHERE node_id = $1 AND user_id = $2
+					`, userNotification.reference_id, userId);
+
+					if (nodeUser)
 					{
-						post = child.id;
-						break;
+						children = await db.query(`
+							SELECT node.id, node.creation_time
+							FROM node
+							WHERE node.parent_node_id = $1
+							ORDER BY creation_time ASC
+						`, userNotification.reference_id);
 					}
+
+					post = null;
 				}
 
-				index++;
-			}
+				let page = 1, index = 0;
 
-			extra = {
-				parentId: parentId,
-				page: page,
-				post: post,
-			};
+				for (let child of children)
+				{
+					if (index % constants.threadPageSize === 0 && index !== 0)
+					{
+						page++;
+					}
+
+					if ([
+						constants.notification.types.usernameTag,
+						constants.notification.types.postQuote,
+						constants.notification.types.postReaction,
+					].includes(userNotification.identifier)
+					)
+					{
+						if (child.id === userNotification.reference_id)
+						{
+							break;
+						}
+					}
+					else
+					{
+						if (nodeUser && dateUtils.isAfter(child.creation_time, nodeUser.last_checked))
+						{
+							post = child.id;
+							break;
+						}
+					}
+
+					index++;
+				}
+
+				extra = {
+					parentId: parentId,
+					page: page,
+					post: post,
+				};
+			}
 		}
 
 		userNotification.url = utils.getNotificationReferenceLink(userNotification, userCheck, userId, extra);
 
-		try
+		const subs = user.subscriptions ? user.subscriptions.split(';') : [];
+
+		if (subs.length > 0)
 		{
-			await accounts.emailUser({
-				user: userId,
-				subject: 'Notification: ' + userNotification.description,
-				text: getEmailText(userNotification, userId),
+			subs.map(sub =>
+			{
+				const subscription = JSON.parse(sub);
+
+				webpush.sendNotification(subscription,
+					JSON.stringify({
+						title: 'Notification',
+						body: userNotification.description,
+						url: userNotification.url,
+					}),
+				).catch(async err =>
+				{
+					if (err.statusCode === 410 || err.statusCode === 404)
+					{
+						console.info('Invalid subscription for user', user.id);
+					}
+					else
+					{
+						console.error('Error sending push notification for user', user.id, err);
+					}
+				});
 			});
 		}
-		catch (error: any)
+
+		if (user.email_notifications)
 		{
-			console.error('Error sending email notification:', error);
+			try
+			{
+				await accounts.emailUser({
+					user: userId,
+					subject: 'Notification: ' + userNotification.description,
+					text: getEmailText(userNotification, userId),
+				});
+			}
+			catch (error: unknown)
+			{
+				console.error('Error sending email notification:', error);
+			}
 		}
 	}));
 }
 
-function getEmailText(notification: any, userId: number): string
+function getEmailText(notification: { identifier: string, reference_id: number, description: string, child_reference_id: number | null, count: number, url?: string } | { identifier: string, reference_id: number, description: string, url?: string }, userId: number): string
 {
 	const vbnewline = '<br/>';
 
@@ -1444,17 +1711,23 @@ function getEmailText(notification: any, userId: number): string
 	return '<span style="font-family: Verdana; font-size: 11px;">' + origSendTo + email + '</span>';
 }
 
+create.permissions = [
+	'userId',
+];
+
 create.apiTypes = {
-	// id not checked on purpose
+	id: {
+		type: APITypes.number,
+		required: true,
+	},
 	type: {
 		type: APITypes.string,
-		default: '',
 		required: true,
 	},
 };
 
 type createProps = {
-	id: any
+	id: number
 	type: string
 };
 

@@ -30,6 +30,8 @@ const Item = ({
 	icon,
 	username,
 	permission,
+	siteMenu,
+	logout,
 }: ItemProps) =>
 {
 	let className = 'NavbarItem';
@@ -44,9 +46,19 @@ const Item = ({
 		className += ' NavbarItem-icon';
 	}
 
+	if (siteMenu)
+	{
+		className += ' NavbarItem-siteMenu';
+	}
+
 	if (username)
 	{
 		className += ' NavbarItem-username';
+	}
+
+	if (logout)
+	{
+		className += ' NavbarItem-logout';
 	}
 
 	if (permission)
@@ -71,6 +83,8 @@ type ItemProps = {
 	icon?: boolean
 	username?: boolean
 	permission?: string
+	siteMenu?: boolean
+	logout?: boolean
 };
 
 /* Put this inside the navbar and it will expand to take up as much horizontal

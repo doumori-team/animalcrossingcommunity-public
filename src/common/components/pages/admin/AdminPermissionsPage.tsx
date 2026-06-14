@@ -5,7 +5,7 @@ import { RequirePermission } from '@behavior';
 import { Section, Header } from '@layout';
 import Permission from '@/components/admin/Permission.tsx';
 import { APIThisType, PermissionType, UserGroupType } from '@types';
-import { routerUtils } from '@utils';
+import { routerUtils, utils } from '@utils';
 
 export const action = routerUtils.formAction;
 
@@ -14,7 +14,7 @@ const AdminPermissionsPage = ({ loaderData, params }: { loaderData: AdminPermiss
 	const { permissions, userGroups } = loaderData;
 	const { id } = params;
 
-	const selectedUserGroupId = Number(id || -1);
+	const selectedUserGroupId = utils.safeNumber(id, -1);
 
 	return (
 		<RequirePermission permission='permission-admin'>
@@ -73,7 +73,7 @@ function renderGroups(userGroups: UserGroupType[] | undefined, indent: number, s
 
 async function loadData(this: APIThisType, { id }: { id: string }): Promise<AdminPermissionsPageProps>
 {
-	const selectedUserGroupId = Number(id || -1);
+	const selectedUserGroupId = utils.safeNumber(id, -1);
 
 	const [permissions, userGroups] = await Promise.all([
 		selectedUserGroupId >= 0 ?

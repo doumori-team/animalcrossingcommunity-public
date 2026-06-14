@@ -5,18 +5,6 @@ import { APIThisType, SuccessType, ShopType } from '@types';
 
 async function save(this: APIThisType, { shopId, services }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
@@ -29,14 +17,9 @@ async function save(this: APIThisType, { shopId, services }: saveProps): Promise
 		throw new UserError('permission');
 	}
 
-	const defaultServices = await Promise.all(services.filter(id => id.startsWith('default_')).map(async(serviceId) =>
+	const defaultServices = await Promise.all((services as string[]).filter(id => id.startsWith('default_')).map(async(serviceId) =>
 	{
 		const id = serviceId.substring('default_'.length);
-
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-service');
-		}
 
 		const [service] = await db.query(`
 			SELECT id
@@ -52,13 +35,8 @@ async function save(this: APIThisType, { shopId, services }: saveProps): Promise
 		return Number(id);
 	}));
 
-	services = await Promise.all(services.filter(id => !id.startsWith('default_')).map(async(id) =>
+	services = await Promise.all((services as string[]).filter(id => !id.startsWith('default_')).map(async(id) =>
 	{
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-service');
-		}
-
 		const [service] = await db.query(`
 			SELECT id
 			FROM shop_service
@@ -73,7 +51,7 @@ async function save(this: APIThisType, { shopId, services }: saveProps): Promise
 		return Number(id);
 	}));
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -117,6 +95,11 @@ async function save(this: APIThisType, { shopId, services }: saveProps): Promise
 	};
 }
 
+save.permissions = [
+	'modify-shops',
+	'userId',
+];
+
 save.apiTypes = {
 	shopId: {
 		type: APITypes.number,
@@ -130,7 +113,7 @@ save.apiTypes = {
 
 type saveProps = {
 	shopId: number
-	services: any[]
+	services: string[] | number[]
 };
 
 export default save;

@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { utils, constants } from '@utils';
-import { Select, Button, Text } from '@form';
+import { Select, Button, Text, Form } from '@form';
 import { ACGameType, PatternPalettesType, PatternColorsType, PatternColorInfoType } from '@types';
-import { Form } from '@form';
+import { FontAwesomeIcon } from '@layout';
+
+type Tool = 'pencil' | 'bucket' | 'eyedropper' | 'eraser';
 
 const PatternMaker = ({
 	gameColorInfo,
@@ -17,17 +19,18 @@ const PatternMaker = ({
 }: PatternMakerProps) =>
 {
 	// initialize 2D array used for storing colors used on canvas in X, Y positions
-	let initialFormData: any = [];
+	let initialFormData: string[][] = [];
 
 	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
 		initialFormData[i] = [];
 	}
 
-	let initialColors: any = gameColors[initialGameId], initialPalette: any = [];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let initialColors = gameColors[initialGameId], initialPalette: any = [];
 
 	// we need to load the colors in the same order as the palette used
-	const gamePaletteColors = (gamePalettes as any)[initialGameId][initialPaletteId - 1].colors;
+	const gamePaletteColors: string[] = gamePalettes[initialGameId][initialPaletteId - 1].colors;
 
 	for (let key in gamePaletteColors)
 	{
@@ -37,7 +40,7 @@ const PatternMaker = ({
 	// if editing an existing pattern...
 	if (data)
 	{
-		let includedColors: any = [];
+		let includedColors: string[] = [];
 
 		// convert 1D array to 2D for X Y positions
 		// this actually goes column by column instead of row by row
@@ -60,12 +63,12 @@ const PatternMaker = ({
 		// change out any colors that aren't used for ones that are
 
 		// what colors are in the pattern that isn't in the palette
-		const incColors = includedColors.filter((x: any) => !gamePaletteColors.includes(x) && Number(x) !== constants.pattern.transparentColorId);
+		const incColors = includedColors.filter(x => !gamePaletteColors.includes(x) && Number(x) !== constants.pattern.transparentColorId);
 
 		if (incColors.length > 0)
 		{
 			// colors in the palette not used in the pattern
-			const palColors = gamePaletteColors.filter((x: any) => !includedColors.includes(x));
+			const palColors = gamePaletteColors.filter(x => !includedColors.includes(x));
 			let i = 0;
 
 			for (let key in initialPalette)
@@ -102,7 +105,8 @@ const PatternMaker = ({
 
 	if (initialGameId === constants.gameIds.ACNH)
 	{
-		const firstColor = (gameColorInfo as any)[initialGameId]
+		const firstColor = gameColorInfo[initialGameId]
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			.find((c: any) => c.hex === initialColors[initialPalette[0]]);
 
 		if (firstColor)
@@ -113,7 +117,7 @@ const PatternMaker = ({
 		}
 	}
 
-	let initialPaletteInterfaces = [];
+	let initialPaletteInterfaces: { border: string, backgroundColor: string }[] = [];
 
 	for (let i = 0; i <= constants.pattern.numberOfColors; i++)
 	{
@@ -124,9 +128,11 @@ const PatternMaker = ({
 	}
 
 	const [currentlyDrawing, setCurrentlyDrawing] = useState<boolean>(false);
-	const [colors, setColors] = useState<any>(initialColors);
+	const [colors, setColors] = useState(initialColors);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const [palette, setPalette] = useState<any>(initialPalette);
 	const [activePaletteId, setActivePaletteId] = useState<number>(0);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const [formData, setFormData] = useState<any>(initialFormData);
 	const [posX1, setPosX1] = useState<number>(0);
 	const [posY1, setPosY1] = useState<number>(0);
@@ -139,16 +145,219 @@ const PatternMaker = ({
 	const [paletteColorsKey, setPaletteColorsKey] = useState<number>(Math.random());
 	const [dataUrl, setDataUrl] = useState<string>(initialDataUrl);
 	const [gamePaletteId, setGamePaletteId] = useState<string>(initialGameId + '-' + initialPaletteId);
-	const [paletteInterfaces, setPaletteInterfaces] = useState<any>(initialPaletteInterfaces);
+	const [paletteInterfaces, setPaletteInterfaces] = useState(initialPaletteInterfaces);
+	const [activeTool, setActiveTool] = useState<Tool>('pencil');
+	const [showGrid, setShowGrid] = useState<boolean>(true);
+	const [showAxisLines, setShowAxisLines] = useState<boolean>(false);
+	const [mirrorH, setMirrorH] = useState<boolean>(false);
+	const [mirrorV, setMirrorV] = useState<boolean>(false);
+	const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
 
+	// Undo/redo stacks
+	const undoStack = useRef<string[][][]>([]);
+	const redoStack = useRef<string[][][]>([]);
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const patternInterface = useRef<any>(null);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const paletteInterfaceExtended = useRef<any>(null);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const didMount = useRef<any>(false);
+
+	// Deep clone a 2D array
+	const cloneFormData = (data: string[][]): string[][] =>
+	{
+		return data.map(row => [...row]);
+	};
+
+	// Push current formData onto undo stack before a change
+	const pushUndo = useCallback((currentData: string[][]): void =>
+	{
+		undoStack.current.push(cloneFormData(currentData));
+		redoStack.current = [];
+	}, []);
+
+	const undo = useCallback((): void =>
+	{
+		if (undoStack.current.length === 0)
+		{
+			return;
+		}
+
+		const previous = undoStack.current.pop()!;
+		redoStack.current.push(cloneFormData(formData));
+
+		setPosX1(0);
+		setPosY1(0);
+		setPosX2(constants.pattern.paletteLength - 1);
+		setPosY2(constants.pattern.paletteLength - 1);
+		setFormData(previous);
+	}, [formData]);
+
+	const redo = useCallback((): void =>
+	{
+		if (redoStack.current.length === 0)
+		{
+			return;
+		}
+
+		const next = redoStack.current.pop()!;
+		undoStack.current.push(cloneFormData(formData));
+
+		setPosX1(0);
+		setPosY1(0);
+		setPosX2(constants.pattern.paletteLength - 1);
+		setPosY2(constants.pattern.paletteLength - 1);
+		setFormData(next);
+	}, [formData]);
+
+	// Flood fill (4-connected)
+	const floodFill = (startX: number, startY: number, fillColor: string): void =>
+	{
+		const targetColor = formData[startX][startY];
+
+		if (targetColor === fillColor)
+		{
+			return;
+		}
+
+		pushUndo(formData);
+
+		let dataArray = cloneFormData(formData);
+		const stack: [number, number][] = [[startX, startY]];
+		const len = constants.pattern.paletteLength;
+
+		while (stack.length > 0)
+		{
+			const [x, y] = stack.pop()!;
+
+			if (x < 0 || x >= len || y < 0 || y >= len)
+			{
+				continue;
+			}
+
+			if (dataArray[x][y] !== targetColor)
+			{
+				continue;
+			}
+
+			dataArray[x][y] = fillColor;
+
+			stack.push([x + 1, y]);
+			stack.push([x - 1, y]);
+			stack.push([x, y + 1]);
+			stack.push([x, y - 1]);
+		}
+
+		setPosX1(0);
+		setPosY1(0);
+		setPosX2(constants.pattern.paletteLength - 1);
+		setPosY2(constants.pattern.paletteLength - 1);
+		setFormData(dataArray);
+	};
+
+	// Eyedropper: find which palette slot matches the clicked pixel color
+	const eyedrop = (x: number, y: number): void =>
+	{
+		const clickedColor = formData[x][y];
+
+		if (Number(clickedColor) === constants.pattern.transparentColorId)
+		{
+			// select the transparent slot
+			changeDrawingColor(constants.pattern.numberOfColors);
+			setActiveTool('pencil');
+			return;
+		}
+
+		// find which palette index has this color
+		for (let i = 0; i < constants.pattern.numberOfColors; i++)
+		{
+			if (colors[palette[i]] === clickedColor)
+			{
+				changeDrawingColor(i);
+				setActiveTool('pencil');
+				return;
+			}
+		}
+
+		// color not in palette — stay on eyedropper, don't switch
+	};
+
+	// Keyboard shortcuts
+	useEffect(() =>
+	{
+		const handleKeyDown = (e: KeyboardEvent): void =>
+		{
+			// Don't fire shortcuts when typing in an input
+			const tag = (e.target as HTMLElement).tagName;
+
+			if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT')
+			{
+				return;
+			}
+
+			switch (e.key.toLowerCase())
+			{
+				case 'p':
+					setActiveTool('pencil');
+					break;
+				case 'b':
+					setActiveTool('bucket');
+					break;
+				case 'i':
+					setActiveTool('eyedropper');
+					break;
+				case 'e':
+					setActiveTool('eraser');
+					break;
+				case 'g':
+					setShowGrid(prev => !prev);
+					break;
+				case 'x':
+					setShowAxisLines(prev => !prev);
+					break;
+				case 'h':
+					setMirrorH(prev => !prev);
+					break;
+				case 'v':
+					setMirrorV(prev => !prev);
+					break;
+				case 'z':
+					if (e.ctrlKey || e.metaKey)
+					{
+						e.preventDefault();
+
+						if (e.shiftKey)
+						{
+							redo();
+						}
+						else
+						{
+							undo();
+						}
+					}
+					break;
+				case 'y':
+					if (e.ctrlKey || e.metaKey)
+					{
+						e.preventDefault();
+						redo();
+					}
+					break;
+			}
+		};
+
+		document.addEventListener('keydown', handleKeyDown);
+
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [undo, redo]);
 
 	useEffect(() =>
 	{
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!(didMount as any).mounted)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(didMount as any).mounted = true;
 
 			if (data && utils.realStringLength(dataUrl) === 0)
@@ -163,9 +372,16 @@ const PatternMaker = ({
 		}
 
 		drawPaletteExtended();
-		drawPattern(true, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
+		drawPattern(showGrid, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
 	}, [currentGameId, palette]);
 
+	// Redraw when grid or axis line toggles change
+	useEffect(() =>
+	{
+		drawPattern(showGrid, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
+	}, [showGrid, showAxisLines, mirrorH, mirrorV]);
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const editIfDrawing = (e: any): void =>
 	{
 		if (currentlyDrawing)
@@ -176,16 +392,63 @@ const PatternMaker = ({
 
 	useEffect(() =>
 	{
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!(didMount as any).formData)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(didMount as any).formData = true;
 			return;
 		}
 
-		drawPattern(true, posX1, posY1, posX2, posY2);
+		drawPattern(showGrid, posX1, posY1, posX2, posY2);
 	}, [formData]);
 
+	// Get the fill color for the current tool + active palette
+	const getActiveColor = (): string =>
+	{
+		if (activeTool === 'eraser')
+		{
+			if (currentGameId === constants.gameIds.ACNH)
+			{
+				return String(constants.pattern.transparentColorId);
+			}
+
+			return colors[palette[12]];
+		}
+
+		if (activePaletteId === constants.pattern.numberOfColors)
+		{
+			return String(constants.pattern.transparentColorId);
+		}
+
+		return colors[palette[activePaletteId]];
+	};
+
+	// Apply a pixel change with optional mirroring
+	const applyPixel = (dataArray: string[][], x: number, y: number, color: string): void =>
+	{
+		const len = constants.pattern.paletteLength;
+
+		dataArray[x][y] = color;
+
+		if (mirrorH)
+		{
+			dataArray[len - 1 - x][y] = color;
+		}
+
+		if (mirrorV)
+		{
+			dataArray[x][len - 1 - y] = color;
+		}
+
+		if (mirrorH && mirrorV)
+		{
+			dataArray[len - 1 - x][len - 1 - y] = color;
+		}
+	};
+
 	// Changes the color of the 'pixel' indicated.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const editPattern = (e: any): void =>
 	{
 		const pos = getCursorPosition(e, patternInterface.current);
@@ -195,44 +458,109 @@ const PatternMaker = ({
 			return;
 		}
 
-		const posx = (pos as any)[0], posy = (pos as any)[1];
+		const posx = pos[0], posy = pos[1];
 
 		if (posx >= constants.pattern.paletteLength || posy >= constants.pattern.paletteLength)
 		{
 			return;
 		}
 
-		let dataArray = [...formData];
-
-		if (activePaletteId === constants.pattern.numberOfColors)
+		// Handle tool-specific behavior on click
+		if (activeTool === 'bucket')
 		{
-			dataArray[posx][posy] = constants.pattern.transparentColorId;
+			const fillColor = getActiveColor();
+			floodFill(posx, posy, fillColor);
+			return;
+		}
+
+		if (activeTool === 'eyedropper')
+		{
+			eyedrop(posx, posy);
+			return;
+		}
+
+		// Pencil or eraser — draw pixel(s)
+		let dataArray = [...formData];
+		const color = getActiveColor();
+
+		applyPixel(dataArray, posx, posy, color);
+
+		// When mirroring, update the full canvas
+		if (mirrorH || mirrorV)
+		{
+			setPosX1(0);
+			setPosY1(0);
+			setPosX2(constants.pattern.paletteLength - 1);
+			setPosY2(constants.pattern.paletteLength - 1);
 		}
 		else
 		{
-			dataArray[posx][posy] = colors[palette[activePaletteId]];
+			setPosX1(posx);
+			setPosY1(posy);
+			setPosX2(posx);
+			setPosY2(posy);
 		}
 
-		setPosX1(posx);
-		setPosY1(posy);
-		setPosX2(posx);
-		setPosY2(posy);
 		setFormData(dataArray);
+	};
+
+	// Push undo state when user starts drawing (mousedown / touchstart)
+	const startDrawing = (): void =>
+	{
+		if (activeTool === 'pencil' || activeTool === 'eraser')
+		{
+			pushUndo(formData);
+		}
+
+		setCurrentlyDrawing(true);
 	};
 
 	const stopDrawing = (): void =>
 	{
 		// clear the canvas of grid to save prettified pattern
 		clearCanvas(patternInterface.current, 0, 0, constants.pattern.paletteLength, constants.pattern.paletteLength);
-		drawPattern(false, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
+		drawPattern(false, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1, false);
 
 		setCurrentlyDrawing(false);
 		setDataUrl(patternInterface.current.toDataURL());
 
-		drawPattern(true, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
+		drawPattern(showGrid, 0, 0, constants.pattern.paletteLength - 1, constants.pattern.paletteLength - 1);
+	};
+
+	// Touch event handlers
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const handleTouchStart = (e: any): void =>
+	{
+		e.preventDefault();
+		const touch = e.touches[0];
+		const mouseEvent = { pageX: touch.pageX, pageY: touch.pageY };
+
+		startDrawing();
+		editPattern(mouseEvent);
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const handleTouchMove = (e: any): void =>
+	{
+		e.preventDefault();
+		const touch = e.touches[0];
+		const mouseEvent = { pageX: touch.pageX, pageY: touch.pageY };
+
+		if (currentlyDrawing)
+		{
+			editPattern(mouseEvent);
+		}
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const handleTouchEnd = (e: any): void =>
+	{
+		e.preventDefault();
+		stopDrawing();
 	};
 
 	// Changes the active palette color's slot in the palette to the one clicked on.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const changePaletteColor = (e: any): void =>
 	{
 		const pos = getCursorPosition(e, paletteInterfaceExtended.current);
@@ -242,7 +570,7 @@ const PatternMaker = ({
 			return;
 		}
 
-		const posx = (pos as any)[0], posy = (pos as any)[1];
+		const posx = pos[0], posy = pos[1];
 
 		if (posx >= 16 || posy >= 18 || posy % 4 === 3 || posx % 4 === 3 && posy < 16)
 		{
@@ -267,6 +595,8 @@ const PatternMaker = ({
 		{
 			colorId = 16 * 9 + posx;
 		}
+
+		pushUndo(formData);
 
 		let array = [...palette];
 		array[activePaletteId] = colorId;
@@ -297,8 +627,10 @@ const PatternMaker = ({
 
 	useEffect(() =>
 	{
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!(didMount as any).activePaletteId)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(didMount as any).activePaletteId = true;
 			return;
 		}
@@ -316,7 +648,7 @@ const PatternMaker = ({
 			return;
 		}
 
-		const color = (gameColorInfo as any)[currentGameId][palette[index]];
+		const color = gameColorInfo[currentGameId][palette[index]];
 
 		setHue(color ? color.hue : 0);
 		setVividness(color ? color.vividness : 0);
@@ -404,7 +736,7 @@ const PatternMaker = ({
 	};
 
 	// Draws the pattern on a canvas.
-	const drawPattern = (drawGrid: boolean, x1: number, y1: number, x2: number, y2: number): void =>
+	const drawPattern = (drawGrid: boolean, x1: number, y1: number, x2: number, y2: number, drawLines: boolean = true): void =>
 	{
 		for (let x = x1; x <= x2; x++)
 		{
@@ -428,9 +760,81 @@ const PatternMaker = ({
 				}
 			}
 		}
+
+		// Draw guide lines on top if enabled
+		if (drawLines && (showAxisLines || mirrorH || mirrorV))
+		{
+			drawGuideLines();
+		}
+	};
+
+	// Draw axis and/or mirror guide lines on the pattern canvas
+	const drawGuideLines = (): void =>
+	{
+		const canvas = patternInterface.current;
+
+		if (!canvas)
+		{
+			return;
+		}
+
+		const ctx = canvas.getContext('2d');
+		const scale = parseInt(canvas.dataset.scale, 10) || 1;
+		const len = constants.pattern.paletteLength;
+		const mid = len / 2 * scale;
+
+		ctx.save();
+
+		// Axis lines (red dashed)
+		if (showAxisLines)
+		{
+			ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+			ctx.lineWidth = 2;
+			ctx.setLineDash([4, 4]);
+
+			// Vertical center line
+			ctx.beginPath();
+			ctx.moveTo(mid, 0);
+			ctx.lineTo(mid, len * scale);
+			ctx.stroke();
+
+			// Horizontal center line
+			ctx.beginPath();
+			ctx.moveTo(0, mid);
+			ctx.lineTo(len * scale, mid);
+			ctx.stroke();
+		}
+
+		// Mirror lines (blue dashed) — only draw if axis isn't already showing that line
+		if (mirrorH && !showAxisLines)
+		{
+			ctx.strokeStyle = 'rgba(60, 130, 240, 0.6)';
+			ctx.lineWidth = 2;
+			ctx.setLineDash([6, 3]);
+
+			ctx.beginPath();
+			ctx.moveTo(mid, 0);
+			ctx.lineTo(mid, len * scale);
+			ctx.stroke();
+		}
+
+		if (mirrorV && !showAxisLines)
+		{
+			ctx.strokeStyle = 'rgba(60, 130, 240, 0.6)';
+			ctx.lineWidth = 2;
+			ctx.setLineDash([6, 3]);
+
+			ctx.beginPath();
+			ctx.moveTo(0, mid);
+			ctx.lineTo(len * scale, mid);
+			ctx.stroke();
+		}
+
+		ctx.restore();
 	};
 
 	// Clears the contents of a canvas.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const clearCanvas = (canvas: any, x1: number, y1: number, x2: number, y2: number): void =>
 	{
 		const scale = canvas.dataset.scale;
@@ -447,6 +851,7 @@ const PatternMaker = ({
 	};
 
 	// Draws a one-unit square on a canvas.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const drawScaledSquare = (canvas: any, x: number, y: number, fillColor: string, borderColor: string | boolean): void =>
 	{
 		let scale = 1;
@@ -484,42 +889,23 @@ const PatternMaker = ({
 	};
 
 	// Works out the coordinate indicated on a canvas, relative to the canvas' scale.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const getCursorPosition = (e: any, canvas: any): boolean | [number, number] =>
 	{
 		let x, y, scale = 1;
 
-		// Works out the coordinates of a canvas relative to the page.
-		let left, top;
-		left = top = 0;
-
-		if (canvas.offsetParent)
-		{
-			let parent = canvas;
-
-			do
-			{
-				left += parent.offsetLeft;
-				top += parent.offsetTop;
-			}
-			while (parent = parent.offsetParent);
-		}
-
-		const canvasOffset = [left, top];
+		const rect = canvas.getBoundingClientRect();
 
 		if (e.pageX !== undefined && e.pageY !== undefined)
 		{
-			x = e.pageX;
-			y = e.pageY;
+			x = e.pageX - (rect.left + window.scrollX);
+			y = e.pageY - (rect.top + window.scrollY);
 		}
-		// it's IE
 		else
 		{
-			x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-			y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+			x = e.clientX - rect.left;
+			y = e.clientY - rect.top;
 		}
-
-		x -= canvasOffset[0];
-		y -= canvasOffset[1];
 
 		// now x and y are relative to top left corner of canvas
 		if (x < 0 || y < 0 || x > canvas.width - 1 || y > canvas.height - 1)
@@ -544,8 +930,10 @@ const PatternMaker = ({
 
 	useEffect(() =>
 	{
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!(didMount as any).colors)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(didMount as any).colors = true;
 			return;
 		}
@@ -553,6 +941,7 @@ const PatternMaker = ({
 		updatePaletteColor();
 	}, [hue, vividness, brightness]);
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const changeHue = (e: any): void =>
 	{
 		let { value, min, max } = e.target;
@@ -568,6 +957,7 @@ const PatternMaker = ({
 		setHue(Math.max(min, Math.min(max, Number(value))));
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const changeVividness = (e: any): void =>
 	{
 		let { value, min, max } = e.target;
@@ -583,6 +973,7 @@ const PatternMaker = ({
 		setVividness(Math.max(min, Math.min(max, Number(value))));
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const changeBrightness = (e: any): void =>
 	{
 		let { value, min, max } = e.target;
@@ -607,9 +998,12 @@ const PatternMaker = ({
 			return;
 		}
 
+		pushUndo(formData);
+
 		// update the palette to have new color
 		let newPalette = [...palette];
-		const newRgbIndex = (gameColorInfo as any)[currentGameId].findIndex((c: any) => c.hue === hue &&
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const newRgbIndex = gameColorInfo[currentGameId].findIndex((c: any) => c.hue === hue &&
 			c.vividness === vividness &&
 			c.brightness === brightness);
 		newPalette[activePaletteId] = newRgbIndex;
@@ -625,7 +1019,7 @@ const PatternMaker = ({
 				if (colors[palette[activePaletteId]] === formData[x][y])
 				{
 					// update the pattern to have new color at that square
-					dataArray[x][y] = (gameColorInfo as any)[currentGameId][newRgbIndex].hex;
+					dataArray[x][y] = gameColorInfo[currentGameId][newRgbIndex].hex;
 				}
 			}
 		}
@@ -639,37 +1033,6 @@ const PatternMaker = ({
 		setDataUrl(patternInterface.current.toDataURL());
 	};
 
-	const fillPatternColor = (rgb: string): void =>
-	{
-		if (!rgb)
-		{
-			if (currentGameId === constants.gameIds.ACNH)
-			{
-				rgb = String(constants.pattern.transparentColorId);
-			}
-			else
-			{
-				return;
-			}
-		}
-
-		let dataArray = [...formData];
-
-		for (let x = 0; x < constants.pattern.paletteLength; x++)
-		{
-			for (let y = 0; y < constants.pattern.paletteLength; y++)
-			{
-				dataArray[x][y] = rgb;
-			}
-		}
-
-		setPosX1(0);
-		setPosY1(0);
-		setPosX2(constants.pattern.paletteLength - 1);
-		setPosY2(constants.pattern.paletteLength - 1);
-		setFormData(dataArray);
-	};
-
 	const resetPalette = (usePaletteId?: string): void =>
 	{
 		const newGamePaletteId = usePaletteId ?? gamePaletteId;
@@ -677,15 +1040,18 @@ const PatternMaker = ({
 		const paletteId = Number(newGamePaletteId.substring(newGamePaletteId.indexOf('-') + 1));
 
 		// need to load new colors into palette boxes
-		const gamePaletteColors = (gamePalettes as any)[gameId][paletteId - 1].colors;
+		const gamePaletteColors = gamePalettes[gameId][paletteId - 1].colors;
 		const newColors = gameColors[gameId];
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let newPalette: any = [];
 
 		for (let key in palette)
 		{
 			newPalette[key] = newColors.indexOf(gamePaletteColors[Number(key)]);
 		}
+
+		pushUndo(formData);
 
 		// update pattern colors to new palette
 		let dataArray = [...formData];
@@ -720,7 +1086,7 @@ const PatternMaker = ({
 		}
 
 		// update hue / vividness / brightness if NH
-		const color = (gameColorInfo as any)[gameId][palette[activePaletteId]];
+		const color = gameColorInfo[gameId][palette[activePaletteId]];
 
 		setGamePaletteId(newGamePaletteId);
 		setColors(newColors);
@@ -733,7 +1099,7 @@ const PatternMaker = ({
 		setCurrentGameId(gameId);
 	};
 
-	let palettes: any = [];
+	let palettes: { id: string, game: string, name: string }[] = [];
 
 	for (let key in gamePalettes)
 	{
@@ -741,7 +1107,8 @@ const PatternMaker = ({
 
 		if (game)
 		{
-			(gamePalettes as any)[key].map((palette: any) =>
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			gamePalettes[key].map((palette: any) =>
 			{
 				palettes.push({
 					'id': key + '-' + palette.paletteId,
@@ -753,9 +1120,22 @@ const PatternMaker = ({
 	}
 
 	const paletteId = Number(gamePaletteId.substring(gamePaletteId.indexOf('-') + 1));
-	const curRgb = colors[palette[activePaletteId]];
-	const defaultRgb = (gamePalettes as any)[currentGameId][paletteId - 1].colors[activePaletteId];
-	const defaultColor = (gameColorInfo as any)[currentGameId].find((c: any) => c.hex === defaultRgb);
+	const defaultRgb = gamePalettes[currentGameId][paletteId - 1].colors[activePaletteId];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const defaultColor = gameColorInfo[currentGameId].find((c: any) => c.hex === defaultRgb);
+
+	// Cursor style based on active tool
+	const canvasCursor = (): string =>
+	{
+		switch (activeTool)
+		{
+			case 'pencil': return 'crosshair';
+			case 'bucket': return 'pointer';
+			case 'eyedropper': return 'copy';
+			case 'eraser': return 'cell';
+			default: return 'crosshair';
+		}
+	};
 
 	return (
 		<div className='PatternMaker'>
@@ -763,130 +1143,266 @@ const PatternMaker = ({
 			<input type='hidden' name='dataUrl' value={dataUrl} />
 			<input type='hidden' name='palette' value={palette} />
 
-			<div className='PatternMaker_grid'>
-				<canvas height='321' width='321' ref={patternInterface}
-					data-scale='10' onMouseMove={(e) => editIfDrawing(e)}
-					onMouseDown={() => setCurrentlyDrawing(true)}
-					onMouseUp={() => stopDrawing()}
-					onMouseOut={() => stopDrawing()}
-					onClick={(e) => editPattern(e)}
-					className='Pattern_transparent PatternMaker_canvas'
-				/>
+			<div className='PatternMaker_editor'>
+				<div className='PatternMaker_toolbar'>
+					<div className='PatternMaker_toolGroup'>
+						<Button
+							className={`PatternMaker_toolBtn${activeTool === 'pencil' ? ' active' : ''}`}
+							clickHandler={() => setActiveTool('pencil')}
+							title='Pencil (P)'
+							label='Pencil'
+						>
+							<FontAwesomeIcon name='pencil' alt='Pencil' />
+						</Button>
+						<Button
+							className={`PatternMaker_toolBtn${activeTool === 'bucket' ? ' active' : ''}`}
+							clickHandler={() => setActiveTool('bucket')}
+							title='Fill Bucket (B)'
+							label='Fill'
+						>
+							<FontAwesomeIcon name='fill-drip' alt='Fill' />
+						</Button>
+						<Button
+							className={`PatternMaker_toolBtn${activeTool === 'eyedropper' ? ' active' : ''}`}
+							clickHandler={() => setActiveTool('eyedropper')}
+							title='Eyedropper (I)'
+							label='Eyedropper'
+						>
+							<FontAwesomeIcon name='eye-dropper' alt='Eyedropper' />
+						</Button>
+						<Button
+							className={`PatternMaker_toolBtn${activeTool === 'eraser' ? ' active' : ''}`}
+							clickHandler={() => setActiveTool('eraser')}
+							title='Eraser (E)'
+							label='Eraser'
+						>
+							<FontAwesomeIcon name='eraser' alt='Eraser' />
+						</Button>
+					</div>
 
-				<div className='PatternMaker_palette'>
-					<h4 className='PatternMaker_paletteName'>
-						Palette
-					</h4>
+					<div className='PatternMaker_toolSep' />
 
-					<div className='PatternMaker_paletteInterface'>
-						<div className='PatternMaker_paletteAll'>
-							<Select
-								hideLabels
-								label='Palette'
-								name='gamePaletteId'
-								options={palettes}
-								optionsMapping={{ value: 'id', label: 'name' }}
-								groupBy='game'
-								value={gamePaletteId}
-								changeHandler={(e: any) => resetPalette(String(e.target.value))}
-								required
-							/>
+					<div className='PatternMaker_toolGroup'>
+						<Button
+							className={`PatternMaker_toggleBtn${showGrid ? ' active' : ''}`}
+							clickHandler={() => setShowGrid(prev => !prev)}
+							title='Toggle Grid (G)'
+							label='Grid'
+						>
+							<FontAwesomeIcon name='border-all' alt='Grid' />
+							<span>Grid</span>
+						</Button>
+						<Button
+							className={`PatternMaker_toggleBtn${showAxisLines ? ' active' : ''}`}
+							clickHandler={() => setShowAxisLines(prev => !prev)}
+							title='Toggle Axis Lines (X)'
+							label='Axis'
+						>
+							<FontAwesomeIcon name='crosshairs' alt='Axis' />
+							<span>Axis</span>
+						</Button>
+						<Button
+							className={`PatternMaker_toggleBtn${mirrorH ? ' active' : ''}`}
+							clickHandler={() => setMirrorH(prev => !prev)}
+							title='Mirror Horizontal (H)'
+							label='Mirror Horizontal'
+						>
+							<FontAwesomeIcon name='arrows-left-right' alt='Mirror Horizontal' />
+							<span>Mirror</span>
+						</Button>
+						<Button
+							className={`PatternMaker_toggleBtn${mirrorV ? ' active' : ''}`}
+							clickHandler={() => setMirrorV(prev => !prev)}
+							title='Mirror Vertical (V)'
+							label='Mirror Vertical'
+						>
+							<FontAwesomeIcon name='arrows-up-down' alt='Mirror Vertical' />
+							<span>Mirror</span>
+						</Button>
+					</div>
 
-							<div className='PatternMaker_palettes' key={paletteColorsKey}>
-								{[...Array(constants.pattern.numberOfColors).keys()].map(i =>
-									<div key={`paletteInterface${i}`}
-										onClick={() => changeDrawingColor(i)}
-										className={i === activePaletteId ?
-											`paletteInterface paletteInterface${i} selected` :
-											`paletteInterface paletteInterface${i}`}
-										style={{
-											backgroundColor: paletteInterfaces[i].backgroundColor,
-											border: paletteInterfaces[i].border,
-										}}
-									/>,
-								)}
-								<div
-									onClick={() => changeDrawingColor(15)}
-									className={15 === activePaletteId ?
-										`Pattern_transparent paletteInterface paletteInterface15 selected` :
-										`Pattern_transparent paletteInterface paletteInterface15 ${currentGameId !== constants.gameIds.ACNH ? ' hidden' : ''}`}
-									style={{
-										backgroundColor: paletteInterfaces[15].backgroundColor,
-										border: paletteInterfaces[15].border,
-									}}
+					<div className='PatternMaker_toolSep' />
+
+					<div className='PatternMaker_toolGroup'>
+						<Button
+							className='PatternMaker_toolBtn'
+							clickHandler={undo}
+							disabled={undoStack.current.length === 0}
+							title='Undo (Ctrl+Z)'
+							label='Undo'
+						>
+							<FontAwesomeIcon name='rotate-left' alt='Undo' />
+						</Button>
+						<Button
+							className='PatternMaker_toolBtn'
+							clickHandler={redo}
+							disabled={redoStack.current.length === 0}
+							title='Redo (Ctrl+Shift+Z)'
+							label='Redo'
+						>
+							<FontAwesomeIcon name='rotate-right' alt='Redo' />
+						</Button>
+					</div>
+
+					<div className='PatternMaker_toolSep' />
+
+					<div className='PatternMaker_toolGroup'>
+						<Button
+							className={`PatternMaker_helpBtn${showShortcuts ? ' active' : ''}`}
+							clickHandler={() => setShowShortcuts(prev => !prev)}
+							title='Keyboard Shortcuts'
+							label='Help'
+						>
+							<FontAwesomeIcon name='information' alt='Help' />
+						</Button>
+					</div>
+				</div>
+
+				{showShortcuts &&
+					<div className='PatternMaker_shortcuts'>
+						<span><strong>P</strong> Pencil</span>
+						<span><strong>B</strong> Fill</span>
+						<span><strong>I</strong> Eyedropper</span>
+						<span><strong>E</strong> Eraser</span>
+						<span><strong>G</strong> Grid</span>
+						<span><strong>X</strong> Axis</span>
+						<span><strong>H</strong> Mirror ↔</span>
+						<span><strong>V</strong> Mirror ↕</span>
+						<span><strong>Ctrl+Z</strong> Undo</span>
+						<span><strong>Ctrl+Shift+Z</strong> Redo</span>
+					</div>
+				}
+
+				<div className='PatternMaker_grid'>
+					<canvas height='321' width='321' ref={patternInterface}
+						data-scale='10'
+						onMouseMove={(e) => editIfDrawing(e)}
+						onMouseDown={() => startDrawing()}
+						onMouseUp={() => stopDrawing()}
+						onMouseOut={() => stopDrawing()}
+						onClick={(e) => editPattern(e)}
+						onTouchStart={(e) => handleTouchStart(e)}
+						onTouchMove={(e) => handleTouchMove(e)}
+						onTouchEnd={(e) => handleTouchEnd(e)}
+						className='Pattern_transparent PatternMaker_canvas'
+						style={{ cursor: canvasCursor() }}
+					/>
+
+					<div className='PatternMaker_palette'>
+						<h4 className='PatternMaker_paletteName'>
+							Palette
+						</h4>
+
+						<div className='PatternMaker_paletteInterface'>
+							<div className='PatternMaker_paletteAll'>
+								<Select
+									hideLabels
+									label='Palette'
+									name='gamePaletteId'
+									options={palettes}
+									optionsMapping={{ value: 'id', label: 'name' }}
+									groupBy='game'
+									value={gamePaletteId}
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
+									changeHandler={(e: any) => resetPalette(String(e.target.value))}
+									required
 								/>
+
+								<div className='PatternMaker_palettes' key={paletteColorsKey}>
+									{[...Array(constants.pattern.numberOfColors).keys()].map(i =>
+										<div key={`paletteInterface${i}`}
+											onClick={() => changeDrawingColor(i)}
+											className={i === activePaletteId ?
+												`paletteInterface paletteInterface${i} selected` :
+												`paletteInterface paletteInterface${i}`}
+											style={{
+												backgroundColor: paletteInterfaces[i].backgroundColor,
+												border: paletteInterfaces[i].border,
+											}}
+										/>,
+									)}
+									<div
+										onClick={() => changeDrawingColor(15)}
+										className={15 === activePaletteId ?
+											`Pattern_transparent paletteInterface paletteInterface15 selected` :
+											`Pattern_transparent paletteInterface paletteInterface15 ${currentGameId !== constants.gameIds.ACNH ? ' hidden' : ''}`}
+										style={{
+											backgroundColor: paletteInterfaces[15].backgroundColor,
+											border: paletteInterfaces[15].border,
+										}}
+									/>
+								</div>
 							</div>
 						</div>
-					</div>
-
-					<div className='PatternMaker_buttons'>
-						<Button
-							clickHandler={() => fillPatternColor(curRgb)}
-							label='Fill With Selected Color'
-						/>
 
 						{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) &&
-							<Button
-								clickHandler={() => resetPalette()}
-								label='Reset Palette'
-							/>
+							<div className='PatternMaker_buttons'>
+								<Button
+									clickHandler={() => resetPalette()}
+									label='Reset Palette'
+								/>
+							</div>
+						}
+
+						{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) &&
+							<div className='PatternMaker_extended'>
+								{currentGameId === constants.gameIds.ACNL &&
+									<canvas
+										height='256'
+										width='226'
+										ref={paletteInterfaceExtended}
+										data-scale='15'
+										onClick={(e) => changePaletteColor(e)}
+										className='PatternMaker_nlInterface'
+									/>
+								}
+
+								{currentGameId === constants.gameIds.ACNH && defaultColor &&
+									<div className='PatternMaker_nhInterface'>
+										<div className='PatternMaker_nhDefault'>
+											<h3>Default:</h3>{defaultColor.hue} {defaultColor.vividness} {defaultColor.brightness}
+										</div>
+
+										<div className='PatternMaker_nhHVB'>
+											<Form.Group>
+												<Text
+													label='Hue'
+													name='hue'
+													type='number'
+													min={1}
+													max={30}
+													value={hue}
+													changeHandler={(e) => changeHue(e)}
+												/>
+											</Form.Group>
+											<Form.Group>
+												<Text
+													label='Vividness'
+													name='vividness'
+													type='number'
+													min={1}
+													max={15}
+													value={vividness}
+													changeHandler={(e) => changeVividness(e)}
+												/>
+											</Form.Group>
+											<Form.Group>
+												<Text
+													label='Brightness'
+													name='brightness'
+													type='number'
+													min={1}
+													max={15}
+													value={brightness}
+													changeHandler={(e) => changeBrightness(e)}
+												/>
+											</Form.Group>
+										</div>
+									</div>
+								}
+							</div>
 						}
 					</div>
-
-					{[constants.gameIds.ACNL, constants.gameIds.ACNH].includes(currentGameId) &&
-						<div className='PatternMaker_extended'>
-							{currentGameId === constants.gameIds.ACNL &&
-								<canvas height='256' width='226' ref={paletteInterfaceExtended}
-									data-scale='15' onClick={(e) => changePaletteColor(e)}
-									className='PatternMaker_nlInterface'
-								/>
-							}
-
-							{currentGameId === constants.gameIds.ACNH && defaultColor &&
-								<div className='PatternMaker_nhInterface'>
-									<div className='PatternMaker_nhDefault'>
-										<h3>Default:</h3>{defaultColor.hue} {defaultColor.vividness} {defaultColor.brightness}
-									</div>
-
-									<div className='PatternMaker_nhHVB'>
-										<Form.Group>
-											<Text
-												label='Hue'
-												name='hue'
-												type='number'
-												min={1}
-												max={30}
-												value={hue}
-												changeHandler={(e) => changeHue(e)}
-											/>
-										</Form.Group>
-										<Form.Group>
-											<Text
-												label='Vividness'
-												name='vividness'
-												type='number'
-												min={1}
-												max={15}
-												value={vividness}
-												changeHandler={(e) => changeVividness(e)}
-											/>
-										</Form.Group>
-										<Form.Group>
-											<Text
-												label='Brightness'
-												name='brightness'
-												type='number'
-												min={1}
-												max={15}
-												value={brightness}
-												changeHandler={(e) => changeBrightness(e)}
-											/>
-										</Form.Group>
-									</div>
-								</div>
-							}
-						</div>
-					}
 				</div>
 			</div>
 		</div>

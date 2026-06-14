@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker/locale/en';
 
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
@@ -12,19 +11,8 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function tunes(this: APIThisType, { amount }: tunesProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
-	const staffUserIds = await db.query(`
+	const staffUserIds: { id: number }[] = await db.query(`
 		SELECT users.id
 		FROM users
 		JOIN user_group ON (user_group.id = users.user_group_id)
@@ -41,7 +29,7 @@ async function tunes(this: APIThisType, { amount }: tunesProps): Promise<Success
 
 	for (let i = 0; i < amount; i++)
 	{
-		const tuneUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+		const tuneUserId = faker.helpers.arrayElement(staffUserIds).id;
 		const tuneName = faker.lorem.words();
 
 		await db.query(`
@@ -56,6 +44,11 @@ async function tunes(this: APIThisType, { amount }: tunesProps): Promise<Success
 		_success: `Your tunes(s) have been created!`,
 	};
 }
+
+tunes.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 tunes.apiTypes = {
 	amount: {

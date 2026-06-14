@@ -22,8 +22,8 @@ const ErrorMessage = ({
 				<>
 					<strong>{'Sorry!'}</strong>{' '}
 					{
-						identifier && (ERROR_MESSAGES as any)[identifier]
-							? <HTMLPurify className='error_message' html={(ERROR_MESSAGES as any)[identifier].message} />
+						identifier && ERROR_MESSAGES[identifier]
+							? <HTMLPurify className='error_message' html={ERROR_MESSAGES[identifier].message} />
 							: 'While trying to display an error message, another error occurred. Please let us know about this on the Site Support board and we’ll look into it. Sorry for the inconvenience.'
 					}
 				</>

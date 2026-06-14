@@ -6,11 +6,6 @@ import { APIThisType, FeaturesType } from '@types';
 
 async function features(this: APIThisType, { page, statusId, isBug, categoryId, following, staffOnly, readOnly, createdUser, assignedUser }: featuresProps): Promise<FeaturesType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	if (utils.realStringLength(statusId) > 0)
 	{
@@ -53,9 +48,9 @@ async function features(this: APIThisType, { page, statusId, isBug, categoryId, 
 	// Do actual search
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params: (number | string | boolean)[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: FeaturesType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -94,7 +89,7 @@ async function features(this: APIThisType, { page, statusId, isBug, categoryId, 
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (!advancedPermission)
 	{
@@ -137,7 +132,7 @@ async function features(this: APIThisType, { page, statusId, isBug, categoryId, 
 
 	if (['yes', 'no'].includes(following))
 	{
-		params[paramIndex] = this.userId;
+		params[paramIndex] = this.userId as number;
 
 		paramIndex++;
 
@@ -210,11 +205,11 @@ async function features(this: APIThisType, { page, statusId, isBug, categoryId, 
 	`;
 
 	// Run query
-	const features = await db.query(query, ...params);
+	const features: { id: number, count: number }[] = await db.query(query, ...params);
 
 	if (features.length > 0)
 	{
-		results = await Promise.all(features.map(async (feature: any) =>
+		results = await Promise.all(features.map(async feature =>
 		{
 			return this.query('v1/feature', { id: feature.id });
 		}));
@@ -284,6 +279,10 @@ features.apiTypes = {
 		length: constants.max.searchUsername,
 	},
 };
+
+features.permissions = [
+	'userId',
+];
 
 type featuresProps = {
 	page: number

@@ -80,7 +80,7 @@ const GuidePage = ({ loaderData }: { loaderData: GuidePageProps }) =>
 				<ContentBox>
 					<Markup
 						text={guide.updatedContent ? guide.updatedContent : guide.content}
-						format={'markdown+html'}
+						format='markdown+html'
 					/>
 				</ContentBox>
 			</RequirePermission>

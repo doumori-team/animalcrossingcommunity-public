@@ -1,9 +1,25 @@
 import * as db from '@db';
-import { APIThisType, CurrentRuleType } from '@types';
+import { APIThisType, CurrentRuleType, RuleCategoryType } from '@types';
 
 export default async function current(this: APIThisType): Promise<CurrentRuleType>
 {
-	const [rules, violations, [rulesSetting], categories] = await Promise.all([
+	const [rules, violations, [rulesSetting], categories]: [{
+		id: number
+		number: number
+		name: string | null
+		start_date: Date
+		description: string
+		original_rule_id: number | null
+		category_id: number
+		category: string
+		reportable: boolean
+	}[], {
+		id: number
+		severity_id: number | null
+		violation: string
+		rule_id: number
+		number: number
+	}[], [{ updated: Date } | undefined], RuleCategoryType[]] = await Promise.all([
 		db.query(`
 			SELECT
 				rule.id,
@@ -40,14 +56,14 @@ export default async function current(this: APIThisType): Promise<CurrentRuleTyp
 		this.query('v1/rule/categories'),
 	]);
 
-	let currentRules = categories.map((category: any) =>
+	let currentRules = categories.map(category =>
 	{
 		return {
 			id: category.id,
 			name: category.name,
 			rules: rules
-				.filter((rule: any) => rule.category_id === category.id)
-				.map((rule: any) =>
+				.filter(rule => rule.category_id === category.id)
+				.map(rule =>
 				{
 					return {
 						id: rule.id,
@@ -55,7 +71,7 @@ export default async function current(this: APIThisType): Promise<CurrentRuleTyp
 						name: rule.name,
 						startDate: rule.start_date,
 						description: rule.description,
-						violations: violations.filter((v: any) => v.rule_id === rule.id).map((violation: any) =>
+						violations: violations.filter(v => v.rule_id === rule.id).map(violation =>
 						{
 							return {
 								id: violation.id,
@@ -74,7 +90,7 @@ export default async function current(this: APIThisType): Promise<CurrentRuleTyp
 	});
 
 	return {
-		currentRules: currentRules.filter((c: any) => c.rules.length > 0),
-		lastUpdated: rulesSetting.updated,
+		currentRules: currentRules.filter(c => c.rules.length > 0),
+		lastUpdated: rulesSetting!.updated,
 	};
 }

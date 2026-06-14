@@ -2,22 +2,10 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
-import { APIThisType, SuccessType } from '@types';
+import { APIThisType, SuccessType, UserType } from '@types';
 
 async function claim(this: APIThisType, { id }: claimProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'collect-bells' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [treasure] = await db.query(`
 		SELECT
@@ -54,7 +42,7 @@ async function claim(this: APIThisType, { id }: claimProps): Promise<SuccessType
 	let bells = 0;
 	let showBells = treasure.bells;
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		if (treasure.type === 'jackpot')
 		{
@@ -115,16 +103,26 @@ async function claim(this: APIThisType, { id }: claimProps): Promise<SuccessType
 		}
 	});
 
-	await db.regenerateTopBells({ userId: this.userId });
+	await db.regenerateTopBells({ userId: this.userId as number });
 
-	const [user] = await Promise.all([
+	const [user]: [UserType] = await Promise.all([
 		this.query('v1/user', { id: this.userId }),
+	]);
+
+	Promise.all([
+		this.query('v1/users/badge/check', { badgeId: constants.badges.fiftykbellsday }),
+		this.query('v1/users/badge/check', { badgeId: constants.badges.top5bells }),
 	]);
 
 	return {
 		_success: `Congratulations! You have redeemed your ${showBells.toLocaleString()} Bells, bringing your total to ${user.bells} Bells!`,
 	};
 }
+
+claim.permissions = [
+	'collect-bells',
+	'userId',
+];
 
 claim.apiTypes = {
 	id: {

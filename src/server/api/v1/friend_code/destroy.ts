@@ -5,13 +5,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const [friendCode] = await db.query(`
 		SELECT user_id
@@ -30,7 +23,7 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 	}
 
 	// Delete from any trades
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		const [friendCodeCharacter] = await query(`
 			SELECT character_id
@@ -53,6 +46,11 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		]);
 	});
 }
+
+destroy.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 destroy.apiTypes = {
 	id: {

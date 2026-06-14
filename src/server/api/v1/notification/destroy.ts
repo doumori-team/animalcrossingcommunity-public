@@ -3,6 +3,7 @@ import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
+import { sendNotificationToUser } from 'server/notificationService.ts';
 
 async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<void>
 {
@@ -27,7 +28,7 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			SELECT id
 			FROM notification_type
 			WHERE identifier like 'listing_%'
-		`)).map((lt: any) => lt.id);
+		`)).map((lt: { id: number }) => lt.id);
 	}
 	else
 	{
@@ -50,6 +51,7 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			types.PT,
 			types.FT,
 			types.FB,
+			types.FT_edit,
 			types.usernameTag,
 			types.scoutAdoption,
 			types.scoutThread,
@@ -57,6 +59,8 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			types.scoutFeedback,
 			types.scoutBT,
 			types.announcement,
+			types.postQuote,
+			types.postReaction,
 		].includes(type)
 	)
 	{
@@ -170,6 +174,7 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			types.giftBellShop,
 			types.giftDonation,
 			types.donationReminder,
+			types.avatarCleared,
 		].includes(type)
 	)
 	{
@@ -237,6 +242,10 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			throw new UserError('no-such-application');
 		}
 	}
+	else if (type === types.badge)
+	{
+		// no validation
+	}
 	else
 	{
 		throw new UserError('bad-format');
@@ -267,7 +276,7 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			`, this.userId, globalNotification.id);
 		}
 	}
-	else if (type === types.usernameTag)
+	else if ([types.usernameTag, types.postQuote, types.postReaction].includes(type))
 	{
 		await db.query(`
 			DELETE FROM notification
@@ -298,6 +307,8 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			[
 				types.giftBellShop,
 				types.giftDonation,
+				types.avatarCleared,
+				types.badge,
 			].includes(type)
 		)
 		{
@@ -314,6 +325,25 @@ async function destroy(this: APIThisType, { id, type }: destroyProps): Promise<v
 			`, referenceId, notificationType.id, this.userId);
 		}
 	}
+
+	try
+	{
+		setTimeout(async () =>
+		{
+			if (!this.userId)
+			{
+				return;
+			}
+
+			const latestNotification = await this.query('v1/notification/latest');
+
+			sendNotificationToUser(this.userId, constants.webSocketTypes.notification, latestNotification);
+		}, 5000);
+	}
+	catch (err)
+	{
+		console.error('Error sending notification via WebSocket (destroy).', this.userId, err);
+	}
 }
 
 destroy.apiTypes = {
@@ -326,7 +356,7 @@ destroy.apiTypes = {
 };
 
 type destroyProps = {
-	id: any
+	id: number | string
 	type: string
 };
 

@@ -8,14 +8,14 @@ export default async function users(this: APIThisType): Promise<UserLiteType[]>
 		return [];
 	}
 
-	const users = await db.query(`
+	const users: { block_user_id: number }[] = await db.query(`
 		SELECT block_user.block_user_id
 		FROM block_user
 		WHERE block_user.user_id = $1::int
 		GROUP BY block_user.block_user_id
 	`, this.userId);
 
-	return await Promise.all(users.map(async (user: any) =>
+	return await Promise.all(users.map(async user =>
 	{
 		return await this.query('v1/user_lite', { id: user.block_user_id });
 	}));

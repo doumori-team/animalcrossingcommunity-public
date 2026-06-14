@@ -1,15 +1,9 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as accounts from '@accounts';
 import { APIThisType, AccountSettingType } from '@types';
 
-export default async function account(this: APIThisType): Promise<AccountSettingType>
+async function account(this: APIThisType): Promise<AccountSettingType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const userData = await accounts.getUserData(this.userId);
 
 	const [[user], shopDNC] = await Promise.all([
@@ -22,7 +16,8 @@ export default async function account(this: APIThisType): Promise<AccountSetting
 				show_staff,
 				southern_hemisphere,
 				stay_forever,
-				consolidate_calendars
+				consolidate_calendars,
+				dock_menu
 			FROM users
 			WHERE users.id = $1::int
 		`, this.userId),
@@ -45,5 +40,12 @@ export default async function account(this: APIThisType): Promise<AccountSetting
 		southernHemisphere: user.southern_hemisphere,
 		stayForever: user.stay_forever,
 		consolidateCalendars: user.consolidate_calendars,
+		dockMenu: user.dock_menu,
 	};
 }
+
+account.permissions = [
+	'userId',
+];
+
+export default account;

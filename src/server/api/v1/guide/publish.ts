@@ -7,13 +7,6 @@ import { APIThisType } from '@types';
 
 async function publish(this: APIThisType, { id }: publishProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'publish-guides' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [guide] = await db.query(`
 		SELECT id
 		FROM guide
@@ -40,6 +33,10 @@ async function publish(this: APIThisType, { id }: publishProps): Promise<void>
 	ACCCache.deleteMatch(constants.cacheKeys.guides);
 	ACCCache.deleteMatch(constants.cacheKeys.acGameGuide);
 }
+
+publish.permissions = [
+	'publish-guides',
+];
 
 publish.apiTypes = {
 	id: {

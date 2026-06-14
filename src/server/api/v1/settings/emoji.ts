@@ -22,35 +22,33 @@ export default async function emoji(this: APIThisType, { userIds }: emojiProps):
 		}
 	}
 
-	userIds = await Promise.all(userIds.map(async (userId) =>
-	{
-		const [check] = await db.query(`
-			SELECT id
-			FROM user_account_cache
-			WHERE id = $1::int
-		`, userId);
-
-		if (!check)
-		{
-			throw new UserError('no-such-user');
-		}
-
-		return Number(check.id);
-	}));
-
 	if (userIds.length === 0)
 	{
 		throw new UserError('bad-format');
 	}
 
+	const numericUserIds: number[] = [...new Set(userIds.map((id: string | number) => Number(id)))];
+
+	// Validate all user IDs in one query
+	const validUsers: { id: number }[] = await db.query(`
+		SELECT id
+		FROM user_account_cache
+		WHERE id = ANY($1::int[])
+	`, numericUserIds);
+
+	if (validUsers.length !== numericUserIds.length)
+	{
+		throw new UserError('no-such-user');
+	}
+
 	// Perform queries
-	const results = await db.query(`
+	const results: { type: string, category: string, user_id: number }[] = await db.query(`
 		SELECT type, category, user_id
 		FROM emoji_setting
 		WHERE user_id = ANY($1)
-	`, userIds);
+	`, numericUserIds);
 
-	return results.map((result: any) =>
+	return results.map(result =>
 	{
 		return {
 			userId: result.user_id,
@@ -61,5 +59,5 @@ export default async function emoji(this: APIThisType, { userIds }: emojiProps):
 }
 
 type emojiProps = {
-	userIds: any[] | string
+	userIds: string[] | number[] | string
 };

@@ -1,27 +1,13 @@
 import * as db from '@db';
 import { constants } from '@utils';
-import { APIThisType, TreasureType, UserType } from '@types';
+import { APIThisType, TreasureType, UserType, TreasureLocationType } from '@types';
 
 /*
  * Determines if user gets treasure.
  */
-export default async function treasure(this: APIThisType): Promise<null | TreasureType>
+async function treasure(this: APIThisType): Promise<null | TreasureType>
 {
-	if (!this.userId)
-	{
-		return null;
-	}
-
-	let user: UserType;
-
-	try
-	{
-		user = await this.query('v1/user', { id: this.userId });
-	}
-	catch
-	{
-		return null;
-	}
+	const user: UserType = await this.query('v1/user', { id: this.userId });
 
 	if (user.reviewTOS)
 	{
@@ -51,7 +37,7 @@ export default async function treasure(this: APIThisType): Promise<null | Treasu
 		return null;
 	}
 
-	const [jackpotAmount, [missedBells]] = await Promise.all([
+	const [jackpotAmount, [missedBells]]: [number, [{ count: number } | undefined]] = await Promise.all([
 		this.query('v1/treasure/jackpot'),
 		db.query(`
 			SELECT count(*) AS count
@@ -87,7 +73,7 @@ export default async function treasure(this: APIThisType): Promise<null | Treasu
 		bells = 1000;
 		treasureTypeId = 2;
 	}
-	else if (dice >= jackpot + fiveThousand + tenThousand + thousand && dice <= jackpot + tenThousand + fiveThousand + thousand + wisp && missedBells.count > 0)
+	else if (dice >= jackpot + fiveThousand + tenThousand + thousand && dice <= jackpot + tenThousand + fiveThousand + thousand + wisp && missedBells && missedBells.count > 0)
 	{
 		treasureType = 'wisp';
 		bells = 0;
@@ -100,10 +86,21 @@ export default async function treasure(this: APIThisType): Promise<null | Treasu
 		RETURNING id
 	`, this.userId, bells, treasureType);
 
-	await db.regenerateTopBells({ userId: this.userId });
+	await db.regenerateTopBells({ userId: this.userId as number });
+
+	const locations = ['content_top', 'content_bottom'];
+
+	const randomLocation = locations[Math.floor(Math.random() * locations.length)];
 
 	return {
 		treasureTypeId,
 		id: offer.id,
+		location: randomLocation as TreasureLocationType,
 	};
 }
+
+treasure.permissions = [
+	'userId',
+];
+
+export default treasure;

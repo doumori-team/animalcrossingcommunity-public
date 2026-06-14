@@ -10,6 +10,7 @@ type AccountSettingType = {
 	southernHemisphere: boolean
 	stayForever: boolean
 	consolidateCalendars: boolean
+	dockMenu: boolean
 };
 
 export type { AccountSettingType };

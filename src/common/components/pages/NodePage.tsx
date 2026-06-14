@@ -1,13 +1,14 @@
-import { Fragment } from 'react';
+import { Fragment, useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import { useLocation, Link } from 'react-router';
 
 import Node from '@/components/nodes/Node.tsx';
 import NodeWritingInterface from '@/components/nodes/NodeWritingInterface.tsx';
-import { Pagination, Search, Accordion } from '@layout';
+import { Pagination, Search, Accordion, PhotoGallery } from '@layout';
 import { Form, Check, Switch } from '@form';
 import { constants, dateUtils, routerUtils } from '@utils';
 import { UserContext } from '@contexts';
-import { APIThisType, NodesType, LocationType } from '@types';
+import { APIThisType, NodesType, LocationType, ElementClickType, NodeType, BirthdaysType, ReactionType } from '@types';
+import { notifications } from '@hooks';
 
 export const action = routerUtils.formAction;
 
@@ -15,7 +16,15 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 {
 	const { node, childNodes, page, pageSize, totalCount, addUsers, order, reverse,
 		locked, editNode, currentUserEmojiSettings, breadcrumb, nodeUsersEmojiSettings,
-		boards, subBoards, staffBoards, archivedBoards, listBoards, userDonations } = loaderData;
+		boards, subBoards, staffBoards, archivedBoards, listBoards, userDonations, liveMode,
+		birthdays, accEmojis } = loaderData;
+
+	const [livePosts, setLivePosts] = useState<NodeType[]>([]);
+	const [curTextValue, setCurTextValue] = useState<string>('');
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const nodesRef = useRef<any>(null);
+
+	const userContext = useContext(UserContext);
 
 	const uniqueCategories = Array.from(new Set(childNodes.map(n => n.forumCategory?.id)))
 		// @ts-ignore typescript
@@ -51,9 +60,51 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 		pageLink = 'scout-hub/adoption';
 	}
 
+	const updateLiveMode = (_: ElementClickType) =>
+	{
+		if (liveMode === true)
+		{
+			notifications.unsetLiveMode(userContext!.id, node.id);
+			window.location.href = `/${pageLink}/${encodeURIComponent(node.id)}`;
+			return;
+		}
+		else
+		{
+			const lastPage = Math.ceil(totalCount / pageSize);
+
+			notifications.setLiveMode(userContext!.id, node.id);
+			window.location.href = `/${pageLink}/${encodeURIComponent(node.id)}/${lastPage}?live=true`;
+			return;
+		}
+	};
+
+	const wsPost: NodeType | null = notifications.useNotifications(userContext?.id ?? 0, constants.webSocketTypes.post);
+
+	useEffect(() =>
+	{
+		if (!wsPost || !liveMode)
+		{
+			return;
+		}
+
+		let curLivePosts = [...livePosts];
+		curLivePosts.push(wsPost);
+		setLivePosts(curLivePosts);
+	}, [wsPost]);
+
+	useLayoutEffect(() =>
+	{
+		const div = nodesRef.current;
+
+		if (div)
+		{
+			div.scrollTop = div.scrollHeight;
+		}
+	}, [livePosts]);
+
 	return (
 		<>
-			{node.type === 'board' && !listBoards.includes(node.id) && node.id !== constants.boardIds.publicThreads &&
+			{node.type === 'board' && !listBoards.includes(node.id) && ![constants.boardIds.publicThreads, constants.boardIds.staffThreads].includes(node.id) &&
 				<div className='NodePage_filter' key={node.id}>
 					<Search callback={`/forums/${encodeURIComponent(node.id)}`}>
 						<Form.Group>
@@ -98,7 +149,6 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 							{...node}
 							breadcrumb={breadcrumb}
 							childLength={childNodes.length}
-							page={page}
 							emojiSettings={node.user ?
 								nodeUsersEmojiSettings.filter(s => s.userId === node.user?.id) :
 								[]}
@@ -107,6 +157,14 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 							parentPermissions={node.permissions}
 							listBoards={listBoards}
 						/>
+
+						{node.files?.length > constants.max.imagesPost && node.user &&
+							<PhotoGallery
+								userId={node.user.id}
+								files={node.files}
+								reportType={constants.userTicket.types.postImage}
+							/>
+						}
 
 						{node.parentId === constants.boardIds.privateThreads && node.users.length > 0 &&
 							<div className='Node_invitedUsers'>
@@ -141,65 +199,96 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 							</div>
 						}
 
-						<Pagination
-							page={page}
-							pageSize={pageSize}
-							totalCount={totalCount}
-							startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
-							queryParam={false}
-							endLink={link}
-						/>
-
-						{
-							sortedChildNodes.map((list, listIndex) =>
-							{
-								const header =
-									uniqueCategories.length > 0 && list.length > 0 && list[0].forumCategory?.id ?
-										<article className='Node Node_forumCategory'>
-											<div className='Node_main'>
-												<h1 className='Node_title'>{uniqueCategories.find(c => !!c && c?.id === list[0].forumCategory?.id)?.title ?? ''}</h1>
-											</div>
-										</article> :
-										<></>;
-
-								return <Fragment key={listIndex}>
-									{header}
-									{list.map((child, index) =>
-										<Node
-											{...child}
-											index={page > 1 ? index + 1 + pageSize * (page - 1) : index + 1}
-											key={child.revisionId ?? child.id}
-											page={page}
-											emojiSettings={child.user !== null ?
-												nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
-												[]}
-											currentUser={currentUser}
-											followNode={node.id === constants.boardIds.publicThreads}
-											subBoards={subBoards.filter(b => b.parentId === child.id)}
-											parentPermissions={node.permissions}
-											nodeParentId={node.id}
-											pageLink={pageLink}
-											listBoards={listBoards}
-										/>,
-									)}
-								</Fragment>;
-							})
+						{!liveMode &&
+							<Pagination
+								page={page}
+								pageSize={pageSize}
+								totalCount={totalCount}
+								startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
+								queryParam={false}
+								endLink={link}
+							/>
 						}
 
+						<div className={`NodePage_nodes ${liveMode ? 'NodePage_nodesLive' : ''}`} ref={nodesRef}>
+							{
+								sortedChildNodes.map((list, listIndex) =>
+								{
+									const header =
+										uniqueCategories.length > 0 && list.length > 0 && list[0].forumCategory?.id ?
+											<article className='Node Node_forumCategory'>
+												<div className='Node_main'>
+													<h2 className='Node_title'>{uniqueCategories.find(c => !!c && c?.id === list[0].forumCategory?.id)?.title ?? ''}</h2>
+												</div>
+											</article> :
+											<></>;
+
+									return <Fragment key={listIndex}>
+										{header}
+										{list.map(child =>
+											<Node
+												{...child}
+												key={'revisionId' in child ? child.revisionId : child.id}
+												emojiSettings={'user' in child && child.user !== null ?
+													nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
+													[]}
+												currentUser={currentUser}
+												followNode={[constants.boardIds.publicThreads, constants.boardIds.staffThreads].includes(node.id)}
+												subBoards={subBoards.filter(b => b.parentId === child.id)}
+												parentPermissions={node.permissions}
+												pageLink={pageLink}
+												listBoards={listBoards}
+												liveMode={liveMode}
+												setText={setCurTextValue}
+												birthdays={birthdays}
+												accEmojis={accEmojis}
+											/>,
+										)}
+									</Fragment>;
+								})
+							}
+
+							{liveMode &&
+								<div className='NodePage_liveMode'>
+									{
+										livePosts.map(child =>
+											<Node
+												{...child}
+												key={child.revisionId ?? child.id}
+												emojiSettings={child.user !== null ?
+													nodeUsersEmojiSettings.filter(s => s.userId === child.user?.id) :
+													[]}
+												currentUser={currentUser}
+												followNode={[constants.boardIds.publicThreads, constants.boardIds.staffThreads].includes(node.id)}
+												subBoards={subBoards.filter(b => b.parentId === child.id)}
+												parentPermissions={node.permissions}
+												pageLink={pageLink}
+												listBoards={listBoards}
+												setText={setCurTextValue}
+												birthdays={birthdays}
+												accEmojis={accEmojis}
+											/>,
+										)
+									}
+								</div>
+							}
+						</div>
 					</>
 				}
 			</UserContext.Consumer>
 
-			<Pagination
-				page={page}
-				pageSize={pageSize}
-				totalCount={totalCount}
-				startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
-				queryParam={false}
-				endLink={link}
-			/>
+			{!liveMode &&
+				<Pagination
+					page={page}
+					pageSize={pageSize}
+					totalCount={totalCount}
+					startLink={`${pageLink}/${encodeURIComponent(node.id)}`}
+					queryParam={false}
+					endLink={link}
+				/>
+			}
 
-			{childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && !listBoards.includes(node.id) &&
+			{!liveMode && childNodes.length > 0 && node.permissions.includes('lock') && node.type === 'board' && !listBoards.includes(node.id) &&
 				<div className='Node_boardActions'>
 					<Form action='v1/node/lock' id='lockThreads' showButton buttonText='Lock selected' />
 				</div>
@@ -217,11 +306,15 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 						threadId={node.id}
 						emojiSettings={currentUserEmojiSettings}
 						nodeParentId={node.parentId}
-						files={editNode.files}
+						files={editNode.files.concat(node.files)}
 						staffBoards={staffBoards}
 						userDonations={userDonations}
 						threadType={node.threadType}
 						markupStyle={node.markupStyle}
+						liveMode={liveMode}
+						setLiveMode={updateLiveMode}
+						text={curTextValue}
+						setText={setCurTextValue}
 					/>
 				:
 				node.permissions.indexOf('reply') > -1 && node.type !== 'post' &&
@@ -240,6 +333,10 @@ const NodePage = ({ loaderData }: { loaderData: NodePageProps }) =>
 						markupStyle={node.markupStyle}
 						staffBoards={staffBoards}
 						userDonations={userDonations}
+						liveMode={liveMode}
+						setLiveMode={updateLiveMode}
+						text={curTextValue}
+						setText={setCurTextValue}
 					/>
 			}
 		</>
@@ -258,9 +355,9 @@ function formatDate(date: string): string
 	}
 }
 
-async function loadData(this: APIThisType, { id, page, editId }: { id: string, page?: string, editId?: string }, { addUsers, locked, order, reverse }: { addUsers?: string, locked?: string, order?: string, reverse?: string }): Promise<NodePageProps>
+async function loadData(this: APIThisType, { id, page, editId }: { id: string, page?: string, editId?: string }, { addUsers, locked, order, reverse, live }: { addUsers?: string, locked?: string, order?: string, reverse?: string, live?: string }): Promise<NodePageProps>
 {
-	const [returnValue] = await Promise.all([
+	const [returnValue, birthdays, accEmojis] = await Promise.all([
 		this.query('v1/nodes', {
 			id: id,
 			page: page,
@@ -269,6 +366,8 @@ async function loadData(this: APIThisType, { id, page, editId }: { id: string, p
 			order: order,
 			reverse: reverse,
 		}),
+		this.query('v1/birthdays'),
+		this.query('v1/reactions'),
 	]);
 
 	return {
@@ -291,6 +390,9 @@ async function loadData(this: APIThisType, { id, page, editId }: { id: string, p
 		archivedBoards: returnValue.archivedBoards,
 		listBoards: returnValue.listBoards,
 		userDonations: returnValue.userDonations,
+		liveMode: live === 'true',
+		birthdays: birthdays,
+		accEmojis: accEmojis,
 	};
 }
 
@@ -298,6 +400,9 @@ export const loader = routerUtils.wrapLoader(loadData);
 
 type NodePageProps = NodesType & {
 	addUsers?: string
+	liveMode: boolean
+	birthdays: BirthdaysType[]
+	accEmojis: ReactionType[]
 };
 
 export default NodePage;

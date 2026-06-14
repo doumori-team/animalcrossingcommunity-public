@@ -32,6 +32,8 @@
 @use "shops.scss";
 @use "staff.scss";
 @use "test_site.scss";
+@use "newsletter.scss";
+@use "emoji.scss";
 
 /* Miscellaneous and/or temporary styles go below here */
 
@@ -57,7 +59,7 @@
 	padding: 20px;
 	font: 20px Helvetica, sans-serif;
 	color: #333;
-	background-image: url("https://cdn-s3.animalcrossingcommunity.com/images/layout/character_pattern_background.png");
+	background-image: url("/src/client/images/layout/character_pattern_background.png");
 
 	/* Media query for body padding */
 	@media (min-width: 768px) {

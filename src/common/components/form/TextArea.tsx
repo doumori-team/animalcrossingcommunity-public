@@ -61,6 +61,7 @@ type TextAreaProps = {
 	placeholder?: string
 	rows?: number
 	maxLength?: number
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	textRef?: any
 	changeHandler?: ChangeHandlerTextAreaType
 };

@@ -8,7 +8,10 @@ const DonatedPage = () =>
 	return (
 		<div className='DonatedPage'>
 			<ContentBox>
-				<img src={`${constants.AWS_URL}/images/layout/thank_you.png`} alt='Thank You!' />
+				<img
+					src={constants.allImages['layout/thank_you.png']}
+					alt='Thank You!'
+				/>
 				<div>Thank you for supporting Animal Crossing Community.</div>
 			</ContentBox>
 		</div>

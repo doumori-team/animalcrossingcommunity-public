@@ -74,7 +74,7 @@ async function loadData(this: APIThisType, { id, townId }: { id: string, townId?
 	const selectedTownId = Number(townId);
 	const userId = Number(id);
 
-	let characterGame = null;
+	let characterGame: AddCharacterPageProps['characterGame'] = null;
 
 	const [towns, town] = await Promise.all([
 		this.query('v1/users/towns'),

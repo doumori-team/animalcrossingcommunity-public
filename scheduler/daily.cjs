@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 
 // This is intended to be run daily.
-// It needs to be added to the scheduler from within the Heroku dashboard.
 
 const pg = require('pg');
+const Sentry = require("@sentry/node");
+
+if (process.env.SENTRY_DSN) {
+	Sentry.init({
+		dsn: process.env.SENTRY_DSN,
+	});
+}
 
 const pool = new pg.Pool(
 {
 	connectionString: process.env.DATABASE_URL,
-	ssl: {rejectUnauthorized: false} // Heroku self-signs its database SSL certificates
 });
 
 const constants = {
@@ -102,6 +107,26 @@ async function daily()
 	// Clear out avatars that are no longer available
 	console.info('Clearing out avatars that are no longer available');
 
+	await pool.query(`
+		INSERT INTO notification (user_id, reference_id, reference_type_id, description)
+		SELECT
+			users.id,
+			users.id,
+			(SELECT id FROM notification_type WHERE identifier = 'avatar_cleared'),
+			'Your event-only avatar has been reset now that the event ended.'
+		FROM users
+		JOIN avatars_events ON (
+			users.avatar_coloration_id = ANY(avatars_events.coloration_ids)
+			OR users.avatar_character_id = ANY(avatars_events.character_ids)
+			OR users.avatar_accent_id = ANY(avatars_events.accent_ids)
+			OR users.avatar_background_id = ANY(avatars_events.background_ids)
+		)
+		WHERE current_date NOT BETWEEN avatars_events.start_date AND avatars_events.end_date
+		ON CONFLICT ON CONSTRAINT notification_user_id_reference_id_reference_type_id_key DO UPDATE SET
+			notified = NULL,
+			description = EXCLUDED.description;
+	`);
+
 	// see v1/avatars.js
 	await pool.query(`
 		UPDATE users
@@ -133,18 +158,7 @@ async function daily()
 	`);
 
 	// clean up tables to keep database small
-	console.info('Clearing out older tables: poll_answer');
-
-	await pool.query(`
-		DELETE FROM poll_answer
-		WHERE poll_id IN (
-			SELECT id
-			FROM poll
-			WHERE start_date + duration < now() - interval '30' day
-			ORDER BY start_date DESC
-			LIMIT 100
-		)
-	`);
+	// don't do poll_answer, need for multiple choice polls
 
 	console.info('Clearing out older tables: notifications for perma-banned users');
 
@@ -181,6 +195,36 @@ async function daily()
 
 	var todaysDate = new Date();
 	todaysDate.setHours(0,0,0,0);
+
+	const month = todaysDate.getMonth();
+	const day = todaysDate.getDate();
+
+	const isSeasonStart =
+		(day === 1) &&
+		(month === 11 || month === 8 || month === 5 || month === 2);
+
+	if (isSeasonStart)
+	{
+		await pool.query(`
+			DELETE FROM seasonal_bell
+		`);
+
+		const yyyy = todaysDate.getFullYear();
+		const mm = String(todaysDate.getMonth() + 1).padStart(2, '0');
+		const dd = String(todaysDate.getDate()).padStart(2, '0');
+
+		const timestamp = `${yyyy}-${mm}-${dd} 00:00:00.000`;
+
+		await pool.query(`
+			UPDATE site_setting
+			SET updated = '${timestamp}'
+			WHERE id = 6
+		`);
+
+		await pool.query(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY seasonal_bell_search
+		`);
+	}
 
 	var updateStatsDate = new Date(`1/1/${todaysDate.getFullYear()}`);
 	updateStatsDate.setHours(0,0,0,0);
@@ -347,7 +391,28 @@ async function daily()
 	`);
 }
 
-daily().then(function()
-{
-	console.info('Daily scripts complete');
-});
+async function run() {
+	try {
+		if (process.env.SENTRY_DSN) {
+			await Sentry.withMonitor("daily", async () => {
+				console.log("Starting daily...");
+				await daily();
+				console.log("Daily complete");
+			});
+		} else {
+			console.log("Starting daily...");
+			await daily();
+			console.log("Daily complete");
+		}
+	} catch (err) {
+		console.error("Daily failed: ", err);
+
+		if (process.env.SENTRY_DSN) {
+			Sentry.captureException(err);
+		}
+	} finally {
+		await pool.end();
+	}
+}
+
+run();

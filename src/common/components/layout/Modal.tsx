@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 
 import { RequireClientJS } from '@behavior';
 import { Button, Form } from '@form';
+import { SuccessType } from '@types';
 
 const Modal = ({
 	title,
@@ -15,13 +16,16 @@ const Modal = ({
 	submitButtonImageTitle,
 	updateFunction,
 	formId,
+	openButtonTitle,
+	openButtonClickHandler,
+	openButtonClassName = 'Modal_button',
 }: ModalProps) =>
 {
 	const [show, setShow] = useState<boolean>(false);
 	const [image, setImage] = useState<ModalProps['submitButtonImage']>(submitButtonImage);
 	const [imageTimeout, setImageTimeout] = useState<number | null>(null);
 
-	const updateImage = (newImage: string) =>
+	const updateImage = (newImage: SuccessType['_successImage']) =>
 	{
 		if (imageTimeout)
 		{
@@ -41,6 +45,11 @@ const Modal = ({
 
 	const renderSubmitButton = (jsFallback?: ReactNode): ReactNode =>
 	{
+		if (!submitButtonLabel || !submitButtonAction)
+		{
+			return;
+		}
+
 		if (!jsFallback && submitButtonImage)
 		{
 			return (
@@ -50,7 +59,7 @@ const Modal = ({
 					showButton
 					buttonText={submitButtonLabel}
 					buttonClickHandler={() => setShow(false)}
-					updateFunction={(data: any) => updateImage(data._successImage)}
+					updateFunction={(data: SuccessType) => updateImage(data._successImage)}
 					formId={formId}
 				>
 					{submitButtonBody}
@@ -98,10 +107,18 @@ const Modal = ({
 			</div>
 			<Button
 				label={openButtonLabel}
-				title={openButtonLabel}
+				title={openButtonTitle ? openButtonTitle : openButtonLabel}
 				image={image}
-				className='Modal_button'
-				clickHandler={() => setShow(true)}
+				className={openButtonClassName}
+				clickHandler={() =>
+				{
+					if (openButtonClickHandler)
+					{
+						openButtonClickHandler();
+					}
+
+					setShow(true);
+				}}
 			/>
 		</RequireClientJS>
 	);
@@ -109,16 +126,19 @@ const Modal = ({
 
 type ModalProps = {
 	title: string
-	submitButtonAction: string
+	submitButtonAction?: string
 	submitButtonCallback?: string
-	submitButtonLabel: string
+	submitButtonLabel?: string
 	submitButtonBody?: ReactNode
 	openButtonLabel: string
+	openButtonTitle?: string
 	submitButtonImage?: string
 	submitButtonImageTitle?: string
 	updateFunction?: Function
-	children: any
+	children: ReactNode
 	formId?: string
+	openButtonClickHandler?: Function
+	openButtonClassName?: string
 };
 
 export default Modal;

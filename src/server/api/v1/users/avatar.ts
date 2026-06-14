@@ -40,7 +40,7 @@ import { APIThisType, UserAvatarType, DataBackgroundType, DataAccentType, DataCh
  */
 async function avatar(this: APIThisType, { id }: avatarProps): Promise<UserAvatarType>
 {
-	const [viewForums, viewProfiles] = await Promise.all([
+	const [viewForums, viewProfiles]: [boolean, boolean] = await Promise.all([
 		this.query('v1/node/permission', { permission: 'read', nodeId: constants.boardIds.accForums }),
 		this.query('v1/permission', { permission: 'view-profiles' }),
 	]);

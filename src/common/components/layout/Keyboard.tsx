@@ -46,7 +46,17 @@ const Keyboard = ({
 		{
 			if (char.includes('.png'))
 			{
-				return <img key={index} src={`${constants.AWS_URL}/images/keyboard/` + char} alt='Icon' />;
+				return (
+					<img
+						key={index}
+						src={
+							constants.allImages[
+        						`keyboard/${char}`
+							]
+						}
+						alt='Icon'
+					/>
+				);
 			}
 			else
 			{

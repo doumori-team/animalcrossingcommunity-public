@@ -10,7 +10,7 @@ type RoleType = {
 	}[]
 	parentId: number | null
 	services: {
-		id: number
+		id: string
 		name: string
 	}[]
 	apply: boolean

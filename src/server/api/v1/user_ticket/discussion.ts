@@ -6,13 +6,6 @@ import { APIThisType } from '@types';
 
 async function discussion(this: APIThisType, { id }: discussionProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [userTicket] = await db.query(`
 		SELECT user_ticket.assignee_id, user_ticket_status.name AS status
 		FROM user_ticket
@@ -46,6 +39,11 @@ async function discussion(this: APIThisType, { id }: discussionProps): Promise<v
 		}),
 	]);
 }
+
+discussion.permissions = [
+	'process-user-tickets',
+	'userId',
+];
 
 discussion.apiTypes = {
 	id: {

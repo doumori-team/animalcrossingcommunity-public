@@ -65,7 +65,9 @@ async function user(this: APIThisType, { id, username }: userProps): Promise<Use
 				away_end_date,
 				user_title,
 				show_images,
-				consolidate_calendars
+				consolidate_calendars,
+				post_name,
+				name
 			FROM users
 			WHERE users.id = $1::int
 		`, accountData.id),
@@ -102,7 +104,7 @@ async function user(this: APIThisType, { id, username }: userProps): Promise<Use
 		db.query(`
 			SELECT COALESCE(sum(price), 0) AS bells
 			FROM user_bell_shop_redeemed
-			WHERE (user_id = $1::int OR redeemed_by = $1::int) and currency = 'Bells'
+			WHERE ((user_id = $1::int AND (redeemed_by IS NULL OR redeemed_by = user_id)) OR redeemed_by = $1::int) and currency = 'Bells'
 		`, accountData.id),
 	]);
 
@@ -139,6 +141,8 @@ async function user(this: APIThisType, { id, username }: userProps): Promise<Use
 		awayStartDate: viewProfiles || reassignAdopteesPerm ? profileInfo.away_start_date : null,
 		awayEndDate: viewProfiles || reassignAdopteesPerm ? profileInfo.away_end_date : null,
 		reviewTOS: reviewTOS,
+		postName: profileInfo.post_name,
+		name: profileInfo.name,
 	};
 }
 

@@ -1,15 +1,14 @@
-import { UserError } from '@errors';
 import * as db from '@db';
-import { APIThisType, HeaderSettingType } from '@types';
+import { APIThisType, HeaderSettingType, StatusType } from '@types';
 
 async function header(this: APIThisType): Promise<HeaderSettingType[]>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [headers, status] = await Promise.all([
+	const [headers, status]: [{
+		id: number
+		name: string
+		granted: boolean
+		permission: string
+	}[], StatusType] = await Promise.all([
 		db.query(`
 			SELECT
 				site_header.id,
@@ -26,7 +25,11 @@ async function header(this: APIThisType): Promise<HeaderSettingType[]>
 		this.query('v1/status'),
 	]);
 
-	return headers.filter((header: any) => header.permission === null || status.permissions.includes(header.permission));
+	return headers.filter(header => header.permission === null || status.permissions.includes(header.permission));
 }
+
+header.permissions = [
+	'userId',
+];
 
 export default header;

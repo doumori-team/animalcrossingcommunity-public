@@ -5,11 +5,6 @@ import { APIThisType } from '@types';
 
 async function follow(this: APIThisType, { id }: followProps): Promise<void>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [feature] = await db.query(`
 		SELECT id
 		FROM feature
@@ -42,6 +37,10 @@ async function follow(this: APIThisType, { id }: followProps): Promise<void>
 		VALUES ($1, $2)
 	`, this.userId, id);
 }
+
+follow.permissions = [
+	'userId',
+];
 
 follow.apiTypes = {
 	id: {

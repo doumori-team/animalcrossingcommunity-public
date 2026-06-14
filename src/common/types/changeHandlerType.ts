@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChangeEvent, MouseEvent } from 'react';
 
 type ElementSelectType = ChangeEvent<HTMLSelectElement>;

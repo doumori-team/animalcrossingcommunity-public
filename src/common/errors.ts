@@ -11,10 +11,12 @@
  */
 export class UserError extends Error
 {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(...identifiers: any)
 	{
 		super();
 		this.name = 'UserError';
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this as any).identifiers = identifiers;
 		Object.freeze(this);
 	}
@@ -183,6 +185,18 @@ export const ERROR_MESSAGES = {
 		message: 'We couldn’t find the guide you were looking for.',
 		code: 404,
 	},
+	'no-such-newsletter': {
+		message: 'We couldn’t find the newsletter you were looking for.',
+		code: 404,
+	},
+	'no-such-newsletter-article': {
+		message: 'We couldn’t find the newsletter article you were looking for.',
+		code: 404,
+	},
+	'no-such-newsletter-article-comment': {
+		message: 'We couldn’t find the newsletter article comment you were looking for.',
+		code: 404,
+	},
 	'no-such-word': {
 		message: 'We couldn’t find the filter word you were looking for.',
 		code: 404,
@@ -204,7 +218,7 @@ export const ERROR_MESSAGES = {
 		code: 404,
 	},
 	'too-many-files': {
-		message: 'Too many files are being allowed. Max per post: 4. Max for profile: 12.',
+		message: 'Too many files are being allowed. Max per post: 4. Max per thread: 24. Max for profile: 12.',
 		code: 404,
 	},
 	'no-such-notification': {
@@ -247,6 +261,10 @@ export const ERROR_MESSAGES = {
 		message: 'We couldn’t find the Shop Application you were looking for.',
 		code: 404,
 	},
+	'no-such-badge': {
+		message: 'We couldn’t find the Badge you were looking for.',
+		code: 404,
+	},
 
 	// User information error messages
 	'invalid-email': {
@@ -255,6 +273,10 @@ export const ERROR_MESSAGES = {
 	},
 	'duplicate-email': {
 		message: 'The email address you entered is already in use by another user.',
+		code: 409,
+	},
+	'away-dates-wrong': {
+		message: 'Your Away Start Date must be before your Away End Date.',
 		code: 409,
 	},
 	'incomplete-avatar': {
@@ -357,6 +379,22 @@ export const ERROR_MESSAGES = {
 	},
 	'signature-max-lines': {
 		message: 'No more then 4 lines are allowed for a signature.',
+		code: 400,
+	},
+	'no-notification-ids': {
+		message: 'You need to check Notifications to clear.',
+		code: 400,
+	},
+	'no-game-ids': {
+		message: 'You need to check at least one game to see the calendar for.',
+		code: 400,
+	},
+	'friend_code_whitelist_yourself': {
+		message: 'You cannot friend code whitelist yourself, as you can already see your friend codes.',
+		code: 400,
+	},
+	'existing-newsletter': {
+		message: 'A newsletter with that issue and volume already exists.',
 		code: 400,
 	},
 
@@ -497,6 +535,26 @@ export const ERROR_MESSAGES = {
 		message: 'You can not perform this action, as it would lead to no owners for the shop.',
 		code: 400,
 	},
+	'duplicate-article': {
+		message: 'Newsletter Article Name already exists.',
+		code: 400,
+	},
+	'poll-choices-required': {
+		message: 'You must choose an option to vote.',
+		code: 400,
+	},
+	'max-paypal-amount': {
+		message: 'You must provide a Paypal amount that is greater than or equal to $5.',
+		code: 400,
+	},
+	'dataUrl-required': {
+		message: 'You need to color the pattern in before you can save it.',
+		code: 400,
+	},
+	'not-acnh-map': {
+		message: 'We were unable to verify that this is an AC:NH Map. Please post on the Site Support board if you are unable to upload your AC:NH map.',
+		code: 400,
+	},
 
 	// scout adoption
 	'already-adopted': {
@@ -506,15 +564,6 @@ export const ERROR_MESSAGES = {
 	'ineligible-adoption': {
 		message: "We're sorry, but adoption is only offered to new members.",
 		code: 409,
-	},
-
-	// Messages for displaying when there are no configured items to display.
-	// Should be interpreted slightly different than 'no-such-*' messages by stating
-	// 	that there are no items to be displayed. These messages shouldn't be
-	// 	product of any direct searches that the user may perform.
-	'poll-not-set-up': {
-		message: 'Seems like we\'ve missed this poll. Stay tuned for the next one!',
-		code: 204,
 	},
 
 	// Automation messages. Do not use these in production.
@@ -539,11 +588,15 @@ export const ERROR_MESSAGES = {
  */
 export class AccountsError extends Error
 {
-	constructor(endpoint: any, message: any, statusCode?: any)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	constructor(endpoint: any, message: any, statusCode?: any, headers?: any)
 	{
 		super(`accounts error in ${endpoint}: '${message}'`);
 		this.name = 'AccountsError';
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this as any).statusCode = statusCode;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(this as any).headers = headers;
 		Object.freeze(this);
 	}
 }
@@ -553,6 +606,7 @@ export class AccountsError extends Error
  */
 export class NotFoundError extends Error
 {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(method: any, cause: any)
 	{
 		super(`no such API method '${method}'`);
@@ -568,11 +622,14 @@ export class NotFoundError extends Error
  */
 export class ProfanityError extends Error
 {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(...words: any)
 	{
 		super();
 		this.name = 'ProfanityError';
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this as any).identifier = ['inappropriate-content'];
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this as any).words = words;
 		Object.freeze(this);
 	}

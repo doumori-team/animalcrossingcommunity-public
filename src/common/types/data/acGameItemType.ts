@@ -13,6 +13,7 @@ type GroupItemType = {
 			museum: boolean
 			genuine: boolean
 			tradeable: boolean
+			imageName?: string | null
 		}[]
 	}[]
 };

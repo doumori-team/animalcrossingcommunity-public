@@ -19,7 +19,7 @@ const AdminRulesPage = ({ loaderData }: { loaderData: AdminRulesPageProps }) =>
 					name='General Rules'
 					links={
 						<RequirePermission permission='modify-rules-admin' silent>
-							<Link to={`/admin/rules/add`}>
+							<Link to={`/rules/add`}>
 								Add Rule
 							</Link>
 
@@ -37,10 +37,10 @@ const AdminRulesPage = ({ loaderData }: { loaderData: AdminRulesPageProps }) =>
 					<div key={rule.id} className='AdminRulesPage_rule'>
 						<RequirePermission permission='modify-rules-admin' silent>
 							<div className='AdminRulesPage_links'>
-								<Link to={`/admin/rules/${encodeURIComponent(rule.pendingRule ? rule.pendingRule.id : rule.id)}`}>
+								<Link to={`/rules/${encodeURIComponent(rule.pendingRule ? rule.pendingRule.id : rule.id)}`}>
 									Edit
 								</Link>
-								<Link to={`/admin/rules/${encodeURIComponent(rule.id)}/add`}>
+								<Link to={`/rules/${encodeURIComponent(rule.id)}/add`}>
 									Add Violation
 								</Link>
 								{rule.pendingExpiration ?
@@ -138,7 +138,7 @@ const AdminRulesPage = ({ loaderData }: { loaderData: AdminRulesPageProps }) =>
 							{rule.pendingExpiration &&
 								<div className='AdminRulesPage_pendingRule AdminRulesPage_expiredRule'>
 									<div className='AdminRulesPage_ruleTitle'>
-										<strong>{rule.number}{rule.name ? ` ${rule.name}` : ''}</strong> - <span>{dateUtils.formatDateTime(rule.startDate)}</span>
+										<strong>{rule.number}{rule.name ? ` ${rule.name}` : ''}</strong> - <span>{dateUtils.formatDateTime(rule.startDate as string)}</span>
 									</div>
 
 									<HTMLPurify
@@ -160,7 +160,7 @@ const AdminRulesPage = ({ loaderData }: { loaderData: AdminRulesPageProps }) =>
 											<RequirePermission permission='modify-rules-admin' silent>
 												<div className='AdminRulesPage_links'>
 													{rule.pendingViolations.length === 0 &&
-														<Link to={`/admin/rules/${encodeURIComponent(rule.id)}/${encodeURIComponent(violation.id)}`}>
+														<Link to={`/rules/${encodeURIComponent(rule.id)}/${encodeURIComponent(violation.id)}`}>
 															Edit
 														</Link>
 													}
@@ -199,7 +199,7 @@ const AdminRulesPage = ({ loaderData }: { loaderData: AdminRulesPageProps }) =>
 										<div key={violation.id} className={`AdminRulesPage_pendingViolation ${!violation.startDate && 'AdminRulesPage_newViolation'} ${violation.pendingExpiration && 'AdminRulesPage_expiredViolation'}`}>
 											<RequirePermission permission='modify-rules-admin' silent>
 												<div className='AdminRulesPage_links'>
-													<Link to={`/admin/rules/${encodeURIComponent(rule.id)}/${encodeURIComponent(violation.pendingViolation ? violation.pendingViolation.id : violation.id)}`}>
+													<Link to={`/rules/${encodeURIComponent(rule.id)}/${encodeURIComponent(violation.pendingViolation ? violation.pendingViolation.id : violation.id)}`}>
 														Edit
 													</Link>
 													{violation.pendingExpiration ?

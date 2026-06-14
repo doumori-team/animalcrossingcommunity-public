@@ -7,13 +7,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'publish-guides' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [guide] = await db.query(`
 		SELECT id
 		FROM guide
@@ -33,6 +26,10 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 	ACCCache.deleteMatch(constants.cacheKeys.guides);
 	ACCCache.deleteMatch(constants.cacheKeys.acGameGuide);
 }
+
+destroy.permissions = [
+	'publish-guides',
+];
 
 destroy.apiTypes = {
 	id: {

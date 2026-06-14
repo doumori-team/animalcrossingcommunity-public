@@ -2,7 +2,7 @@ import { Form, Check } from '@form';
 import emojiDefs from 'common/markup/emoji.json';
 import { Section } from '@layout';
 import { APIThisType, EmojiSettingType } from '@types';
-import { routerUtils } from '@utils';
+import { routerUtils, constants } from '@utils';
 
 export const action = routerUtils.formAction;
 
@@ -20,15 +20,24 @@ const EmojiSettingsPage = ({ loaderData }: { loaderData: EmojiSettingsPageProps 
 					<p>
 						Choosing different emojis below will allow them to appear on the emoji select bar when writing posts. You can customize which emojis you post at any time by returning to this page.
 					</p>
+					<p>
+						<a href='https://apps.apple.com/us/app/acc-retro-emoji/id6757111565'>
+							<img
+								src={constants.allImages['layout/AppStore.svg']}
+								alt='Download on the App Store'
+							/>
+						</a>
+					</p>
 					<ul>
 						{Object.keys(emojiDefs[0]).map((def, index) =>
 						{
-							const showCategories = (categories as any)
-							.map((cat: any) =>
+							const showCategories = (categories as string[])
+							.map(cat =>
 							{
 								return {
 									id: cat,
-									filename: `${cat}/${(types as any)[def]}.png`,
+									filename: `${cat}/${types[def]}.png`,
+									className: cat.includes('reaction') ? 'icon-reaction' : '',
 								};
 							});
 

@@ -6,13 +6,6 @@ import { APIThisType, SuccessType } from '@types';
 
 async function reset_password(this: APIThisType, { id }: resetPasswordProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// only allow test accounts on test site
 	if (!constants.LIVE_SITE)
 	{
@@ -28,6 +21,10 @@ async function reset_password(this: APIThisType, { id }: resetPasswordProps): Pr
 		_notice: `Password Reset Link: ${link} (send this to the user; expires in 24 hours)`,
 	};
 }
+
+reset_password.permissions = [
+	'process-user-tickets',
+];
 
 reset_password.apiTypes = {
 	id: {

@@ -1,6 +1,6 @@
 // based on v1/shop/services
 type ServiceType = {
-	id: number
+	id: string
 	name: string
 	description: string
 	default: boolean

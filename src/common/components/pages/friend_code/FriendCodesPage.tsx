@@ -1,4 +1,4 @@
-import { Link, Form as ReactRouterForm } from 'react-router';
+import { Link, Form as ReactRouterForm, Params } from 'react-router';
 
 import { RequireUser, RequireClientJS } from '@behavior';
 import { utils, constants, routerUtils } from '@utils';
@@ -35,7 +35,7 @@ const FriendCodesPage = ({ loaderData }: { loaderData: FriendCodesPageProps }) =
 		link += `&gameId=${gameId}`;
 	}
 
-	const selectedGameId = Number(gameId || 0);
+	const selectedGameId = utils.safeNumber(gameId);
 
 	const handleUserLookup = async (query: string) =>
 	{
@@ -44,7 +44,7 @@ const FriendCodesPage = ({ loaderData }: { loaderData: FriendCodesPageProps }) =
 			{
 				return users;
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				return [];
 			});
@@ -55,7 +55,7 @@ const FriendCodesPage = ({ loaderData }: { loaderData: FriendCodesPageProps }) =
 			<RequireUser permission='use-friend-codes'>
 				<Header
 					name='Friend Codes'
-					description={<div>What does Whitelisting mean? If you and another user whitelist each other by clicking the <img src={`${constants.AWS_URL}/images/icons/wifi.png`} alt='Whitelist User' /> next to their username on either a post or their profile, you will both be able to view the friend codes you've uploaded to ACC. If only one member whitelists someone the whitelisted user will only temporarily see your friend codes by clicking "Show Friend Codes" in the user's profile.</div>}
+					description={<div>What does Whitelisting mean? If you and another user whitelist each other by clicking the <img src={constants.allImages['icons/wifi.png']} alt='Whitelist User' /> next to their username on either a post or their profile, you will both be able to view the friend codes you've uploaded to ACC. If only one member whitelists someone the whitelisted user will only temporarily see your friend codes by clicking "Show Friend Codes" in the user's profile.</div>}
 					links={
 						<UserContext.Consumer>
 							{currentUser => currentUser &&
@@ -166,6 +166,7 @@ const FriendCodesPage = ({ loaderData }: { loaderData: FriendCodesPageProps }) =
 										groupBy='consoleName'
 										placeholder='Select game...'
 										value={gameId}
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
 										changeHandler={(e: any) => e.target.form.submit()}
 									/>
 								</Form.Group>
@@ -216,7 +217,7 @@ const FriendCodesPage = ({ loaderData }: { loaderData: FriendCodesPageProps }) =
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { sort, group, requestUser, gameId, page }: { sort?: string, group?: string, requestUser?: string, gameId?: string, page?: string }): Promise<FriendCodesPageProps>
+async function loadData(this: APIThisType, _: Params, { sort, group, requestUser, gameId, page }: { sort?: string, group?: string, requestUser?: string, gameId?: string, page?: string }): Promise<FriendCodesPageProps>
 {
 	let sortBy = sort ? sort : 'username';
 	let groupBy = group ? group : 'game';

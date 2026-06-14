@@ -89,6 +89,10 @@
 	width: mixins.px2rem(1299px);
 	max-width: 100%;
 	max-height: mixins.px2rem(350px);
+
+	img {
+		display: block;
+	}
 }
 
 .ShopThreadsPage {

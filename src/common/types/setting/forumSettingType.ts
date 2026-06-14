@@ -9,6 +9,9 @@ type ForumSettingType = {
 	markupStyle: MarkupStyleType
 	showImages: boolean
 	conciseMode: number
+	postName: boolean
+	hidePostEmojis: boolean
+	disablePostReactionNotifications: boolean
 };
 
 export type { ForumSettingType };

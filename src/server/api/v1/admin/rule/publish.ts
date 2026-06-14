@@ -1,19 +1,11 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { ACCCache } from '@cache';
 import { constants } from '@utils';
 import { APIThisType } from '@types';
 
-export default async function publish(this: APIThisType): Promise<void>
+async function publish(this: APIThisType): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		// expire any rules that are being expired
 		await query(`
@@ -33,14 +25,20 @@ export default async function publish(this: APIThisType): Promise<void>
 		// copy over un-expired not-modified violations from the original to the modified rule
 
 		// get all un-expired violations from original rules that have been modified
-		const currentViolations = await query(`
+		const currentViolations: {
+			id: number
+			rule_id: number
+			severity_id: number
+			number: number
+			violation: string
+		}[] = await query(`
 			SELECT rule_violation.id, rule.id AS rule_id, rule_violation.severity_id, rule_violation.number, rule_violation.violation
 			FROM rule_violation
 			JOIN rule ON (rule_violation.rule_id = rule.original_rule_id)
 			WHERE rule.start_date IS NULL AND rule_violation.expiration_date IS NULL
 		`);
 
-		await Promise.all(currentViolations.map(async (violation: any) =>
+		await Promise.all(currentViolations.map(async violation =>
 		{
 			// only copy over those that haven't been modified
 			const [modifiedViolation] = await query(`
@@ -110,3 +108,9 @@ export default async function publish(this: APIThisType): Promise<void>
 
 	ACCCache.deleteMatch(constants.cacheKeys.rulesCurrent);
 }
+
+publish.permissions = [
+	'modify-rules-admin',
+];
+
+export default publish;

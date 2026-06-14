@@ -6,18 +6,6 @@ import { APIThisType, SuccessType, MarkupStyleType } from '@types';
 
 async function apply(this: APIThisType, { id, roleId, text, format, gameIds }: applyProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'order-apply-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [shop] = await db.query(`
 		SELECT id
 		FROM shop
@@ -40,13 +28,8 @@ async function apply(this: APIThisType, { id, roleId, text, format, gameIds }: a
 		throw new UserError('no-such-role');
 	}
 
-	gameIds = await Promise.all(gameIds.map(async(id) =>
+	gameIds = await Promise.all((gameIds as string[]).map(async (id) =>
 	{
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-ac-game');
-		}
-
 		const [checkId] = await db.query(`
 			SELECT id
 			FROM ac_game
@@ -84,7 +67,7 @@ async function apply(this: APIThisType, { id, roleId, text, format, gameIds }: a
 		throw new UserError('shop-current-employee');
 	}
 
-	const shopApplicationId = await db.transaction(async (query: any) =>
+	const shopApplicationId = await db.transaction(async (query: db.QueryType) =>
 	{
 		const [shopApplication] = await query(`
 			INSERT INTO shop_application (shop_id, user_id, shop_role_id, application, application_format)
@@ -111,6 +94,11 @@ async function apply(this: APIThisType, { id, roleId, text, format, gameIds }: a
 		_success: 'Thank you for applying! You will be notified when your application has been reviewed.',
 	};
 }
+
+apply.permissions = [
+	'order-apply-shops',
+	'userId',
+];
 
 apply.apiTypes = {
 	id: {
@@ -145,7 +133,7 @@ type applyProps = {
 	roleId: number
 	text: string
 	format: MarkupStyleType
-	gameIds: any[]
+	gameIds: string[] | number[]
 };
 
 export default apply;

@@ -1,23 +1,15 @@
 import * as db from '@db';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType, PollsType } from '@types';
 
 async function polls(this: APIThisType, { type, page }: pollsProps): Promise<PollsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'polls-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let results = [], count = 0;
+	let results: PollsType['results'] = [], count = 0;
 
-	const polls = await db.query(`
+	const polls: { id: number, count: number }[] = await db.query(`
 		SELECT
 			id,
 			count(*) over () AS count
@@ -42,7 +34,7 @@ async function polls(this: APIThisType, { type, page }: pollsProps): Promise<Pol
 
 	if (polls.length > 0)
 	{
-		results = await Promise.all(polls.map(async (poll: any) =>
+		results = await Promise.all(polls.map(async poll =>
 		{
 			return this.query('v1/poll', { id: poll.id });
 		}));
@@ -57,6 +49,10 @@ async function polls(this: APIThisType, { type, page }: pollsProps): Promise<Pol
 		pageSize: pageSize,
 	};
 }
+
+polls.permissions = [
+	'polls-admin',
+];
 
 polls.apiTypes = {
 	page: {

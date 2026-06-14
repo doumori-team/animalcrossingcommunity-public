@@ -6,13 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const listing: ListingType = await this.query('v1/trading_post/listing', { id: id });
 
@@ -28,7 +21,7 @@ async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		const offerStatuses = constants.tradingPost.offerStatuses;
 
@@ -50,6 +43,11 @@ async function cancel(this: APIThisType, { id }: cancelProps): Promise<void>
 		]);
 	});
 }
+
+cancel.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 cancel.apiTypes = {
 	id: {

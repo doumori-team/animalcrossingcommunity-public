@@ -1,5 +1,5 @@
 import * as db from '@db';
-import { APIThisType, HomePollsType } from '@types';
+import { APIThisType, HomePollsType, PollType } from '@types';
 
 export default async function home_polls(this: APIThisType): Promise<HomePollsType>
 {
@@ -29,7 +29,7 @@ export default async function home_polls(this: APIThisType): Promise<HomePollsTy
 		`),
 	]);
 
-	const [currentPoll, previousPoll] = await Promise.all([
+	const [currentPoll, previousPoll]: [PollType | null, PollType | null] = await Promise.all([
 		currentPollId ? this.query('v1/poll', { id: currentPollId.id }) : null,
 		previousPollId ? this.query('v1/poll', { id: previousPollId.id }) : null,
 	]);

@@ -65,10 +65,15 @@ export function getSeason(dateOverride: string | null = null, southernHemisphere
 		}
 	}
 
+	return getInternalSeason(time, debug, southernHemisphere);
+}
+
+export function getInternalSeason(time: number, debug: boolean = false, southernHemisphere: boolean = false): SeasonsType
+{
 	const year = dateUtils.getUTCFullYear(time);
 
 	// we add 6 months to figure out when grass is growing in the relevant NH spot for SH
-	const yearProgressTime = southernHemisphere ? dateUtils.dateParse(dateUtils.add(time, 6, 'months')) : time;
+	const yearProgressTime = southernHemisphere ? dateUtils.addNumber(time, 6, 'months').getTime() : time;
 	const yearProgressYear = dateUtils.getUTCFullYear(yearProgressTime);
 
 	// Grass colours are defined between these two dates
@@ -95,7 +100,7 @@ export function getSeason(dateOverride: string | null = null, southernHemisphere
 	}
 
 	// June - August
-	let season = 'summer', event = null, headerColor = 'rgba(0,190,0,.2)';
+	let season = 'summer', event: string | null = null, headerColor = 'rgba(0,190,0,.2)';
 
 	// March-April 1 (EDT), April 10 - May
 	if (time >= dateUtils.toUTC(year, 2, 1, 5) && time < dateUtils.toUTC(year, 3, 1, 4) ||
@@ -219,7 +224,7 @@ export function getSeason(dateOverride: string | null = null, southernHemisphere
 			event = 'newyear';
 		}
 		// January 1
-		else if (time <= dateUtils.toUTC(year, 0, 2, 5))
+		else if (time < dateUtils.toUTC(year, 0, 2, 5))
 		{
 			event = 'newyearday';
 		}
@@ -255,7 +260,7 @@ export function getSeason(dateOverride: string | null = null, southernHemisphere
 	};
 }
 
-function getColors(breakpoints: any, yearProgress: any): string[]
+function getColors(breakpoints: typeof grassData, yearProgress: number): string[]
 {
 	// Find which pair of breakpoints we are between
 	let breakpoint1, breakpoint2;
@@ -273,7 +278,7 @@ function getColors(breakpoints: any, yearProgress: any): string[]
 	// e.g. if factor = 0.25, we are 25% of the way from breakpoint1 to breakpoint2
 	const factor = (yearProgress - breakpoint1.point) / (breakpoint2.point - breakpoint1.point);
 
-	const resultColors = [];
+	const resultColors: string[] = [];
 
 	for (let i = 0; i < breakpoint1.colors.length; i++)
 	{

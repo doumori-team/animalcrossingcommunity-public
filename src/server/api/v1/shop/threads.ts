@@ -6,20 +6,12 @@ import { APIThisType, ThreadsType, ShopType } from '@types';
 
 async function threads(this: APIThisType, { page, shopId, category, type, status, waitlisted, locked }: threadsType): Promise<ThreadsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Get list of shops; all the current user has been a customer at AND is currently an employee at
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [shops, markupStyle] = await Promise.all([
+	const [shops, markupStyle]: [{
+		id: number
+		name: string
+		employee: boolean
+	}[], { markup_style: string }[]] = await Promise.all([
 		db.query(`
 			SELECT
 				shop.id,
@@ -87,24 +79,25 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 			throw new UserError('no-such-shop');
 		}
 
-		if (!shops.find((s: any) => s.id === shopId))
+		if (!shops.find(s => s.id === shopId))
 		{
 			throw new UserError('permission');
 		}
 	}
 
 	const pageSize = 24;
-	let results = [], count = 0;
+	let results: ThreadsType['results'] = [], count = 0;
 
 	if (shops.length > 0)
 	{
 		// Do actual search
 		const offset = page * pageSize - pageSize;
-		let params: any = [pageSize, offset];
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let params: any[] = [pageSize, offset];
 		let paramIndex = params.length;
 
 		let query = ``;
-		let wheres = [];
+		let wheres: string[] = [];
 
 		if (category === constants.shops.categories.orders)
 		{
@@ -126,7 +119,7 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 			}
 			else
 			{
-				params[paramIndex] = shops.map((s: any) => s.id);
+				params[paramIndex] = shops.map(s => s.id);
 
 				paramIndex++;
 
@@ -135,7 +128,7 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 
 			if (type === 'employee')
 			{
-				params[paramIndex] = shops.filter((s: any) => s.employee).map((s: any) => s.id);
+				params[paramIndex] = shops.filter(s => s.employee).map(s => s.id);
 
 				paramIndex++;
 
@@ -155,7 +148,7 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 
 				paramIndex++;
 
-				params[paramIndex] = shops.filter((s: any) => s.employee).map((s: any) => s.id);
+				params[paramIndex] = shops.filter(s => s.employee).map(s => s.id);
 
 				paramIndex++;
 
@@ -184,7 +177,7 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 				JOIN shop_role ON (shop_role.id = shop_user_role.shop_role_id)
 				WHERE shop_user.user_id = $1 AND shop_user.active = true AND shop_user.shop_id = ANY($2) AND shop_role.applications = true
 				GROUP BY shop_user.shop_id
-			`, this.userId, shops.map((s: any) => s.id).concat([shopId]))).map((a: any) => a.shop_id);
+			`, this.userId, shops.map(s => s.id).concat([shopId]))).map(a => a.shop_id);
 
 			query = `
 				SELECT
@@ -255,7 +248,7 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 			}
 			else
 			{
-				params[paramIndex] = shops.map((s: any) => s.id);
+				params[paramIndex] = shops.map(s => s.id);
 
 				paramIndex++;
 
@@ -314,11 +307,11 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 		`;
 
 		// Run query
-		const threads = await db.query(query, ...params);
+		const threads: { id: number, count: number }[] = await db.query(query, ...params);
 
 		if (threads.length > 0)
 		{
-			results = await Promise.all(threads.map(async (thread: any) =>
+			results = await Promise.all(threads.map(async thread =>
 			{
 				return this.query('v1/shop/thread', { id: thread.id, category: category });
 			}));
@@ -342,6 +335,11 @@ async function threads(this: APIThisType, { page, shopId, category, type, status
 		markupStyle: markupStyle ? markupStyle[0].markup_style : null,
 	};
 }
+
+threads.permissions = [
+	'view-shops',
+	'userId',
+];
 
 threads.apiTypes = {
 	page: {

@@ -9,11 +9,6 @@ import { APIThisType, ScoutSettingsType, UserType } from '@types';
  */
 async function settings(this: APIThisType, { id }: settingsProps): Promise<ScoutSettingsType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const user: UserType = await this.query('v1/user', { id: id });
 
 	if (user.group.identifier !== constants.staffIdentifiers.scout)
@@ -38,6 +33,10 @@ async function settings(this: APIThisType, { id }: settingsProps): Promise<Scout
 		closingTemplateFormat: settings ? settings.closing_template_format : 'markdown',
 	};
 }
+
+settings.permissions = [
+	'userId',
+];
 
 settings.apiTypes = {
 	id: {

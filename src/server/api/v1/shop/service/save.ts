@@ -6,18 +6,6 @@ import { APIThisType, SuccessType, ShopType } from '@types';
 
 async function save(this: APIThisType, { id, shopId, name, description, games }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
@@ -30,13 +18,8 @@ async function save(this: APIThisType, { id, shopId, name, description, games }:
 		throw new UserError('permission');
 	}
 
-	games = await Promise.all(games.map(async(id) =>
+	games = await Promise.all((games as string[]).map(async id =>
 	{
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-ac-game');
-		}
-
 		const [game] = await db.query(`
 			SELECT id
 			FROM ac_game
@@ -62,9 +45,9 @@ async function save(this: APIThisType, { id, shopId, name, description, games }:
 		throw new UserError('shop-max-services');
 	}
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
-		if (id != null && id > 0)
+		if (id !== null && id > 0)
 		{
 			const [service] = await query(`
 				SELECT id
@@ -126,6 +109,11 @@ async function save(this: APIThisType, { id, shopId, name, description, games }:
 	};
 }
 
+save.permissions = [
+	'modify-shops',
+	'userId',
+];
+
 save.apiTypes = {
 	id: {
 		type: APITypes.number,
@@ -159,7 +147,7 @@ type saveProps = {
 	shopId: number
 	name: string
 	description: string
-	games: any[]
+	games: string[] | number[]
 };
 
 export default save;

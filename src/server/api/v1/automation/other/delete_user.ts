@@ -10,17 +10,6 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function delete_user(this: APIThisType, { username }: deleteUserProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
 	const [user] = await db.query(`
@@ -49,6 +38,11 @@ async function delete_user(this: APIThisType, { username }: deleteUserProps): Pr
 		_success: `The user has been deleted.`,
 	};
 }
+
+delete_user.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 delete_user.apiTypes = {
 	username: {

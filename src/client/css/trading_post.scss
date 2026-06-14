@@ -18,12 +18,16 @@
                 @include mixins.grid($col-width: 15rem);
             }
 
+            @media only screen and (max-width: mixins.px2rem(521px)) and (min-width: mixins.px2rem(372px)){
+                @include mixins.grid($col-width: 10rem);
+            }
+
             a {
                 @extend .GenericButtonWithCustomImage;
             }
 
             .AddListingPage_game {
-                background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/layout/tp_game.png);
+                background-image: url(/src/client/images/layout/tp_game.png);
             }
         }
 
@@ -31,12 +35,16 @@
             @include mixins.responsive(1rem) {
                 @include mixins.grid($col-width: 15rem);
             }
+
+            @media only screen and (max-width: mixins.px2rem(521px)) and (min-width: mixins.px2rem(372px)){
+                @include mixins.grid($col-width: 10rem);
+            }
         }
     }
 }
 
 .AddListingPage_cards, .CatalogType_user {
-    background-image: url(https://cdn-s3.animalcrossingcommunity.com/images/layout/tp_cards.png);
+    background-image: url(/src/client/images/layout/tp_cards.png);
 }
 
 .Listing {

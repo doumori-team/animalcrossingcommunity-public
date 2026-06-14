@@ -6,13 +6,6 @@ import { APIThisType, TunesType } from '@types';
 
 async function tunes(this: APIThisType, { page, name, creator }: tunesProps): Promise<TunesType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-tunes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	if (!this.userId && page > 1)
 	{
 		throw new UserError('login-needed');
@@ -20,9 +13,9 @@ async function tunes(this: APIThisType, { page, name, creator }: tunesProps): Pr
 
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params: (string | number)[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: TunesType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -40,7 +33,7 @@ async function tunes(this: APIThisType, { page, name, creator }: tunesProps): Pr
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (utils.realStringLength(creator) > 0)
 	{
@@ -83,11 +76,11 @@ async function tunes(this: APIThisType, { page, name, creator }: tunesProps): Pr
 	`;
 
 	// Run query
-	const tunes = await db.cacheQuery('v1/tunes', query, ...params);
+	const tunes: { id: number, count: number }[] = await db.cacheQuery(constants.cacheKeys.tunes, query, ...params);
 
 	if (tunes.length > 0)
 	{
-		results = await Promise.all(tunes.map(async (tune: any) =>
+		results = await Promise.all(tunes.map(async tune =>
 		{
 			return this.query('v1/tune', { id: tune.id });
 		}));
@@ -104,6 +97,10 @@ async function tunes(this: APIThisType, { page, name, creator }: tunesProps): Pr
 		pageSize: pageSize,
 	};
 }
+
+tunes.permissions = [
+	'view-tunes',
+];
 
 tunes.apiTypes = {
 	page: {

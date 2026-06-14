@@ -1,0 +1,4 @@
+0 4 * * * node scheduler/daily.cjs
+
+# Nightly backup + snapshot (09:00 UTC = 4 AM ET)
+0 9 * * * ci/backup.sh && ci/snapshot.sh

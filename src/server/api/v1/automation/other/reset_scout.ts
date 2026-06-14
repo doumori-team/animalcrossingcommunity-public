@@ -10,17 +10,6 @@ import { APIThisType, SuccessType } from '@types';
 
 async function reset_scout(this: APIThisType, { username }: resetScoutProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
 	const [user] = await db.query(`
@@ -46,7 +35,7 @@ async function reset_scout(this: APIThisType, { username }: resetScoutProps): Pr
 		throw new UserError('bad-format');
 	}
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -80,6 +69,11 @@ async function reset_scout(this: APIThisType, { username }: resetScoutProps): Pr
 		_success: `The user has had their scout removed!`,
 	};
 }
+
+reset_scout.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 reset_scout.apiTypes = {
 	username: {

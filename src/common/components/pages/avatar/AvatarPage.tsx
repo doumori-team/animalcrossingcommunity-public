@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser } from '@behavior';
 import { Pagination, Header, Section, Grid } from '@layout';
@@ -67,7 +67,7 @@ const AvatarPage = ({ loaderData }: { loaderData: AvatarPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page }: { page?: string }): Promise<AvatarPageProps>
+async function loadData(this: APIThisType, _: Params, { page }: { page?: string }): Promise<AvatarPageProps>
 {
 	const [result] = await Promise.all([
 		this.query('v1/users/avatars', {

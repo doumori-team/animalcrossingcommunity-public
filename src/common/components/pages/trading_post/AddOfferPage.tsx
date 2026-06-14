@@ -240,15 +240,22 @@ async function loadData(this: APIThisType, { id }: { id: string }): Promise<AddO
 		this.query('v1/trading_post/listing', { id: id }),
 	]);
 
-	const [acgameCatalog, residents, acItemsCatalog] = await Promise.all([
+	const [acgameCatalog, residents, acItemsCatalog]: [ACGameItemType[number]['all']['items'] | null, ResidentsType[number], ACGameItemType[number]['all']['items'] | null] = await Promise.all([
 		listing.game ? this.query('v1/acgame/catalog', { id: listing.game.id, categoryName: 'all', sortBy: 'items' }) : null,
 		listing.game && listing.game.id > constants.gameIds.ACGC ? this.query('v1/acgame/resident', { id: listing.game.id }) : null,
 		!listing.game ? this.query('v1/catalog', { categoryName: 'all', sortBy: 'items' }) : null,
 	]);
 
-	const catalogItems = listing.game ?
-		acgameCatalog.filter((item: any) => item.tradeable) :
-		acItemsCatalog;
+	let catalogItems: ACGameItemType[number]['all']['items'] = [];
+
+	if (acgameCatalog !== null)
+	{
+		catalogItems = acgameCatalog.filter(item => item.tradeable);
+	}
+	else if (acItemsCatalog !== null)
+	{
+		catalogItems = acItemsCatalog;
+	}
 
 	return { listing, residents, catalogItems };
 }

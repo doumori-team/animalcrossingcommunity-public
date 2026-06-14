@@ -10,13 +10,13 @@ type EmployeesType = {
 		shopId: number
 		name: string
 		description: string
-		parentId: number
+		parentId: number | null
 		positions: number
 		apply: boolean
 		contact: boolean
 		active: boolean
 		services: {
-			id: number
+			id: string
 			name: string
 		}[]
 		positionsAvailable: number

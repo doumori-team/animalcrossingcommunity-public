@@ -35,7 +35,7 @@ const ChooseTownFlagPage = ({ loaderData }: { loaderData: ChooseTownFlagPageProp
 									label='Select town that will use this pattern'
 									optionsMapping={{
 										id: 'id',
-										name: (town: any) => <Keyboard name={town.name} gameId={town.game.id} />,
+										name: (town: typeof useTowns[number]) => <Keyboard name={town.name} gameId={town.game.id} />,
 									}}
 								/>
 							</Form.Group>

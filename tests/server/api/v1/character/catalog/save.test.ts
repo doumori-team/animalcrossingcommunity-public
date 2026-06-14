@@ -3,6 +3,7 @@ import { describe, test, expect, vi } from 'vitest';
 import save from 'server/api/v1/character/catalog/save';
 import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
+import * as APIPerms from '@apiPerms';
 import { mockAPIContext, mockDbQuery, mockACCCache } from 'tests/vitest.setup.ts';
 import { constants } from '@utils';
 import * as acData from 'server/data/catalog/data.ts';
@@ -25,7 +26,7 @@ const expectedAPIData = {
 
 describe('save API function', () =>
 {
-	test('api tests are converted corrected', async () =>
+	test('api tests are converted correctly', async () =>
 	{
 		// Arrange & Act
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
@@ -38,13 +39,10 @@ describe('save API function', () =>
 	test('should throw error if user lacks permission', async () =>
 	{
 		// Arrange
-		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
-		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, data);
-
 		mockAPIContext.query.mockResolvedValueOnce(false);
 
 		// Act & Assert
-		await expect(save.call(mockAPIContext, apiData)).rejects.toThrow(new UserError('permission'));
+		await expect(APIPerms.check.call(mockAPIContext, save.permissions)).rejects.toThrow(new UserError('permission'));
 	});
 
 	test('should throw error if user is not logged in', async () =>
@@ -53,15 +51,13 @@ describe('save API function', () =>
 		const tempAPIContext = {
 			userId: null,
 			query: vi.fn(),
+			fullQuery: vi.fn(),
 		};
-
-		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
-		const apiData = await APITypes.parse.bind(tempAPIContext)(save.apiTypes, data);
 
 		tempAPIContext.query.mockResolvedValueOnce(true);
 
 		// Act & Assert
-		await expect(save.call(tempAPIContext, apiData)).rejects.toThrow(new UserError('login-needed'));
+		await expect(APIPerms.check.call(tempAPIContext, save.permissions)).rejects.toThrow(new UserError('login-needed'));
 	});
 
 	test('should throw error if character user id does not match logged in user', async () =>
@@ -70,7 +66,6 @@ describe('save API function', () =>
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
 		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, data);
 
-		mockAPIContext.query.mockResolvedValueOnce(true);
 		mockDbQuery.mockResolvedValueOnce([{ user_id: 255661, game_id: constants.gameIds.ACGC }]);
 
 		// Act & Assert
@@ -90,9 +85,8 @@ describe('save API function', () =>
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
 		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
 
-		mockAPIContext.query.mockResolvedValueOnce(true);
 		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
-		mockACCCache.get.mockResolvedValueOnce((acData.sortedAcGameCategories as any)[gameId]['all']['items']);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
 
 		// Act & Assert
 		await expect(save.call(mockAPIContext, apiData)).rejects.toThrow(new UserError('bad-format'));
@@ -111,9 +105,8 @@ describe('save API function', () =>
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
 		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
 
-		mockAPIContext.query.mockResolvedValueOnce(true);
 		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
-		mockACCCache.get.mockResolvedValueOnce((acData.sortedAcGameCategories as any)[gameId]['all']['items']);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
 
 		// Act & Assert
 		await expect(save.call(mockAPIContext, apiData)).rejects.toThrow(new UserError('bad-format'));
@@ -132,9 +125,8 @@ describe('save API function', () =>
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
 		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
 
-		mockAPIContext.query.mockResolvedValueOnce(true);
 		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
-		mockACCCache.get.mockResolvedValueOnce((acData.sortedAcGameCategories as any)[gameId]['all']['items']);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
 
 		// Act & Assert
 		await expect(save.call(mockAPIContext, apiData)).rejects.toThrow(new UserError('bad-format'));
@@ -153,9 +145,8 @@ describe('save API function', () =>
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
 		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
 
-		mockAPIContext.query.mockResolvedValueOnce(true);
 		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
-		mockACCCache.get.mockResolvedValueOnce((acData.sortedAcGameCategories as any)[gameId]['all']['items']);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
 
 		// Act & Assert
 		await expect(save.call(mockAPIContext, apiData)).rejects.toThrow(new UserError('bad-format'));
@@ -169,9 +160,8 @@ describe('save API function', () =>
 		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
 		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, data);
 
-		mockAPIContext.query.mockResolvedValueOnce(true);
 		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
-		mockACCCache.get.mockResolvedValueOnce((acData.sortedAcGameCategories as any)[gameId]['all']['items']);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
 		mockDbQuery.mockImplementation(() => Promise.resolve([]));
 
 		// Act
@@ -180,5 +170,234 @@ describe('save API function', () =>
 		// Assert
 		expect(result).toEqual({ _success: `Your catalog has been updated.` });
 		expect(mockDbQuery).toBeCalledTimes(11);
+	});
+
+	test('should return success with only inventory items', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: data.inventory,
+			remove: '',
+			wishlist: [],
+			museum: [],
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should return success with only wishlist items', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: [],
+			remove: '',
+			wishlist: data.wishlist,
+			museum: [],
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should return success with only museum items', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: [],
+			remove: '',
+			wishlist: [],
+			museum: data.museum,
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should return success with only remove items', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: [],
+			remove: data.remove,
+			wishlist: [],
+			museum: [],
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should skip DB writes when all lists are empty', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: [],
+			remove: '',
+			wishlist: [],
+			museum: [],
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+		// Only 2 DB calls: character lookup + catalog items cache — no INSERT/DELETE
+		expect(mockDbQuery).toBeCalledTimes(2);
+	});
+
+	test('should return success with inventory and wishlist (no museum)', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: data.inventory,
+			remove: '',
+			wishlist: data.wishlist,
+			museum: [],
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should return success with wishlist and museum (no inventory)', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: [],
+			remove: '',
+			wishlist: data.wishlist,
+			museum: data.museum,
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should return success with inventory and museum (no wishlist)', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+		const tempData = {
+			characterId: data.characterId,
+			inventory: data.inventory,
+			remove: '',
+			wishlist: [],
+			museum: data.museum,
+		};
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, tempData);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		const result = await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(result).toEqual({ _success: 'Your catalog has been updated.' });
+	});
+
+	test('should trigger correct badge check', async () =>
+	{
+		// Arrange
+		const gameId = constants.gameIds.ACGC;
+
+		mockDbQuery.mockResolvedValueOnce([{ id: expectedAPIData.characterId }]);
+		const apiData = await APITypes.parse.bind(mockAPIContext)(save.apiTypes, data);
+
+		mockDbQuery.mockResolvedValueOnce([{ user_id: mockAPIContext.userId, game_id: gameId }]);
+		mockACCCache.get.mockResolvedValueOnce(acData.sortedAcGameCategories[gameId]['all']['items']);
+		mockDbQuery.mockImplementation(() => Promise.resolve([]));
+
+		// Act
+		await save.call(mockAPIContext, apiData);
+
+		// Assert
+		expect(mockAPIContext.query).toHaveBeenCalledWith('v1/users/badge/check', { badgeId: constants.badges.gcitems });
+		expect(mockAPIContext.query).toHaveBeenCalledWith('v1/users/badge/check', { badgeId: constants.badges.tenmuseum });
 	});
 });

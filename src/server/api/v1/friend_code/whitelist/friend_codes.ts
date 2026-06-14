@@ -1,22 +1,9 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, WhitelistFriendCodesType } from '@types';
 
 async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }: friendCodesProps): Promise<WhitelistFriendCodesType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
@@ -53,7 +40,14 @@ async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }
 		LIMIT $1::int OFFSET $2::int
 	`;
 
-	const [friendCodes, games] = await Promise.all([
+	const [friendCodes, games]: [{ id: number, date: Date, count: number }[], {
+		id: number
+		name: string
+		pattern: string
+		placeholder: string
+		console_name: string
+		acgame_id: number | null
+	}[]] = await Promise.all([
 		groupBy === 'game' && gameId > 0 || groupBy === 'all' ? db.query(query, pageSize, offset, this.userId, gameId) : [],
 		db.query(`
 			SELECT
@@ -73,14 +67,14 @@ async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }
 	]);
 
 	return <WhitelistFriendCodesType>{
-		results: await Promise.all(friendCodes.map(async (friendCode: any) =>
+		results: await Promise.all(friendCodes.map(async friendCode =>
 		{
 			return this.query('v1/friend_code', { id: friendCode.id });
 		})),
 		count: friendCodes.length > 0 ? Number(friendCodes[0].count) : 0,
 		page: page,
 		pageSize: pageSize,
-		games: games.map((game: any) =>
+		games: games.map(game =>
 		{
 			return {
 				id: game.id,
@@ -93,6 +87,11 @@ async function friend_codes(this: APIThisType, { sortBy, page, gameId, groupBy }
 		}),
 	};
 }
+
+friend_codes.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 friend_codes.apiTypes = {
 	page: {

@@ -6,14 +6,7 @@ import { APIThisType, HouseSizeType } from '@types';
 
 async function house_size(this: APIThisType, { id }: houseSizeProps): Promise<HouseSizeType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	let houseSizes = await db.cacheQuery(constants.cacheKeys.acGame, `
+	const initialHouseSizes: { id: number, name: string }[] = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			house_size_group.id,
 			house_size_group.name
@@ -24,28 +17,32 @@ async function house_size(this: APIThisType, { id }: houseSizeProps): Promise<Ho
 		ORDER BY house_size_group.id ASC
 	`, id);
 
-	if (houseSizes)
+	if (!initialHouseSizes)
 	{
-		houseSizes = await Promise.all(houseSizes.map(async (houseSizeObj: any) =>
-		{
-			return {
-				groupId: houseSizeObj.id,
-				groupName: houseSizeObj.name,
-				houseSizes: await db.cacheQuery(constants.cacheKeys.acGame, `
-					SELECT
-						house_size.id,
-						house_size.name
-					FROM house_size
-					JOIN ac_game_house_size ON (house_size.id = ac_game_house_size.house_size_id AND ac_game_house_size.game_id = $1::int)
-					WHERE house_size.group_id = $2::int
-					ORDER BY house_size.id ASC
-				`, id, houseSizeObj.id),
-			};
-		}));
+		throw new UserError('bad-format');
 	}
 
-	return houseSizes;
+	return await Promise.all(initialHouseSizes.map(async houseSizeObj =>
+	{
+		return {
+			groupId: houseSizeObj.id,
+			groupName: houseSizeObj.name,
+			houseSizes: await db.cacheQuery(constants.cacheKeys.acGame, `
+				SELECT
+					house_size.id,
+					house_size.name
+				FROM house_size
+				JOIN ac_game_house_size ON (house_size.id = ac_game_house_size.house_size_id AND ac_game_house_size.game_id = $1::int)
+				WHERE house_size.group_id = $2::int
+				ORDER BY house_size.id ASC
+			`, id, houseSizeObj.id),
+		};
+	}));
 }
+
+house_size.permissions = [
+	'modify-towns',
+];
 
 house_size.apiTypes = {
 	id: {

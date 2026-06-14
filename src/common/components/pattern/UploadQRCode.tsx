@@ -14,6 +14,7 @@ const UploadQRCode = ({
 	// use third-party library to read uploaded QR code
 	const scanFile = (e: ElementInputType) =>
 	{
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const file = (e as any).target.files[0];
 
 		if (typeof file === 'undefined')
@@ -31,15 +32,19 @@ const UploadQRCode = ({
 
 		const fileReader = new FileReader();
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		fileReader.onload = function (theFile: any)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const image: any = new Image();
 
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			image.onload = function (this: any)
 			{
 				const canvas = document.createElement('canvas');
 				canvas.width = this.width;
 				canvas.height = this.height;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const ctx: any = canvas.getContext('2d');
 				ctx.drawImage(image, 0, 0);
 				const imageData = ctx.getImageData(0, 0, this.width, this.height);
@@ -50,6 +55,7 @@ const UploadQRCode = ({
 				{
 					prepareQRData(data);
 				}
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				catch (error: any)
 				{
 					console.error('Error attempting to create QR code:', error);
@@ -64,6 +70,7 @@ const UploadQRCode = ({
 		fileReader.readAsDataURL(file);
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const prepareQRData = (data: any) =>
 	{
 		if (!data)
@@ -73,6 +80,7 @@ const UploadQRCode = ({
 
 		let qrData = data.binaryData;
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		qrData = qrData.map((id: any) =>
 		{
 			if (isNaN(id))
@@ -96,6 +104,7 @@ const UploadQRCode = ({
 		setPatternName(returnVal.patternName);
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const decodedQRCode = (qrData: any) =>
 	{
 		// Decode name
@@ -117,7 +126,7 @@ const UploadQRCode = ({
 
 		// Decode palette
 		const paletteEncoded = [...qrData].splice(88, 15);
-		let palette = [], ind = 0;
+		let palette: (string | number)[] = [], ind = 0;
 
 		for (let i = 0; i < paletteEncoded.length; i++)
 		{
@@ -133,11 +142,52 @@ const UploadQRCode = ({
 			{
 				paletteHexdec = 144;
 			}
+			// 0
 			else if (hex === '0')
 			{
 				paletteHexdec = 0;
 			}
-			// 1-143
+			// 1
+			else if (hex === '1')
+			{
+				paletteHexdec = 1;
+			}
+			// 2
+			else if (hex === '2')
+			{
+				paletteHexdec = 2;
+			}
+			// 3
+			else if (hex === '3')
+			{
+				paletteHexdec = 3;
+			}
+			// 4
+			else if (hex === '4')
+			{
+				paletteHexdec = 4;
+			}
+			// 5
+			else if (hex === '5')
+			{
+				paletteHexdec = 5;
+			}
+			// 6
+			else if (hex === '6')
+			{
+				paletteHexdec = 6;
+			}
+			// 7
+			else if (hex === '7')
+			{
+				paletteHexdec = 7;
+			}
+			// 8
+			else if (hex === '8')
+			{
+				paletteHexdec = 8;
+			}
+			// 9-143
 			else
 			{
 				let second = hex.substring(1, 2), first = hex.substring(0, 1);
@@ -152,6 +202,12 @@ const UploadQRCode = ({
 				}
 			}
 
+			if (paletteHexdec === '')
+			{
+				console.info('Error, unable to determine palette color', i, paletteEncoded[i], hex);
+				// paletteHexdec = 139;
+			}
+
 			palette[ind] = paletteHexdec;
 			ind++;
 		}
@@ -160,15 +216,18 @@ const UploadQRCode = ({
 		const nlColors = utils.getPatternColors(constants.gameIds.ACNL);
 		const nlPalettes = utils.getPatternPalettes(constants.gameIds.ACNL);
 		let paletteId = 1, highestNumber = 0;
-		const paletteColors = palette.map(x => (nlColors as any)[x]);
+		const paletteColors = palette.map(x => nlColors[x]);
 
 		// figure out which palette has the most colors
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		for (let i = 0; i < (nlPalettes as any).length; i++)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			let incColorsNum = paletteColors.filter(x => (nlPalettes as any)[i].colors.includes(x)).length;
 
 			if (highestNumber < incColorsNum)
 			{
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				paletteId = (nlPalettes as any)[i].paletteId;
 				highestNumber = incColorsNum;
 			}
@@ -176,6 +235,7 @@ const UploadQRCode = ({
 
 		// Decode data
 		const dataEncoded = [...qrData].splice(108, 512);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let formData: any = [], index = 0;
 
 		for (let i = 0; i < constants.pattern.paletteLength; i++)
@@ -210,7 +270,7 @@ const UploadQRCode = ({
 				}
 				else
 				{
-					formData[x][y] = (nlColors as any)[palette[paletteIndex]];
+					formData[x][y] = nlColors[palette[paletteIndex]];
 				}
 
 				paletteIndex = parseInt(first, 16);
@@ -221,11 +281,13 @@ const UploadQRCode = ({
 				}
 				else
 				{
-					formData[x + 1][y] = (nlColors as any)[palette[paletteIndex]];
+					formData[x + 1][y] = nlColors[palette[paletteIndex]];
 				}
 
 				if (typeof formData[x][y] === 'undefined' || typeof formData[x + 1][y] === 'undefined')
 				{
+					console.info('Error, unable to determine cell color', x, y, formData[x][y], formData[x + 1][y], parseInt(second, 16), parseInt(first, 16));
+
 					throw new UserError('bad-format');
 				}
 			}

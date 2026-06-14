@@ -48,9 +48,9 @@ type TownType = {
 		island1: FruitType[]
 		island2: FruitType[]
 		special: FruitType[]
-		nativeFruitId: number | null
-		islandFruitId1: number | null
-		islandFruitId2: number | null
+		nativeFruitId: number | undefined
+		islandFruitId1: number | undefined
+		islandFruitId2: number | undefined
 	}
 	stores: {
 		nook: StoreType[]
@@ -85,13 +85,7 @@ type TownType = {
 			owned: boolean
 		}[]
 	}[]
-	mapDesignData: {
-		dataUrl: string
-		colorData: string[]
-		cursorData: string[]
-		flipData: string[]
-		imageData: string[]
-	} | null
+	mapDesignUrl: string | null
 	flag: {
 		id: number | null
 		name: string

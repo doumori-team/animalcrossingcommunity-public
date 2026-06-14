@@ -5,18 +5,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [character] = await db.query(`
 		SELECT town.user_id
@@ -37,6 +25,11 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		WHERE id = $1::int
 	`, id);
 }
+
+destroy.permissions = [
+	'modify-towns',
+	'userId',
+];
 
 destroy.apiTypes = {
 	id: {

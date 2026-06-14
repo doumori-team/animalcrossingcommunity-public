@@ -1,16 +1,8 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { APIThisType, DenyReasonType } from '@types';
 
-export default async function actions(this: APIThisType): Promise<DenyReasonType[]>
+async function deny_reasons(this: APIThisType): Promise<DenyReasonType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	return await db.query(`
 		SELECT
 			id,
@@ -20,3 +12,9 @@ export default async function actions(this: APIThisType): Promise<DenyReasonType
 		ORDER BY id ASC
 	`);
 }
+
+deny_reasons.permissions = [
+	'process-user-tickets',
+];
+
+export default deny_reasons;

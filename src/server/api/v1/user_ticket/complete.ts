@@ -1,40 +1,41 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { constants, dateUtils } from '@utils';
+import { constants, dateUtils, utils } from '@utils';
 import * as APITypes from '@apiTypes';
 import * as accounts from '@accounts';
-import { APIThisType, UserTicketActionType, BanLengthType } from '@types';
+import { APIThisType, UserTicketActionType, BanLengthType, UserTicketType } from '@types';
 
 async function complete(this: APIThisType, { id, ruleId, violationId, actionId, updatedContent, boardId, banLengthId }: completeProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
-	const [userTicket] = await db.query(`
-		SELECT
-			user_ticket.id,
-			user_ticket.assignee_id,
-			user_ticket_status.name AS status,
-			user_ticket_type.identifier As type_identifier,
-			user_ticket.reference_id,
-			user_ticket.violator_id
-		FROM user_ticket
-		JOIN user_ticket_status ON (user_ticket.status_id = user_ticket_status.id)
-		JOIN user_ticket_type ON (user_ticket.type_id = user_ticket_type.id)
-		WHERE user_ticket.id = $1::int
-	`, id);
+	const [[userTicket], actions]: [[{
+		id: number
+		assignee_id: number | null
+		status: string
+		type_identifier: string
+		reference_id: number
+		violator_id: number
+	} | undefined], UserTicketActionType[]] = await Promise.all([
+		db.query(`
+			SELECT
+				user_ticket.id,
+				user_ticket.assignee_id,
+				user_ticket_status.name AS status,
+				user_ticket_type.identifier As type_identifier,
+				user_ticket.reference_id,
+				user_ticket.violator_id
+			FROM user_ticket
+			JOIN user_ticket_status ON (user_ticket.status_id = user_ticket_status.id)
+			JOIN user_ticket_type ON (user_ticket.type_id = user_ticket_type.id)
+			WHERE user_ticket.id = $1::int
+		`, id),
+		this.query('v1/user_ticket/actions'),
+	]);
 
-	const actions: UserTicketActionType[] = await this.query('v1/user_ticket/actions');
+	if (!userTicket)
+	{
+		throw new UserError('no-such-user-ticket');
+	}
 
 	const checkAction = actions.find(a => a.id === actionId);
 
@@ -49,13 +50,13 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 		throw new UserError('bad-format');
 	}
 
-	let banEndDate = null;
+	let banEndDate: string | null = null;
 
 	const currentBan: BanLengthType | null = await this.query('v1/users/ban_length', { id: userTicket.violator_id });
 
 	if (banLengthId > 0)
 	{
-		let [checkId] = await db.query(`
+		const [checkId]: [{ days: number | null }] = await db.query(`
 			SELECT days
 			FROM ban_length
 			WHERE id = $1::int
@@ -74,13 +75,13 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 				banLengthId = 0;
 			}
 			// can't make a ban shorter
-			else if (currentBan.days > checkId.days)
+			else if (currentBan.days === null || checkId.days !== null && currentBan.days > checkId.days)
 			{
 				throw new UserError('shorter-ban');
 			}
 		}
 
-		banEndDate = checkId.days === null ? null : dateUtils.formatYearMonthDay(dateUtils.addToCurrentDateTimezone(checkId.days, 'days'));
+		banEndDate = checkId.days === null ? null : dateUtils.formatYearMonthDay3(dateUtils.addToCurrentDateTimezone(checkId.days, 'days'));
 	}
 	else if (currentBan)
 	{
@@ -107,7 +108,7 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 	const types = constants.userTicket.types;
 	const notificationTypes = constants.notification.types;
 
-	let node = null;
+	let node: { node_id: number, content_format: string } | null = null;
 
 	if ([types.post, types.thread].includes(userTicket.type_identifier))
 	{
@@ -169,7 +170,8 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 					break;
 				case types.map:
 					await db.query(`
-						DELETE FROM map_design
+						UPDATE town
+						SET map_design_file_id = null
 						WHERE id = $1::int
 					`, userTicket.reference_id);
 
@@ -279,7 +281,7 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 					break;
 			}
 		}
-		catch (_: any)
+		catch (_: unknown)
 		{
 			// do nothing
 		}
@@ -289,6 +291,11 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 		switch (userTicket.type_identifier)
 		{
 			case types.thread:
+				if (node === null)
+				{
+					throw new UserError('bad-format');
+				}
+
 				await db.query(`
 					INSERT INTO node_revision (node_id, reviser_id, title, user_ticket_id)
 					VALUES ($1::int, $2::int, $3::text, $4::int)
@@ -296,6 +303,11 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 
 				break;
 			case types.post:
+				if (node === null)
+				{
+					throw new UserError('bad-format');
+				}
+
 				await db.query(`
 					INSERT INTO node_revision (node_id, reviser_id, content, content_format, user_ticket_id)
 					VALUES ($1::int, $2::int, $3::text, $4::node_content_format, $5::int)
@@ -321,6 +333,14 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 			case types.offer:
 				await db.query(`
 					UPDATE listing_offer
+					SET comment = $2
+					WHERE id = $1::int
+				`, userTicket.reference_id, updatedContent);
+
+				break;
+			case types.articleComment:
+				await db.query(`
+					UPDATE newsletter_article_comment
 					SET comment = $2
 					WHERE id = $1::int
 				`, userTicket.reference_id, updatedContent);
@@ -364,6 +384,7 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 
 					throw new UserError('username-taken');
 				}
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				catch (error: any)
 				{
 					if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
@@ -377,12 +398,11 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 					}
 				}
 
-				await accounts.pushData(
-					{
-						user_id: userTicket.reference_id,
-						username: updatedContent,
-						ignore_history: true,
-					});
+				await accounts.pushData({
+					user_id: userTicket.reference_id,
+					username: updatedContent,
+					ignore_history: true,
+				});
 
 				break;
 			case types.shopName:
@@ -461,6 +481,11 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 	}
 	else if (checkAction.identifier === utActions.lockThread)
 	{
+		if (node === null)
+		{
+			throw new UserError('bad-format');
+		}
+
 		await db.query(`
 			UPDATE node
 			SET locked = now(), thread_type = 'normal'
@@ -471,6 +496,11 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 	}
 	else if (checkAction.identifier === utActions.moveThread)
 	{
+		if (node === null)
+		{
+			throw new UserError('bad-format');
+		}
+
 		await db.query(`
 			UPDATE node
 			SET parent_node_id = $2::int
@@ -507,7 +537,7 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 			UPDATE user_ticket
 			SET status_id = $2::int, rule_violation_id = $3, updated_text = $4, action_id = $5::int, last_updated = now(), closed = now(), rule_id = $6
 			WHERE id = $1::int
-		`, id, status.id, Number(violationId || 0) > 0 ? violationId : null, checkAction.identifier === 'modify' ? updatedContent : null, actionId, ruleId),
+		`, id, status.id, utils.safeNumber(violationId) > 0 ? violationId : null, checkAction.identifier === 'modify' ? updatedContent : null, actionId, ruleId),
 		this.query('v1/notification/create', {
 			id: id,
 			type: notificationTypes.ticketProcessed,
@@ -525,7 +555,7 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 				text: await getEmailText.bind(this)(id, banLengthId),
 			});
 		}
-		catch (error: any)
+		catch (error: unknown)
 		{
 			console.error('accounts.emailUser error:', error);
 		}
@@ -534,7 +564,11 @@ async function complete(this: APIThisType, { id, ruleId, violationId, actionId, 
 
 async function getEmailText(this: APIThisType, userTicketId: number, banLengthId: number): Promise<string>
 {
-	const [userTicket, [rule], [banLength]] = await Promise.all([
+	const [userTicket, [rule], [banLength]]: [UserTicketType, [{
+		description: string
+		severity_id: number | null
+		violation: string
+	}], [{ days: number | null, description: string }]] = await Promise.all([
 		this.query('v1/user_ticket', { id: userTicketId }),
 		db.query(`
 			SELECT
@@ -601,6 +635,11 @@ async function getEmailText(this: APIThisType, userTicketId: number, banLengthId
 
 	return '<span style="font-family: Verdana; font-size: 11px;">' + memberNotes + '</span>';
 }
+
+complete.permissions = [
+	'process-user-tickets',
+	'userId',
+];
 
 complete.apiTypes = {
 	id: {

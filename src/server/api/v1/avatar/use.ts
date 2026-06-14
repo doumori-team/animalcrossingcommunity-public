@@ -5,11 +5,6 @@ import { APIThisType, SuccessType, AvatarsType } from '@types';
 
 async function use(this: APIThisType, { id }: useProps): Promise<SuccessType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [userAvatar] = await db.query(`
 		SELECT
 			user_avatar.user_id,
@@ -66,6 +61,10 @@ async function use(this: APIThisType, { id }: useProps): Promise<SuccessType>
 		_success: 'You are now using this avatar.',
 	};
 }
+
+use.permissions = [
+	'userId',
+];
 
 use.apiTypes = {
 	id: {

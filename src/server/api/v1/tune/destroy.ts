@@ -7,16 +7,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const [modifyTunes, processUserTickets] = await Promise.all([
-		this.query('v1/permission', { permission: 'modify-tunes' }),
-		this.query('v1/permission', { permission: 'process-user-tickets' }),
-	]);
-
-	if (!(modifyTunes || processUserTickets))
-	{
-		throw new UserError('permission');
-	}
-
 	// Check the tune id is valid
 	const [tune] = await db.query(`
 		SELECT creator_id
@@ -29,13 +19,13 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		throw new UserError('no-such-tune');
 	}
 
-	if (tune.creator_id != this.userId)
+	if (tune.creator_id !== this.userId)
 	{
 		throw new UserError('permission');
 	}
 
 	// Perform query
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await query(`
 			UPDATE town
@@ -51,6 +41,12 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 
 	ACCCache.deleteMatch(constants.cacheKeys.tunes);
 }
+
+destroy.permissions = [
+	'modify-tunes',
+	'process-user-tickets',
+	'userId',
+];
 
 destroy.apiTypes = {
 	id: {

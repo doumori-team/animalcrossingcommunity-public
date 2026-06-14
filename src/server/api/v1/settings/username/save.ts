@@ -5,27 +5,15 @@ import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
 import { APIThisType, SuccessType } from '@types';
 
-async function save(this: APIThisType, { username }: saveProps): Promise<SuccessType>
+async function save(this: APIThisType, { newUser }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'change-username' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	if (!username.match(RegExp(constants.regexes.nonWhitespaceCharacters)))
+	if (!newUser.match(RegExp(constants.regexes.nonWhitespaceCharacters)))
 	{
 		throw new UserError('bad-format');
 	}
 
 	// Confirm test-account only on test sites
-	if (!constants.LIVE_SITE && !constants.testAccounts.includes(this.userId))
+	if (!constants.LIVE_SITE && !constants.testAccounts.includes(this.userId as number))
 	{
 		throw new UserError('live-username-change');
 	}
@@ -41,10 +29,11 @@ async function save(this: APIThisType, { username }: saveProps): Promise<Success
 	// Confirm username is free (current user OR username change)
 	try
 	{
-		await accounts.getUserData(null, username);
+		await accounts.getUserData(null, newUser);
 
 		throw new UserError('username-taken');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))
@@ -61,7 +50,7 @@ async function save(this: APIThisType, { username }: saveProps): Promise<Success
 	await accounts.pushData(
 		{
 			user_id: userData.id,
-			username: username,
+			username: newUser,
 		});
 
 	ACCCache.deleteMatch(constants.cacheKeys.userLite);
@@ -69,8 +58,13 @@ async function save(this: APIThisType, { username }: saveProps): Promise<Success
 	return { _success: 'Your username has been updated.' };
 }
 
+save.permissions = [
+	'change-username',
+	'userId',
+];
+
 save.apiTypes = {
-	username: {
+	newUser: {
 		type: APITypes.string,
 		required: true,
 		profanity: true,
@@ -81,7 +75,7 @@ save.apiTypes = {
 };
 
 type saveProps = {
-	username: string
+	newUser: string
 };
 
 export default save;

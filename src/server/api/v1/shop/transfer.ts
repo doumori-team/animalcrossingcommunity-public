@@ -5,18 +5,6 @@ import { APIThisType, ShopType } from '@types';
 
 async function transfer(this: APIThisType, { id }: transferProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
@@ -34,6 +22,11 @@ async function transfer(this: APIThisType, { id }: transferProps): Promise<void>
 		VALUES ((SELECT id FROM shop_role WHERE parent_id = null AND shop_id = $1 LIMIT 1), (SELECT id FROM shop_user WHERE user_id = $2))
 	`, id, this.userId);
 }
+
+transfer.permissions = [
+	'modify-shops',
+	'userId',
+];
 
 transfer.apiTypes = {
 	id: {

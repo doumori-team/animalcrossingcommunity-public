@@ -2,22 +2,10 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, RatingType } from '@types';
+import { APIThisType, RatingType, UserLiteType } from '@types';
 
 async function rating(this: APIThisType, { id }: ratingProps): Promise<RatingType>
 {
-	const [useFriendCodesPerm, useTradingPostPerm, viewRatingsPerm, viewShopsPerm] = await Promise.all([
-		this.query('v1/permission', { permission: 'use-friend-codes' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-		this.query('v1/permission', { permission: 'view-ratings' }),
-		this.query('v1/permission', { permission: 'view-shops' }),
-	]);
-
-	if (!(useFriendCodesPerm || useTradingPostPerm || viewRatingsPerm || viewShopsPerm))
-	{
-		throw new UserError('permission');
-	}
-
 	// Perform queries
 	const [rating] = await db.query(`
 		SELECT
@@ -53,7 +41,7 @@ async function rating(this: APIThisType, { id }: ratingProps): Promise<RatingTyp
 
 	const types = constants.notification.types;
 
-	const [user, ratingUser] = await Promise.all([
+	const [user, ratingUser]: [UserLiteType, UserLiteType, void, void] = await Promise.all([
 		this.query('v1/user_lite', { id: rating.user_id }),
 		this.query('v1/user_lite', { id: rating.rating_user_id }),
 		rating.listing_id ? this.query('v1/notification/destroy', {
@@ -70,7 +58,7 @@ async function rating(this: APIThisType, { id }: ratingProps): Promise<RatingTyp
 		id: rating.id,
 		username: user.username,
 		ratingUsername: ratingUser.username,
-		formattedDate: dateUtils.formatDateTimezone(rating.last_updated),
+		formattedDate: dateUtils.formatDateTime5(rating.last_updated),
 		rating: rating.rating,
 		comment: rating.comment,
 		listingId: rating.listing_id,
@@ -78,6 +66,14 @@ async function rating(this: APIThisType, { id }: ratingProps): Promise<RatingTyp
 		shopNodeId: rating.granted ? rating.shop_node_id : null,
 	};
 }
+
+rating.permissions = [
+	'use-friend-codes',
+	'use-trading-post',
+	'view-ratings',
+	'view-shops',
+	'userId',
+];
 
 rating.apiTypes = {
 	id: {

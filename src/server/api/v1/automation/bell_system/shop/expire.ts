@@ -1,22 +1,10 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType } from '@types';
 
 async function expire(this: APIThisType, { username }: expireProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
 	const [user] = await db.query(`
@@ -42,6 +30,11 @@ async function expire(this: APIThisType, { username }: expireProps): Promise<Suc
 		_success: `The user's purchases have been expired.`,
 	};
 }
+
+expire.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 expire.apiTypes = {
 	username: {

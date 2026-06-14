@@ -6,18 +6,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { townId, acres }: saveProps): Promise<{ townId: number, userId: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [town] = await db.query(`
 		SELECT user_id, game_id
@@ -25,16 +13,16 @@ async function save(this: APIThisType, { townId, acres }: saveProps): Promise<{ 
 		WHERE town.id = $1::int
 	`, townId);
 
-	if (town.user_id != this.userId)
+	if (town.user_id !== this.userId)
 	{
 		throw new UserError('permission');
 	}
 
 	const mapTiles = utils.getMapTiles(town.game_id);
 
-	acres = acres.map((id) =>
+	acres = acres.map(id =>
 	{
-		if (isNaN(id) || !mapTiles.all[Number(id)])
+		if (!mapTiles.all[Number(id)])
 		{
 			throw new UserError('bad-format');
 		}
@@ -55,6 +43,11 @@ async function save(this: APIThisType, { townId, acres }: saveProps): Promise<{ 
 	};
 }
 
+save.permissions = [
+	'modify-towns',
+	'userId',
+];
+
 save.apiTypes = {
 	townId: {
 		type: APITypes.townId,
@@ -63,12 +56,13 @@ save.apiTypes = {
 	acres: {
 		type: APITypes.array,
 		required: true,
+		userInput: true,
 	},
 };
 
 type saveProps = {
 	townId: number
-	acres: any[]
+	acres: string[]
 };
 
 export default save;

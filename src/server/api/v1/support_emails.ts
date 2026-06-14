@@ -6,13 +6,6 @@ import { APIThisType, SupportEmailsType } from '@types';
 
 async function support_emails(this: APIThisType, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: supportEmailsProps): Promise<SupportEmailsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	if (utils.realStringLength(toUser) > 0)
 	{
@@ -59,9 +52,9 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 	// Do actual search
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	let params: (string | number | boolean)[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: SupportEmailsType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -90,7 +83,7 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 		// if we're searching for an email from,
 		// we aren't looking for emails sent to another user
 		// modmins who send emails out have their id in the from_user_id
-		params[paramIndex] = process.env.EMAIL_USER;
+		params[paramIndex] = process.env.EMAIL_USER as string;
 
 		paramIndex++;
 
@@ -100,7 +93,7 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	if (utils.realStringLength(fromUser) > 0)
 	{
@@ -113,11 +106,11 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 		// if we're searching for an email from,
 		// we aren't looking for emails sent to another user
 		// modmins who send emails out have their id in the from_user_id
-		params[paramIndex] = process.env.EMAIL_USER;
+		params[paramIndex] = process.env.EMAIL_USER as string;
 
 		paramIndex++;
 
-		wheres.push(`support_email.to_user_email = $` + paramIndex);
+		wheres.push(`support_email.to_email = $` + paramIndex);
 	}
 
 	if (utils.realStringLength(fromEmail) > 0)
@@ -153,7 +146,7 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 
 		paramIndex++;
 
-		wheres.push(`support_email.recorded >= $` + paramIndex);
+		wheres.push(`support_email.recorded::date >= $` + paramIndex);
 	}
 
 	if (utils.realStringLength(endDate) > 0)
@@ -162,7 +155,7 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 
 		paramIndex++;
 
-		wheres.push(`support_email.recorded <= $` + paramIndex);
+		wheres.push(`support_email.recorded::date <= $` + paramIndex);
 	}
 
 	if (['yes', 'no'].includes(read))
@@ -207,11 +200,11 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 	`;
 
 	// Run query
-	const supportEmails = await db.query(query, ...params);
+	const supportEmails: { id: number, count: number }[] = await db.query(query, ...params);
 
 	if (supportEmails.length > 0)
 	{
-		results = await Promise.all(supportEmails.map(async (supportEmail: any) =>
+		results = await Promise.all(supportEmails.map(async supportEmail =>
 		{
 			return this.query('v1/support_email', { id: supportEmail.id });
 		}));
@@ -234,6 +227,10 @@ async function support_emails(this: APIThisType, { page, fromUser, fromEmail, to
 		forUser,
 	};
 }
+
+support_emails.permissions = [
+	'process-user-tickets',
+];
 
 support_emails.apiTypes = {
 	page: {

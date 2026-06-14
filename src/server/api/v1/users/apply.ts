@@ -9,13 +9,6 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function apply(this: APIThisType, { groupId, text, format, username }: applyProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'apply-nominate-staff' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check params (non-node-create only)
 	const [staffGroup] = await db.query(`
 		SELECT identifier
@@ -83,6 +76,11 @@ async function apply(this: APIThisType, { groupId, text, format, username }: app
 	};
 }
 
+apply.permissions = [
+	'apply-nominate-staff',
+	'userId',
+];
+
 apply.apiTypes = {
 	groupId: {
 		type: APITypes.number,
@@ -98,8 +96,8 @@ apply.apiTypes = {
 type applyProps = {
 	groupId: number
 	username: string
-	text: any
-	format: any
+	text: string
+	format: string
 };
 
 export default apply;

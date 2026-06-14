@@ -47,7 +47,7 @@ const Pagination = ({
 
 	const lastPage = Math.ceil(totalCount / pageSize);
 
-	let numbers = [], allNumbers = [];
+	let numbers: number[] = [], allNumbers: { value: number, label: number }[] = [];
 	const sideNum = 3;
 	const lowEnd = page <= sideNum ? 1 : page - sideNum;
 	const highEnd = page === lastPage ? page :
@@ -79,6 +79,7 @@ const Pagination = ({
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const changePage = (e: any): void =>
 	{
 		navigate(`/${startLink}${startPageLink}${encodeURIComponent(Number(e.target.value))}${endPageLink}${endLink}`);
@@ -184,6 +185,7 @@ const Pagination = ({
 								name='page'
 								options={allNumbers}
 								value={page}
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
 								changeHandler={(e: any) => onPageChange(Number(e.target.value))}
 							/>
 						</div>
@@ -195,6 +197,7 @@ const Pagination = ({
 								name='page'
 								options={allNumbers}
 								value={page}
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
 								changeHandler={(e: any) => changePage(e)}
 								key={page}
 							/>

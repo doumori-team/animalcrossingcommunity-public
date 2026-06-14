@@ -5,5 +5,6 @@ WHERE id = 5;
 REFRESH MATERIALIZED VIEW top_bell_latest;
 REFRESH MATERIALIZED VIEW top_bell_last_jackpot;
 REFRESH MATERIALIZED VIEW top_bell_search;
+REFRESH MATERIALIZED VIEW seasonal_bell_search;
 
 REFRESH MATERIALIZED VIEW archived_threads;

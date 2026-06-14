@@ -13,7 +13,12 @@ const ItemLookup = ({
 	{
 		let callback = 'v1/acgame/catalog';
 
-		let params: any = {
+		let params: {
+			query: string
+			categoryName: string
+			sortBy: string
+			id?: string
+		} = {
 			query,
 			categoryName: 'all',
 			sortBy: 'items',
@@ -38,7 +43,7 @@ const ItemLookup = ({
 
 				return items.filter(item => item.tradeable);
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				return [];
 			});
@@ -64,7 +69,9 @@ const ItemLookup = ({
 
 type ItemLookupProps = {
 	label: string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	options?: any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	value: string | number | any[] | null
 	selectedGameId: number
 };

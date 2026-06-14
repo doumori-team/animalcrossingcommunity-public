@@ -14,8 +14,8 @@ const ShopThreadBanner = ({ loaderData }: { loaderData: ShopThreadBannerProps })
 		.map(x =>
 		{
 			return {
-				id: (constants.rating.configs as any)[x].id,
-				filename: (constants.rating.configs as any)[x].image,
+				id: constants.rating.configs[x].id,
+				filename: constants.rating.configs[x].image,
 			};
 		});
 

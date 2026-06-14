@@ -5,18 +5,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, gameId, code, characterId }: saveProps): Promise<{ id: number, userId: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-friend-codes' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [game] = await db.query(`
 		SELECT pattern
@@ -84,7 +72,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 	}
 
 	// Perform queries
-	const friendCodeUserId = await db.transaction(async (query: any) =>
+	const friendCodeUserId = await db.transaction(async (query: db.QueryType) =>
 	{
 		let friendCodeUserId;
 
@@ -129,7 +117,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 
 		if (characterId > 0)
 		{
-			const [listings] = await Promise.all([
+			const [listings]: [{ id: number }[], void, void] = await Promise.all([
 				query(`
 					SELECT id
 					FROM listing_offer
@@ -148,7 +136,7 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 
 			// If character used in trade, update that friend code
 			await Promise.all(
-				listings.map(async(listing: any) =>
+				listings.map(async listing =>
 				{
 					await query(`
 						UPDATE listing_offer
@@ -167,6 +155,11 @@ async function save(this: APIThisType, { id, gameId, code, characterId }: savePr
 		userId: friendCodeUserId,
 	};
 }
+
+save.permissions = [
+	'use-friend-codes',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {

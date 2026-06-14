@@ -5,6 +5,7 @@ type StatusType = {
 	user: UserType | null
 	permissions: string[]
 	southernHemisphere: boolean
+	dockMenu: boolean
 	banLength?: string
 };
 

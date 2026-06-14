@@ -6,7 +6,7 @@ type SupportTicketsType = {
 	count: number
 	page: number
 	pageSize: number
-	username: string
+	searchUser: string
 	userTicketId: number | null
 	status: string
 };

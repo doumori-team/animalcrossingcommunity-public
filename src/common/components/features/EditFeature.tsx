@@ -43,7 +43,7 @@ const EditFeature = ({
 						value={feature ? feature.categoryId : ''}
 						required
 						label='Category'
-						options={(categories as any).concat([{ id: '', name: 'Other' }])}
+						options={categories.concat([{ id: 0, name: 'Other' } as FeatureCategoryType])}
 						optionsMapping={{ value: 'id', label: 'name' }}
 					/>
 				</Form.Group>

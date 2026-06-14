@@ -1,16 +1,19 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Link } from 'react-router';
+import Compressor from 'compressorjs';
+import axios from 'axios';
 
-import { RequireUser } from '@behavior';
+import { RequireUser, RequireClientJS } from '@behavior';
 import { constants, utils } from '@utils';
 import { SeasonsType, TownType } from '@types';
-import { Keyboard, Grid, InnerSection, ReportProblem } from '@layout';
+import { Keyboard, Grid, InnerSection, ReportProblem, ErrorMessage } from '@layout';
 import Map from '@/components/towns/Map.tsx';
 import Tune from '@/components/tunes/Tune.tsx';
 import { UserContext } from '@contexts';
 import { Confirm } from '@form';
 import Character from '@/components/characters/Character.tsx';
 import Pattern from '@/components/pattern/Pattern.tsx';
+import { iso } from 'common/iso.ts';
 
 const Town = ({ town, season }: TownProps) =>
 {
@@ -33,11 +36,14 @@ const Town = ({ town, season }: TownProps) =>
 		hemisphere,
 		tune,
 		museum,
-		mapDesignData,
+		mapDesignUrl,
 		flag,
 		stationShape,
 		paint,
 	} = town;
+
+	const [mapDesignUrlUse, setMapDesignUrl] = useState<TownProps['town']['mapDesignUrl']>(mapDesignUrl);
+	const [errors, setErrors] = useState<string[]>([]);
 
 	const encodedId = encodeURIComponent(id);
 	const encodedUserId = encodeURIComponent(userId);
@@ -71,7 +77,9 @@ const Town = ({ town, season }: TownProps) =>
 
 		if (['Bugs', 'Insects', 'Fish', 'Sea Creatures', 'Seafood'].includes(category))
 		{
-			return `${constants.AWS_URL}/images/icons/creatures/${gameAbbrev}/${filename}`;
+			return constants.allImages[
+  				`icons/creatures/${gameAbbrev}/${filename}`
+			];
 		}
 
 		if (category === 'Artwork' || category === 'Fossils')
@@ -87,8 +95,187 @@ const Town = ({ town, season }: TownProps) =>
 		return '';
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const scanFile = async (e: any): Promise<void> =>
+	{
+		setErrors([]);
+
+		const files: File[] = Array.from(e.target.files);
+
+		await Promise.all(files.map(async file =>
+		{
+			const isValid = await validateACNHMapScreenshot(file);
+
+			if (!isValid)
+			{
+				setErrors(['not-acnh-map']);
+				return;
+			}
+
+			const compressedFile = await compressImage(file);
+
+			// 10000 KB / 10 MB max size
+			if (compressedFile.size > 10000000)
+			{
+				// shouldn't be problem if from game
+				return;
+			}
+
+			const fileUrl = await uploadImage(compressedFile);
+
+			setMapDesignUrl(fileUrl);
+		}));
+	};
+
+	async function validateACNHMapScreenshot(file: File): Promise<boolean>
+	{
+		const img = await fileToImage(file);
+
+		const ratio = img.naturalWidth / img.naturalHeight;
+
+		// Switch screenshots / screenshots users resize a bit
+		if (Math.abs(ratio - 16 / 9) > 0.08)
+		{
+			return false;
+		}
+
+		const imgData = imageToImageData(img);
+		const w = imgData.width;
+		const h = imgData.height;
+
+		let ocean = 0;
+		let grass = 0;
+		let sand = 0;
+
+		const samples = 250;
+
+		for (let i = 0; i < samples; i++)
+		{
+			const x = Math.floor(Math.random() * w);
+			const y = Math.floor(Math.random() * h);
+
+			const p = getPixel(imgData, x, y);
+			const { r, g, b } = p;
+
+			// ACNH map screen has lots of teal ocean/background
+			if (g > 160 && b > 160 && r < 170)
+			{
+				ocean++;
+			}
+
+			// Grass just needs to be green-dominant, not exact
+			if (g > 120 && g > r + 15 && g > b + 15)
+			{
+				grass++;
+			}
+
+			// Sand / beach
+			if (r > 170 && g > 155 && b < 180 && r >= g)
+			{
+				sand++;
+			}
+		}
+
+		if (ocean < 20)
+		{
+			return false;
+		}
+
+		if (grass < 20)
+		{
+			return false;
+		}
+
+		if (sand < 8)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	async function fileToImage(file: File): Promise<HTMLImageElement>
+	{
+		const url = URL.createObjectURL(file);
+		const img = await new Promise<HTMLImageElement>((resolve, reject) =>
+		{
+			const i = new Image();
+			i.onload = () => resolve(i);
+			i.onerror = reject;
+			i.src = url;
+		});
+		URL.revokeObjectURL(url);
+		return img;
+	}
+
+	function imageToImageData(img: HTMLImageElement): ImageData
+	{
+		const canvas = document.createElement('canvas');
+		canvas.width = img.naturalWidth;
+		canvas.height = img.naturalHeight;
+
+		const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+		ctx.drawImage(img, 0, 0);
+
+		return ctx.getImageData(0, 0, canvas.width, canvas.height);
+	}
+
+	function getPixel(img: ImageData, x: number, y: number)
+	{
+		const xx = Math.max(0, Math.min(img.width - 1, x));
+		const yy = Math.max(0, Math.min(img.height - 1, y));
+		const i = (yy * img.width + xx) * 4;
+		const d = img.data;
+		return { r: d[i], g: d[i + 1], b: d[i + 2] };
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const compressImage = async (file: File | Blob): Promise<any> =>
+	{
+		return new Promise((resolve, reject) =>
+		{
+			new Compressor(file, {
+				convertSize: 1000000,
+				success: resolve,
+				error: reject,
+			});
+		});
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const uploadImage = async (file: any) =>
+	{
+		const params = {
+			imageExtension: file.type.replace(/(.*)\//g, ''),
+			townId: id,
+		};
+
+		return await (await iso).query(null, 'v1/town/map/upload_map', params)
+			.then(async ({ s3PresignedUrl, fileName }: { s3PresignedUrl: string, fileName: string }) =>
+			{
+				try
+				{
+					await axios.put(s3PresignedUrl, file, { headers: { 'Content-Type': file.type } });
+
+					return `${constants.AWS_URL}/${constants.USER_FILE_DIR2}${userId}/${fileName}`;
+				}
+				catch (error: unknown)
+				{
+					console.error('Error attempting to upload.', error);
+				}
+			})
+			.catch((_: unknown) =>
+			{
+				// nothing
+			});
+	};
+
 	return (
 		<section className='Town'>
+			{errors.map(
+				(identifier, index) =>
+					<ErrorMessage identifier={identifier} key={index} />,
+			)}
 			<RequireUser id={userId} silent permission='modify-towns'>
 				<div className='Town_links'>
 					<Link to={`/profile/${encodedUserId}/town/${encodedId}/edit`}>
@@ -101,52 +288,67 @@ const Town = ({ town, season }: TownProps) =>
 						label='Delete'
 						message='Are you sure you want to delete this town?'
 					/>
-					{game.id === constants.gameIds.ACNH && mapDesignData && mapDesignData.dataUrl.length === 0 &&
-                        <Link to={`/profile/${encodedUserId}/town/${encodedId}/map`}>
-	Add Map
-                        </Link>
+					{game.id === constants.gameIds.ACNH &&
+						<RequireClientJS>
+							<label htmlFor='mapUpload'>
+								Add Map
+							</label>
+							<input
+								id='mapUpload'
+								type='file'
+								accept='.png,.jpeg,.jpg'
+								onChange={scanFile}
+								name='files'
+							/>
+						</RequireClientJS>
 					}
 				</div>
 			</RequireUser>
 
-			<h1 className='Town_name'>
+			<h2 className='Town_name'>
 				<div>
 					<ReportProblem type={constants.userTicket.types.town} id={id} />
 					<Keyboard name={name} gameId={game.id} />
 				</div>
 				{' '}
 				<small className='Town_gameName'><cite>{game.name}</cite></small>
-			</h1>
+			</h2>
 
 			<div className='TownPanelContainer'>
-				<div className='TownPanel TownLeftPanel'>
-					{(mapTiles.length > 0 || mapDesignData && mapDesignData.dataUrl.length > 0) &&
+				<div className='TownPanel TownLeftPanel' key={mapDesignUrlUse}>
+					{(mapTiles.length > 0 || mapDesignUrlUse !== null) &&
 						<div className={`Town_map Town_map_${game.identifier}`}>
-							{game.id === constants.gameIds.ACNH && mapDesignData ?
+							{game.id === constants.gameIds.ACNH && mapDesignUrlUse ?
 								<img
 									className={`Town_map_${game.identifier}`}
-									src={mapDesignData.dataUrl}
+									src={mapDesignUrlUse}
 									alt='AC:NH Map'
 								/>
 								:
 								<Map game={game} mapTiles={mapTiles} />
 							}
-							<div>
+							{game.id === constants.gameIds.ACNH ?
 								<ReportProblem type={constants.userTicket.types.map} id={id} />
+								:
 								<RequireUser id={userId} silent>
-									<Link to={`/profile/${encodedUserId}/town/${encodedId}/map`}
+									<Link
+										to={`/profile/${encodedUserId}/town/${encodedId}/map`}
 										className='Town_mapEditLink'
-									>Edit Map</Link>
+									>
+										Edit Map
+									</Link>
 								</RequireUser>
-							</div>
+							}
 						</div>
 					}
 					<InnerSection>
 						<h2 className='Town_sectionHeading'>
 							<div className='Town_characterHeader'>
 								<div>
-									<img src={`${constants.AWS_URL}/images/icons/character.png`}
-										className='Town_sectionHeadingIcon' alt='Characters'
+									<img
+										src={constants.allImages['icons/character.png']}
+										className='Town_sectionHeadingIcon'
+										alt='Characters'
 									/>
 									Characters
 								</div>
@@ -185,7 +387,7 @@ const Town = ({ town, season }: TownProps) =>
 						:
 						<RequireUser id={userId} silent>
 							<InnerSection>
-								<Link to={`/profile/${encodedUserId}/town/${encodedId}/tune`}
+								<Link to={`/town-tunes`}
 									className='Town_button'
 								>
 									Add Town Tune
@@ -212,7 +414,11 @@ const Town = ({ town, season }: TownProps) =>
 
 					<InnerSection>
 						<h2 className='Town_sectionHeading'>
-							<img src={`${constants.AWS_URL}/images/icons/villagers.png`} className='Town_sectionHeadingIcon' alt='Villagers' />
+							<img
+								src={constants.allImages['icons/villagers.png']}
+								className='Town_sectionHeadingIcon'
+								alt='Villagers'
+							/>
 							Villagers
 						</h2>
 						{residents.length > 0 ?
@@ -235,7 +441,11 @@ const Town = ({ town, season }: TownProps) =>
 
 					<InnerSection>
 						<h2 className='Town_sectionHeading'>
-							<img src={`${constants.AWS_URL}/images/icons/fruit.png`} className='Town_sectionHeadingIcon' alt='Fruit' />
+							<img
+								src={constants.allImages['icons/fruit.png']}
+								className='Town_sectionHeadingIcon'
+								alt='Fruit'
+							/>
 							Fruit
 						</h2>
 						{fruit.length > 0 ?
@@ -260,7 +470,11 @@ const Town = ({ town, season }: TownProps) =>
 
 					<InnerSection>
 						<h2 className='Town_sectionHeading'>
-							<img src={`${constants.AWS_URL}/images/icons/museum.png`} className='Town_sectionHeadingIcon' alt='Museum' />
+							<img
+								src={constants.allImages['icons/museum.png']}
+								className='Town_sectionHeadingIcon'
+								alt='Museum'
+							/>
 							Museum
 						</h2>
 						{museum.map(category =>
@@ -289,7 +503,11 @@ const Town = ({ town, season }: TownProps) =>
 
 					<InnerSection>
 						<h2 className='Town_sectionHeading'>
-							<img src={`${constants.AWS_URL}/images/icons/leaf.png`} className='Town_sectionHeadingIcon' alt='Additional Information' />
+							<img
+								src={constants.allImages['icons/leaf.png']}
+								className='Town_sectionHeadingIcon'
+								alt='Additional Information'
+							/>
 							Additional Information
 						</h2>
 						<div className='Town_additionalInfo'>

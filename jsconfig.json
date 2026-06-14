@@ -19,8 +19,10 @@
 			"@types": ["src/common/types/index.ts"],
 			"@utils": ["src/common/utils/index.ts"],
 			"@apiTypes": ["src/server/api-types.ts"],
+			"@apiPerms": ["src/server/api-permissions.ts"],
 			"@cache": ["src/server/cache.ts"],
-			"tests": ["tests/"]
+			"tests": ["tests/"],
+			"@hooks": ["src/common/hooks/index.ts"],
 		}
 	},
 	"include": ["src/**/*"]

@@ -1,16 +1,9 @@
 import * as db from '@db';
-import { UserError } from '@errors';
-import { constants, dateUtils } from '@utils';
+import { dateUtils } from '@utils';
 import { APIThisType, ViewEmailType, SuccessType } from '@types';
 
-export default async function view_email(this: APIThisType): Promise<ViewEmailType | SuccessType>
+async function view_email(this: APIThisType): Promise<ViewEmailType | SuccessType>
 {
-	// You must be on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
 	const [latestEmail] = await db.query(`
 		SELECT from_email, subject, body, recorded
 		FROM support_email
@@ -32,3 +25,9 @@ export default async function view_email(this: APIThisType): Promise<ViewEmailTy
 		body: latestEmail.body,
 	};
 }
+
+view_email.permissions = [
+	'TEST_SITE',
+];
+
+export default view_email;

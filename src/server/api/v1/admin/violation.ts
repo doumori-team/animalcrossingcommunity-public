@@ -5,13 +5,6 @@ import { APIThisType, ViolationType } from '@types';
 
 async function violation(this: APIThisType, { id }: violationProps): Promise<ViolationType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-rules-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [violation] = await db.query(`
 		SELECT
 			rule_violation.id,
@@ -34,6 +27,10 @@ async function violation(this: APIThisType, { id }: violationProps): Promise<Vio
 		violation: violation.violation,
 	};
 }
+
+violation.permissions = [
+	'modify-rules-admin',
+];
 
 violation.apiTypes = {
 	id: {

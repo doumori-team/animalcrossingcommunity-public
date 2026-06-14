@@ -92,7 +92,7 @@ const BuddyPage = ({ loaderData }: { loaderData: BuddyPageProps }) =>
 											<div className='BuddyPage_actions'>
 												<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}#TextBox`}>
 													<img
-														src={`${constants.AWS_URL}/images/icons/pt.png`}
+														src={constants.allImages['icons/pt.png']}
 														className='BuddyPage_icon'
 														alt={`PT ${buddy.username}`}
 													/>
@@ -129,7 +129,7 @@ const BuddyPage = ({ loaderData }: { loaderData: BuddyPageProps }) =>
 									<div className='BuddyPage_actions'>
 										<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${buddy.username}#TextBox`}>
 											<img
-												src={`${constants.AWS_URL}/images/icons/pt.png`}
+												src={constants.allImages['icons/pt.png']}
 												className='BuddyPage_icon'
 												alt={`PT ${buddy.username}`}
 											/>

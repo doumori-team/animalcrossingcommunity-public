@@ -66,6 +66,30 @@ const ForumSettingsPage = ({ loaderData }: { loaderData: ForumSettingsPageProps 
 							/>
 						</Form.Group>
 						<Form.Group>
+							<Switch
+								name='postName'
+								label='Show Name on Posts'
+								value={settings.postName}
+								switchFirst
+							/>
+						</Form.Group>
+						<Form.Group>
+							<Switch
+								name='disablePostReactionNotifications'
+								label='Disable Post Reaction Notifications'
+								value={settings.disablePostReactionNotifications}
+								switchFirst
+							/>
+						</Form.Group>
+						<Form.Group>
+							<Switch
+								name='hidePostEmojis'
+								label='Hide Post Reactions'
+								value={settings.hidePostEmojis}
+								switchFirst
+							/>
+						</Form.Group>
+						<Form.Group>
 							<Select
 								name='flagOption'
 								label='Mark Thread as Favorited'

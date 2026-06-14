@@ -2,10 +2,18 @@
 @use "forms";
 
 .GuidesPage {
+	.ImageUpload {
+		@extend .GenericSection;
+	}
+
 	.Section {
 		.Grid {
 			@include mixins.responsive(1rem) {
 				@include mixins.grid($col-width: 15rem);
+			}
+
+			@media only screen and (max-width: mixins.px2rem(521px)) and (min-width: mixins.px2rem(372px)){
+				@include mixins.grid($col-width: 10rem);
 			}
 		}
 
@@ -80,7 +88,10 @@
 
 .GuidePage .Markup img,
 .EditGuidePage .RichTextArea_preview img,
-.AddGuidePage .RichTextArea_preview img {
+.AddGuidePage .RichTextArea_preview img,
+.ArticlePage .Markup img,
+.EditNewsletterArticlePage .RichTextArea_preview img,
+.AddNewsletterArticlePage .RichTextArea_preview img {
 	max-width: mixins.px2rem(380px);
 
 	@media only screen and (max-width: mixins.px2rem(656px)) {
@@ -90,7 +101,10 @@
 
 .GuidePage .Markup table,
 .EditGuidePage .RichTextArea_preview table,
-.AddGuidePage .RichTextArea_preview table {
+.AddGuidePage .RichTextArea_preview table,
+.ArticlePage .Markup table,
+.EditNewsletterArticlePage .RichTextArea_preview table,
+.AddNewsletterArticlePage .RichTextArea_preview table {
 	img {
 		max-width: mixins.px2rem(200px) !important;
 

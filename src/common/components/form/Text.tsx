@@ -130,6 +130,7 @@ type TextProps = {
 	max?: string | number
 	pattern?: string
 	className?: string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	textRef?: any
 	step?: number
 	minLength?: number

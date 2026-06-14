@@ -23,13 +23,6 @@ import { APIThisType, PollType } from '@types';
  */
 async function poll(this: APIThisType, { id }: pollProps): Promise<PollType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-polls' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [poll] = await db.query(`
 		SELECT
 			id,
@@ -49,7 +42,7 @@ async function poll(this: APIThisType, { id }: pollProps): Promise<PollType>
 		throw new UserError('no-such-poll');
 	}
 
-	const [pollOptions, [userVote]] = await Promise.all([
+	const [pollOptions, userVote, [totalUsers]] = await Promise.all([
 		db.query(`
 			SELECT
 				description,
@@ -59,12 +52,17 @@ async function poll(this: APIThisType, { id }: pollProps): Promise<PollType>
 			WHERE poll_option.poll_id = $1::int
 			ORDER BY sequence
 		`, poll.id),
-		db.query(`
+		this.userId ? db.query(`
 			SELECT
 				user_id
 			FROM poll_answer
 			WHERE poll_id = $2::int AND user_id = $1::int
-		`, this.userId, poll.id),
+		`, this.userId, poll.id) : null,
+		db.query(`
+			SELECT count(*) AS count
+			FROM poll_answer
+			WHERE poll_answer.poll_id = $1::int
+		`, poll.id),
 	]);
 
 	return <PollType>{
@@ -75,11 +73,16 @@ async function poll(this: APIThisType, { id }: pollProps): Promise<PollType>
 		duration: poll.duration.days,
 		isMultipleChoice: poll.is_multiple_choice,
 		isEnabled: poll.is_enabled,
-		userHasVoted: userVote !== undefined,
+		userHasVoted: userVote && userVote[0],
 		description: poll.description,
 		options: pollOptions,
+		totalUsers: totalUsers.count,
 	};
 }
+
+poll.permissions = [
+	'view-polls',
+];
 
 poll.apiTypes = {
 	id: {

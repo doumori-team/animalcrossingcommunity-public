@@ -2,18 +2,25 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, PatternType } from '@types';
+import { APIThisType, PatternType, UserLiteType } from '@types';
 
 async function pattern(this: APIThisType, { id }: patternProps): Promise<PatternType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-patterns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const [pattern] = await db.query(`
+	const [pattern]: [{
+		id: number
+		name: string
+		creator_id: number
+		published: boolean
+		creation: Date
+		design_id: string | null
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		data: any
+		data_url: string
+		game_id: number
+		palette_id: number
+		shortname: string
+		qr_code_url: string | null
+	} | undefined] = await db.query(`
 		SELECT
 			pattern.id,
 			pattern.name,
@@ -37,12 +44,12 @@ async function pattern(this: APIThisType, { id }: patternProps): Promise<Pattern
 		throw new UserError('no-such-pattern');
 	}
 
-	const [[patternFav], creator] = await Promise.all([
-		db.query(`
+	const [patternFav, creator]: [[{ id: number } | undefined] | null, UserLiteType] = await Promise.all([
+		this.userId ? db.query(`
 			SELECT id
 			FROM pattern_favorite
 			WHERE pattern_id = $1::int AND user_id = $2::int
-		`, pattern.id, this.userId),
+		`, pattern.id, this.userId) : null,
 		this.query('v1/user_lite', { id: pattern.creator_id }),
 	]);
 
@@ -53,11 +60,11 @@ async function pattern(this: APIThisType, { id }: patternProps): Promise<Pattern
 		name: pattern.name,
 		creator: creator,
 		published: pattern.published,
-		formattedDate: dateUtils.formatDateTimezone(pattern.creation),
-		isFavorite: patternFav ? true : false,
+		formattedDate: dateUtils.formatDateTime5(pattern.creation),
+		isFavorite: patternFav && patternFav[0] ? true : false,
 		designId: pattern.design_id,
 		data: pattern.data.match(/.{4}/g)
-			.map((hex: any) => colors[parseInt(hex, 16)] ?
+			.map((hex: string) => colors[parseInt(hex, 16)] ?
 				colors[parseInt(hex, 16)] :
 				String(parseInt(hex, 16)),
 			),
@@ -68,6 +75,10 @@ async function pattern(this: APIThisType, { id }: patternProps): Promise<Pattern
 		qrCodeUrl: pattern.qr_code_url,
 	};
 }
+
+pattern.permissions = [
+	'view-patterns',
+];
 
 pattern.apiTypes = {
 	id: {

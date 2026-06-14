@@ -7,18 +7,6 @@ import { APIThisType, SuccessType, ShopType, ACGameItemType } from '@types';
 
 async function order(this: APIThisType, { id, gameId, serviceId, items, quantities, comment }: orderProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'order-apply-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: id });
 
 	if (!shop)
@@ -64,7 +52,7 @@ async function order(this: APIThisType, { id, gameId, serviceId, items, quantiti
 
 	if (items.length > 0)
 	{
-		const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: any) => item.tradeable && !game.items.includes(item.id));
+		const catalogItems: ACGameItemType[number]['all']['items'] = (await ACCCache.get(`${constants.cacheKeys.sortedAcGameCategories}_${gameId}_all_items`)).filter((item: ACGameItemType[number]['all']['items'][number]) => item.tradeable && !game.items.includes(item.id));
 
 		items = items.map((id) =>
 		{
@@ -76,13 +64,8 @@ async function order(this: APIThisType, { id, gameId, serviceId, items, quantiti
 			return String(id).trim();
 		});
 
-		quantities = quantities.map((quantity) =>
+		quantities = (quantities as string[]).map(quantity =>
 		{
-			if (isNaN(quantity))
-			{
-				throw new UserError('bad-format');
-			}
-
 			const newQuantity = Number(quantity);
 
 			// by stack
@@ -106,7 +89,7 @@ async function order(this: APIThisType, { id, gameId, serviceId, items, quantiti
 	// total quantity
 	if (!game.stackOrQuantity)
 	{
-		const totalQuantity = quantities.reduce((a, b) => a + b, 0);
+		const totalQuantity = (quantities as number[]).reduce((a, b) => a + b, 0);
 
 		if (totalQuantity > game.perOrder)
 		{
@@ -114,7 +97,7 @@ async function order(this: APIThisType, { id, gameId, serviceId, items, quantiti
 		}
 	}
 
-	const orderId = await db.transaction(async (query: any) =>
+	const orderId = await db.transaction(async (query: db.QueryType) =>
 	{
 		let order;
 
@@ -150,10 +133,17 @@ async function order(this: APIThisType, { id, gameId, serviceId, items, quantiti
 
 	await this.query('v1/notification/create', { id: orderId, type: constants.notification.types.shopOrder });
 
+	this.query('v1/users/badge/check', { badgeId: constants.badges.tenorderedshop });
+
 	return {
 		_success: 'Your order has been submitted. You will be notified when an employee has claimed it.',
 	};
 }
+
+order.permissions = [
+	'order-apply-shops',
+	'userId',
+];
 
 order.apiTypes = {
 	id: {
@@ -186,8 +176,8 @@ type orderProps = {
 	id: number
 	gameId: number
 	serviceId: string
-	items: any[]
-	quantities: any[]
+	items: string[]
+	quantities: string[] | number[]
 	comment: string
 };
 

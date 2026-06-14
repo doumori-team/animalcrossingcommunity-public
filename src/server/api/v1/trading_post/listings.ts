@@ -8,13 +8,6 @@ import { APIThisType, ListingsType, CatalogItemsType, CharacterType } from '@typ
 async function listings(this: APIThisType, { page, creator, type, gameId, bells, items, villagers,
 	active, wishlist, bioLocation, comment }: listingsProps): Promise<ListingsType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	if (!this.userId && page > 1)
 	{
 		throw new UserError('login-needed');
@@ -35,24 +28,15 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		}
 	}
 
-	items = items.map((id: any) =>
-	{
-		return String(id).trim();
-	});
-
-	villagers = villagers.map((id: any) =>
-	{
-		return String(id);
-	});
-
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
 	// Do actual search
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let params: any = [pageSize, offset];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let params: any[] = [pageSize, offset];
 	let paramIndex = params.length;
-	let results = [], count = 0;
+	let results: ListingsType['results'] = [], count = 0;
 
 	let query = `
 		SELECT
@@ -69,7 +53,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		`;
 	}
 
-	if (bells != null && bells > 0 || items.length > 0 || villagers.length > 0 || utils.realStringLength(comment) > 0)
+	if (bells !== null && bells > 0 || items.length > 0 || villagers.length > 0 || utils.realStringLength(comment) > 0)
 	{
 		query += `
 			JOIN listing_offer ON (listing.id = listing_offer.listing_id AND listing_offer.user_id = listing.creator_id)
@@ -90,7 +74,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		`;
 	}
 
-	if (active != null && active > 0 || utils.realStringLength(bioLocation) > 0)
+	if (active !== null && active > 0 || utils.realStringLength(bioLocation) > 0)
 	{
 		query += `
 			JOIN users ON (users.id = listing.creator_id)
@@ -98,7 +82,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 	}
 
 	// Add wheres
-	let wheres = [];
+	let wheres: string[] = [];
 
 	wheres.push(`listing.status = '` + listingStatuses.open + `'`);
 
@@ -137,7 +121,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		wheres.push(`listing.game_id IS NOT NULL`);
 	}
 
-	if (bells != null && bells > 0)
+	if (bells !== null && bells > 0)
 	{
 		params[paramIndex] = bells;
 
@@ -164,7 +148,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		wheres.push(`listing_offer_resident.resident_id = ANY($` + paramIndex + `)`);
 	}
 
-	if (active != null && active > 0)
+	if (active !== null && active > 0)
 	{
 		params[paramIndex] = active;
 
@@ -176,22 +160,22 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 	if (wishlist)
 	{
 		// check where user searching's wishlist matches listings with their items
-		let wishlistItemsSearch: any = [];
+		let wishlistItemsSearch: string[] = [];
 
 		if (gameId === 0)
 		{
 			const userCatalogItems: CatalogItemsType[] = await this.query('v1/users/catalog', { id: this.userId });
-			wishlistItemsSearch = userCatalogItems.filter((item: any) => item.isWishlist);
+			wishlistItemsSearch = userCatalogItems.filter(item => item.isWishlist).map(item => item.id);
 		}
 		else if (gameId > 0)
 		{
 			const characters: CharacterType[] = await this.query('v1/users/characters', { id: this.userId });
 
-			wishlistItemsSearch = (await Promise.all(characters.filter((c: any) => c.game.id === gameId).map(async (character: any) =>
+			wishlistItemsSearch = (await Promise.all(characters.filter(c => c.game.id === gameId).map(async character =>
 			{
 				const catalog: CatalogItemsType[] = await this.query('v1/character/catalog', { id: character.id });
 
-				return catalog.filter((item: any) => item.isWishlist);
+				return catalog.filter(item => item.isWishlist);
 			}))).flat(2).map(i => i.id);
 		}
 
@@ -204,7 +188,7 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 				JOIN listing_offer ON (listing_offer.listing_id = listing.id AND listing_offer.user_id = listing.creator_id)
 				JOIN listing_offer_catalog_item ON (listing_offer_catalog_item.listing_offer_id = listing_offer.id)
 				WHERE listing.status = $2 AND listing_offer_catalog_item.catalog_item_id = ANY($1)
-			`, wishlistItemsSearch, listingStatuses.open)).map((l: any) => l.id);
+			`, wishlistItemsSearch, listingStatuses.open)).map((l: { id: number }) => l.id);
 
 			params[paramIndex] = wishlistItemListingIds;
 
@@ -259,13 +243,13 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 	`;
 
 	// Run query
-	const listings = await db.query(query, ...params);
+	const listings: { id: number, count: number }[] = await db.query(query, ...params);
 
 	if (listings.length > 0)
 	{
-		const nonDupListingIds = listings.filter((v: any,i: any,a: any) => a.findIndex((t: any) => t.id === v.id) === i).map((l: any) => l.id);
+		const nonDupListingIds = listings.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i).map(l => l.id);
 
-		results = await Promise.all(nonDupListingIds.map(async (listingId: any) =>
+		results = await Promise.all(nonDupListingIds.map(async listingId =>
 		{
 			return this.query('v1/trading_post/listing', { id: listingId });
 		}));
@@ -290,6 +274,10 @@ async function listings(this: APIThisType, { page, creator, type, gameId, bells,
 		comment: comment,
 	};
 }
+
+listings.permissions = [
+	'use-trading-post',
+];
 
 listings.apiTypes = {
 	page: {
@@ -320,9 +308,11 @@ listings.apiTypes = {
 	},
 	items: {
 		type: APITypes.array,
+		subType: 'string',
 	},
 	villagers: {
 		type: APITypes.array,
+		subType: 'string',
 	},
 	active: {
 		type: APITypes.number,
@@ -353,8 +343,8 @@ type listingsProps = {
 	type: string
 	gameId: number
 	bells: number | null
-	items: any[]
-	villagers: any[]
+	items: string[]
+	villagers: string[]
 	active: number | null
 	wishlist: boolean
 	bioLocation: string

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MarkupFormatType } from '../markupFormatType.ts';
 
 // based on v1/shop

@@ -1,9 +1,9 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
-import { ContentBox, ErrorMessage, Markup, PhotoGallery } from '@layout';
+import { ContentBox, Markup, PhotoGallery } from '@layout';
 import Poll from '@/components/admin/Poll.tsx';
-import { utils, constants, routerUtils } from '@utils';
+import { utils, constants, routerUtils, dateUtils } from '@utils';
 import { UserContext } from '@contexts';
 import { APIThisType, HomePollsType, CalendarType, AnnouncementsType, BirthdaysType } from '@types';
 
@@ -18,19 +18,19 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 		const events = calendars.flatMap((cal: CalendarType) =>
 		{
 			const [month, ..._] = cal.months;
-			const relevant = month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'events').flatMap((cat: CalendarType['months']['categories']) => cat.events);
-			return relevant.map((ev: CalendarType['months']['categories']['events']) => ({ game: cal.game, month, event: ev, img: `${constants.AWS_URL}/images/games/${utils.getIconDirectoryFromGameID(cal.game.id)}/town_game_icon.png` }));
-		}).sort((a, b) => new Date(a.event.sortDate).getTime() - new Date(b.event.sortDate).getTime()) ?? [];
+			const relevant = month.categories.filter(cat => cat.identifier === 'events').flatMap(cat => cat.events);
+			return relevant.map(ev => ({ game: cal.game, month, event: ev, img: `${constants.AWS_URL}/images/games/${utils.getIconDirectoryFromGameID(cal.game.id)}/town_game_icon.png` }));
+		}).sort((a, b) => dateUtils.toDate(a.event.sortDate as string).getTime() - dateUtils.toDate(b.event.sortDate as string).getTime()) ?? [];
 
 		const creatures = calendars.filter((cal: CalendarType) =>
 		{
 			const [month, ..._] = cal.months;
-			const catchables = month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'creatures');
+			const catchables = month.categories.filter(cat => cat.identifier === 'creatures');
 			return catchables && catchables.length > 0;
 		}).map((cal: CalendarType) =>
 		{
 			const [month, ..._] = cal.months;
-			const relevant = month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'creatures').flatMap((cat: CalendarType['months']['categories']) => cat.events);
+			const relevant = month.categories.filter(cat => cat.identifier === 'creatures').flatMap(cat => cat.events);
 			return { game: cal.game, creatures: relevant, month };
 		}) ?? [];
 
@@ -40,7 +40,7 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 			return calendars.flatMap((cal: CalendarType) =>
 			{
 				const [month, ..._] = cal.months;
-				return month.categories.filter((cat: CalendarType['months']['categories']) => cat.identifier === 'birthdays').flatMap((cat: CalendarType['months']['categories']) => cat.events);
+				return month.categories.filter(cat => cat.identifier === 'birthdays').flatMap(cat => cat.events);
 			}).filter((event) =>
 			{
 				const key = `${event.name}-${event.timing}`;
@@ -50,7 +50,7 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 				}
 				seen.add(key);
 				return true;
-			}).sort((a, b) => new Date(a.sortDate).getTime() - new Date(b.sortDate).getTime());
+			}).sort((a, b) => dateUtils.toDate(a.sortDate as string).getTime() - dateUtils.toDate(b.sortDate as string).getTime());
 		})() ?? [];
 
 		return <div className='HomePage_eventGameSection HomePage_eventGameSection_consolidated'>
@@ -102,7 +102,7 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 													{entry.game.name}
 												</Link>
 											</div>
-											{entry.creatures.map((creature: any, index: number) =>
+											{entry.creatures.map((creature, index: number) =>
 											{
 												return (
 													<img
@@ -160,15 +160,15 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 					</div>
 
 					<div className='HomePage_categorySections'>
-						{month.categories.map((category: CalendarType['months']['categories'], index: number) =>
+						{month.categories.map((category, index: number) =>
 							<div className='HomePage_categorySection' key={index}>
 								<div className='HomePage_categoryName'>
 									{category.name}
 								</div>
 
 								{category.events.length > 0 ?
-									<div className={`HomePage_eventSections ${category.identifier === constants.calendarCategories.birthdays && 'grid'}`}>
-										{category.events.map((event: CalendarType['months']['categories']['events'], index: number) =>
+									<div className='HomePage_eventSections'>
+										{category.events.map((event, index: number) =>
 										{
 											if (Object.prototype.hasOwnProperty.call(event, 'img'))
 											{
@@ -227,22 +227,37 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 						<div className='HomePage_buttons'>
 							<Link to={`/forums/${encodeURIComponent(constants.boardIds.accForums)}`} reloadDocument>
 								<div className='HomePage_button'>
-									<img src={`${constants.AWS_URL}/images/layout/home_button1.png`} alt='Forums' />
+									<img
+										src={constants.allImages['layout/home_button1.png']}
+										alt='Forums'
+									/>
 								</div>
 							</Link>
+
 							<Link to='/trading-post' reloadDocument>
 								<div className='HomePage_button'>
-									<img src={`${constants.AWS_URL}/images/layout/trading.png`} alt='Trading' />
+									<img
+										src={constants.allImages['layout/trading.png']}
+										alt='Trading'
+									/>
 								</div>
 							</Link>
+
 							<Link to='/patterns' reloadDocument>
 								<div className='HomePage_button'>
-									<img src={`${constants.AWS_URL}/images/layout/patterns.png`} alt='Patterns' />
+									<img
+										src={constants.allImages['layout/patterns.png']}
+										alt='Patterns'
+									/>
 								</div>
 							</Link>
+
 							<Link to='/guides' reloadDocument>
 								<div className='HomePage_button'>
-									<img src={`${constants.AWS_URL}/images/layout/guides.png`} alt='Guides' />
+									<img
+										src={constants.allImages['layout/guides.png']}
+										alt='Guides'
+									/>
 								</div>
 							</Link>
 						</div>
@@ -278,6 +293,23 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 													reportType={constants.userTicket.types.postImage}
 												/>
 											}
+
+											{announcement.reactions.length > 0 &&
+												<div className='HomePage_announcementReactions'>
+													{announcement.reactions.slice(0, 3).map(reaction =>
+														<div className='HomePage_announcementReaction' key={reaction.emoji}>
+															<img
+																src={`${constants.AWS_URL}/images/games/nh/reactions/${reaction.src}.png`}
+																alt={reaction.emoji}
+																title={reaction.emoji}
+															/>
+														</div>,
+													)}
+													<span className='HomePage_announcementReactionsCount'>
+														{announcement.reactions.reduce((sum, reaction) => sum + Number(reaction.count), 0).toLocaleString()}
+													</span>
+												</div>
+											}
 										</div>
 									</div>,
 								)
@@ -291,7 +323,7 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 					<ContentBox>
 						<div className='HomePage_birthdaySection'>
 							<div className='HomePage_title'><img
-								src={`${constants.AWS_URL}/images/icons/birthday.png`}
+								src={constants.allImages['icons/birthday.png']}
 								className='HomePage_icon'
 								alt='Candle'
 							/> Birthdays</div>
@@ -309,7 +341,7 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 													<div className='HomePage_birthdayActions'>
 														<Link reloadDocument to={`/forums/${constants.boardIds.privateThreads}?addUsers=${birthday.username}#TextBox`}>
 															<img
-																src={`${constants.AWS_URL}/images/icons/pt.png`}
+																src={constants.allImages['icons/pt.png']}
 																className='HomePage_icon'
 																alt='Private Thread'
 															/>
@@ -338,14 +370,14 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 								{polls.currentPoll ?
 									<Poll {...polls.currentPoll} />
 									:
-									<ErrorMessage identifier='poll-not-set-up' />
+									'No current poll. Check back later!'
 								}
 								<hr className='HomePage_hr' />
 								<div className='HomePage_title'>Last Week's Poll</div>
 								{polls.previousPoll ?
 									<Poll {...polls.previousPoll} />
 									:
-									<ErrorMessage identifier='poll-not-set-up' />
+									'No previous poll. Check back later!'
 								}
 							</div>
 						</ContentBox>
@@ -366,7 +398,7 @@ const HomePage = ({ loaderData }: { loaderData: HomePageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { debug }: { debug?: string }): Promise<HomePageProps>
+async function loadData(this: APIThisType, _: Params, { debug }: { debug?: string }): Promise<HomePageProps>
 {
 	const [polls, calendars, announcements, birthdays, settings] = await Promise.all([
 		this.query('v1/home_polls'),

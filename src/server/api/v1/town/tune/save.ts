@@ -5,18 +5,6 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { tuneId, id }: saveProps): Promise<{ userId: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const [tune] = await db.query(`
 		SELECT id, notes, creator_id, name
@@ -35,7 +23,7 @@ async function save(this: APIThisType, { tuneId, id }: saveProps): Promise<{ use
 		WHERE town.id = $1::int
 	`, id);
 
-	if (town.user_id != this.userId)
+	if (town.user_id !== this.userId)
 	{
 		throw new UserError('permission');
 	}
@@ -47,9 +35,14 @@ async function save(this: APIThisType, { tuneId, id }: saveProps): Promise<{ use
 	`, tune.creator_id === this.userId ? tuneId : null, id, tune.notes, tune.creator_id, tune.name);
 
 	return {
-		userId: this.userId,
+		userId: this.userId as number,
 	};
 }
+
+save.permissions = [
+	'modify-towns',
+	'userId',
+];
 
 save.apiTypes = {
 	tuneId: {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Interface for reacting with the accounts site.
 import axios from 'axios';
 
@@ -12,7 +13,8 @@ const AccountsError = errors.AccountsError;
 const UserError = errors.UserError;
 
 const consumer_key = process.env.ACCOUNTS_API_KEY || '';
-const host = 'https://accounts.animalcrossingcommunity.com/';
+const host = 'https://accounts-origin.animalcrossingcommunity.com/';
+const website = 'https://accounts.animalcrossingcommunity.com/';
 
 axios.defaults.validateStatus = () =>
 {
@@ -44,14 +46,14 @@ export async function initiate(callback: string): Promise<string>
 	{
 		case 200: // OK
 		{
-			const authorizeUrl = new url.URL('/authorize', host);
+			const authorizeUrl = new url.URL('/authorize', website);
 			authorizeUrl.searchParams.set('token', response.data.token);
 			return authorizeUrl.href;
 		}
 		case 401: // Unauthorized
 			throw new AccountsError('initiate', 'invalid api key', 401);
 		default:
-			throw new AccountsError('initiate', 'unexpected http status code', response.status);
+			throw new AccountsError('initiate', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -109,7 +111,7 @@ export async function getToken(token: string, verifier: string): Promise<string 
 				*/
 			throw new AccountsError('token', 'request verifier rejected!! (important!)', 401);
 		default:
-			throw new AccountsError('token', 'unexpected http status code', response.status);
+			throw new AccountsError('token', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -135,7 +137,7 @@ export async function checkToken(token: string): Promise<boolean>
 		case 200: // OK
 			return response.data.valid;
 		default:
-			throw new AccountsError('token/check', 'unexpected http status code', response.status);
+			throw new AccountsError('token/check', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -231,7 +233,7 @@ export async function getBirthdays(): Promise<{ id: number, username: string }[]
 		case 401: // Unauthorized
 			throw new AccountsError('GET birthdays', 'invalid api key', 401);
 		default:
-			throw new AccountsError('GET birthdays', 'unexpected http status code', response.status);
+			throw new AccountsError('GET birthdays', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -288,7 +290,7 @@ export async function getUserData(id?: number | null | string, username?: string
 
 			throw new UserError('no-such-user');
 		default:
-			throw new AccountsError('GET data', 'unexpected http status code', response.status);
+			throw new AccountsError('GET data', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -343,7 +345,7 @@ export async function pushData(userData: {
 		case 409: // Duplicate username or email
 			throw new AccountsError('POST data', 'username or email already in use', 409);
 		default:
-			throw new AccountsError('POST data', 'unexpected http status code', response.status);
+			throw new AccountsError('POST data', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -384,7 +386,7 @@ export async function signup(userData: {
 			throw new AccountsError('POST data', 'invalid user email or date of birth', 400);
 		default:
 			console.error('unexpected http status code', userData);
-			throw new AccountsError('POST signup', 'unexpected http status code', response.status);
+			throw new AccountsError('POST signup', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -412,7 +414,7 @@ export async function deleteUser(id: number): Promise<void>
 			await db.query('DELETE FROM users WHERE id = $1::int', id);
 			return;
 		default:
-			throw new AccountsError('POST delete-user', 'unexpected http status code', response.status);
+			throw new AccountsError('POST delete-user', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -446,7 +448,7 @@ export async function updateAddress(userData: {
 		case 401: // Unauthorized
 			throw new AccountsError('POST address', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST address', 'unexpected http status code', response.status);
+			throw new AccountsError('POST address', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -476,7 +478,7 @@ export async function resetUsernameHistory(id: number): Promise<void>
 		case 401: // Unauthorized
 			throw new AccountsError('POST reset-username-history', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST reset-username-history', 'unexpected http status code', response.status);
+			throw new AccountsError('POST reset-username-history', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -504,7 +506,7 @@ export async function deleteUsernameHistory(id: number): Promise<void>
 		case 401: // Unauthorized
 			throw new AccountsError('POST delete-username-history', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST delete-username-history', 'unexpected http status code', response.status);
+			throw new AccountsError('POST delete-username-history', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -543,7 +545,7 @@ export async function emailUser(emailData: {
 		case 401: // Unauthorized
 			throw new AccountsError('POST email', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST email', 'unexpected http status code', response.status);
+			throw new AccountsError('POST email', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -572,7 +574,7 @@ export async function logout(id: number): Promise<void>
 		case 401: // Unauthorized
 			throw new AccountsError('logout', 'invalid api key', 401);
 		default:
-			throw new AccountsError('logout', 'unexpected http status code', response.status);
+			throw new AccountsError('logout', 'unexpected http status code', response.status, response.headers);
 	}
 }
 
@@ -597,12 +599,12 @@ export async function resetPassword(id: number): Promise<string>
 	switch(response.status)
 	{
 		case 200: // OK
-			return `${host}reset-password?token=${response.data.token}`;
+			return `${website}reset-password?token=${response.data.token}`;
 		case 404: // Bad Request
 			throw new AccountsError('POST reset-password', 'mismatch between site and account, production vs. test', 400);
 		case 401: // Unauthorized
 			throw new AccountsError('POST reset-password', 'invalid api key', 401);
 		default:
-			throw new AccountsError('POST reset-password', 'unexpected http status code', response.status);
+			throw new AccountsError('POST reset-password', 'unexpected http status code', response.status, response.headers);
 	}
 }

@@ -20,6 +20,7 @@ async function lite(this: APIThisType, { id }: liteProps): Promise<NodeLiteType>
 			node.id,
 			node.type,
 			node.parent_node_id,
+			parent.parent_node_id AS parent_node_id2,
 			(
 				SELECT title
 				FROM node_revision
@@ -28,8 +29,10 @@ async function lite(this: APIThisType, { id }: liteProps): Promise<NodeLiteType>
 				LIMIT 1
 			) AS title,
 			node.locked,
-			node.thread_type
+			node.thread_type,
+			node.user_id
 		FROM node
+		LEFT JOIN node AS parent ON (parent.id = node.parent_node_id)
 		WHERE node.id = $1::int
 	`, id);
 
@@ -42,9 +45,11 @@ async function lite(this: APIThisType, { id }: liteProps): Promise<NodeLiteType>
 		id: node.id,
 		type: node.type,
 		parentId: node.parent_node_id,
+		parentId2: node.parent_node_id2,
 		title: node.title,
 		locked: node.locked,
 		threadType: node.thread_type,
+		userId: node.user_id,
 	};
 }
 

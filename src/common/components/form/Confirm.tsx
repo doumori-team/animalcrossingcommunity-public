@@ -11,6 +11,7 @@ const Confirm = ({
 	imageTitle,
 	updateFunction,
 	formId,
+	openButtonClassName = 'Modal_button',
 }: ConfirmProps) =>
 {
 	return (
@@ -32,6 +33,7 @@ const Confirm = ({
 			submitButtonImageTitle={imageTitle}
 			updateFunction={updateFunction}
 			formId={formId}
+			openButtonClassName={defaultSubmitImage ? '' : openButtonClassName}
 		>
 			{message}
 		</Modal>
@@ -41,7 +43,8 @@ const Confirm = ({
 type ConfirmProps = {
 	action: string
 	callback?: string
-	id?: number
+	id?: number | string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	additionalBody?: any
 	label: string
 	message: string
@@ -49,6 +52,7 @@ type ConfirmProps = {
 	imageTitle?: string
 	updateFunction?: Function
 	formId?: string
+	openButtonClassName?: string
 };
 
 export default Confirm;

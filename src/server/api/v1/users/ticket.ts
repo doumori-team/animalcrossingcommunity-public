@@ -2,22 +2,31 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, TicketType } from '@types';
+import { APIThisType, TicketType, UserType, UserLiteType } from '@types';
 
 /*
  * Grabs user-friendly information on a user ticket.
  */
 async function ticket(this: APIThisType, { id }: ticketProps): Promise<TicketType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [userTicket] = await db.query(`
+	const [userTicket]: [{
+		id: number
+		rule_id: number
+		rule_violation_id: number | null
+		closed: Date | null
+		type_description: string
+		type_identifier: string
+		updated_text: string | null
+		action_name: string
+		action_identifier: string
+		reference_id: number
+		reference_text: string | null
+		reference_url: string | null
+		violator_id: number
+		reference_format: string | null
+	} | undefined] = await db.query(`
 		SELECT
 			user_ticket.id,
-			user_ticket.rule_id,
 			user_ticket.rule_id,
 			user_ticket.rule_violation_id,
 			user_ticket.closed,
@@ -50,7 +59,24 @@ async function ticket(this: APIThisType, { id }: ticketProps): Promise<TicketTyp
 
 	const types = constants.userTicket.types;
 
-	const [ruleViolation, rule, messages, node, user, messageUser, [banLength]] = await Promise.all([
+	const [ruleViolation, rule, messages, node, user, messageUser, [banLength]]: [{
+		severity_id: number | null
+		violation: string
+	}[] | null, {
+		number: number
+		name: string | null
+		description: string
+		category_id: number
+	}[] | null, {
+		id: number
+		user_id: number
+		message: string
+		created: Date
+		message_format: string
+	}[], {
+		parent_node_id: number | null
+		node_id: number
+	}[] | null, UserType, UserLiteType, [{ description: string } | undefined], void, void] = await Promise.all([
 		userTicket.rule_violation_id ? db.query(`
 			SELECT rule_violation.severity_id, rule_violation.violation
 			FROM rule_violation
@@ -112,7 +138,7 @@ async function ticket(this: APIThisType, { id }: ticketProps): Promise<TicketTyp
 			name: userTicket.action_name,
 			identifier: userTicket.action_identifier,
 		},
-		messages: messages.map((message: any) =>
+		messages: messages.map(message =>
 		{
 			return {
 				id: message.id,
@@ -125,6 +151,10 @@ async function ticket(this: APIThisType, { id }: ticketProps): Promise<TicketTyp
 		banLength: banLength ? banLength.description : 'Not Banned',
 	};
 }
+
+ticket.permissions = [
+	'userId',
+];
 
 ticket.apiTypes = {
 	id: {

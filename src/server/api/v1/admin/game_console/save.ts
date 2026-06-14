@@ -7,15 +7,8 @@ import { APIThisType } from '@types';
 
 async function save(this: APIThisType, { id, name, sequence, isLegacy, isEnabled }: saveProps): Promise<{ id: number }>
 {
-	const permission: boolean = await this.query('v1/permission', { permission: 'games-admin' });
-
-	if (!permission)
-	{
-		throw new UserError('permission');
-	}
-
 	// Save information
-	const result = await db.transaction(async (query: any) =>
+	const result = await db.transaction(async (query: db.QueryType) =>
 	{
 		if (id > 0)
 		{
@@ -121,6 +114,10 @@ async function save(this: APIThisType, { id, name, sequence, isLegacy, isEnabled
 		id: result.id,
 	};
 }
+
+save.permissions = [
+	'games-admin',
+];
 
 save.apiTypes = {
 	id: {

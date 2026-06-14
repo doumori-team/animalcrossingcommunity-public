@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequirePermission } from '@behavior';
 import { Form, Text, Check } from '@form';
@@ -165,7 +165,7 @@ const SupportEmailDashboardPage = ({ loaderData }: { loaderData: SupportEmailDas
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: { page?: string, fromUser?: string, fromEmail?: string, toUser?: string, toEmail?: string, startDate?: string, endDate?: string, read?: string, forUser?: string }): Promise<SupportEmailDashboardPageProps>
+async function loadData(this: APIThisType, _: Params, { page, fromUser, fromEmail, toUser, toEmail, startDate, endDate, read, forUser }: { page?: string, fromUser?: string, fromEmail?: string, toUser?: string, toEmail?: string, startDate?: string, endDate?: string, read?: string, forUser?: string }): Promise<SupportEmailDashboardPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/support_emails', {

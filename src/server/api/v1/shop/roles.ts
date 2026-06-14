@@ -5,13 +5,6 @@ import { APIThisType, RoleType } from '@types';
 
 async function roles(this: APIThisType, { id, apply = false, inactive = false }: rolesProps): Promise<RoleType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [shop] = await db.query(`
 		SELECT id
 		FROM shop
@@ -23,7 +16,38 @@ async function roles(this: APIThisType, { id, apply = false, inactive = false }:
 		throw new UserError('no-such-shop');
 	}
 
-	const [roles, filledPositions, roleGames, roleDefaultServices, roleServices] = await Promise.all([
+	const [roles, filledPositions, roleGames, roleDefaultServices, roleServices]: [{
+		id: number
+		name: string
+		description: string
+		positions: number
+		parent_id: number | null
+		active: boolean
+		apply: boolean
+		contact: boolean
+		applications: boolean
+	}[], {
+		id: number
+		count: number
+	}[], {
+		id: number
+		game_id: number
+		name: string
+	}[], {
+		id: string
+		real_id: number
+		name: string
+		description: string
+		default: boolean
+		shop_role_id: number
+	}[], {
+		id: string
+		real_id: number
+		name: string
+		description: string
+		default: boolean
+		shop_role_id: number
+	}[]] = await Promise.all([
 		db.query(`
 			SELECT
 				shop_role.id,
@@ -79,7 +103,7 @@ async function roles(this: APIThisType, { id, apply = false, inactive = false }:
 		`, id),
 		db.query(`
 			SELECT
-				shop_service.id,
+				shop_service.id::text AS id,
 				shop_service.id AS real_id,
 				shop_service.name,
 				shop_service.description,
@@ -93,19 +117,19 @@ async function roles(this: APIThisType, { id, apply = false, inactive = false }:
 		`, id),
 	]);
 
-	return roles.map((role: any) =>
+	return roles.map(role =>
 	{
-		const filled = filledPositions.find((f: any) => f.id === role.id);
+		const filled = filledPositions.find(f => f.id === role.id);
 		const positions = Number(role.positions);
-		const games = roleGames.filter((f: any) => f.id === role.id);
-		const services = roleDefaultServices.concat(roleServices).filter((s: any) => s.shop_role_id === role.id);
+		const games = roleGames.filter(f => f.id === role.id);
+		const services = roleDefaultServices.concat(roleServices).filter(s => s.shop_role_id === role.id);
 
 		return {
 			id: role.id,
 			name: role.name,
 			description: role.description,
 			positionsAvailable: filled ? Math.max(0, positions - Number(filled.count)) : positions,
-			games: games.length > 0 ? games.map((g: any) =>
+			games: games.length > 0 ? games.map(g =>
 			{
 				return {
 					id: g.game_id,
@@ -113,7 +137,7 @@ async function roles(this: APIThisType, { id, apply = false, inactive = false }:
 				};
 			}) : [],
 			parentId: role.parent_id,
-			services: services.length > 0 ? services.map((s: any) =>
+			services: services.length > 0 ? services.map(s =>
 			{
 				return {
 					id: s.id,
@@ -127,6 +151,10 @@ async function roles(this: APIThisType, { id, apply = false, inactive = false }:
 		};
 	});
 }
+
+roles.permissions = [
+	'view-shops',
+];
 
 roles.apiTypes = {
 	id: {

@@ -94,7 +94,11 @@ const Character = ({
 						<div>{game.id === constants.gameIds.ACWW ? 'Bed Location:' : 'House Location:'}</div>
 						<div>&nbsp;</div>
 						<img
-							src={`${constants.AWS_URL}/images/character/` + bedLocation.filename}
+							src={
+								constants.allImages[
+									`character/` + bedLocation.filename
+								]
+							}
 							alt={bedLocation.filename}
 						/>
 					</li>

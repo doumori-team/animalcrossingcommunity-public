@@ -249,3 +249,194 @@
 		top: unset;
 	}
 }
+
+.HomePageCustomBanner {
+	display: flex;
+	justify-content: center;
+
+	img {
+		max-width: 50%;
+		border-radius: mixins.px2rem(10px);
+		border: mixins.px2rem(1px) solid rgba(0,0,0,.7);
+	}
+
+	.HomePageCustomBanner_countdown {
+		position: absolute;
+		transform: translate(-8%, 405%);
+		font-size: 1.9rem;
+
+		@media only screen and (max-width: mixins.px2rem(1334px)) {
+			font-size: 2vw;
+			transform: translate(-8%, 480%);
+		}
+	}
+}
+
+.App-fireworks .HomePageBanner {
+	position: relative;
+	overflow: hidden;
+}
+
+.App-fireworks .HomePageBanner_foreground {
+	position: relative;
+	z-index: 1;
+}
+
+/*
+	Centered overlay that matches the foreground image area,
+	not the repeating background area.
+*/
+.App-fireworks .HomePageBanner::before,
+.App-fireworks .HomePageBanner::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2;
+	background-repeat: no-repeat;
+	mix-blend-mode: screen;
+}
+
+/*
+	Desktop/tablet layout where the foreground image is centered
+	and the background repeats on the sides.
+*/
+@include mixins.responsive(1050px) {
+	.App-fireworks .HomePageBanner::before,
+	.App-fireworks .HomePageBanner::after {
+		top: 0;
+		bottom: 0;
+		left: 50%;
+		right: auto;
+		width: auto;
+		height: 100%;
+		aspect-ratio: 1199 / 360;
+		transform: translateX(-50%);
+	}
+}
+
+/* Main tiny sparkles */
+.App-fireworks .HomePageBanner::before {
+	background-image:
+		/* left red/green firework */
+		radial-gradient(circle, rgba(255,255,255,0.95) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,235,120,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,180,160,0.9) 0 1px, transparent 2px),
+
+		/* top purple firework */
+		radial-gradient(circle, rgba(255,255,255,0.95) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,190,255,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,235,120,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+
+		/* middle white fireworks */
+		radial-gradient(circle, rgba(255,255,255,0.95) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,235,160,0.85) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+
+		/* right purple firework */
+		radial-gradient(circle, rgba(255,255,255,0.95) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(230,180,255,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,235,120,0.85) 0 1px, transparent 2px);
+
+	background-size:
+		5px 5px, 5px 5px, 5px 5px,
+		5px 5px, 5px 5px, 5px 5px, 5px 5px,
+		5px 5px, 5px 5px, 5px 5px, 5px 5px,
+		5px 5px, 5px 5px, 5px 5px;
+
+	background-position:
+		10% 31%,
+		14% 25%,
+		17% 35%,
+
+		31% 16%,
+		36% 9%,
+		39% 22%,
+		34% 31%,
+
+		59% 12%,
+		64% 19%,
+		70% 15%,
+		67% 27%,
+
+		84% 17%,
+		89% 25%,
+		86% 36%;
+
+	opacity: 0.35;
+	animation: accFireworksTwinkleA 2.3s infinite ease-in-out;
+}
+
+/* Secondary sparkle timing so they don't all blink together */
+.App-fireworks .HomePageBanner::after {
+	background-image:
+		radial-gradient(circle, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,210,255,0.85) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,240,150,0.85) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(230,185,255,0.85) 0 1px, transparent 2px),
+		radial-gradient(circle, rgba(255,255,255,0.85) 0 1px, transparent 2px);
+
+	background-size:
+		4px 4px,
+		4px 4px,
+		4px 4px,
+		4px 4px,
+		4px 4px,
+		4px 4px;
+
+	background-position:
+		12% 22%,
+		33% 11%,
+		41% 18%,
+		61% 22%,
+		82% 29%,
+		90% 18%;
+
+	opacity: 0.2;
+	animation: accFireworksTwinkleB 3.1s infinite ease-in-out;
+}
+
+@keyframes accFireworksTwinkleA {
+	0%, 100% {
+		opacity: 0.18;
+		filter: brightness(1);
+	}
+
+	45% {
+		opacity: 0.8;
+		filter: brightness(1.9);
+	}
+
+	65% {
+		opacity: 0.28;
+		filter: brightness(1.1);
+	}
+}
+
+@keyframes accFireworksTwinkleB {
+	0%, 100% {
+		opacity: 0.08;
+		filter: brightness(1);
+	}
+
+	30% {
+		opacity: 0.55;
+		filter: brightness(1.7);
+	}
+
+	70% {
+		opacity: 0.25;
+		filter: brightness(1.2);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.App-fireworks .HomePageBanner::before,
+	.App-fireworks .HomePageBanner::after {
+		animation: none;
+		opacity: 0.25;
+	}
+}

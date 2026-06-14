@@ -1,6 +1,8 @@
 type BackgroundType = {
 	id: number
 	name: string
+	subtitle?: string
+	game?: string
 	image: string
 	colorable: boolean
 	tags: string[]

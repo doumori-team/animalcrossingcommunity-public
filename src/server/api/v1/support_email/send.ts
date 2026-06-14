@@ -5,15 +5,8 @@ import { constants } from '@utils';
 import * as accounts from '@accounts';
 import { APIThisType } from '@types';
 
-async function read(this: APIThisType, { toUser, subject, message }: readProps): Promise<{ id: number }>
+async function send(this: APIThisType, { toUser, subject, message }: readProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [user] = await db.query(`
 		SELECT id
 		FROM user_account_cache
@@ -44,7 +37,12 @@ async function read(this: APIThisType, { toUser, subject, message }: readProps):
 	};
 }
 
-read.apiTypes = {
+send.permissions = [
+	'process-user-tickets',
+	'userId',
+];
+
+send.apiTypes = {
 	toUser: {
 		type: APITypes.string,
 		required: true,
@@ -70,4 +68,4 @@ type readProps = {
 	message: string
 };
 
-export default read;
+export default send;

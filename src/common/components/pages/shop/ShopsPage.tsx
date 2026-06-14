@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import Shop from '@/components/shop/Shop.tsx';
@@ -18,11 +18,13 @@ const ShopsPage = ({ loaderData }: { loaderData: ShopsPageProps }) =>
 	const [selectedGameId, setSelectedGameId] = useState<number | null>(gameId);
 	const [selectedServices, setSelectedServices] = useState<ServiceType[]>(gameId ? shopServices.filter(s => s.games.some(g => g.id === gameId)) : []);
 
-	const link = `&services=${encodeURIComponent(services.join(','))}
-		&fee=${encodeURIComponent(fee)}
-		&vacation=${encodeURIComponent(vacation)}
-		&gameId=${encodeURIComponent(String(selectedGameId || ''))}
-	`;
+	const params = new URLSearchParams();
+	services.forEach(s => params.append('services', String(s)));
+	params.set('fee', fee);
+	params.set('vacation', vacation);
+	params.set('gameId', String(selectedGameId || ''));
+
+	const link = '&' + params.toString();
 
 	const changeGame = (event: ElementSelectType): void =>
 	{
@@ -129,7 +131,7 @@ const ShopsPage = ({ loaderData }: { loaderData: ShopsPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, services, fee, vacation, gameId, mine }: { page?: string, services?: string, fee?: string, vacation?: string, gameId?: string, mine?: string })
+async function loadData(this: APIThisType, _: Params, { page, services, fee, vacation, gameId, mine }: { page?: string, services?: string, fee?: string, vacation?: string, gameId?: string, mine?: string })
 {
 	const [acgames, shopServices, returnValue] = await Promise.all([
 		this.query('v1/acgames'),

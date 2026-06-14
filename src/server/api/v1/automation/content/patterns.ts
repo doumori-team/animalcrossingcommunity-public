@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker/locale/en';
 
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
@@ -12,19 +11,8 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function patterns(this: APIThisType, { amount }: patternsProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Perform queries
-	const staffUserIds = await db.query(`
+	const staffUserIds: { id: number }[] = await db.query(`
 		SELECT users.id
 		FROM users
 		JOIN user_group ON (user_group.id = users.user_group_id)
@@ -39,7 +27,7 @@ async function patterns(this: APIThisType, { amount }: patternsProps): Promise<S
 
 	for (let i = 0; i < amount; i++)
 	{
-		const patternUserId = (faker.helpers.arrayElement(staffUserIds) as any).id;
+		const patternUserId = faker.helpers.arrayElement(staffUserIds).id;
 		const patternName = faker.lorem.words();
 
 		await db.query(`
@@ -54,6 +42,11 @@ async function patterns(this: APIThisType, { amount }: patternsProps): Promise<S
 		_success: `Your pattern(s) have been created!`,
 	};
 }
+
+patterns.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 patterns.apiTypes = {
 	amount: {

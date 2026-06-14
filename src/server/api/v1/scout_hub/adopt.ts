@@ -2,21 +2,16 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, UserType, UserLiteType } from '@types';
+import { APIThisType, UserType, UserLiteType, ScoutSettingsType } from '@types';
 
 async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Promise<{ id: number }>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Only new user or those who can reassign may do adoption
-	if (this.userId !== adopteeId)
+	if (this.userId !== adopteeId || scoutId)
 	{
-		const permGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
+		const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
 
-		if (!permGranted)
+		if (!permissionGranted)
 		{
 			throw new UserError('permission');
 		}
@@ -25,18 +20,17 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 	// Check parameters
 	const adoptee: UserType = await this.query('v1/user', { id: adopteeId });
 
+	// Confirm adoption eligibility
+	if (!dateUtils.isNewMember(adoptee.signupDate))
+	{
+		throw new UserError('ineligible-adoption');
+	}
+
 	let scout: UserLiteType | null = null;
 
 	if (scoutId)
 	{
 		scout = await this.query('v1/user_lite', { id: scoutId });
-
-		const permissionGranted: boolean = await this.query('v1/permission', { permission: 'adoption-reassign' });
-
-		if (!permissionGranted)
-		{
-			throw new UserError('permission');
-		}
 	}
 	else
 	{
@@ -51,21 +45,9 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 		{
 			throw new UserError('already-adopted');
 		}
-	}
 
-	// Confirm adoption eligibility
-	if (!dateUtils.isNewMember(adoptee.signupDate))
-	{
-		throw new UserError('ineligible-adoption');
-	}
-
-	// Perform queries
-
-	// Figure out which scout gets the adoptee
-	// Round-table adoption, each scout in order by their user id
-
-	if (!scoutId)
-	{
+		// Figure out which scout gets the adoptee
+		// Round-table adoption, each scout in order by their user id
 		[scout] = await db.query(`
 			SELECT
 				users.id,
@@ -74,12 +56,12 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 			JOIN user_account_cache ON (user_account_cache.id = users.id)
 			WHERE users.user_group_id = $1 AND
 				(away_start_date IS NULL OR current_date NOT BETWEEN away_start_date AND away_end_date)	AND
-				users.id > (SELECT scout_id from adoption order by adoption.adopted desc limit 1)
+				users.id > (SELECT scout_id FROM adoption ORDER BY adoption.adopted DESC LIMIT 1)
 			ORDER BY users.id ASC
 			LIMIT 1
 		`, constants.userGroupIds.scout);
 
-		if (scout == null)
+		if (!scout)
 		{
 			// if none found, get lowest scout id
 			[scout] = await db.query(`
@@ -96,12 +78,15 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 		}
 	}
 
+	// Perform queries
+
 	scout = (scout as UserLiteType);
 
 	// Create adoption thread
 
-	const nodeId = await db.transaction(async (query: any) =>
+	const nodeId = await db.transaction(async (query: db.QueryType) =>
 	{
+		// if scoutId provided, we're reassigning, possibly from another scout
 		if (scoutId)
 		{
 			// Lock old thread
@@ -121,31 +106,33 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 			}
 		}
 
-		let [nodeId, scoutSettings] = await Promise.all([
-			db.transaction(async (_: any) =>
+		// create thread, get current settings, delete old adoption record
+		const [nodeId, scoutSettings]: [number, ScoutSettingsType, void] = await Promise.all([
+			async function (scoutId: number, adopteeUsername: string)
 			{
-				const [result] = await query(`
+				const [threadResult] = await query(`
 					INSERT INTO node (parent_node_id, user_id, type)
 					VALUES ($1::int, $2::int, $3::node_type)
 					RETURNING id;
-				`, constants.boardIds.adopteeThread, scout?.id, 'thread');
+				`, constants.boardIds.adopteeThread, scoutId, 'thread');
 
-				const nodeId = result.id;
+				const nodeId = threadResult.id;
 
 				await query(`
 					INSERT INTO node_revision (node_id, reviser_id, title)
 					VALUES ($1::int, $2::int, $3::text)
-				`, nodeId, scout?.id, `${adoptee.username} Adoption`);
+				`, nodeId, scoutId, `${adopteeUsername} Adoption`);
 
 				return nodeId;
-			}),
+			}.bind(this)(scout.id, adoptee.username),
 			this.query('v1/scout_hub/settings', { id: scout?.id }),
-			query(`
+			scoutId ? query(`
 				DELETE FROM adoption
 				WHERE adoptee_id = $1::int
-			`, adoptee.id),
+			`, adoptee.id) : null,
 		]);
 
+		// get the welcome template, create first post on thread, insert perms
 		let welcomeTemplate = scoutSettings.welcomeTemplate ? scoutSettings.welcomeTemplate : constants.scoutHub.defaultWelcomeTemplate;
 
 		utils.getScoutTemplateConfig(scout, adoptee).map(config =>
@@ -155,29 +142,29 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 
 		const format = scoutSettings.welcomeTemplateFormat ? scoutSettings.welcomeTemplateFormat : 'plaintext';
 
-		await db.transaction(async (_: any) =>
-		{
-			const [result] = await query(`
-				INSERT INTO node (parent_node_id, user_id, type)
-				VALUES ($1::int, $2::int, $3::node_type)
-				RETURNING id;
-			`, nodeId, scout.id, 'post');
-
-			await query(`
-				INSERT INTO node_revision (node_id, reviser_id, content, content_format)
-				VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
-			`, result.id, scout.id, welcomeTemplate, format);
-		});
-
 		await Promise.all([
+			async function (scoutId: number, welcomeTemplate: string, format: string)
+			{
+				const [postResult] = await query(`
+					INSERT INTO node (parent_node_id, user_id, type)
+					VALUES ($1::int, $2::int, $3::node_type)
+					RETURNING id;
+				`, nodeId, scoutId, 'post');
+
+				await query(`
+					INSERT INTO node_revision (node_id, reviser_id, content, content_format)
+					VALUES ($1::int, $2::int, $3::text, $4::node_content_format)
+				`, postResult.id, scoutId, welcomeTemplate, format);
+			}.bind(this)(scout.id, welcomeTemplate, format),
 			// Allow read / reply to scout & adoptee, lock to scout
 			query(`
 				INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
 				VALUES
 				($2::int, $1::int, $4::int, true), ($3::int, $1::int, $4::int, true),
 				($2::int, $1::int, $5::int, true), ($3::int, $1::int, $5::int, true),
-				($2::int, $1::int, $6::int, true)
-			`, nodeId, scout.id, adoptee.id, constants.nodePermissions.read, constants.nodePermissions.reply, constants.nodePermissions.lock),
+				($2::int, $1::int, $6::int, true), ($3::int, $1::int, $6::int, true),
+				($2::int, $1::int, $7::int, true)
+			`, nodeId, scout.id, adoptee.id, constants.nodePermissions.read, constants.nodePermissions.reply, constants.nodePermissions.react, constants.nodePermissions.lock),
 			query(`
 				INSERT INTO adoption (scout_id, adoptee_id, node_id)
 				VALUES ($1::int, $2::int, $3::int)
@@ -185,25 +172,31 @@ async function adopt(this: APIThisType, { adopteeId, scoutId }: adoptProps): Pro
 			// join adoptee buddy thread
 			query(`
 				INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
-				VALUES ($1::int, $2::int, $3::int, true), ($1::int, $2::int, $4::int, true)
+				VALUES ($1::int, $2::int, $3::int, true), ($1::int, $2::int, $4::int, true), ($1::int, $2::int, $5::int, true)
 				ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
-			`, adoptee.id, constants.boardIds.adopteeBT, constants.nodePermissions.read, constants.nodePermissions.reply),
+			`, adoptee.id, constants.boardIds.adopteeBT, constants.nodePermissions.read, constants.nodePermissions.reply, constants.nodePermissions.react),
 		]);
 
 		return nodeId;
 	});
 
-	await db.updateThreadStats(nodeId);
-
-	await this.query('v1/notification/create', {
-		id: nodeId,
-		type: constants.notification.types.scoutAdoption,
-	});
+	await Promise.all([
+		db.updateThreadStats(nodeId),
+		this.query('v1/notification/create', {
+			id: nodeId,
+			type: constants.notification.types.scoutAdoption,
+		}),
+		this.query('v1/users/badge/check', { badgeId: constants.badges.tendeliveredshop }),
+	]);
 
 	return {
 		id: nodeId,
 	};
 }
+
+adopt.permissions = [
+	'userId',
+];
 
 adopt.apiTypes = {
 	adopteeId: {

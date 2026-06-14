@@ -11,13 +11,6 @@ import { APIThisType, PermissionType } from '@types';
  */
 async function permissions(this: APIThisType, { id }: permissionsProps): Promise<PermissionType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Confirm params
 	let [groupId] = await db.query(`
 		SELECT id
@@ -132,6 +125,10 @@ async function permissions(this: APIThisType, { id }: permissionsProps): Promise
 		},
 	};
 }
+
+permissions.permissions = [
+	'permission-admin',
+];
 
 permissions.apiTypes = {
 	id: {

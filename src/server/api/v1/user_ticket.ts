@@ -2,17 +2,10 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { utils, dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, UserTicketType } from '@types';
+import { APIThisType, UserTicketType, UserLiteType, MarkupStyleType } from '@types';
 
 async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<UserTicketType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [userTicket] = await db.query(`
 		SELECT
 			user_ticket.id,
@@ -54,7 +47,7 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 	const [ruleViolation, rule, userViolations, [firstUserViolation], messages,
 		node, [totalRuleCounts], ruleCounts, violator, previousDenied, assignee,
 		utBan, currentBan, [supportTicketsCount], supportTickets, listingComment,
-		serviceShop, roleShop] = await Promise.all([
+		articleComment, serviceShop, roleShop] = await Promise.all([
 		userTicket.rule_violation_id ? db.query(`
 			SELECT rule_violation.severity_id, rule_violation.violation
 			FROM rule_violation
@@ -140,6 +133,11 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 			FROM listing_comment
 			WHERE id = $1::int
 		`, userTicket.reference_id) : null,
+		userTicket.type_identifier === types.articleComment && userTicket.reference_id ? db.query(`
+			SELECT newsletter_article_id
+			FROM newsletter_article_comment
+			WHERE id = $1::int
+		`, userTicket.reference_id) : null,
 		[types.shopServiceName, types.shopServiceDescription].includes(userTicket.type_identifier) && userTicket.reference_id ? db.query(`
 			SELECT shop_id
 			FROM shop_service
@@ -185,7 +183,7 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 
 		info += `The user has violated the following rules (${totalRuleCounts.count} total):`;
 
-		ruleCounts.map((ruleCount: any) =>
+		ruleCounts.map((ruleCount: { category_id: number, number: number, name: string, count: number }) =>
 		{
 			if (ruleCount.name)
 			{
@@ -214,9 +212,16 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 		info += `This user has ${supportTicketsCount.count} support tickets.`;
 	}
 
-	const [submitter, messagesList] = await Promise.all([
+	const [submitter, messagesList]: [UserLiteType, {
+		id: number
+		user: UserLiteType
+		formattedDate: string
+		message: string
+		staffOnly: boolean
+		format: MarkupStyleType
+	}[]] = await Promise.all([
 		this.query('v1/user_lite', { id: firstUserViolation.submitter_id }),
-		Promise.all(messages.map(async (message: any) =>
+		Promise.all(messages.map(async (message: { id: number, user_id: number, created: Date, message: string, staff_only: boolean, message_format: string }) =>
 		{
 			return {
 				id: message.id,
@@ -239,6 +244,10 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 	{
 		parentId = listingComment[0].listing_id;
 	}
+	else if (articleComment && articleComment[0])
+	{
+		parentId = articleComment[0].newsletter_article_id;
+	}
 	else if (serviceShop && serviceShop[0])
 	{
 		parentId = serviceShop[0].shop_id;
@@ -257,7 +266,7 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 		violation: ruleViolation ? `${ruleViolation[0].severity_id ? `${ruleViolation[0].severity_id} ` : ''}${ruleViolation[0].violation}` : null,
 		formattedClosed: userTicket.closed ? dateUtils.formatDateTime(userTicket.closed) : null,
 		formattedCreated: dateUtils.formatDateTime(firstUserViolation.submitted),
-		reportedUsers: userViolations.map((uv: any) =>
+		reportedUsers: userViolations.map((uv: { id: number, submitted: Date, username: string }) =>
 		{
 			return {
 				...uv,
@@ -288,13 +297,7 @@ async function user_ticket(this: APIThisType, { id }: userTicketProps): Promise<
 		info: info,
 		ban: utBan ? utBan[0] : null,
 		currentBan: currentBan,
-		supportTickets: supportTickets.map((st: any) =>
-		{
-			return {
-				id: st.id,
-				title: st.title,
-			};
-		}),
+		supportTickets: supportTickets,
 	};
 }
 
@@ -309,6 +312,10 @@ function checkAddToInfo(info: string): string
 
 	return info;
 }
+
+user_ticket.permissions = [
+	'process-user-tickets',
+];
 
 user_ticket.apiTypes = {
 	id: {

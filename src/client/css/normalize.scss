@@ -71,3 +71,11 @@ select {
 code, pre {
 	font-family: fonts.$fontstack-monospace;
 }
+
+// prevent 'zoom in' on iPhone
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+	font-size: 16px !important;
+}

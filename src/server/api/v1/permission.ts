@@ -1,20 +1,32 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
 import { APIThisType } from '@types';
+import { UserError } from '@errors';
 
 /*
  * Determines whether or not a user has a specific site-wide permission.
  */
-async function permission(this: APIThisType, { permission }: permissionProps): Promise<boolean>
+async function permission(this: APIThisType, { permission, userId }: permissionProps): Promise<boolean>
 {
+	// can bypass if we're looking at anonymous user
+	if (userId !== this.userId && userId !== 0 && this.userId !== undefined)
+	{
+		const isAdmin: boolean = await this.query('v1/permission', { permission: 'permission-admin' });
+
+		if (!isAdmin)
+		{
+			throw new UserError('permission');
+		}
+	}
+
 	const [groupIds, userData] = await Promise.all([
-		db.getUserGroups(this.userId),
-		this.userId ? db.query(`
+		db.getUserGroups(userId),
+		userId ? db.query(`
 			SELECT ban_length.description
 			FROM users
 			JOIN ban_length ON (ban_length.id = users.current_ban_length_id)
 			WHERE users.id = $1::int
-		`, this.userId) : null,
+		`, userId) : null,
 	]);
 
 	if (userData && userData[0] && userData[0].description)
@@ -50,7 +62,7 @@ async function permission(this: APIThisType, { permission }: permissionProps): P
 			LIMIT 1
 		) AS permissions
 		WHERE granted = true
-	`, permission, this.userId, groupIds);
+	`, permission, userId, groupIds);
 
 	return permissionGranted.length > 0;
 }
@@ -60,10 +72,16 @@ permission.apiTypes = {
 		type: APITypes.string,
 		required: true,
 	},
+	userId: {
+		type: APITypes.userId,
+		default: true,
+		nullable: true,
+	},
 };
 
 type permissionProps = {
 	permission: string
+	userId: APIThisType['userId']
 };
 
 export default permission;

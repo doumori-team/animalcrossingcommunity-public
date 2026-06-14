@@ -9,14 +9,19 @@ import { constants } from '@utils';
 
 const ImageUpload = ({
 	directory,
+	api,
+	hidden = false,
+	fileIdName = 'fileId',
+	label = 'Upload Image',
 }: ImageUploadProps) =>
 {
 	const [errors, setErrors] = useState<string[]>([]);
 	const [success, setSuccess] = useState<boolean>(false);
 	const [uploadedFileName, setUploadedFileName] = useState<string>('');
-	const [, setFile] = useState<File | null>(null);
+	const [file, setFile] = useState<File | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const scanFile = async (e: any): Promise<void> =>
 	{
 		const file = e.target.files[0];
@@ -41,7 +46,7 @@ const ImageUpload = ({
 		setFile(file);
 	};
 
-	const uploadImage = async (file: any) =>
+	const uploadImage = async () =>
 	{
 		if (file === null)
 		{
@@ -55,7 +60,7 @@ const ImageUpload = ({
 			fileName: file.name,
 		};
 
-		(await iso).query(null, 'v1/guide/upload_image', params)
+		(await iso).query(null, api, params)
 			.then(async (s3PresignedUrl: string) =>
 			{
 				try
@@ -67,7 +72,7 @@ const ImageUpload = ({
 					setFile(null);
 					setLoading(false);
 				}
-				catch (error: any)
+				catch (error: unknown)
 				{
 					console.error('Error attempting to upload.', error);
 
@@ -75,7 +80,7 @@ const ImageUpload = ({
 					setLoading(false);
 				}
 			})
-			.catch((_: any) =>
+			.catch((_: unknown) =>
 			{
 				setErrors(['bad-format']);
 				setLoading(false);
@@ -96,12 +101,20 @@ const ImageUpload = ({
 					</Alert>
 				}
 
+				{hidden && uploadedFileName &&
+					<input
+						type='hidden'
+						name={fileIdName}
+						value={uploadedFileName}
+					/>
+				}
+
 				<RequireClientJS fallback={
 					<ErrorMessage identifier='javascript-required' />
 				}
 				>
 					<div className='ImageUpload_upload'>
-						<h3>Upload Image:</h3>
+						<h3>{label}:</h3>
 						<input type='file' accept='image/*' onChange={scanFile} />
 
 						<Button
@@ -120,6 +133,10 @@ const ImageUpload = ({
 
 type ImageUploadProps = {
 	directory: string
+	api: string
+	hidden?: boolean
+	fileIdName?: string
+	label?: string
 };
 
 export default ImageUpload;

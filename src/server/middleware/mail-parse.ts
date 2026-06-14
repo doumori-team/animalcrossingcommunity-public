@@ -11,9 +11,11 @@ const handler = express();
 
 handler.post('/*', upload.any(), async (request, response) =>
 {
-	if (utils.realStringLength(request.body.text) === 0)
+	response.set('Cache-Control', 'no-store');
+
+	if (utils.realStringLength(request.body?.text) === 0)
 	{
-		console.error(`Mail Parse Error: Unable to import ${request.body.subject} ${request.body.from}`);
+		console.error(`Mail Parse Error: Unable to import ${request.body?.subject} ${request.body?.from}`);
 		return response.status(400).send();
 	}
 
@@ -28,7 +30,7 @@ handler.post('/*', upload.any(), async (request, response) =>
 	let subject = request.body.subject;
 	let from = request.body.from;
 	let to = process.env.EMAIL_USER;
-	let fromUserId = null;
+	let fromUserId: number | null = null;
 	let body = request.body.text;
 
 	if (from.includes('<') && from.includes('>'))
@@ -47,7 +49,7 @@ handler.post('/*', upload.any(), async (request, response) =>
 
 		fromUserId = user.id;
 	}
-	catch (_: any)
+	catch (_: unknown)
 	{
 		// error OR user doesn't exist
 	}

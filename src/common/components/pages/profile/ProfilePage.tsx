@@ -1,4 +1,4 @@
-import { Outlet, redirect, Params } from 'react-router';
+import { Outlet, redirect, Params, ActionFunctionArgs } from 'react-router';
 
 import ProfileBanner from '@/pages/headers/ProfileBanner.tsx';
 import {
@@ -62,7 +62,7 @@ async function loadData(this: APIThisType, { id }: { id: string }): Promise<Prof
 	};
 }
 
-export const loader = async ({ context, params, request }: { context: AppLoadContextType, params: Params; request: any }) =>
+export const loader = async ({ context, params, request }: { context: AppLoadContextType, params: Params; request: ActionFunctionArgs['request'] }) =>
 {
 	if (isNaN(Number(params.id)))
 	{
@@ -71,6 +71,7 @@ export const loader = async ({ context, params, request }: { context: AppLoadCon
 			{
 				return redirect(`/profile/${encodeURIComponent(data.id)}`);
 			})
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			.catch((error: any) =>
 			{
 				console.error('Throwing profile route error:', error);

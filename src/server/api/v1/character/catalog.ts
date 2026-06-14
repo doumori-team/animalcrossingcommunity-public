@@ -1,21 +1,10 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType, CatalogItemsType } from '@types';
 
 async function catalog(this: APIThisType, { id }: catalogProps): Promise<CatalogItemsType[]>
 {
-	const [viewTowns, useTradingPost] = await Promise.all([
-		this.query('v1/permission', { permission: 'view-towns' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-	]);
-
-	if (!(viewTowns || useTradingPost))
-	{
-		throw new UserError('permission');
-	}
-
-	const catalog = await db.query(`
+	const catalog: { id: string, is_inventory: boolean, is_wishlist: boolean, in_museum: boolean }[] = await db.query(`
 		SELECT
 			catalog_item.catalog_item_id AS id,
 			catalog_item.is_inventory,
@@ -25,7 +14,7 @@ async function catalog(this: APIThisType, { id }: catalogProps): Promise<Catalog
 		WHERE catalog_item.character_id = $1::int
 	`, id);
 
-	return catalog.map((item: any) =>
+	return catalog.map(item =>
 	{
 		return {
 			id: item.id,
@@ -35,6 +24,11 @@ async function catalog(this: APIThisType, { id }: catalogProps): Promise<Catalog
 		};
 	});
 }
+
+catalog.permissions = [
+	'view-towns',
+	'use-trading-post',
+];
 
 catalog.apiTypes = {
 	id: {

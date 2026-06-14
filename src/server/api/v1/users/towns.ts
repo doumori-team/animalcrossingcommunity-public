@@ -1,23 +1,12 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { APIThisType, TownType } from '@types';
 
 async function towns(this: APIThisType, { id }: townsProps): Promise<TownType[]>
 {
-	const [useTradingPostPerm, viewTowns] = await Promise.all([
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-		this.query('v1/permission', { permission: 'view-towns' }),
-	]);
-
-	if (!(useTradingPostPerm || viewTowns))
-	{
-		throw new UserError('permission');
-	}
-
 	// Towns aren't paginated on purpose
 	// Limiting here now just to prevent a server blowup in case someone just keeps making towns
-	const towns = await db.query(`
+	const towns: { id: number }[] = await db.query(`
 		SELECT
 			town.id
 		FROM town
@@ -26,11 +15,16 @@ async function towns(this: APIThisType, { id }: townsProps): Promise<TownType[]>
 		LIMIT 30
 	`, id);
 
-	return await Promise.all(towns.map(async (town: any) =>
+	return await Promise.all(towns.map(async town =>
 	{
 		return this.query('v1/town', { id: town.id });
 	}));
 }
+
+towns.permissions = [
+	'use-trading-post',
+	'view-towns',
+];
 
 towns.apiTypes = {
 	id: {

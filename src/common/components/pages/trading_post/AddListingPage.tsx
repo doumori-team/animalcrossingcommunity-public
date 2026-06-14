@@ -93,7 +93,7 @@ const AddListingPage = ({ loaderData }: { loaderData: AddListingPageProps }) =>
 
 async function loadData(this: APIThisType, { type, gameId }: { type: string, gameId: string }): Promise<AddListingPageProps>
 {
-	const selectedGameId = Number(gameId || 0);
+	const selectedGameId = utils.safeNumber(gameId);
 	const selectedType = String(type || '');
 
 	if (utils.realStringLength(selectedType) > 0 && ![constants.tradingPost.tradeTypes.real, constants.tradingPost.tradeTypes.game].includes(selectedType))

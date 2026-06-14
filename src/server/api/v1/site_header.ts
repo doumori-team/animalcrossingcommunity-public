@@ -3,11 +3,6 @@ import { APIThisType, SiteHeaderType } from '@types';
 
 async function site_header(this: APIThisType): Promise<SiteHeaderType[]>
 {
-	if (!this.userId)
-	{
-		return [];
-	}
-
 	return await db.query(`
 		SELECT site_header.name, site_header.url, site_header.permission
 		FROM site_header
@@ -16,5 +11,9 @@ async function site_header(this: APIThisType): Promise<SiteHeaderType[]>
 		ORDER BY site_header.id ASC
 	`, this.userId);
 }
+
+site_header.permissions = [
+	'userId',
+];
 
 export default site_header;

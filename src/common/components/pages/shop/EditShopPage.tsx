@@ -9,7 +9,7 @@ import { routerUtils } from '@utils';
 
 export const action = routerUtils.formAction;
 
-const EditShopPage = ({ loaderData }: { loaderData: Promise<EditShopPageProps> }) =>
+const EditShopPage = ({ loaderData }: { loaderData: Promise<DeferredProps> }) =>
 {
 	const { shop, acgames, acGameCatalogs } = getData(use(loaderData));
 
@@ -46,7 +46,7 @@ const EditShopPage = ({ loaderData }: { loaderData: Promise<EditShopPageProps> }
 	);
 };
 
-async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
+async function loadData(this: APIThisType, { id }: { id: string }): Promise<DeferredProps>
 {
 	return Promise.all([
 		this.query('v1/shop', { id: id }),
@@ -55,7 +55,7 @@ async function loadData(this: APIThisType, { id }: { id: string }): Promise<any>
 	]);
 }
 
-function getData(data: any): EditShopPageProps
+function getData(data: DeferredProps): EditShopPageProps
 {
 	const [shop, acgames, acGameCatalogs] = data;
 
@@ -69,5 +69,7 @@ type EditShopPageProps = {
 	acgames: ACGameType[]
 	acGameCatalogs: ShopCatalogType[]
 };
+
+type DeferredProps = [EditShopPageProps['shop'], EditShopPageProps['acgames'], EditShopPageProps['acGameCatalogs']];
 
 export default routerUtils.LoadingFunction(EditShopPage);

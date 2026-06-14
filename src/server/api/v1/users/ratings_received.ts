@@ -6,13 +6,6 @@ import { APIThisType, RatingsReceivedType } from '@types';
 
 async function ratings_received(this: APIThisType, { id, page, type }: ratingsReceivedProps): Promise<RatingsReceivedType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-ratings' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	if (type === constants.rating.types.scout)
 	{
@@ -65,10 +58,10 @@ async function ratings_received(this: APIThisType, { id, page, type }: ratingsRe
 		LIMIT $1::int OFFSET $2::int
 	`;
 
-	const ratings = await db.query(query, pageSize, offset, id);
+	const ratings: { id: number, count: number }[] = await db.query(query, pageSize, offset, id);
 
 	return {
-		results: await Promise.all(ratings.map(async (rating: any) =>
+		results: await Promise.all(ratings.map(async rating =>
 		{
 			return this.query('v1/rating', { id: rating.id });
 		})),
@@ -78,6 +71,10 @@ async function ratings_received(this: APIThisType, { id, page, type }: ratingsRe
 		type: type,
 	};
 }
+
+ratings_received.permissions = [
+	'view-ratings',
+];
 
 ratings_received.apiTypes = {
 	id: {

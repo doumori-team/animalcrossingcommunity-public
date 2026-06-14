@@ -6,18 +6,6 @@ import { APIThisType } from '@types';
 
 async function claim(this: APIThisType, { id }: claimProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [userTicket] = await db.query(`
 		SELECT user_ticket.assignee_id, user_ticket_status.name AS status, user_group.identifier
 		FROM user_ticket
@@ -56,6 +44,11 @@ async function claim(this: APIThisType, { id }: claimProps): Promise<void>
 		}),
 	]);
 }
+
+claim.permissions = [
+	'process-user-tickets',
+	'userId',
+];
 
 claim.apiTypes = {
 	id: {

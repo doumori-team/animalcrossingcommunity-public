@@ -6,18 +6,6 @@ import { APIThisType, ThreadApplicationType, ThreadOrderType, ShopType, MarkupSt
 
 async function create(this: APIThisType, { orderId, applicationId, shopId, title, users, text, format }: createProps): Promise<{ id: number }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	let userIds: number[] = [], employeeIds: number[] = [];
 
 	await Promise.all(users.map(async (username) =>
@@ -72,7 +60,7 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 		}
 	}));
 
-	employeeIds.push(this.userId);
+	employeeIds.push(this.userId as number);
 
 	if (orderId)
 	{
@@ -147,7 +135,7 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 		`, shopId, this.userId),
 	]);
 
-	owners.concat(chain).map((user: any) =>
+	owners.concat(chain).map((user: { user_id: number }) =>
 	{
 		if (!employeeIds.includes(user.user_id))
 		{
@@ -155,7 +143,7 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 		}
 	});
 
-	const threadId = await db.transaction(async (query: any) =>
+	const threadId = await db.transaction(async (query: db.QueryType) =>
 	{
 		// create thread
 		const [thread] = await query(`
@@ -194,6 +182,12 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 					VALUES ($1::int, $2::int, $3::int, true)
 					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 				`, userId, thread.id, constants.nodePermissions.reply);
+
+				await query(`
+					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+					VALUES ($1::int, $2::int, $3::int, true)
+					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+				`, userId, thread.id, constants.nodePermissions.react);
 			}),
 			employeeIds.map(async (userId) =>
 			{
@@ -208,6 +202,12 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 					VALUES ($1::int, $2::int, $3::int, true)
 					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
 				`, userId, thread.id, constants.nodePermissions.reply);
+
+				await query(`
+					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
+					VALUES ($1::int, $2::int, $3::int, true)
+					ON CONFLICT ON CONSTRAINT user_node_permission_pkey DO NOTHING
+				`, userId, thread.id, constants.nodePermissions.react);
 
 				await query(`
 					INSERT INTO user_node_permission (user_id, node_id, node_permission_id, granted)
@@ -236,6 +236,8 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 				SET employee_id = $1, node_id = $3
 				WHERE id = $2
 			`, this.userId, orderId, thread.id);
+
+			this.query('v1/users/badge/check', { badgeId: constants.badges.tendeliveredshop });
 		}
 		else if (applicationId)
 		{
@@ -261,6 +263,11 @@ async function create(this: APIThisType, { orderId, applicationId, shopId, title
 	};
 }
 
+create.permissions = [
+	'modify-shops',
+	'userId',
+];
+
 create.apiTypes = {
 	orderId: {
 		type: APITypes.number,
@@ -285,6 +292,7 @@ create.apiTypes = {
 	users: {
 		type: APITypes.array,
 		length: constants.max.addMultipleUsers,
+		userInput: true,
 	},
 	text: {
 		type: APITypes.string,

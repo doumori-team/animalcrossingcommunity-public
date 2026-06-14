@@ -6,10 +6,10 @@ type NodeHistoryType = {
 	id: number
 	formattedDate: string
 	user: UserLiteType
-	title: string
+	title: string | null
 	content: {
-		text: string
-		format: MarkupFormatType
+		text: string | null
+		format: MarkupFormatType | null
 	}
 	files: FileType[]
 	showImages: boolean

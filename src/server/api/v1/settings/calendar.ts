@@ -1,15 +1,18 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { APIThisType, CalendarSettingType } from '@types';
 
-export default async function calendar(this: APIThisType): Promise<CalendarSettingType>
+async function calendar(this: APIThisType): Promise<CalendarSettingType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	const [calendarCategories, settings] = await Promise.all([
+	const [calendarCategories, settings]: [{
+		id: number
+		identifier: string
+		name: string
+	}[], {
+		id: number
+		game_id: number
+		hemisphere_id: number | null
+		homepage: boolean
+	}[]] = await Promise.all([
 		db.query(`
 			SELECT
 				id,
@@ -24,7 +27,7 @@ export default async function calendar(this: APIThisType): Promise<CalendarSetti
 		`, this.userId),
 	]);
 
-	const games = await Promise.all(settings.map(async (setting: any) =>
+	const games = await Promise.all(settings.map(async setting =>
 	{
 		return {
 			id: setting.game_id,
@@ -34,7 +37,7 @@ export default async function calendar(this: APIThisType): Promise<CalendarSetti
 				SELECT category_id
 				FROM calendar_setting_category
 				WHERE calendar_setting_id = $1::int
-			`, setting.id)).map((csc: any) => csc.category_id),
+			`, setting.id)).map((csc: { category_id: number }) => csc.category_id),
 		};
 	}));
 
@@ -43,3 +46,9 @@ export default async function calendar(this: APIThisType): Promise<CalendarSetti
 		games: games,
 	};
 }
+
+calendar.permissions = [
+	'userId',
+];
+
+export default calendar;

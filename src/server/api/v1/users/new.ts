@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import { constants, dateUtils } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, UsersNewType } from '@types';
@@ -9,18 +8,20 @@ import { APIThisType, UsersNewType } from '@types';
  */
 async function users_new(this: APIThisType, { page }: usersNewProps): Promise<UsersNewType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'scout-pages' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Perform queries
 	const pageSize = 24;
 	const offset = page * pageSize - pageSize;
 
-	const newUsers = await db.query(`
+	const newUsers: {
+		id: number
+		signup_date: string
+		username: string
+		last_active_time: Date | null
+		scout_id: number | null
+		scout_username: string | null
+		adopted: Date | null
+		count: number
+	}[] = await db.query(`
 		SELECT
 			user_account_cache.id,
 			user_account_cache.signup_date,
@@ -40,13 +41,13 @@ async function users_new(this: APIThisType, { page }: usersNewProps): Promise<Us
 	`, pageSize, offset, constants.scoutHub.newMemberEligibility);
 
 	return <UsersNewType>{
-		newUsers: newUsers.map((user: any) =>
+		newUsers: newUsers.map(user =>
 		{
 			return {
 				id: user.id,
 				username: user.username,
 				signupDate: user.signup_date,
-				adopted: user.adopted ? dateUtils.formatDateTimezone(user.adopted) : '',
+				adopted: user.adopted ? dateUtils.formatDateTime5(user.adopted) : '',
 				lastActiveTime: user.last_active_time,
 				scoutId: user.scout_id,
 				scoutUsername: user.scout_username,
@@ -57,6 +58,10 @@ async function users_new(this: APIThisType, { page }: usersNewProps): Promise<Us
 		pageSize: pageSize,
 	};
 }
+
+users_new.permissions = [
+	'scout-pages',
+];
 
 users_new.apiTypes = {
 	page: {

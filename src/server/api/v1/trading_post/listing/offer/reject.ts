@@ -6,13 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function reject(this: APIThisType, { id }: rejectProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const [offer] = await db.query(`
 		SELECT
@@ -49,7 +42,7 @@ async function reject(this: APIThisType, { id }: rejectProps): Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -74,6 +67,11 @@ async function reject(this: APIThisType, { id }: rejectProps): Promise<void>
 		]);
 	});
 }
+
+reject.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 reject.apiTypes = {
 	id: {

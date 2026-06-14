@@ -11,7 +11,7 @@ const HTMLPurify = ({
 	useEffect(() =>
 	{
 		setCurHtml(DOMPurify.sanitize(curHtml));
-	}, []);
+	}, [html]);
 
 	return (
 		<div

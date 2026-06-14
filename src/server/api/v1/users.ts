@@ -21,6 +21,7 @@ users.apiTypes = {
 		type: APITypes.string,
 		min: 3,
 		required: true,
+		profanity: true,
 	},
 };
 

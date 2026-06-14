@@ -33,7 +33,7 @@ const ChooseTownTunePage = ({ loaderData }: { loaderData: ChooseTownTunePageProp
 									label='Select town that will use this tune'
 									optionsMapping={{
 										id: 'id',
-										name: (town: any) => <Keyboard name={town.name} gameId={town.game.id} />,
+										name: (town: typeof towns[number]) => <Keyboard name={town.name} gameId={town.game.id} />,
 									}}
 								/>
 							</Form.Group>

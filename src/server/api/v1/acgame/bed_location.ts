@@ -1,18 +1,10 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, BedLocationType } from '@types';
 
 async function bed_location(this: APIThisType, { id }: bedLocationProps): Promise<BedLocationType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	return await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			bed_location.id,
@@ -23,6 +15,10 @@ async function bed_location(this: APIThisType, { id }: bedLocationProps): Promis
 		ORDER BY bed_location.id ASC
 	`, id);
 }
+
+bed_location.permissions = [
+	'modify-towns',
+];
 
 bed_location.apiTypes = {
 	id: {

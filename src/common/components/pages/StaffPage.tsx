@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { constants, routerUtils } from '@utils';
@@ -13,7 +14,7 @@ const StaffPage = ({ loaderData }: { loaderData: StaffPageProps }) =>
 	const { admins, mods, researchers, devs, scouts, devTL,
 		researcherTL, userGroups } = loaderData;
 
-	const format = (user: UserType): any =>
+	const format = (user: UserType): ReactNode =>
 	{
 		return (
 			<UserContext.Consumer key={user.id}>

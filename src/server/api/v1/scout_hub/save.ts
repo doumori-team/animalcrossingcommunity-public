@@ -9,11 +9,6 @@ import { APIThisType, UserType, MarkupStyleType, SuccessType } from '@types';
  */
 async function save(this: APIThisType, { welcomeTemplate, closingTemplate, welcomeTemplateFormat, closingTemplateFormat }: saveProps): Promise<SuccessType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const user: UserType = await this.query('v1/user', { id: this.userId });
 
 	if (user.group.identifier !== constants.staffIdentifiers.scout)
@@ -32,6 +27,10 @@ async function save(this: APIThisType, { welcomeTemplate, closingTemplate, welco
 		_success: `Your Scout Settings have been updated.`,
 	};
 }
+
+save.permissions = [
+	'userId',
+];
 
 save.apiTypes = {
 	welcomeTemplate: {

@@ -1,5 +1,7 @@
-import { RequireClientJS, RequirePermission } from '@behavior';
-import { Form, Switch, Text, Checkbox, Check, Select } from '@form';
+import { Link } from 'react-router';
+
+import { RequireClientJS, RequirePermission, RequireNotifications } from '@behavior';
+import { Form, Switch, Text, Checkbox, Check, Select, Button } from '@form';
 import { constants, routerUtils } from '@utils';
 import { Section, Grid } from '@layout';
 import {
@@ -11,6 +13,7 @@ import {
 	HemisphereType,
 	HeaderSettingType,
 } from '@types';
+import { iso } from 'common/iso.ts';
 
 export const action = routerUtils.formAction;
 
@@ -20,10 +23,98 @@ const AccountSettingsPage = ({ loaderData }: { loaderData: AccountSettingsPagePr
 		email, showBirthday, showAge, acgames, settings, hemispheres,
 		showEmail, emailNotifications, blockedUsers, showStaff, shopDNC,
 		southernHemisphere, stayForever, userSiteHeaders, consolidateCalendars,
+		dockMenu,
 	} = loaderData;
+
+	const enablePushNotifications = async () =>
+	{
+		if (Notification.permission === 'denied')
+		{
+			alert('Notifications are blocked. Please enable them in your device settings.');
+			return;
+		}
+
+		if (Notification.permission === 'default')
+		{
+			const permission = await Notification.requestPermission();
+
+			if (permission !== 'granted')
+			{
+				alert('You must allow notifications to subscribe.');
+				return;
+			}
+		}
+
+		const registration = await navigator.serviceWorker.getRegistration();
+
+		if (!registration)
+		{
+			alert('Service worker does not exist. Please report this on the Site Support board.');
+			return;
+		}
+
+		if (registration.installing)
+		{
+			alert('Service worker is installing. Please try again in a few seconds.');
+			return;
+		}
+
+		if (!registration.active)
+		{
+			alert('Service worker not active. Please report this on the Site Support board.');
+			return;
+		}
+
+		try
+		{
+			let subscription = await registration.pushManager.getSubscription();
+
+			if (!subscription)
+			{
+				subscription = await registration.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+				});
+			}
+
+			(await iso).query(null, 'v1/notification/subscribe', {
+				subscription: JSON.stringify(subscription),
+				desktop: !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+			}).then(() =>
+			{
+				alert('Push Notifications have been enabled!');
+			})
+			.catch((_: unknown) =>
+			{
+				// records error on server side
+			});
+		}
+		catch (err)
+		{
+			console.error('Failed to subscribe the user: ', err);
+		}
+	};
 
 	return (
 		<div className='AccountSettingsPage'>
+			<Section>
+				<h2>Push Notifications</h2>
+
+				<p>
+					Push notifications are little messages that pop up to let you know something new happened on ACC, even if you’re not looking at the site. If your device can show push notifications, you will see an “Enable Push Notifications” button below. Go <Link to='/push-notifications'>here</Link> for more information.
+				</p>
+
+				<RequireNotifications>
+					<div className='AccountSettingsPage_pushNotifications'>
+						<Button
+							type='button'
+							label='Enable Push Notifications'
+							className='Form_button'
+							clickHandler={enablePushNotifications}
+						/>
+					</div>
+				</RequireNotifications>
+			</Section>
 			<Section>
 				<Form action='v1/settings/account/save' showButton buttonText='Save'>
 					<Form.Group>
@@ -90,6 +181,7 @@ const AccountSettingsPage = ({ loaderData }: { loaderData: AccountSettingsPagePr
 							label='Shop DNC'
 							value={shopDNC}
 							switchFirst
+							information='Add yourself to the Shop Do Not Contact list. Prevents user sending you random shop threads. It does not prevent you from ordering from shops.'
 						/>
 					</Form.Group>
 
@@ -105,9 +197,9 @@ const AccountSettingsPage = ({ loaderData }: { loaderData: AccountSettingsPagePr
 					<Form.Group>
 						<Switch
 							name='stayForever'
-							label='Stay signed in forever'
+							label='Stay signed in for one year'
 							value={stayForever}
-							information="Only turn 'Stay signed in forever' on if you use a private device - a device that no one else uses - to access ACC. This will keep you logged in to ACC on that device for 1 year after you were last active on the site."
+							information="Only turn 'Stay signed in for one year' on if you use a private device - a device that no one else uses - to access ACC. This will keep you logged in to ACC on that device for 1 year after you last logged in with this setting on."
 							switchFirst
 						/>
 					</Form.Group>
@@ -118,6 +210,15 @@ const AccountSettingsPage = ({ loaderData }: { loaderData: AccountSettingsPagePr
 							label='Merge home screen calendars'
 							value={consolidateCalendars}
 							information="If you have multiple games selected in your homepage calendar settings (down below), enabling 'Merge home screen calendars' will group events for all games by type. Disabling this will separate your calendars by game."
+							switchFirst
+						/>
+					</Form.Group>
+
+					<Form.Group>
+						<Switch
+							name='dockMenu'
+							label='Permanently dock menu on larger screens'
+							value={dockMenu}
 							switchFirst
 						/>
 					</Form.Group>
@@ -177,8 +278,8 @@ const AccountSettingsPage = ({ loaderData }: { loaderData: AccountSettingsPagePr
 					<Form action='v1/settings/username/save' showButton buttonText='Save'>
 						<Form.Group>
 							<Text
-								name='username'
-								label='New username'
+								name='newUser'
+								label='New User'
 								required
 								pattern={constants.regexes.username}
 								maxLength={constants.max.username}
@@ -339,6 +440,7 @@ async function loadData(this: APIThisType): Promise<AccountSettingsPageProps>
 		stayForever: results.stayForever,
 		userSiteHeaders: userSiteHeaders,
 		consolidateCalendars: results.consolidateCalendars,
+		dockMenu: results.dockMenu,
 	};
 }
 
@@ -360,6 +462,7 @@ type AccountSettingsPageProps = {
 	stayForever: AccountSettingType['stayForever']
 	userSiteHeaders: HeaderSettingType[]
 	consolidateCalendars: AccountSettingType['consolidateCalendars']
+	dockMenu: AccountSettingType['dockMenu']
 };
 
 export default AccountSettingsPage;

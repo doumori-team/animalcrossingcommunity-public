@@ -2,18 +2,24 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { dateUtils, constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, GuideType } from '@types';
+import { APIThisType, GuideType, UserLiteType } from '@types';
 
 async function guide(this: APIThisType, { id }: guideProps): Promise<GuideType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-guides' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const [guide] = await db.cacheQuery(constants.cacheKeys.guides, `
+	const [guide]: [{
+		id: number
+		name: string
+		updated_name: string | null
+		game_id: number
+		shortname: string
+		description: string
+		updated_description: string | null
+		content: string
+		updated_content: string | null
+		last_updated: Date
+		updated_user_id: number
+		last_published: Date
+	} | undefined] = await db.cacheQuery(constants.cacheKeys.guides, `
 		SELECT
 			guide.id,
 			guide.name,
@@ -48,7 +54,7 @@ async function guide(this: APIThisType, { id }: guideProps): Promise<GuideType>
 		},
 	};
 
-	const [modifyGuidesPerm, user] = await Promise.all([
+	const [modifyGuidesPerm, user]: [boolean, UserLiteType] = await Promise.all([
 		this.query('v1/permission', { permission: 'modify-guides' }),
 		this.query('v1/user_lite', { id: guide.updated_user_id }),
 	]);
@@ -61,11 +67,15 @@ async function guide(this: APIThisType, { id }: guideProps): Promise<GuideType>
 		returnGuide.formattedLastUpdated = dateUtils.formatDateTime(guide.last_updated);
 		returnGuide.user = user;
 		returnGuide.formattedLastPublished = guide.last_published ? dateUtils.formatDateTime(guide.last_published) : 'Unpublished';
-		returnGuide.hasChanges = dateUtils.isAfterTimezone(guide.last_updated, dateUtils.dateToTimezone(guide.last_published));
+		returnGuide.hasChanges = dateUtils.isAfterTimezone2(guide.last_updated, guide.last_published);
 	}
 
 	return returnGuide;
 }
+
+guide.permissions = [
+	'view-guides',
+];
 
 guide.apiTypes = {
 	id: {

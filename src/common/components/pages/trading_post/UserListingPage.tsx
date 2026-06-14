@@ -11,7 +11,7 @@ import { APIThisType, UserListingsType, UserOffersType, ListingType } from '@typ
 
 export const action = routerUtils.formAction;
 
-const UserListingPage = ({ loaderData, params }: { loaderData: Promise<UserListingPageProps>, params: Params }) =>
+const UserListingPage = ({ loaderData, params }: { loaderData: Promise<DeferredProps>, params: Params }) =>
 {
 	const { listings, offers, totalListingsCount, listingsPage,
 		listingsPageSize, totalOffersCount, offersPage, offersPageSize } = getData(use(loaderData));
@@ -118,7 +118,7 @@ const UserListingPage = ({ loaderData, params }: { loaderData: Promise<UserListi
 	);
 };
 
-async function loadData(this: APIThisType, { userId }: { userId: string }, { listingsPage, offersPage }: { listingsPage?: string, offersPage?: string }): Promise<any>
+async function loadData(this: APIThisType, { userId }: { userId: string }, { listingsPage, offersPage }: { listingsPage?: string, offersPage?: string }): Promise<DeferredProps>
 {
 	const selectedUserId = Number(userId);
 
@@ -128,12 +128,11 @@ async function loadData(this: APIThisType, { userId }: { userId: string }, { lis
 	]);
 }
 
-function getData(data: any): UserListingPageProps
+function getData(data: DeferredProps): UserListingPageProps
 {
-	const [listings, offers, selectedUserId] = data;
+	const [listings, offers] = data;
 
 	return {
-		selectedUserId,
 		listings: listings.results,
 		totalListingsCount: listings.count,
 		listingsPage: listings.page,
@@ -148,7 +147,6 @@ function getData(data: any): UserListingPageProps
 export const loader = routerUtils.deferLoader(loadData);
 
 type UserListingPageProps = {
-	selectedUserId: number
 	listings: UserListingsType['results']
 	totalListingsCount: UserListingsType['count']
 	listingsPage: UserListingsType['page']
@@ -158,5 +156,10 @@ type UserListingPageProps = {
 	offersPage: UserOffersType['page']
 	offersPageSize: UserOffersType['pageSize']
 };
+
+type DeferredProps = [
+	UserListingsType,
+	UserOffersType,
+];
 
 export default routerUtils.LoadingFunction(UserListingPage);

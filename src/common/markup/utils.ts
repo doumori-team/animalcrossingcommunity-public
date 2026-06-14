@@ -2,6 +2,7 @@ export function escapeHtml(string: string): string
 {
 	// Note that the resulting string is safe to transclude as text in an HTML
 	// document, but NOT in an attribute value.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (string as any).replace(/[&<>]/g,
 		function(match: string)
 		{

@@ -6,13 +6,6 @@ import { APIThisType } from '@types';
 
 async function read(this: APIThisType, { id }: readProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [supportEmail] = await db.query(`
 		SELECT id
 		FROM support_email
@@ -37,6 +30,10 @@ async function read(this: APIThisType, { id }: readProps): Promise<void>
 		}),
 	]);
 }
+
+read.permissions = [
+	'process-user-tickets',
+];
 
 read.apiTypes = {
 	id: {

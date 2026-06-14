@@ -16,7 +16,7 @@ const SiteRulesPage = ({ loaderData }: { loaderData: SiteRulesPageProps }) =>
 				<p>Listed below are the Community Guidelines in brief. Persistent violations or severe infractions, may result in a long-term ban from ACC. Some of the guidelines provide examples of what is considered to be a breach of the guideline. Although different people will have different ideas of what is covered by those guidelines, the Modmins will determine whether a guideline has been broken.</p>
 				<p>A violation of any Community Guideline will result in either a message or a notification from the Modmins to the Member. Each type of communication will outline which guideline has been breached. Such communications will remain as Notifications in the Tickets section for members to view. All members have the opportunity to respond to any Notification they may not understand.</p>
 				<p><strong>NOTE:</strong> Whenever these guidelines are updated, you will be notified and asked to accept the updated guidelines before continuing to the site. Dates next to headings indicate date added or last updated. Updated guidelines are noted with <span className='SiteRulesPage_ruleUpdated'>Blue dates</span>, and added guidelines are noted with <span className='SiteRulesPage_ruleNew'>Red dates</span>.</p>
-				<p><strong>Last Updated</strong>: {dateUtils.formatDateTimezone(lastUpdated)}</p>
+				<p><strong>Last Updated</strong>: {dateUtils.formatDateTime5(lastUpdated)}</p>
 			</ContentBox>
 			<div className='SiteRulesPage_rules'>
 				{rules.map((category, index) =>

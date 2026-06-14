@@ -6,17 +6,6 @@ import { APIThisType, TuneType } from '@types';
 
 async function tune(this: APIThisType, { id }: tuneProps): Promise<TuneType>
 {
-	const [viewTownsPerm, useTradingPostPerm, viewTunesPerm] = await Promise.all([
-		this.query('v1/permission', { permission: 'view-towns' }),
-		this.query('v1/permission', { permission: 'use-trading-post' }),
-		this.query('v1/permission', { permission: 'view-tunes' }),
-	]);
-
-	if (!(viewTownsPerm || useTradingPostPerm || viewTunesPerm))
-	{
-		throw new UserError('permission');
-	}
-
 	const [tune] = await db.query(`
 		SELECT
 			town_tune.id,
@@ -37,10 +26,16 @@ async function tune(this: APIThisType, { id }: tuneProps): Promise<TuneType>
 		id: tune.id,
 		name: tune.name,
 		creator: await this.query('v1/user_lite', { id: tune.creator_id }),
-		notes: tune.notes.match(/.{4}/g).map((hex: any) => parseInt(hex, 16)),
-		formattedDate: dateUtils.formatDateTimezone(tune.created),
+		notes: tune.notes.match(/.{4}/g).map((hex: string) => parseInt(hex, 16)),
+		formattedDate: dateUtils.formatDateTime5(tune.created),
 	};
 }
+
+tune.permissions = [
+	'view-towns',
+	'use-trading-post',
+	'view-tunes',
+];
 
 tune.apiTypes = {
 	id: {

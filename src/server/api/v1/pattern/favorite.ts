@@ -1,6 +1,5 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType } from '@types';
 
 /*
@@ -8,18 +7,6 @@ import { APIThisType } from '@types';
  */
 async function favorite(this: APIThisType, { patternId }: favoriteProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-patterns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const [patternFavId] = await db.query(`
 		SELECT id
 		FROM pattern_favorite
@@ -41,6 +28,11 @@ async function favorite(this: APIThisType, { patternId }: favoriteProps): Promis
 		`, this.userId, patternId);
 	}
 }
+
+favorite.permissions = [
+	'view-patterns',
+	'userId',
+];
 
 favorite.apiTypes = {
 	patternId: {

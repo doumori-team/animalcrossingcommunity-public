@@ -1,13 +1,13 @@
+import { Request } from 'express';
+
 interface AppLoadContextType
 {
-	session?: {
-		user: number | null
-		username: string | null
-	};
-	headers?: any
-	httpVersion?: string
-	method?: string
-	url?: string
+	session: Request['session']
+	headers: Request['headers']
+	httpVersion: Request['httpVersion']
+	method: Request['method']
+	url: Request['url']
+	sessionID: Request['sessionID']
 }
 
 export type { AppLoadContextType };

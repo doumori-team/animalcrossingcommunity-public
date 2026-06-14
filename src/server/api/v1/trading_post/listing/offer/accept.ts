@@ -6,13 +6,6 @@ import { APIThisType, ListingType } from '@types';
 
 async function accept(this: APIThisType, { id }: acceptProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Check parameters
 	const [offer] = await db.query(`
 		SELECT
@@ -49,7 +42,7 @@ async function accept(this: APIThisType, { id }: acceptProps): Promise<void>
 	}
 
 	// Perform queries
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		await Promise.all([
 			query(`
@@ -70,7 +63,7 @@ async function accept(this: APIThisType, { id }: acceptProps): Promise<void>
 		]);
 	});
 
-	await db.transaction(async (query: any) =>
+	await db.transaction(async (query: db.QueryType) =>
 	{
 		if (!listing.game)
 		{
@@ -92,6 +85,11 @@ async function accept(this: APIThisType, { id }: acceptProps): Promise<void>
 		type: constants.notification.types.listingOfferAccepted,
 	});
 }
+
+accept.permissions = [
+	'use-trading-post',
+	'userId',
+];
 
 accept.apiTypes = {
 	id: {

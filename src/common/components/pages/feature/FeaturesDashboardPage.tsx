@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import { Form, Select, Check, Text } from '@form';
@@ -162,7 +162,7 @@ const FeaturesDashboardPage = ({ loaderData }: { loaderData: FeaturesDashboardPa
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, categoryId, isBug, statusId, following, staffOnly, readOnly, createdUser, assignedUser }: { page?: string, categoryId?: string, isBug?: string, statusId?: string, following?: string, staffOnly?: string, readOnly?: string, createdUser?: string, assignedUser?: string }): Promise<FeaturesDashboardPageProps>
+async function loadData(this: APIThisType, _: Params, { page, categoryId, isBug, statusId, following, staffOnly, readOnly, createdUser, assignedUser }: { page?: string, categoryId?: string, isBug?: string, statusId?: string, following?: string, staffOnly?: string, readOnly?: string, createdUser?: string, assignedUser?: string }): Promise<FeaturesDashboardPageProps>
 {
 	const [returnValue, categories, statuses] = await Promise.all([
 		this.query('v1/features', {

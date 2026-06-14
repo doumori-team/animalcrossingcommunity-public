@@ -14,7 +14,7 @@ type TicketType = {
 		description: string
 	},
 	reference: {
-		id: string
+		id: number
 		url: string | null
 		text: string | null
 		format: MarkupStyleType | null

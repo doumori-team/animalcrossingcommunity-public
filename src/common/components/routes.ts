@@ -85,6 +85,7 @@ export default [
 	route('pattern/:id/choose/door', 'pages/pattern/ChooseDoorPatternPage.tsx'),
 	route('patterns', 'pages/pattern/PatternsPage.tsx'),
 	route('patterns/add', 'pages/pattern/AddPatternPage.tsx'),
+	route('catalog/:userId', 'pages/user/CatalogPage.tsx', { id: 'top-level-catalog' }),
 	layout('pages/user/CatalogPage.tsx', [
 		...prefix('catalog/:userId', [
 			route('user', 'pages/user/UserCatalogPage.tsx'),
@@ -126,7 +127,7 @@ export default [
 		index('pages/scout-hub/ScoutHubPage.tsx'),
 		route('adoption/settings', 'pages/scout-hub/AdoptionThreadSettingsPage.tsx'),
 		layout('pages/headers/ScoutThreadBanner.tsx', [
-			route('adoption/:id/:page?/:editId?', 'pages/NodePage.tsx', { id: 'node-scout' }, []),
+			route('adoption/:id/:page?/:editId?', 'pages/NodePage.tsx', { id: 'node-scout' }),
 		]),
 		route('new-members', 'pages/scout-hub/NewMembersPage.tsx'),
 		route('new-members/reassign/:adopteeId', 'pages/scout-hub/ReassignPage.tsx'),
@@ -169,8 +170,16 @@ export default [
 	route('shop/order/:id', 'pages/shop/OrderPage.tsx'),
 	route('shops/ratings/:userId', 'pages/shop/EmployeeRatingsPage.tsx'),
 	layout('pages/headers/ShopThreadBanner.tsx', [
-		route('shops/threads/:id/:page?/:editId?', 'pages/NodePage.tsx', { id: 'node-shop' }, []),
+		route('shops/threads/:id/:page?/:editId?', 'pages/NodePage.tsx', { id: 'node-shop' }),
 	]),
+	route('newsletters', 'pages/newsletter/NewslettersPage.tsx'),
+	route('newsletter/:id', 'pages/newsletter/NewsletterPage.tsx'),
+	route('newsletters/add', 'pages/newsletter/AddNewsletterPage.tsx'),
+	route('newsletter/:id/edit', 'pages/newsletter/EditNewsletterPage.tsx'),
+	route('newsletter/:id/add/:type?', 'pages/newsletter/AddArticlePage.tsx'),
+	route('newsletter/:newsletterId/:articleId/edit', 'pages/newsletter/EditArticlePage.tsx'),
+	route('newsletter/:newsletterId/:articleId', 'pages/newsletter/ArticlePage.tsx'),
+	route('push-notifications', 'pages/PushNotificationsPage.tsx'),
 	route('test-site-password', 'pages/TestSitePasswordPage.tsx'),
 	route('*?', 'catchall.tsx'),
 ] satisfies RouteConfig;

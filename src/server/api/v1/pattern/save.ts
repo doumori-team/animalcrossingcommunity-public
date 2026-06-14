@@ -11,18 +11,6 @@ import { APIThisType, PatternColorsType, UserLiteType } from '@types';
 async function save(this: APIThisType, { id, patternName, published, designId, data, dataUrl,
 	gamePaletteId, palette, townId, characterId }: saveProps): Promise<{ id: number | null }>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-patterns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	const gameId = Number(gamePaletteId.substring(0, gamePaletteId.indexOf('-')));
 
@@ -157,7 +145,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 		),
 	]);
 
-	const patternId = await db.transaction(async (query: any) =>
+	const patternId = await db.transaction(async (query: db.QueryType) =>
 	{
 		if (id > 0)
 		{
@@ -223,6 +211,8 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
 		return id;
 	});
 
+	this.query('v1/users/badge/check', { badgeId: constants.badges.tenpatterns });
+
 	ACCCache.deleteMatch(constants.cacheKeys.patterns);
 
 	return {
@@ -243,7 +233,7 @@ async function save(this: APIThisType, { id, patternName, published, designId, d
  * 	colors - array - current game colors
  * 	nlColors - array - NL & QR Code colors
  */
-export async function createQRCode(gameId: number, patternName: string, author: string, townName: string, palette: any[], data: any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): Promise<string | null | void | Promise<string>>
+export async function createQRCode(gameId: number, patternName: string, author: string, townName: string, palette: number[], data: number[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): Promise<string | null | void | Promise<string>>
 {
 	if (!canCreateQRCode(gameId, data, colors, nlColors))
 	{
@@ -254,12 +244,12 @@ export async function createQRCode(gameId: number, patternName: string, author: 
 	if (gameId !== constants.gameIds.ACNL)
 	{
 		// need to update palette & data to use NL color indexes
-		let newPalette: any = [], matchingDelta: any = [];
+		let newPalette: number[] = [], matchingDelta: { rgb: string, index: number }[] = [];
 
 		for (let i = 0; i < data.length; i++)
 		{
 			let rgb = colors[data[i]], newRgbIndex = 0;
-			let alreadyCalculated = matchingDelta.find((x: any) => x.rgb === rgb);
+			let alreadyCalculated = matchingDelta.find(x => x.rgb === rgb);
 
 			if (alreadyCalculated)
 			{
@@ -302,7 +292,7 @@ export async function createQRCode(gameId: number, patternName: string, author: 
 	}
 
 	// initialize array
-	let hexbytes = [];
+	let hexbytes: string[] = [];
 
 	for (let i = 0; i < constants.pattern.qrCodeLength; i++)
 	{
@@ -362,7 +352,7 @@ export async function createQRCode(gameId: number, patternName: string, author: 
 	// Data: bytes 108-585
 
 	// convert data (array of color indexes) to 2D array of palette indexes
-	let formData: any = [];
+	let formData: number[][] = [];
 
 	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
@@ -393,11 +383,12 @@ export async function createQRCode(gameId: number, patternName: string, author: 
 	try
 	{
 		return await QRCode.toDataURL([{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			data: (Buffer.from(hexbytes.map(hex => parseInt(hex, 16))) as any),
 			mode: 'byte',
 		}]);
 	}
-	catch (e: any)
+	catch (e: unknown)
 	{
 		// we don't want to stop the pattern from being created if QR code fails
 		console.error('QRCode.toDataURL error:', e);
@@ -415,7 +406,7 @@ export async function createQRCode(gameId: number, patternName: string, author: 
  * 	colors - array - current game colors
  * 	nlColors - array - NL & QR Code colors
  */
-function canCreateQRCode(gameId: number, data: any[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): boolean
+function canCreateQRCode(gameId: number, data: number[], colors: PatternColorsType[number], nlColors: PatternColorsType[number]): boolean
 {
 	// QR codes are made with NL colors, so if NL palette we're good
 	if (gameId === constants.gameIds.ACNL)
@@ -425,7 +416,7 @@ function canCreateQRCode(gameId: number, data: any[], colors: PatternColorsType[
 
 	// check if all colors used are found in NL
 	// if so, we can also create a QR code
-	let includedColors: any = [];
+	let includedColors: string[] = [];
 
 	outerLoop: for (let i = 0; i < data.length; i++)
 	{
@@ -502,7 +493,7 @@ function hexColorDelta(hex1: string, hex2: string): number
 /*
  * Converts string to hex, then updates the QR code array data.
  */
-function unicodeEncode(string: string, offset: number, hexbytes: any[]): any[]
+function unicodeEncode(string: string, offset: number, hexbytes: string[]): string[]
 {
 	let index = offset;
 
@@ -531,6 +522,11 @@ function dechex(number: number): string
 	return number.toString(16);
 }
 
+save.permissions = [
+	'modify-patterns',
+	'userId',
+];
+
 save.apiTypes = {
 	id: {
 		type: APITypes.patternId,
@@ -553,16 +549,19 @@ save.apiTypes = {
 	},
 	data: {
 		type: APITypes.array,
+		userInput: true,
 	},
 	dataUrl: {
 		type: APITypes.string,
 		required: true,
+		error: 'dataUrl-required',
 	},
 	gamePaletteId: {
 		type: APITypes.string,
 	},
 	palette: {
 		type: APITypes.array,
+		userInput: true,
 	},
 	townId: {
 		type: APITypes.townId,

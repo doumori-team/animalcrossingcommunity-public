@@ -40,7 +40,7 @@ const AdoptionThreadSettingsPage = ({ loaderData }: { loaderData: AdoptionThread
 						<div className='AdoptionThreadSettingsPage_addUserOptions'>
 							<Form.Group>
 								<Text
-									name='username'
+									name='addUser'
 									label='User'
 									required
 									maxLength={constants.max.searchUsername}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { Link } from 'react-router';
 
 import Clock from '@/components/layout/Clock.tsx';
@@ -7,49 +7,53 @@ import LogoutButton from '@/components/layout/LogoutButton.tsx';
 import Navbar from '@/components/layout/Navbar.tsx';
 import NavbarMenuButton from '@/components/layout/NavbarMenuButton.tsx';
 import { UserContext } from '@contexts';
-import { iso } from 'common/iso.ts';
 import { constants } from '@utils';
 import { LatestNotificationType, BuddiesType, SiteHeaderType } from '@types';
+import { notifications } from '@hooks';
 
 const SiteHeader = ({
 	latestNotification,
 	notificationCount,
 	buddies,
 	options = [],
+	dockMenu = false,
 }: SiteHeaderProps) =>
 {
 	const [notiCount, setNotiCount] = useState<number>(notificationCount);
 	const [latNoti, setLatNoti] = useState<LatestNotificationType['notification'] | null>(latestNotification);
 
 	const userContext = useContext(UserContext);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const timeoutRef = useRef<any>(null);
+
+	const wsNotification: LatestNotificationType | null = notifications.useNotifications(userContext?.id ?? 0, constants.webSocketTypes.notification);
 
 	useEffect(() =>
 	{
-		if (userContext)
+		if (!wsNotification)
 		{
-			const intervalId = setInterval(async () =>
-			{
-				(await iso).query(null, 'v1/notification/latest', null)
-                    .then((data: LatestNotificationType) =>
-                    {
-                    	setNotiCount(data.totalCount);
-                    	setLatNoti(data.notification);
-                    })
-                    .catch((_: any) =>
-                    {
-                    	// records error on server side
-                    });
-			}, 1000 * 10);
-
-			return () => clearInterval(intervalId);
+			return;
 		}
-	}, []);
+
+		if (timeoutRef.current)
+		{
+			clearTimeout(timeoutRef.current);
+		}
+
+		setNotiCount(wsNotification.totalCount);
+		setLatNoti(wsNotification.notification);
+
+		timeoutRef.current = setTimeout(() =>
+		{
+			setLatNoti(null);
+		}, 1000 * 10);
+	}, [wsNotification]);
 
 	return (
 		<header className='SiteHeader'>
 			<Navbar>
-				<Navbar.Item icon>
-					<NavbarMenuButton fallbackLink='/menu'>
+				<Navbar.Item icon siteMenu>
+					<NavbarMenuButton fallbackLink='/menu' dockMenu={dockMenu}>
 						<svg className='MenuIcon' viewBox='0 0 16 16' height='16px' width='16px' aria-label='Menu'>
 							<rect x='0' y='0' width='16' height='4' rx='1' ry='1' />
 							<rect x='0' y='6' width='16' height='4' rx='1' ry='1' />
@@ -61,7 +65,7 @@ const SiteHeader = ({
 				<Navbar.Item>
 					<Link to='/' reloadDocument>
 						<img
-							src={`${constants.AWS_URL}/images/layout/acc-logo-narrow.png`}
+							src={constants.allImages['layout/acc-logo-narrow.png']}
 							alt='ACC'
 							height='100%'
 						/>
@@ -103,9 +107,10 @@ const SiteHeader = ({
 									to='/notifications'
 									title='Notifications'
 									className='SiteHeader_notificationsLink'
+									reloadDocument
 								>
 									<img
-										src={`${constants.AWS_URL}/images/layout/bulletin-bird-lit.png`}
+										src={constants.allImages['layout/bulletin-bird-lit.png']}
 										alt='Notifications'
 									/>
 									{notiCount > 0 &&
@@ -132,7 +137,7 @@ const SiteHeader = ({
 							<div className='NavbarItem NavbarItem-icon SiteHeader_buddies'>
 								<NavbarMenuButton fallbackLink='/buddies' buddies={buddies}>
 									<img
-										src={`${constants.AWS_URL}/images/layout/buddies.png`}
+										src={constants.allImages['layout/buddies.png']}
 										alt='Buddies'
 										className={buddies && buddies.staff.concat(buddies.buddies).length > 0 ? 'buddiesCountImg' : ''}
 									/>
@@ -146,7 +151,7 @@ const SiteHeader = ({
 							<Navbar.Item extra username>
 								<Link to={`/profile/${user.id}`}>{user.username}</Link>
 							</Navbar.Item>
-							<Navbar.Item><LogoutButton /></Navbar.Item>
+							<Navbar.Item extra logout><LogoutButton /></Navbar.Item>
 						</>
 						: <>
 							<Navbar.Item><LoginButton /></Navbar.Item>
@@ -166,6 +171,7 @@ type SiteHeaderProps = {
 	notificationCount: LatestNotificationType['totalCount']
 	buddies: BuddiesType
 	options: SiteHeaderType[]
+	dockMenu: boolean
 };
 
 export default SiteHeader;

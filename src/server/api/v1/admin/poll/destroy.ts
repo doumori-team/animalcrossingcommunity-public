@@ -5,13 +5,6 @@ import { APIThisType } from '@types';
 
 async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'polls-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	// Confirm not expired
 	const [poll] = await db.query(`
 		SELECT now() > poll.start_date + poll.duration AS expired
@@ -29,6 +22,10 @@ async function destroy(this: APIThisType, { id }: destroyProps): Promise<void>
 		WHERE id = $1::int
 	`, id);
 }
+
+destroy.permissions = [
+	'polls-admin',
+];
 
 destroy.apiTypes = {
 	id: {

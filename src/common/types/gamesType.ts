@@ -5,7 +5,7 @@ type GamesType = {
 	pattern: string
 	placeholder: string
 	consoleName: string
-	acGameId: number
+	acGameId: number | null
 };
 
 export type { GamesType };

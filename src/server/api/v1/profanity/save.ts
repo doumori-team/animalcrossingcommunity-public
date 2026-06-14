@@ -6,18 +6,6 @@ import { APIThisType, SuccessType } from '@types';
 
 async function save(this: APIThisType, { id, word, activate }: saveProps): Promise<SuccessType | void>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'profanity-admin' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	let filteredWord;
 
@@ -164,6 +152,11 @@ async function createThread(this: APIThisType, word: string, content: string, ac
 
 	return thread.id;
 }
+
+save.permissions = [
+	'profanity-admin',
+	'userId',
+];
 
 save.apiTypes = {
 	id: {

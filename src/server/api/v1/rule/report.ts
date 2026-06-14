@@ -2,26 +2,14 @@ import * as db from '@db';
 import { UserError } from '@errors';
 import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
-import { APIThisType, SuccessType } from '@types';
+import { APIThisType, SuccessType, UserType } from '@types';
 
 /*
  * Reports content as a rule violation to the modmins.
  */
 async function report(this: APIThisType, { referenceId, type }: reportProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'report-content' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
-	// Parameter Validation
+	// Check parameters
 	const [typeId] = await db.query(`
 		SELECT id
 		FROM user_ticket_type
@@ -33,11 +21,11 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		throw new UserError('bad-format');
 	}
 
-	let referenceText = null;
-	let referenceUrl = null;
-	let violatorId = null;
-	let referenceFormat = null;
-	let parentId = null;
+	let referenceText: string | null = null;
+	let referenceUrl: string | null = null;
+	let violatorId: number | null = null;
+	let referenceFormat: string | null = null;
+	let parentId: number | null = null;
 
 	const types = constants.userTicket.types;
 
@@ -91,7 +79,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 	else if (type === types.postImage)
 	{
 		const [checkId] = await db.query(`
-			SELECT file.file_id, file.name, node_revision.reviser_id, node.parent_node_id
+			SELECT file.file_id, file.caption, node_revision.reviser_id, node.parent_node_id
 			FROM file
 			JOIN node_revision_file ON (node_revision_file.file_id = file.id)
 			JOIN node_revision ON (node_revision.id = node_revision_file.node_revision_id)
@@ -105,14 +93,14 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		}
 
 		violatorId = checkId.reviser_id;
-		referenceText = checkId.name;
+		referenceText = checkId.caption;
 		referenceUrl = `${constants.USER_FILE_DIR}${violatorId}/${checkId.file_id}`;
 		parentId = checkId.parent_node_id;
 	}
 	else if (type === types.profileImage)
 	{
 		const [checkId] = await db.query(`
-			SELECT file.file_id, file.name, user_file.user_id
+			SELECT file.file_id, file.caption, user_file.user_id
 			FROM file
 			JOIN user_file ON (user_file.file_id = file.id)
 			WHERE file.id = $1::int
@@ -124,7 +112,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		}
 
 		violatorId = checkId.user_id;
-		referenceText = checkId.name;
+		referenceText = checkId.caption;
 		referenceUrl = `${constants.USER_FILE_DIR}${violatorId}/${checkId.file_id}`;
 	}
 	else if (type === types.townFlag)
@@ -137,7 +125,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 
 		if (!checkId)
 		{
-			throw new UserError('no-such-tune');
+			throw new UserError('no-such-pattern');
 		}
 
 		violatorId = checkId.user_id;
@@ -179,8 +167,9 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 	else if (type === types.map || type === types.town)
 	{
 		const [checkId] = await db.query(`
-			SELECT id, name, user_id
+			SELECT town.id, town.name, town.user_id, file.file_id AS map_design_file_id
 			FROM town
+			LEFT JOIN file ON (file.id = town.map_design_file_id)
 			WHERE town.id = $1::int
 		`, referenceId);
 
@@ -197,13 +186,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		}
 		else if (type === types.map)
 		{
-			const [map] = await db.query(`
-				SELECT data_url
-				FROM map_design
-				WHERE map_design.town_id = $1::int
-			`, checkId.id);
-
-			referenceUrl = map.data_url;
+			referenceUrl = `${constants.USER_FILE_DIR}${checkId.user_id}/${checkId.map_design_file_id}`;
 		}
 	}
 	else if (type === types.character)
@@ -215,13 +198,12 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 			WHERE character.id = $1::int
 		`, referenceId);
 
-		violatorId = checkId.user_id;
-
 		if (!checkId)
 		{
 			throw new UserError('no-such-character');
 		}
 
+		violatorId = checkId.user_id;
 		referenceText = checkId.name;
 	}
 	else if (type === types.rating)
@@ -300,134 +282,147 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		referenceText = checkId.comment;
 		parentId = checkId.listing_id;
 	}
-	else if (type.startsWith('shop_'))
+	else if ([types.shopName, types.shopShortDescription, types.shopDescription, types.shopImage].includes(type))
 	{
-		if ([types.shopName, types.shopShortDescription, types.shopDescription, types.shopImage].includes(type))
+		const [checkId] = await db.query(`
+			SELECT
+				shop.name,
+				shop.short_description,
+				shop.description,
+				shop.description_format,
+				file.file_id,
+				shop_audit.user_id,
+				file.name AS filename
+			FROM shop
+			LEFT JOIN file ON (shop.header_file_id = file.id)
+			LEFT JOIN shop_audit ON (shop_audit.shop_id = shop.id AND shop_audit.value = $2)
+			WHERE shop.id = $1
+		`, referenceId, type);
+
+		if (!checkId)
 		{
-			const [checkId] = await db.query(`
-				SELECT
-					shop.name,
-					shop.short_description,
-					shop.description,
-					shop.description_format,
-					file.file_id,
-					shop_audit.user_id,
-					file.name AS filename
-				FROM shop
-				LEFT JOIN file ON (shop.header_file_id = file.id)
-				LEFT JOIN shop_audit ON (shop_audit.shop_id = shop.id AND shop_audit.value = $2)
-				WHERE shop.id = $1
-			`, referenceId, type);
-
-			if (!checkId)
-			{
-				throw new UserError('no-such-shop');
-			}
-
-			violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
-
-			if (type === types.shopName)
-			{
-				referenceText = checkId.name;
-			}
-			else if (type === types.shopShortDescription)
-			{
-				referenceText = checkId.short_description;
-			}
-			else if (type === types.shopDescription)
-			{
-				referenceText = checkId.description;
-				referenceFormat = checkId.description_format;
-			}
-			else if (type === types.shopImage)
-			{
-				referenceText = checkId.filename;
-				referenceUrl = `${constants.SHOP_FILE_DIR}${referenceId}/${checkId.file_id}`;
-			}
+			throw new UserError('no-such-shop');
 		}
-		else if ([types.shopServiceName, types.shopServiceDescription].includes(type))
+
+		violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
+
+		if (type === types.shopName)
 		{
-			const [checkId] = await db.query(`
-				SELECT name, description, shop_audit.user_id
-				FROM shop_service
-				LEFT JOIN shop_audit ON (shop_audit.shop_id = shop_service.shop_id AND shop_audit.value = $2)
-				WHERE shop_service.id = $1
-			`, referenceId, type);
-
-			if (!checkId)
-			{
-				throw new UserError('no-such-service');
-			}
-
-			violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
-
-			if (type === types.shopServiceName)
-			{
-				referenceText = checkId.name;
-			}
-			else if (type === types.shopServiceDescription)
-			{
-				referenceText = checkId.description;
-			}
+			referenceText = checkId.name;
 		}
-		else if ([types.shopRoleName, types.shopRoleDescription].includes(type))
+		else if (type === types.shopShortDescription)
 		{
-			const [checkId] = await db.query(`
-				SELECT name, description, shop_audit.user_id
-				FROM shop_role
-				LEFT JOIN shop_audit ON (shop_audit.shop_id = shop_role.shop_id AND shop_audit.value = $2)
-				WHERE shop_role.id = $1
-			`, referenceId, type);
-
-			if (!checkId)
-			{
-				throw new UserError('no-such-role');
-			}
-
-			violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
-
-			if (type === types.shopRoleName)
-			{
-				referenceText = checkId.name;
-			}
-			else if (type === types.shopRoleDescription)
-			{
-				referenceText = checkId.description;
-			}
+			referenceText = checkId.short_description;
 		}
-		else if ([types.shopOrder].includes(type))
+		else if (type === types.shopDescription)
 		{
-			const [checkId] = await db.query(`
-				SELECT comment, customer_id
-				FROM shop_order
-				WHERE shop_order.id = $1
-			`, referenceId);
-
-			if (!checkId)
-			{
-				throw new UserError('no-such-order');
-			}
-
-			violatorId = checkId.customer_id;
-			referenceText = checkId.comment;
+			referenceText = checkId.description;
+			referenceFormat = checkId.description_format;
 		}
-		else if ([types.shopApplication].includes(type))
+		else if (type === types.shopImage)
 		{
-			const [checkId] = await db.query(`
-				SELECT application, application_format, user_id
-				FROM shop_application
-				WHERE shop_application.id = $1
-			`, referenceId);
-
-			if (!checkId)
-			{
-				throw new UserError('no-such-application');
-			}
-
-			violatorId = checkId.user_id;
-			referenceText = checkId.application;
-			referenceFormat = checkId.application_format;
+			referenceText = checkId.filename;
+			referenceUrl = `${constants.SHOP_FILE_DIR}${referenceId}/${checkId.file_id}`;
 		}
+	}
+	else if ([types.shopServiceName, types.shopServiceDescription].includes(type))
+	{
+		const [checkId] = await db.query(`
+			SELECT name, description, shop_audit.user_id
+			FROM shop_service
+			LEFT JOIN shop_audit ON (shop_audit.shop_id = shop_service.shop_id AND shop_audit.value = $2)
+			WHERE shop_service.id = $1
+		`, referenceId, type);
+
+		if (!checkId)
+		{
+			throw new UserError('no-such-service');
+		}
+
+		violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
+
+		if (type === types.shopServiceName)
+		{
+			referenceText = checkId.name;
+		}
+		else if (type === types.shopServiceDescription)
+		{
+			referenceText = checkId.description;
+		}
+	}
+	else if ([types.shopRoleName, types.shopRoleDescription].includes(type))
+	{
+		const [checkId] = await db.query(`
+			SELECT name, description, shop_audit.user_id
+			FROM shop_role
+			LEFT JOIN shop_audit ON (shop_audit.shop_id = shop_role.shop_id AND shop_audit.value = $2)
+			WHERE shop_role.id = $1
+		`, referenceId, type);
+
+		if (!checkId)
+		{
+			throw new UserError('no-such-role');
+		}
+
+		violatorId = checkId.user_id ? checkId.user_id : constants.accUserId;
+
+		if (type === types.shopRoleName)
+		{
+			referenceText = checkId.name;
+		}
+		else if (type === types.shopRoleDescription)
+		{
+			referenceText = checkId.description;
+		}
+	}
+	else if ([types.shopOrder].includes(type))
+	{
+		const [checkId] = await db.query(`
+			SELECT comment, customer_id
+			FROM shop_order
+			WHERE shop_order.id = $1
+		`, referenceId);
+
+		if (!checkId)
+		{
+			throw new UserError('no-such-order');
+		}
+
+		violatorId = checkId.customer_id;
+		referenceText = checkId.comment;
+	}
+	else if ([types.shopApplication].includes(type))
+	{
+		const [checkId] = await db.query(`
+			SELECT application, application_format, user_id
+			FROM shop_application
+			WHERE shop_application.id = $1
+		`, referenceId);
+
+		if (!checkId)
+		{
+			throw new UserError('no-such-application');
+		}
+
+		violatorId = checkId.user_id;
+		referenceText = checkId.application;
+		referenceFormat = checkId.application_format;
+	}
+	else if (type === types.articleComment)
+	{
+		const [checkId] = await db.query(`
+			SELECT comment, user_id
+			FROM newsletter_article_comment
+			WHERE newsletter_article_comment.id = $1::int
+		`, referenceId);
+
+		if (!checkId)
+		{
+			throw new UserError('no-such-newsletter-article-comment');
+		}
+
+		violatorId = checkId.user_id;
+		referenceText = checkId.comment;
 	}
 	else if (type.startsWith('profile_'))
 	{
@@ -487,7 +482,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 	}
 
 	// Perform queries
-	const successImage = `${constants.AWS_URL}/images/icons/icon_check.png`;
+	const successImage = constants.allImages['icons/icon_check.png'];
 
 	const notificationTypes = constants.notification.types;
 
@@ -499,11 +494,11 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		LIMIT 1
 	`, referenceId, typeId.id);
 
-	let newUserTicket = false, assigneeId = null;
+	let newUserTicket = false, assigneeId: number | null = null;
 
 	if (!currentUserTicket)
 	{
-		const [processUserTickets, processModTickets, violator] = await Promise.all([
+		const [processUserTickets, processModTickets, violator]: [boolean, boolean, UserType] = await Promise.all([
 			this.query('v1/permission', { permission: 'process-user-tickets', user: this.userId }),
 			this.query('v1/permission', { permission: 'process-mod-tickets', user: this.userId }),
 			this.query('v1/user', { id: violatorId }),
@@ -511,6 +506,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 
 		const staffIdentifiers = constants.staffIdentifiers;
 
+		// if you have the ability to process UTs and the violator is not a modmin or it is and you can process modmin tickets
 		if (
 			processUserTickets && (![
 				staffIdentifiers.mod,
@@ -523,7 +519,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 			].includes(violator.group.identifier) && processModTickets)
 		)
 		{
-			assigneeId = this.userId;
+			assigneeId = this.userId as number;
 		}
 
 		[currentUserTicket] = await db.query(`
@@ -554,6 +550,7 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		VALUES ($1::int, $2::int)
 	`, currentUserTicket.id, this.userId);
 
+	// notify modmins only if UT isn't assigned
 	if (assigneeId === null)
 	{
 		if (newUserTicket)
@@ -576,6 +573,11 @@ async function report(this: APIThisType, { referenceId, type }: reportProps): Pr
 		_successImage: successImage,
 	};
 }
+
+report.permissions = [
+	'report-content',
+	'userId',
+];
 
 report.apiTypes = {
 	referenceId: {

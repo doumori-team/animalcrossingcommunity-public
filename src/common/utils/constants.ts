@@ -1,9 +1,17 @@
 // This file is for any constants that are useful throughout the site.
 // No dependencies should be added.
 
-export const LIVE_SITE = process.env.HEROKU_APP_NAME === 'animalcrossingcommunity';
+const isServer = typeof window === 'undefined';
 
-export const SITE_URL = LIVE_SITE ? 'https://www.animalcrossingcommunity.com' : process.env.HEROKU_APP_NAME === 'acc-test' ? 'http://localhost:5000' : `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`;
+const appName = isServer
+	? process.env.VITE_APP_NAME
+	: import.meta.env.VITE_APP_NAME;
+
+export const LIVE_SITE = appName === 'animalcrossingcommunity';
+
+export const SITE_URL = LIVE_SITE ? 'https://www.animalcrossingcommunity.com' : appName === 'acc-local' ? 'http://localhost:3000' : appName === 'animalcrossingcommunity-staging' ? 'https://staging.animalcrossingcommunity.com' : `https://${appName}.fly.dev`;
+
+export const WS_URL = LIVE_SITE ? 'www.animalcrossingcommunity.com' : appName === 'acc-local' ? 'localhost:3000' : appName === 'animalcrossingcommunity-staging' ? 'https://staging.animalcrossingcommunity.com' : `${appName}.fly.dev`;
 
 export const AWS_URL = 'https://cdn-s3.animalcrossingcommunity.com';
 
@@ -15,11 +23,17 @@ export const SHOP_FILE_DIR = LIVE_SITE ? `${AWS_URL}/images/shops/` : `${AWS_URL
 
 export const SHOP_FILE_DIR2 = LIVE_SITE ? `images/shops/` : `images/stage/shops/`;
 
-// Update this with each release
-export const version = '2.4.2';
+export const NEWSLETTER_FILE_DIR = `${AWS_URL}/newsletters/`;
 
-// used for invalidating cache with heroku preboot
-export const lastVersion = '2.4.1';
+export const NEWSLETTER_IMAGE_FILE_DIR = LIVE_SITE ? `${AWS_URL}/images/newsletters/` : `${AWS_URL}/images/stage/newsletters/`;
+
+export const NEWSLETTER_IMAGE_FILE_DIR2 = LIVE_SITE ? `images/newsletters/` : `images/stage/newsletters/`;
+
+// Update this with each release
+export const version = '2.5.9';
+
+// used for invalidating cache with rolling release
+export const lastVersion = '2.5.8';
 
 export const gameIds = {
 	ACGC: 1,
@@ -58,8 +72,10 @@ export const regexes = {
 	dodoCode: '^[0-9A-Z]{5}$',
 	// Retrieves the secret code (AC:GC) regex
 	secretCode: '^[0-9A-Za-zA&#%@!]{14} [0-9A-Za-zA&#%@!]{14}$',
+	// Note: 'test-user' and other test accounts aren't detected
 	userTag: '@(\\w+)',
 	userTag2: '^@(\\w+)|\\s@(\\w+)',
+	userTag3: /@(\w+)/g,
 	username: '([A-Za-z0-9_]+)',
 	parseEmail: /[^< ]+(?=>)/g,
 	base64: /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/,
@@ -101,6 +117,7 @@ export const boardIds = {
 	adopteeBT: 400000001,
 	ggBoard: 200000137,
 	publicThreads: 200000096,
+	staffThreads: 200000196,
 	archivedBoards: 300000001,
 	trading: 300000008,
 	archivedStaffBoards: 300000004,
@@ -173,6 +190,7 @@ export const max = {
 	boardTitle: 50,
 	boardDescription: 400,
 	imagesPost: 4,
+	imagesThread: 24,
 	imagesProfile: 12,
 	imageCaption: 200,
 	shopName: 50,
@@ -189,11 +207,18 @@ export const max = {
 	towns: 30,
 	supportEmailBody: 8000,
 	donationAmount: 5000,
+	newsletterArticleName: 100,
+	newsletterArticleContent: 20000,
+	newsletterArticleQuestion: 500,
+	newsletterArticleAnswer: 100,
+	newsletterArticleSilhouetteAnswer: 500,
+	newsletterArticleSilhouetteAnswerAdditional: 500,
 };
 
 export const min = {
 	username: 3,
 	number: 1,
+	donationAmount: 5,
 };
 
 export const pattern = {
@@ -378,6 +403,7 @@ export const userTicket = {
 		shopRoleDescription: 'shop_role_description',
 		shopOrder: 'shop_order',
 		shopApplication: 'shop_application',
+		articleComment: 'article_comment',
 	},
 	actions: {
 		noAction: 'no_action',
@@ -462,6 +488,11 @@ export const notification = {
 		shopOrder: 'shop_order',
 		shopApplication: 'shop_application',
 		donationReminder: 'donation_reminder',
+		postQuote: 'post_quote',
+		postReaction: 'post_reaction',
+		avatarCleared: 'avatar_cleared',
+		badge: 'badge',
+		FT_edit: 'followed_thread_edit',
 	},
 };
 
@@ -491,6 +522,7 @@ export const bellShop = {
 		avatarCharactersId: 3,
 		avatarBackgroundsId: 2,
 		avatarAccentsId: 1,
+		reactionsId: 5,
 	},
 	giftBellLimit: 10000,
 };
@@ -502,6 +534,56 @@ export const shops = {
 		applications: 'applications',
 		threads: 'threads',
 	},
+};
+
+export const badges = {
+	tenpatterns: 1,
+	totpd: 2,
+	seasons: 3,
+	admin: 4,
+	mod: 5,
+	dev: 6,
+	researcher: 7,
+	scout: 8,
+	oneyear: 9,
+	fiveyears: 10,
+	tenyears: 11,
+	twentyyears: 12,
+	fiftykbellsday: 13,
+	onedonater: 14,
+	twodonater: 15,
+	threedonater: 16,
+	acc2: 17,
+	tentunes: 18,
+	townallgames: 19,
+	tentrades: 20,
+	top5bells: 21,
+	tenbellshop: 22,
+	tenorderedshop: 23,
+	tenbuddies: 24,
+	gcitems: 25,
+	wwitems: 26,
+	cfitems: 27,
+	nlitems: 28,
+	nhitems: 29,
+	pcitems: 30,
+	rwitems: 31,
+	tengiftsbellshop: 32,
+	tendeliveredshop: 33,
+	adopted: 34,
+	sitediscussion: 35,
+	pushnotifications: 36,
+	threadstickied: 37,
+	special: 38,
+	reportbug: 39,
+	suggestion: 40,
+	tenmuseum: 41,
+	tencreatorthreads: 42,
+	// tenthreads: 43, -- unused
+	tenratings: 44,
+	tenwelcomes: 45,
+	southernhemisphere: 46,
+	event: 47,
 };
 
 // OTHER //
@@ -641,6 +723,11 @@ export const reverseOptions = [
 	{ id: true, name: 'Backward' },
 ];
 
+export const bellTypeOptions = [
+	{ id: 'all', name: 'All Time' },
+	{ id: 'seasonal', name: 'Seasonal' },
+];
+
 export const bellThreshold = 10;
 
 export const months = [
@@ -668,6 +755,7 @@ export const nodePermissions = {
 	move: 7,
 	addUsers: 8,
 	removeUsers: 9,
+	react: 10,
 };
 
 export const ggBoardAge = 16;
@@ -694,6 +782,8 @@ export const approvedURLs = [
 	'https://accommunity-staging.herokuapp.com',
 	'https://cdn-s3.animalcrossingcommunity.com',
 	'https://accommunity-staging.autoidleapp.com',
+	'https://staging.animalcrossingcommunity.com',
+	'https://financial.animalcrossingcommunity.com',
 ];
 
 export const launchDate = '2023-09-25';
@@ -731,6 +821,9 @@ export const cacheKeys = {
 	games: 'v1/games', // cleared when saving / destroying games (Game Admin page)
 	acGame: 'v1/acgame', // never force cleared
 	siteSetting: 'v1/site_setting', // never force cleared
+	newsletter: 'v1/newsletter', // cleared when saving / destroying / publishing newsletter
+	featureCategories: 'v1/feature/categories',
+	featureStatuses: 'v1/feature/statuses',
 };
 
 export const cacheKeysACData = {
@@ -753,3 +846,25 @@ export const cacheKeysACData = {
 	indexedAvatarCharacters: 'indexedAvatarCharacters',
 	indexedAvatarColorations: 'indexedAvatarColorations',
 };
+
+export const webSocketTypes = {
+	notification: 'notification',
+	post: 'post',
+};
+
+const allImagesModules = import.meta.glob(
+	'/src/client/images/**/*',
+	{
+		eager: true,
+		query: '?url',
+		import: 'default',
+	},
+);
+
+export const allImages = Object.fromEntries(
+	Object.entries(allImagesModules).map(([path, url]) =>
+	{
+		const relative = path.replace('/src/client/images/', '');
+		return [relative, url as string];
+	}),
+);

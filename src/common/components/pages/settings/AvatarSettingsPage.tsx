@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireClientJS } from '@behavior';
 import AvatarSelector from '@/components/settings/AvatarSelector.tsx';
@@ -149,6 +149,7 @@ const AvatarSettingsPage = ({ loaderData }: { loaderData: AvatarSettingsPageProp
 									elements={characters}
 									currElement={previewCharacter}
 									elementType='character'
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									onElementChange={(character: any) => setPreviewCharacter(character)}
 									tags={characterTags}
 								/>
@@ -175,7 +176,9 @@ const AvatarSettingsPage = ({ loaderData }: { loaderData: AvatarSettingsPageProp
 									currElement={previewAccent}
 									elementType='accent'
 									currAccentPosition={previewAccentPosition}
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									onAccentPositionChange={(e: any) => setPreviewAccentPosition(Number(e.target.value))}
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									onElementChange={(accent: any) => setPreviewAccent(!accent ? null : accent)}
 									tags={accentTags}
 								/>
@@ -204,6 +207,7 @@ const AvatarSettingsPage = ({ loaderData }: { loaderData: AvatarSettingsPageProp
 									colorations={colorations}
 									currColoration={previewColoration}
 									onColorationChange={handleColorationChange}
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									onElementChange={(background: any) => setPreviewBackground(background)}
 									tags={backgroundTags}
 								/>
@@ -216,11 +220,11 @@ const AvatarSettingsPage = ({ loaderData }: { loaderData: AvatarSettingsPageProp
 	);
 };
 
-async function loadData(this: APIThisType): Promise<AvatarSettingsPageProps>
+async function loadData(this: APIThisType, _: Params, { debug }: { debug?: string }): Promise<AvatarSettingsPageProps>
 {
 	const [avatar, avatars] = await Promise.all([
 		this.query('v1/users/avatar'),
-		this.query('v1/avatars'),
+		this.query('v1/avatars', { debug }),
 	]);
 
 	return {

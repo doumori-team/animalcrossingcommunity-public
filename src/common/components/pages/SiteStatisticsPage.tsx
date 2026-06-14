@@ -1,3 +1,4 @@
+import { Params } from 'react-router';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 
 import { RequireUser } from '@behavior';
@@ -61,7 +62,7 @@ const SiteStatisticsPage = ({ loaderData }: { loaderData: SiteStatisticsPageProp
 							<Tooltip />
 							<Legend />
 							{lineGraphStats.lines.map(name =>
-								<Line type='monotone' dataKey={name} stroke={utils.getRandomColor()} key={name} />,
+								<Line type='monotone' dataKey={name} stroke={utils.getRandomDarkColor()} key={name} />,
 							)}
 						</LineChart>
 						<h2>Stats Each Year:</h2>
@@ -83,7 +84,7 @@ const SiteStatisticsPage = ({ loaderData }: { loaderData: SiteStatisticsPageProp
 								<YAxis type='number' />
 								<Tooltip />
 								<Legend />
-								<Bar dataKey={s.name} fill={utils.getRandomColor()} />
+								<Bar dataKey={s.name} fill={utils.getRandomDarkColor()} />
 							</BarChart>,
 						)}
 					</RequireLargeScreen>
@@ -93,7 +94,7 @@ const SiteStatisticsPage = ({ loaderData }: { loaderData: SiteStatisticsPageProp
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { date }: { date?: string }): Promise<SiteStatisticsPageProps>
+async function loadData(this: APIThisType, _: Params, { date }: { date?: string }): Promise<SiteStatisticsPageProps>
 {
 	const [returnValue] = await Promise.all([
 		this.query('v1/analytics/stats', {

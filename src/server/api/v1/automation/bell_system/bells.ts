@@ -1,6 +1,5 @@
 import * as db from '@db';
 import { UserError } from '@errors';
-import { constants } from '@utils';
 import * as APITypes from '@apiTypes';
 import { APIThisType, SuccessType, UserType } from '@types';
 
@@ -9,17 +8,6 @@ import { APIThisType, SuccessType, UserType } from '@types';
  */
 async function bells(this: APIThisType, { action, amount }: bellsProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 	if (amount % 100 !== 0)
 	{
@@ -54,9 +42,9 @@ async function bells(this: APIThisType, { action, amount }: bellsProps): Promise
 		`, this.userId, amount, 'amount');
 	}
 
-	await db.regenerateTopBells({ userId: this.userId });
+	await db.regenerateTopBells({ userId: this.userId as number });
 
-	const [updatedUser] = await Promise.all([
+	const [updatedUser]: [UserType] = await Promise.all([
 		this.query('v1/user', { id: this.userId }),
 	]);
 
@@ -73,6 +61,11 @@ async function bells(this: APIThisType, { action, amount }: bellsProps): Promise
 		};
 	}
 }
+
+bells.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 bells.apiTypes = {
 	action: {

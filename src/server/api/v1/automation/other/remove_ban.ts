@@ -9,17 +9,6 @@ import { APIThisType, SuccessType } from '@types';
  */
 async function remove_ban(this: APIThisType, { username }: removeBanProps): Promise<SuccessType>
 {
-	// You must be logged in and on a test site
-	if (constants.LIVE_SITE)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	// Check parameters
 
 	const [user] = await db.query(`
@@ -45,6 +34,11 @@ async function remove_ban(this: APIThisType, { username }: removeBanProps): Prom
 		_success: `The ban has been removed!`,
 	};
 }
+
+remove_ban.permissions = [
+	'TEST_SITE',
+	'userId',
+];
 
 remove_ban.apiTypes = {
 	username: {

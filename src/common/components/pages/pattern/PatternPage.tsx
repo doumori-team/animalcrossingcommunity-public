@@ -13,13 +13,13 @@ export const action = routerUtils.formAction;
 const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 {
 	const [toggleTransparent, setToggleTransparent] = useState<boolean>(false);
-	const [toggleColor, setToggleColor] = useState<any>([]);
+	const [toggleColor, setToggleColor] = useState<string[]>([]);
 
 	const { pattern } = loaderData;
 
 	// Convert the 1D array to 2D array for printing
 	// also record all unique colors included in the pattern
-	let decoded: any = [], includedColors: any = [], transparentIncluded = false;
+	let decoded: string[][] = [], includedColors: (number | string)[] = [], transparentIncluded = false;
 
 	for (let i = 0; i < constants.pattern.paletteLength; i++)
 	{
@@ -49,6 +49,7 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 
 	// start off with the colors in the palette
 	const palettes = utils.getPatternPalettes(pattern.gameId);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const orgPalette = [...(palettes as any)[pattern.paletteId - 1].colors];
 	let palette = [...orgPalette];
 
@@ -56,7 +57,7 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 	// change out any colors that aren't used for ones that are
 
 	// what colors are in the pattern that isn't in the palette
-	const incColors = includedColors.filter((x: any) => !palette.includes(x));
+	const incColors = includedColors.filter(x => !palette.includes(x));
 
 	if (incColors.length > 0)
 	{
@@ -87,7 +88,7 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 	// changed, so the color number doesn't matter and thus is 1-15. However
 	// there isn't a game lookup for NL colors, so we give an image of all
 	// the colors numbers and use that for the numbers.
-	let indexes: any = [];
+	let indexes: number[] = [];
 	let i = 1;
 	const colors = utils.getPatternColors(pattern.gameId);
 
@@ -95,6 +96,7 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 	{
 		if (pattern.gameId === constants.gameIds.ACNL)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			indexes[key] = (colors as any).indexOf(palette[key]) + 1;
 		}
 		else
@@ -155,11 +157,11 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 						<RequireLargeScreen size='657'>
 							<div className='PatternPage_copyPattern'>
 								<div className='PatternPage_pattern'>
-									{decoded.map((inner: any, key: any) =>
+									{decoded.map((inner, key: number) =>
 									{
 										return (
 											<div key={key} className='PatternPage_gridRow'>
-												{inner.map((rgb: any, index: any) =>
+												{inner.map((rgb, index: number) =>
 												{
 													let number = -1;
 
@@ -232,6 +234,7 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 											// grab hue, vividness, brightness if NH
 											else if (pattern.gameId === constants.gameIds.ACNH && orgPalette.indexOf(rgb) < 0)
 											{
+												// eslint-disable-next-line @typescript-eslint/no-explicit-any
 												let patternColor = (colorInfo as any).find((c: any) => c.hex === rgb);
 												addInfo = `Hue: ${patternColor.hue}
 													Vividness: ${patternColor.vividness}
@@ -278,7 +281,7 @@ const PatternPage = ({ loaderData }: { loaderData: PatternPageProps }) =>
 								</div>
 
 								{pattern.gameId === constants.gameIds.ACNL &&
-									<img src={`${constants.AWS_URL}/images/pattern/acnl_color_reference.jpg`}
+									<img src={constants.allImages['pattern/acnl_color_reference.jpg']}
 										alt='AC:NL Color Reference'
 										className='PatternPage_nlColorReference'
 									/>

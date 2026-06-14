@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser, RequirePermission } from '@behavior';
 import Pattern from '@/components/pattern/Pattern.tsx';
@@ -14,12 +14,14 @@ const PatternsPage = ({ loaderData }: { loaderData: PatternsPageProps }) =>
 	const { totalCount, patterns, page, name, creator, pageSize, published,
 		favorite, acgames, games } = loaderData;
 
-	const link = `&creator=${encodeURIComponent(creator)}
-		&name=${encodeURIComponent(name)}
-		&published=${encodeURIComponent(published)}
-		&favorite=${encodeURIComponent(favorite)}
-		&games=${encodeURIComponent(games.join(','))}
-	`;
+	const params = new URLSearchParams();
+	params.set('creator', creator);
+	params.set('name', name);
+	params.set('published', published);
+	params.set('favorite', favorite);
+	games.forEach(g => params.append('games', String(g)));
+
+	const link = '&' + params.toString();
 
 	return (
 		<div className='PatternsPage'>
@@ -87,7 +89,7 @@ const PatternsPage = ({ loaderData }: { loaderData: PatternsPageProps }) =>
 
 				<Section>
 					<Grid name='pattern' options={patterns}>
-						{patterns.map((pattern: any, index: any) =>
+						{patterns.map((pattern, index: number) =>
 							<Pattern key={index} pattern={pattern} />,
 						)}
 					</Grid>
@@ -105,7 +107,7 @@ const PatternsPage = ({ loaderData }: { loaderData: PatternsPageProps }) =>
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, name, creator, published, favorite, games }: { page?: string, name?: string, creator?: string, published?: string, favorite?: string, games?: string }): Promise<PatternsPageProps>
+async function loadData(this: APIThisType, _: Params, { page, name, creator, published, favorite, games }: { page?: string, name?: string, creator?: string, published?: string, favorite?: string, games?: string }): Promise<PatternsPageProps>
 {
 	const [acgames, returnValue] = await Promise.all([
 		this.query('v1/acgames'),

@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { RequireUser } from '@behavior';
+import { RequireUser, RequirePermission } from '@behavior';
 import Clock from '@/components/layout/Clock.tsx';
 import { dateUtils, constants } from '@utils';
 import DonateButton from '@/components/layout/DonateButton.tsx';
@@ -13,7 +13,7 @@ const SiteFooter = () =>
 		<footer className='SiteFooter'>
 			<div className='SiteFooter_gridContainer'>
 				<section className='SiteFooter_section'>
-					<h1 className='SiteFooter_heading'>Community</h1>
+					<h2 className='SiteFooter_heading'>Community</h2>
 					<p><Clock /></p>
 					<nav>
 						<Link to='/faq' className='SiteFooter_link'>FAQ</Link>
@@ -26,7 +26,7 @@ const SiteFooter = () =>
 				</section>
 
 				<section className='SiteFooter_section'>
-					<h1 className='SiteFooter_heading'>Legal</h1>
+					<h2 className='SiteFooter_heading'>Legal</h2>
 					<nav>
 						<Link to='/legal/policies' className='SiteFooter_link'>Policies</Link>
 						{' • '}<Link to='/legal/privacy' className='SiteFooter_link'>Privacy Policy</Link>
@@ -35,15 +35,17 @@ const SiteFooter = () =>
 					<nav>
 						<Link to='/legal/terms' className='SiteFooter_link'>TOS</Link>
 						{' • '}<Link to='/legal/coppa' className='SiteFooter_link'>About COPPA</Link>
-						{' • '}<a href='http://financial.animalcrossingcommunity.com' className='SiteFooter_link'>Financial</a>
+						{' • '}<a href='https://financial.animalcrossingcommunity.com' className='SiteFooter_link'>Financial</a>
 					</nav>
 				</section>
 
 				<section className='SiteFooter_section'>
-					<h1 className='SiteFooter_heading'>Etc.</h1>
+					<h2 className='SiteFooter_heading'>Etc.</h2>
 					<nav>
 						<Link to='/honorary-citizens' className='SiteFooter_link'>Honorary Citizens</Link>
-						{' • '}<a href='http://newsletter.animalcrossingcommunity.com' className='SiteFooter_link'>Newsletter</a>
+						<RequirePermission permission='view-newsletter' silent>
+							{' • '}<Link to='/newsletters' className='SiteFooter_link'>Newsletter</Link>
+						</RequirePermission>
 					</nav>
 					<nav>
 						<Link to='/credits' className='SiteFooter_link'>Acknowledgements</Link>
@@ -53,30 +55,55 @@ const SiteFooter = () =>
 					</nav>
 					<nav>
 						<a href='https://ACCommunity.redbubble.com' className='SiteFooter_link'>Merchandise</a>
+						{' • '}<a href='https://apps.apple.com/us/developer/doumori-llc/id1864603876' className='SiteFooter_link'>iOS Apps</a>
 					</nav>
 					<div>
 						<span>Follow ACC on: </span>
+
 						<a href='https://www.facebook.com/animalcrossingcommunity'>
-							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_fb.png`}
-								srcSet={`${constants.AWS_URL}/images/layout/social_media_fb.png 1x, ${constants.AWS_URL}/images/layout/social_media_fb@2x.png 2x`}
+							<img
+								className='SiteFooter_socialIcon'
+								src={constants.allImages['layout/social_media_fb.png']}
+								srcSet={`
+									${constants.allImages['layout/social_media_fb.png']} 1x,
+									${constants.allImages['layout/social_media_fb@2x.png']} 2x
+								`}
 								alt='Follow ACC on Facebook'
 							/>
 						</a>
+
 						<a href='https://www.instagram.com/animal.crossing.community'>
-							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_insta.png`}
-								srcSet={`${constants.AWS_URL}/images/layout/social_media_insta.png 1x, ${constants.AWS_URL}/images/layout/social_media_insta@2x.png 2x`}
+							<img
+								className='SiteFooter_socialIcon'
+								src={constants.allImages['layout/social_media_insta.png']}
+								srcSet={`
+									${constants.allImages['layout/social_media_insta.png']} 1x,
+									${constants.allImages['layout/social_media_insta@2x.png']} 2x
+								`}
 								alt='Follow ACC on Instagram'
 							/>
 						</a>
+
 						<a href='https://bsky.app/profile/accommunity.bsky.social'>
-							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_blsk.png`}
-								srcSet={`${constants.AWS_URL}/images/layout/social_media_blsk.png 1x, ${constants.AWS_URL}/images/layout/social_media_blsk@2x.png 2x`}
+							<img
+								className='SiteFooter_socialIcon'
+								src={constants.allImages['layout/social_media_blsk.png']}
+								srcSet={`
+									${constants.allImages['layout/social_media_blsk.png']} 1x,
+									${constants.allImages['layout/social_media_blsk@2x.png']} 2x
+								`}
 								alt='Follow ACC on Bluesky'
 							/>
 						</a>
+
 						<a href='https://www.youtube.com/@animalcrossingcommunity'>
-							<img className='SiteFooter_socialIcon' src={`${constants.AWS_URL}/images/layout/social_media_yt.png`}
-								srcSet={`${constants.AWS_URL}/images/layout/social_media_yt.png 1x, ${constants.AWS_URL}/images/layout/social_media_yt@2x.png 2x`}
+							<img
+								className='SiteFooter_socialIcon'
+								src={constants.allImages['layout/social_media_yt.png']}
+								srcSet={`
+									${constants.allImages['layout/social_media_yt.png']} 1x,
+									${constants.allImages['layout/social_media_yt@2x.png']} 2x
+								`}
 								alt='Follow ACC on YouTube'
 							/>
 						</a>

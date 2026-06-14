@@ -7,14 +7,14 @@ import { utils, constants, routerUtils } from '@utils';
 import { UserContext } from '@contexts';
 import { Pagination, Header, Section, Grid, Markup } from '@layout';
 import Avatar from '@/components/nodes/Avatar.tsx';
-import { APIThisType, UserBellShopItemType, BellShopCategoryType, ShopItemsType, UserDonationsType } from '@types';
+import { APIThisType, UserBellShopItemType, BellShopCategoryType, ShopItemsType, UserDonationsType, BellShopPackType } from '@types';
 
 export const action = routerUtils.formAction;
 
 const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 {
 	const { categories, categoryItems, page, pageSize, totalCount, userItems,
-		selectedCategoryId, sortBy, groupBy, tags, userDonations } = loaderData;
+		selectedCategoryId, sortBy, groupBy, tags, userDonations, categoryPacks } = loaderData;
 
 	const [curUserItems, setCurUserItems] = useState<UserBellShopItemType['itemId'][]>(userItems ? userItems : []);
 
@@ -59,6 +59,101 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 								</Grid>
 							</Section>
 
+							{selectedCategoryId > 0 && categoryPacks.length > 0 &&
+								<Section>
+									<Grid name='pack' options={categoryPacks !== null ? categoryPacks : []}>
+										{categoryPacks && categoryPacks.map((pack: BellShopPackType) =>
+										{
+											let packPrice = 0;
+
+											pack.items.map((item: BellShopPackType['items'][number]) =>
+											{
+												item.prices.map((price: ShopItemsType['results'][number]['prices'][number]) =>
+												{
+													if (price.isBells && !curUserItems.includes(item.id))
+													{
+														let itemPrice = price.nonFormattedPrice;
+
+														if (userDonations.monthlyPerks >= 5 && userDonations.monthlyPerks < 10)
+														{
+															itemPrice = itemPrice - Math.ceil(itemPrice * 0.05);
+														}
+														else if (userDonations.monthlyPerks >= 10)
+														{
+															itemPrice = itemPrice - Math.ceil(itemPrice * 0.10);
+														}
+
+														packPrice += itemPrice;
+													}
+												});
+											});
+
+											let newPrice = packPrice - packPrice * 0.20;
+
+											if (newPrice > 100)
+											{
+												packPrice = newPrice;
+											}
+
+											return (
+												<div className='BellShopPage_pack' key={pack.name}>
+													<div className='BellShopPage_packItems'>
+														{pack.items.map(item =>
+															<img
+																key={item.id}
+																className={curUserItems.includes(item.id) ? 'BellShopPage_image BellShopPage_imageRedeemed' : 'BellShopPage_image'}
+																src={`${constants.AWS_URL}${item.image}`}
+																alt={item.name}
+																title={item.name}
+															/>,
+														)}
+													</div>
+
+													<div className='BellShopPage_packName'>
+														{pack.name} Pack
+													</div>
+
+													<div className='BellShopPage_prices'>
+														<>
+															{pack.items.every(x => curUserItems.includes(x.id)) ?
+																<Button
+																	label='Redeemed!'
+																	className='BellShopPage_button BellShopPage_redeemed'
+																	disabled
+																/>
+																:
+																currentUser.nonFormattedTotalBells - packPrice < 0 ?
+																	<Button
+																		label={`Redeem for ${`${packPrice.toLocaleString()} Bells`}`}
+																		className='BellShopPrice_noAfford BellShopPage_button'
+																		disabled
+																	/>
+																	:
+																	<Confirm
+																		action='v1/bell_shop/redeem_pack'
+																		callback={`/bell-shop/${selectedCategoryId}`}
+																		id={pack.name}
+																		additionalBody={
+																			<>
+																				<input type='hidden' name='categoryId' value={selectedCategoryId} />
+																			</>
+																		}
+																		label={`Redeem for ${`${packPrice.toLocaleString()} Bells`}`}
+																		message='Are you sure you want to redeem this pack?'
+																		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+																		updateFunction={(data: any) => setCurUserItems(data.map((ui: any) => ui.itemId))}
+																		formId={`bell-shop-redeem-${pack.name}`}
+																	/>
+															}
+														</>
+													</div>
+												</div>
+											);
+										})}
+									</Grid>
+								</Section>
+							}
+
 							{selectedCategoryId > 0 && sortBy !== null && groupBy !== null && page !== null && pageSize !== null && totalCount !== null &&
 								<Section>
 									<div className='BellShopPage_sort'>
@@ -100,10 +195,12 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 														label='Filters'
 														name='group'
 														hideLabels
-														options={tags}
+														options={[
+															{ id: '', name: 'All Filters' },
+														].concat(tags)}
 														optionsMapping={{ value: 'id', label: 'name' }}
-														placeholder='Select filters...'
 														value={groupBy}
+														// eslint-disable-next-line @typescript-eslint/no-explicit-any
 														changeHandler={(e: any) => e.target.form.submit()}
 													/>
 												</Form.Group>
@@ -128,8 +225,34 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 													<Avatar {...item.avatar} />
 												}
 
+												{item.image &&
+													<img
+														className='BellShopPage_image'
+														src={`${constants.AWS_URL}${item.image}`}
+														alt={item.name}
+														title={item.name}
+													/>
+												}
+
 												<div className='BellShopPage_name'>
+													{item.avatar && item.avatar.background && item.avatar.background.colorable &&
+														<img
+															className='BellShopPage_itemColorableIcon'
+															src={constants.allImages['bell_shop/icon_colorable.png']}
+															alt='Colorable'
+														/>
+													}
 													{item.name}
+													{item.game &&
+														<span className='BellShopPage_game'>
+															{item.game}
+														</span>
+													}
+													{item.subtitle &&
+														<span className='BellShopPage_subtitle'>
+															{item.subtitle}
+														</span>
+													}
 												</div>
 
 												{item.description &&
@@ -139,9 +262,11 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 													/>
 												}
 
-												<div className='BellShopPage_expires'>
-													Expires: {item.expires === null ? 'Never' : item.expires}
-												</div>
+												{item.expires !== null &&
+													<div className='BellShopPage_expires'>
+														Expires: {item.expires}
+													</div>
+												}
 
 												<div className='BellShopPage_prices'>
 													<>
@@ -165,6 +290,10 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 															{
 																itemPrice = itemPrice - Math.ceil(itemPrice * 0.10);
 															}
+
+															const canGift = price.isBells && price.nonFormattedPrice <= constants.bellShop.giftBellLimit;
+
+															const canAfford = currentUser.nonFormattedTotalBells - price.nonFormattedPrice >= 0;
 
 															return (
 																<Fragment key={`${item.id}-${price.id}`}>
@@ -190,28 +319,25 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 																				}
 																				label={`Redeem for ${`${itemPrice.toLocaleString()} ${price.currency}`}`}
 																				message='Are you sure you want to redeem this item?'
+																				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 																				updateFunction={(data: any) => setCurUserItems(data.map((ui: any) => ui.itemId))}
 																				formId={`bell-shop-redeem-${price.id}`}
 																			/>
-
 																	)}
 
-																	{price.isBells && price.nonFormattedPrice <= constants.bellShop.giftBellLimit && (
-																		currentUser.nonFormattedTotalBells - price.nonFormattedPrice < 0 ?
-																			<Button
-																				key={`${price.id}-gift`}
-																				label='Gift to User'
-																				className='BellShopPrice_noAfford BellShopPage_button'
-																				disabled
-																			/>
-																			:
-																			<RequireClientJS>
-																				<Link to={`/bell-shop/${item.id}/gift`} className='BellShopPage_button'>
-																					Gift to User
-																				</Link>
-																			</RequireClientJS>
-
-																	)}
+																	{!canAfford ?
+																		<Button
+																			label='Gift to User'
+																			className={`BellShopPage_button ${!canGift ? 'BellShopPage_hidden' : ''} ${!canAfford ? 'BellShopPrice_noAfford' : ''}`}
+																			disabled
+																		/>
+																		:
+																		<RequireClientJS>
+																			<Link to={`/bell-shop/${item.id}/gift`} className={`BellShopPage_button ${!canGift ? 'BellShopPage_hidden' : ''} ${!canAfford ? 'BellShopPrice_noAfford' : ''}`}>
+																				Gift to User
+																			</Link>
+																		</RequireClientJS>
+																	}
 																</Fragment>
 															);
 														})}
@@ -240,9 +366,9 @@ const BellShopPage = ({ loaderData }: { loaderData: BellShopPageProps }) =>
 
 async function loadData(this: APIThisType, { categoryId }: { categoryId: string }, { page, sort, group, debug }: { page?: string, sort?: string, group?: string, debug?: string }): Promise<BellShopPageProps>
 {
-	const selectedCategoryId = Number(categoryId || 0);
+	const selectedCategoryId = utils.safeNumber(categoryId);
 
-	const [categories, categoryItems, userItems, userDonations] = await Promise.all([
+	const [categories, categoryItems, userItems, userDonations, categoryPacks] = await Promise.all([
 		this.query('v1/bell_shop/categories'),
 		selectedCategoryId > 0 ? this.query('v1/bell_shop/items', {
 			page: page ? page : 1,
@@ -255,6 +381,10 @@ async function loadData(this: APIThisType, { categoryId }: { categoryId: string 
 			ignoreExpired: false,
 		}) : null,
 		this.query('v1/users/donations'),
+		selectedCategoryId > 0 ? this.query('v1/bell_shop/packs', {
+			categoryId: selectedCategoryId,
+			debug: debug,
+		}) : null,
 	]);
 
 	return {
@@ -269,6 +399,7 @@ async function loadData(this: APIThisType, { categoryId }: { categoryId: string 
 		groupBy: categoryItems?.groupBy,
 		tags: categoryItems?.tags,
 		userDonations,
+		categoryPacks,
 	};
 }
 
@@ -286,6 +417,7 @@ type BellShopPageProps = {
 	groupBy: ShopItemsType['groupBy'] | null
 	tags: ShopItemsType['tags'] | null
 	userDonations: UserDonationsType
+	categoryPacks: BellShopPackType[]
 };
 
 export default BellShopPage;

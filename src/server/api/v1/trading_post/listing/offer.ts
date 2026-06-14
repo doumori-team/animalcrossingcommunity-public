@@ -4,17 +4,10 @@ import { constants, dateUtils } from '@utils';
 import * as accounts from '@accounts';
 import * as APITypes from '@apiTypes';
 import { ACCCache } from '@cache';
-import { APIThisType, OfferType, ACGameItemType } from '@types';
+import { APIThisType, OfferType, ACGameItemType, UserBioType, UserType, UserRatingType, RatingType } from '@types';
 
 async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'use-trading-post' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	const [offer] = await db.query(`
 		SELECT
 			listing_offer.id,
@@ -71,7 +64,11 @@ async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 	const offerStatuses = constants.tradingPost.offerStatuses;
 	const listingStatuses = constants.tradingPost.listingStatuses;
 
-	const [items, bio, [offerAccepted], offerResidents, user, userRatings, rating] = await Promise.all([
+	const [items, bio, [offerAccepted], offerResidents, user, userRatings, rating]: [{
+		catalog_item_id: string
+		quantity: number
+		secret_code: string | null
+	}[], UserBioType | null, [{ user_id: number } | undefined], { resident_id: string }[], UserType, UserRatingType, RatingType | null] = await Promise.all([
 		db.query(`
 			SELECT
 				listing_offer_catalog_item.catalog_item_id,
@@ -98,7 +95,7 @@ async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 		offer.rating_id ? this.query('v1/rating', { id: offer.rating_id }) : null,
 	]);
 
-	let character: any = null;
+	let character: OfferType['character'] = null;
 
 	if (offer.character_id > 0)
 	{
@@ -123,7 +120,7 @@ async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 		address = (await accounts.getUserData(offer.user_id)).address;
 	}
 
-	const offerResidentIds = offerResidents.map((or: any) => or.resident_id);
+	const offerResidentIds = offerResidents.map(or => or.resident_id);
 
 	return <OfferType>{
 		id: offer.id,
@@ -132,16 +129,16 @@ async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 		formattedDate: dateUtils.formatDateTime(offer.created),
 		status: offer.status,
 		bells: Number(offer.bells),
-		items: items.map((item: any) =>
+		items: items.map(item =>
 		{
 			return {
 				id: item.catalog_item_id,
 				quantity: item.quantity,
 				secretCode: item.secret_code,
-				name: catalogItems.concat(realCatalogItems).find((ci: any) => ci.id === item.catalog_item_id)?.name,
+				name: catalogItems.concat(realCatalogItems).find(ci => ci.id === item.catalog_item_id)?.name,
 			};
 		}),
-		residents: offerResidentIds.length === 0 ? [] : (await ACCCache.get(constants.cacheKeys.residents))[offer.game_id].filter((r: any) => offerResidentIds.includes(r.id)),
+		residents: offerResidentIds.length === 0 ? [] : (await ACCCache.get(constants.cacheKeys.residents))[offer.game_id].filter(r => offerResidentIds.includes(r.id)),
 		comment: offer.comment,
 		rating: rating,
 		character: character,
@@ -150,9 +147,13 @@ async function offer(this: APIThisType, { id }: offerProps): Promise<OfferType>
 		completed: offer.completed,
 		failed: offer.failed,
 		address: address ? address : '',
-		bioLocation: this.userId ? bio.location : null,
+		bioLocation: bio ? bio.location : null,
 	};
 }
+
+offer.permissions = [
+	'use-trading-post',
+];
 
 offer.apiTypes = {
 	id: {

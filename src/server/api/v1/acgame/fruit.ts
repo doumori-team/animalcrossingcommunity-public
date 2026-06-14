@@ -1,19 +1,11 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { constants } from '@utils';
 import { APIThisType, FruitType } from '@types';
 
 async function fruit(this: APIThisType, { id }: fruitProps): Promise<FruitType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-towns' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const fruit = await db.cacheQuery(constants.cacheKeys.acGame, `
+	const fruit: { id: number, name: string, group: string }[] = await db.cacheQuery(constants.cacheKeys.acGame, `
 		SELECT
 			fruit.id,
 			fruit.name,
@@ -26,12 +18,16 @@ async function fruit(this: APIThisType, { id }: fruitProps): Promise<FruitType>
 
 	return {
 		all: fruit,
-		regular: fruit.filter((f: any) => f.group === 'regular'),
-		island1: fruit.filter((f: any) => f.group === 'island_1'),
-		island2: fruit.filter((f: any) => f.group === 'island_2'),
-		special: fruit.filter((f: any) => f.group === 'special'),
+		regular: fruit.filter(f => f.group === 'regular'),
+		island1: fruit.filter(f => f.group === 'island_1'),
+		island2: fruit.filter(f => f.group === 'island_2'),
+		special: fruit.filter(f => f.group === 'special'),
 	};
 }
+
+fruit.permissions = [
+	'modify-towns',
+];
 
 fruit.apiTypes = {
 	id: {

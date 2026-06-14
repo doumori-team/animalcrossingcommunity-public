@@ -40,6 +40,7 @@ async function email_needed(this: APIThisType, { id, email }: emailNeededProps):
 
 		throw new UserError('email-taken');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any)
 	{
 		if (error.name === 'UserError' && error.identifiers.includes('no-such-user'))

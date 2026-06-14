@@ -6,13 +6,6 @@ import { APIThisType, SupportEmailType } from '@types';
 
 async function support_email(this: APIThisType, { id }: supportEmailProps): Promise<SupportEmailType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'process-user-tickets' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
 	let [supportEmail] = await db.query(`
 		SELECT
 			support_email.id,
@@ -55,6 +48,10 @@ async function support_email(this: APIThisType, { id }: supportEmailProps): Prom
 		read: supportEmail.read,
 	};
 }
+
+support_email.permissions = [
+	'process-user-tickets',
+];
 
 support_email.apiTypes = {
 	id: {

@@ -1,5 +1,7 @@
 import { Link } from 'react-router';
 
+import { utils } from '@utils';
+
 const Breadcrumb = ({
 	segments,
 }: BreadcrumbProps) =>
@@ -13,7 +15,7 @@ const Breadcrumb = ({
 		<small className='Breadcrumb'>
 			{segments.map((segment, index) =>
 				<span key={segment.id || index}>
-					<Link to={segment.url || `/forums/${encodeURIComponent(Number(segment?.id || 0))}`}>
+					<Link to={segment.url || `/forums/${encodeURIComponent(utils.safeNumber(segment?.id))}`}>
 						{segment.title}
 					</Link> » </span>,
 			)}

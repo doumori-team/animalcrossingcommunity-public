@@ -14,7 +14,7 @@ async function users(this: APIThisType, { group }: usersProps): Promise<UserType
 		throw new UserError('bad-format');
 	}
 
-	const userIds = await db.query(`
+	const userIds: { id: number }[] = await db.query(`
 		SELECT users.id
 		FROM users
 		JOIN user_group ON (users.user_group_id = user_group.id)
@@ -26,7 +26,7 @@ async function users(this: APIThisType, { group }: usersProps): Promise<UserType
 		return [];
 	}
 
-	const users = await Promise.all(userIds.map(async(user: any) =>
+	const users = await Promise.all(userIds.map(async user =>
 	{
 		return this.query('v1/user', { id: user.id });
 	}));

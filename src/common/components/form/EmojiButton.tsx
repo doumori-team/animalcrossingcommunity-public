@@ -41,7 +41,15 @@ const EmojiButton = ({
 			title={tooltip}
 			{...interactivityAttributes}
 		>
-			<img src={`${constants.AWS_URL}/images/emoji/${src}${icon}.png`} alt={name} />
+			<img
+				className={src.includes('reaction') ? 'icon-reaction' : ''}
+				src={
+					constants.allImages[
+      					`emoji/${src}${icon}.png`
+					]
+				}
+				alt={name}
+			/>
 		</button>
 	);
 };

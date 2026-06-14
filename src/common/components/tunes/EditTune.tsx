@@ -1,3 +1,5 @@
+import { RequireClientJS } from '@behavior';
+import TuneEditor from '@/components/tunes/TuneEditor.tsx';
 import { Form, Check, Text } from '@form';
 import { TuneType, TownType } from '@types';
 import { utils, constants } from '@utils';
@@ -15,7 +17,7 @@ const EditTune = ({
 		callback = `/profile/${encodeURIComponent(userId)}/towns`;
 	}
 
-	let notes = [];
+	let notes: number[] = [];
 
 	if (tune && tune.notes && tune.notes.length > 0)
 	{
@@ -39,27 +41,37 @@ const EditTune = ({
 						value={tune ? tune.name : ''}
 						maxLength={constants.max.tuneName}
 						className='text-full'
+						required
 					/>
 				</Form.Group>
 
 				<h3>Notes:</h3>
-				{notes.map((note, index) =>
-					<div className='EditTune_notes' key={index}>
-						<Form.Group>
-							<Check
-								options={utils.getTownTunes()}
-								optionsMapping={{ id: 'id', name: 'name', filename: 'img_name' }}
-								name={`noteId${index}`}
-								defaultValue={[note]}
-								required
-								imageLocation='tunes'
-								useImageFilename
-								hideName
-								label={`Note #${index + 1}`}
-							/>
-						</Form.Group>
-					</div>,
-				)}
+
+				<RequireClientJS
+					fallback={
+						<>
+							{notes.map((note, index) =>
+								<div className='EditTune_notes' key={index}>
+									<Form.Group>
+										<Check
+											options={utils.getTownTunes()}
+											optionsMapping={{ id: 'id', name: 'name', filename: 'img_name' }}
+											name={`noteId${index}`}
+											defaultValue={[note]}
+											required
+											imageLocation='tunes'
+											useImageFilename
+											hideName
+											label={`Note #${index + 1}`}
+										/>
+									</Form.Group>
+								</div>,
+							)}
+						</>
+					}
+				>
+					<TuneEditor notes={notes} />
+				</RequireClientJS>
 			</Form>
 		</div>
 	);

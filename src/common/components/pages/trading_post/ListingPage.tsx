@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 
 import { RequireUser, RequireTestSite, RequirePermission } from '@behavior';
 import { Form, Check, Confirm, Select, Text, TextArea, RichTextArea } from '@form';
-import { constants, routerUtils } from '@utils';
+import { constants, routerUtils, utils } from '@utils';
 import Listing from '@/components/trading_post/Listing.tsx';
 import Offer from '@/components/trading_post/Offer.tsx';
 import Rating from '@/components/ratings/Rating.tsx';
@@ -34,7 +34,7 @@ const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 	{
 		const friendCodeCharacterIds = friendCodes
 			.filter(fc => fc.character && fc.character.game.id === game.id)
-			.map(fc => fc.character.id);
+			.map(fc => fc.character!.id);
 
 		filteredCharacters = characters
 			.filter(c => friendCodeCharacterIds.includes(c.id));
@@ -44,8 +44,8 @@ const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 		.map(x =>
 		{
 			return {
-				id: (constants.rating.configs as any)[x].id,
-				filename: (constants.rating.configs as any)[x].image,
+				id: constants.rating.configs[x].id,
+				filename: constants.rating.configs[x].image,
 			};
 		});
 
@@ -138,16 +138,11 @@ const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 															options={filteredCharacters}
 															optionsMapping={{
 																value: 'id',
-																label: (character: any) =>
-																{
-																	return (
-																		`${character.name} (${character.town.name})`
-																	);
-																},
+																label: (character: typeof filteredCharacters[number]) => `${character.name} (${character.town.name})`,
 															}}
 															useReactSelect
 															option={
-																(value: any) =>
+																(value: number) =>
 																{
 																	const character = filteredCharacters.find(c => c.id === value);
 
@@ -182,16 +177,11 @@ const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 															options={filteredCharacters}
 															optionsMapping={{
 																value: 'id',
-																label: (character: any) =>
-																{
-																	return (
-																		`${character.name} (${character.town.name})`
-																	);
-																},
+																label: (character: typeof filteredCharacters[number]) => `${character.name} (${character.town.name})`,
 															}}
 															useReactSelect
 															option={
-																(value: any) =>
+																(value: number) =>
 																{
 																	const character = filteredCharacters.find(c => c.id === value);
 
@@ -220,20 +210,20 @@ const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 												towns.length === 0 ?
 													<>
 														{'You have no towns set up. '}
-														<Link to={`/profile/${encodeURIComponent(Number(currentUser?.id || 0))}/towns/add`}>{'Click here'}</Link>
+														<Link to={`/profile/${encodeURIComponent(utils.safeNumber(currentUser?.id))}/towns/add`}>{'Click here'}</Link>
 														{' to setup a town.'}
 													</>
 													:
 													characters.length > 0 ?
 														<>
 															{'None of your current characters are associated with a friend code. '}
-															<Link to={`/profile/${encodeURIComponent(Number(currentUser?.id || 0))}/friend-codes`}>{'Click here'}</Link>
+															<Link to={`/profile/${encodeURIComponent(utils.safeNumber(currentUser?.id))}/friend-codes`}>{'Click here'}</Link>
 															{' to update your friend codes.'}
 														</>
 														:
 														<>
 															{'You have no characters set up. '}
-															<Link to={`/profile/${encodeURIComponent(Number(currentUser?.id || 0))}/characters/add`}>{'Click here'}</Link>
+															<Link to={`/profile/${encodeURIComponent(utils.safeNumber(currentUser?.id))}/characters/add`}>{'Click here'}</Link>
 															{' to add a new character.'}
 														</>
 
@@ -801,7 +791,7 @@ const ListingPage = ({ loaderData }: { loaderData: ListingPageProps }) =>
 
 async function loadData(this: APIThisType, { id }: { id: string }): Promise<ListingPageProps>
 {
-	const [listing, characters, games, towns, friendCodes, currentUserEmojiSettings] = await Promise.all([
+	const [listing, characters, games, towns, friendCodes, currentUserEmojiSettings]: [ListingType, CharacterType[], GamesType[], TownType[], UserFriendCodesType, EmojiSettingType[]] = await Promise.all([
 		this.query('v1/trading_post/listing', { id: id }),
 		this.query('v1/users/characters'),
 		this.query('v1/games'),
@@ -811,10 +801,10 @@ async function loadData(this: APIThisType, { id }: { id: string }): Promise<List
 	]);
 
 	const [userEmojiSettings] = await Promise.all([
-		listing.comments.length > 0 ? this.query('v1/settings/emoji', { userIds: listing.comments.map((c: any) => c.user.id) }) : null,
+		listing.comments.length > 0 ? this.query('v1/settings/emoji', { userIds: listing.comments.map(c => c.user.id) }) : null,
 	]);
 
-	const game = listing.game ? games.find((game: any) => game.acGameId === listing.game.id) : null;
+	const game = listing.game ? games.find(game => game.acGameId === listing.game!.id) : null;
 
 	return {
 		listing,
@@ -832,7 +822,7 @@ export const loader = routerUtils.wrapLoader(loadData);
 type ListingPageProps = {
 	listing: ListingType
 	characters: CharacterType[]
-	game: GamesType | null,
+	game?: GamesType | null,
 	towns: TownType[]
 	friendCodes: UserFriendCodesType['results']
 	userEmojiSettings: EmojiSettingType[] | null

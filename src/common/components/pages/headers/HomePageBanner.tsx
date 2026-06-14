@@ -9,17 +9,24 @@ const HomePageBanner = ({
 		<TimeContext.Consumer>
 			{time =>
 			{
-				const leftTime = bannerName === 'newyear' && time ? timeLeft(time) : {};
+				const leftTime = bannerName === 'newyear' && time ? timeLeft(time) : null;
 
 				return (
 					<h1 className='HomePageBanner'>
 						<img
 							className='HomePageBanner_foreground'
-							src={`${constants.AWS_URL}/images/banners/${bannerName}_foreground.png`}
-							srcSet={`${constants.AWS_URL}/images/banners/${bannerName}_foreground.png 1x, ${constants.AWS_URL}/images/banners/${bannerName}_foreground@2x.png 2x`}
+							src={
+								constants.allImages[
+      								`banners/${bannerName}_foreground.png`
+								]
+							}
+							srcSet={`
+								${constants.allImages[`banners/${bannerName}_foreground.png`]} 1x,
+								${constants.allImages[`banners/${bannerName}_foreground@2x.png`]} 2x
+							`}
 							alt='Welcome to Animal Crossing Community!'
 						/>
-						{bannerName === 'newyear' &&
+						{leftTime && bannerName === 'newyear' &&
 							<span className='HomePageBanner_countDown'>
 								{leftTime.days} : {leftTime.hours} : {leftTime.minutes} : {leftTime.seconds}
 							</span>
@@ -31,7 +38,7 @@ const HomePageBanner = ({
 	);
 };
 
-function timeLeft(today: Date): any
+function timeLeft(today: Date): { total: number, days: string, hours: string, minutes: string, seconds: string }
 {
 	let deadline = 'January 1 ' + (today.getFullYear() + 1) + ' 00:00:00';
 
@@ -40,7 +47,7 @@ function timeLeft(today: Date): any
 		deadline = 'January 1 ' + today.getFullYear() + ' 00:00:00';
 	};
 
-	let t = Date.parse(deadline) - dateUtils.dateParse(today);
+	let t = dateUtils.dateParse(deadline) - today.getTime();
 	let seconds = Math.floor(t / 1000 % 60);
 	let minutes = Math.floor(t / 1000 / 60 % 60);
 	let hours = Math.floor(t / (1000 * 60 * 60) % 24);

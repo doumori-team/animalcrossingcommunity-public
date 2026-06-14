@@ -1,6 +1,5 @@
 import * as db from '@db';
 import * as APITypes from '@apiTypes';
-import { UserError } from '@errors';
 import { APIThisType, CatalogItemsType } from '@types';
 
 /*
@@ -8,14 +7,7 @@ import { APIThisType, CatalogItemsType } from '@types';
  */
 async function pc(this: APIThisType, { id }: pcProps): Promise<CatalogItemsType[]>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'view-user-catalog' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	const catalog = await db.query(`
+	const catalog: { id: string, is_inventory: boolean, is_wishlist: boolean }[] = await db.query(`
 		SELECT
 			pc_catalog_item.catalog_item_id AS id,
 			pc_catalog_item.is_inventory,
@@ -24,7 +16,7 @@ async function pc(this: APIThisType, { id }: pcProps): Promise<CatalogItemsType[
 		WHERE pc_catalog_item.user_id = $1::int
 	`, id);
 
-	return catalog.map((item: any) =>
+	return catalog.map(item =>
 	{
 		return {
 			id: item.id,
@@ -33,6 +25,10 @@ async function pc(this: APIThisType, { id }: pcProps): Promise<CatalogItemsType[
 		};
 	});
 }
+
+pc.permissions = [
+	'view-user-catalog',
+];
 
 pc.apiTypes = {
 	id: {

@@ -1,5 +1,4 @@
 import * as db from '@db';
-import { UserError } from '@errors';
 import * as APITypes from '@apiTypes';
 import { constants } from '@utils';
 import { ACCCache } from '@cache';
@@ -7,16 +6,19 @@ import { APIThisType, UserAvatarsType, DataBackgroundType, DataCharacterType, Da
 
 async function avatars(this: APIThisType, { page }: avatarsProps): Promise<UserAvatarsType>
 {
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const pageSize = 25;
 	const offset = page * pageSize - pageSize;
-	let results = [], count = 0;
+	let results: UserAvatarsType['results'] = [], count = 0;
 
-	const avatars = await db.query(`
+	const avatars: {
+		id: number
+		character_id: number | null
+		accent_id: number | null
+		background_id: number | null
+		coloration_id: number | null
+		accent_position: number | null
+		count: number
+	}[] = await db.query(`
 		SELECT
 			user_avatar.id,
 			user_avatar.character_id,
@@ -38,7 +40,7 @@ async function avatars(this: APIThisType, { page }: avatarsProps): Promise<UserA
 		const avatarColorations: DataColorationType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarColorations);
 		const avatarAccents: DataAccentType[] = await ACCCache.get(constants.cacheKeys.indexedAvatarAccents);
 
-		results = avatars.map((avatar: any) =>
+		results = avatars.map(avatar =>
 		{
 			return {
 				id: avatar.id,
@@ -60,6 +62,10 @@ async function avatars(this: APIThisType, { page }: avatarsProps): Promise<UserA
 		pageSize: pageSize,
 	};
 }
+
+avatars.permissions = [
+	'userId',
+];
 
 avatars.apiTypes = {
 	page: {

@@ -35,10 +35,15 @@ const EditKeyboard = ({
 							key={k.character}
 							label={k.character}
 							title={k.title}
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							clickHandler={(e: any) => doSpecialCharacter(e, k.character)}
 						>
 							<img
-								src={`${constants.AWS_URL}/images/keyboard/${k.filename}.png`}
+								src={
+									constants.allImages[
+    									`keyboard/${k.filename}.png`
+									]
+								}
 								alt={k.character}
 							/>
 						</Button>,

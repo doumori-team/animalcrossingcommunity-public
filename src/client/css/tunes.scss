@@ -24,6 +24,210 @@
 				grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
 			}
 		}
+
+		.TuneEditor {
+			margin-top: mixins.px2rem(10px);
+		}
+	}
+}
+
+.TuneEditor {
+	&:focus {
+		outline: none;
+	}
+
+	.TuneEditor_board {
+		border: 4px solid var(--seasonal-color);
+		border-radius: mixins.px2rem(16px);
+		background: #f8f4e8;
+		padding: mixins.px2rem(20px) mixins.px2rem(12px);
+		display: flex;
+		flex-direction: column;
+		gap: mixins.px2rem(4px);
+	}
+
+	.TuneEditor_row {
+		position: relative;
+		display: grid;
+		grid-template-columns: repeat(8, 1fr);
+		gap: mixins.px2rem(2px);
+	}
+
+	.TuneEditor_row:first-child {
+		padding-bottom: mixins.px2rem(35px);
+	}
+
+	.TuneEditor_staffLines {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	.TuneEditor_staffLine {
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background: var(--seasonal-color);
+	}
+
+	.TuneEditor_slot {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		cursor: pointer;
+		border-radius: mixins.px2rem(6px);
+		transition: background-color 0.1s ease;
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.03);
+		}
+
+		&--selected {
+			background: var(--seasonal-color-lighter);
+		}
+
+		&--playing {
+			background: rgba(255, 193, 7, 0.15);
+		}
+	}
+
+	.TuneEditor_upBtn,
+	.TuneEditor_downBtn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: mixins.px2rem(20px);
+		background: none;
+		border: none;
+		cursor: pointer;
+		opacity: 0;
+		transition: opacity 0.15s ease;
+		padding: 0;
+
+		.FontAwesomeIcon {
+			width: mixins.px2rem(10px);
+			height: mixins.px2rem(10px);
+			color: #888;
+		}
+	}
+
+	.TuneEditor_slot:hover .TuneEditor_upBtn,
+	.TuneEditor_slot:hover .TuneEditor_downBtn,
+	.TuneEditor_slot--selected .TuneEditor_upBtn,
+	.TuneEditor_slot--selected .TuneEditor_downBtn {
+		opacity: 1;
+	}
+
+	.TuneEditor_frogArea {
+		position: relative;
+		width: 100%;
+		height: mixins.px2rem(120px);
+
+		@media (max-width: 640px) {
+			height: mixins.px2rem(90px);
+		}
+	}
+
+	.TuneEditor_frog {
+		position: absolute;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		transition: top 0.12s ease-out;
+	}
+
+	.TuneEditor_frogImage {
+		width: mixins.px2rem(36px);
+		height: auto;
+		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+
+		@media (max-width: 640px) {
+			width: mixins.px2rem(28px);
+		}
+	}
+
+	.TuneEditor_controls {
+		display: flex;
+		justify-content: center;
+		margin-top: mixins.px2rem(16px);
+	}
+
+	.TuneEditor_playButton {
+		display: inline-flex;
+		align-items: center;
+		gap: mixins.px2rem(6px);
+		padding: mixins.px2rem(10px) mixins.px2rem(28px);
+		background: var(--seasonal-color-dark);
+		color: white;
+		border: 2px solid var(--seasonal-color-dark);
+		border-radius: mixins.px2rem(8px);
+		cursor: pointer;
+		font-size: mixins.px2rem(15px);
+		font-weight: bold;
+		transition: background-color 0.15s ease, transform 0.1s ease;
+
+		&:hover {
+			background: var(--seasonal-color);
+		}
+
+		&:active {
+			transform: scale(0.96);
+		}
+
+		.FontAwesomeIcon {
+			width: mixins.px2rem(14px);
+			height: mixins.px2rem(14px);
+		}
+	}
+
+	.TuneEditor_hint {
+		margin-top: mixins.px2rem(10px);
+		font-size: mixins.px2rem(12px);
+		text-align: center;
+	}
+}
+
+.TunePlayer_button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: mixins.px2rem(32px);
+	height: mixins.px2rem(32px);
+	background: var(--seasonal-color-dark);
+	color: white;
+	border: 2px solid var(--seasonal-color-dark);
+	border-radius: 50%;
+	cursor: pointer;
+	padding: 0;
+	transition: background-color 0.15s ease, transform 0.1s ease;
+
+	&:hover {
+		background: var(--seasonal-color);
+	}
+
+	&:active {
+		transform: scale(0.9);
+	}
+
+	&--playing {
+		background: #d9534f;
+		border-color: #c9302c;
+
+		&:hover {
+			background: #c9302c;
+		}
+	}
+
+	.FontAwesomeIcon {
+		width: mixins.px2rem(12px);
+		height: mixins.px2rem(12px);
 	}
 }
 
@@ -58,6 +262,11 @@
 	}
 }
 
-img[src*="/tunes/"] {
+.icon-tunes {
 	height: mixins.px2rem(65px);
+}
+
+.Tune_play {
+	display: flex;
+	justify-content: center;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import ReactSelect, { components } from 'react-select';
 import AsyncSelect from 'react-select/async';

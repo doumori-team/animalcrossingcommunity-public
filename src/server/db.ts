@@ -1,28 +1,27 @@
 'use strict';
 
-import connectPgSimple from 'connect-pg-simple';
-import expressSession from 'express-session';
-import pg from 'pg';
+import * as Sentry from '@sentry/node';
+import pLimit from 'p-limit';
 
 import * as crypto from 'crypto';
 
+import { pool, isConnectionError } from 'server/sessionStore.ts';
 import { dateUtils, constants, utils } from '@utils';
 import { ACCCache } from '@cache';
-import { APIThisType, UserLiteType, UserType, NodeChildNodesType, NodeChildrenResultType } from '@types';
+import {
+	APIThisType,
+	UserLiteType,
+	UserType,
+	NodeChildNodesType,
+	NodeChildrenResultType,
+	UserDonationsType,
+} from '@types';
 import { ProfanityError } from '@errors';
 
-const { types } = pg;
+const dbLimit = pLimit(25);
 
-// fix node-pg default transformation for date types
-types.setTypeParser(types.builtins.DATE, (str: string) => str);
-
-const pool = new pg.Pool(
-	{
-		connectionString: process.env.DATABASE_URL,
-		ssl: { rejectUnauthorized: false }, // Heroku self-signs its database SSL certificates
-	});
-
-export const sessionStore = new (connectPgSimple(expressSession))({ pool, disableTouch: true });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type QueryType = (sql: string, ...params: any[]) => Promise<any>;
 
 /* This is just a wrapper around pool.query that gives it a slightly nicer
  * type-signature and discards all returned information except the actual result
@@ -37,19 +36,37 @@ export const sessionStore = new (connectPgSimple(expressSession))({ pool, disabl
  * 	await query('SELECT username FROM user WHERE user.id = $1::int', 373493);
  * returns [ { 'username': 'iolite' } ]
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function query(sql: string, ...params: any[]): Promise<any>
 {
-	const result = await pool.query(sql, params);
-	return result.rows;
+	for (let attempt = 0; attempt < 2; attempt++)
+	{
+		try
+		{
+			const result = await dbLimit(() => pool.query(sql, params));
+			return result.rows;
+		}
+		catch (err)
+		{
+			if (attempt === 0 && isConnectionError(err))
+			{
+				console.warn('Retrying query after connection error...', sql);
+				continue;
+			}
+
+			throw err;
+		}
+	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function cacheQuery(method: string, sql: string, ...params: any[]): Promise<any>
 {
 	const cacheKey = `${method}_sql_${crypto.createHash('sha1').update(sql + params.toString()).digest('hex')}`;
 
 	return await ACCCache.get(cacheKey, async () =>
 	{
-		return (await pool.query(sql, params)).rows;
+		return await query(sql, ...params);
 	});
 }
 
@@ -73,34 +90,57 @@ export async function cacheQuery(method: string, sql: string, ...params: any[]):
  *
  * Returns whatever operate() returns.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function transaction(operate: Function): Promise<any>
 {
-	const client = await pool.connect();
-	let returnVal;
-
-	try
+	for (let attempt = 0; attempt < 2; attempt++)
 	{
-		await client.query('BEGIN');
-		returnVal = await operate(
-			async function (sql: string, ...params: any[])
+		let client;
+
+		try
+		{
+			client = await dbLimit(() => pool.connect());
+
+			await client.query('BEGIN');
+
+			const returnVal = await operate(
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				async (sql: string, ...params: any[]) =>
+				{
+					const result = await client.query(sql, params);
+					return result.rows;
+				},
+			);
+
+			await client.query('COMMIT');
+			client.release();
+			return returnVal;
+		}
+		catch (error)
+		{
+			if (client)
 			{
-				const result = await client.query(sql, params);
-				return result.rows;
-			},
-		);
-		await client.query('COMMIT');
-	}
-	catch (error)
-	{
-		await client.query('ROLLBACK');
-		throw error;
-	}
-	finally
-	{
-		client.release();
-	}
+				try
+				{
+					await client.query('ROLLBACK');
+				}
+				catch (_)
+				{
+					// ignore rollback failure (connection likely dead)
+				}
 
-	return returnVal;
+				client.release();
+			}
+
+			if (attempt === 0 && isConnectionError(error))
+			{
+				console.warn('Retrying transaction after connection error...');
+				continue;
+			}
+
+			throw error;
+		}
+	}
 }
 
 /* Given up-to-date information about a user account, stores it in the cache.
@@ -164,11 +204,16 @@ export async function updateThreadStats(nodeId: number): Promise<void>
  */
 export async function regenerateTopBells({ userId }: { userId: number }): Promise<void>
 {
-	const [[totalBellsCur], [missedBellsCur], [totalJackpotBellsCur], [jackpotsFoundCur], [jackpotsMissedCur], topBellsLatest, topBellsLastJackpot] = await Promise.all([
+	const [[totalBellsCur], [totalBellsSeasonal], [missedBellsCur], [missedBellsSeasonal], [totalJackpotBellsCur], [totalJackpotBellsSeasonal], [jackpotsFoundCur], [jackpotsFoundSeasonal], [jackpotsMissedCur], [jackpotsMissedSeasonal], topBellsLatest, topBellsLastJackpot] = await Promise.all([
 		query(`
 			SELECT COALESCE(sum(bells), 0) AS bells
 			FROM treasure_offer
 			WHERE user_id = $1 AND redeemed_user_id = user_id AND offer >= (SELECT updated FROM site_setting WHERE id = 4)
+		`, userId),
+		query(`
+			SELECT COALESCE(sum(bells), 0) AS bells
+			FROM treasure_offer
+			WHERE user_id = $1 AND redeemed_user_id = user_id AND offer >= (SELECT updated FROM site_setting WHERE id = 6)
 		`, userId),
 		query(`
 			SELECT COALESCE(sum(bells), 0) AS bells
@@ -178,17 +223,37 @@ export async function regenerateTopBells({ userId }: { userId: number }): Promis
 		query(`
 			SELECT COALESCE(sum(bells), 0) AS bells
 			FROM treasure_offer
+			WHERE user_id = $1::int AND (redeemed_user_id != user_id OR redeemed_user_id IS NULL) AND offer < (now() - interval '1 minute' * $2) AND offer >= (SELECT updated FROM site_setting WHERE id = 6)
+		`, userId, constants.bellThreshold),
+		query(`
+			SELECT COALESCE(sum(bells), 0) AS bells
+			FROM treasure_offer
 			WHERE user_id = $1 AND redeemed_user_id = user_id AND type = 'jackpot' AND offer >= (SELECT updated FROM site_setting WHERE id = 4)
+		`, userId),
+		query(`
+			SELECT COALESCE(sum(bells), 0) AS bells
+			FROM treasure_offer
+			WHERE user_id = $1 AND redeemed_user_id = user_id AND type = 'jackpot' AND offer >= (SELECT updated FROM site_setting WHERE id = 6)
 		`, userId),
 		query(`
 			SELECT count(*) AS jackpots
 			FROM treasure_offer
 			WHERE user_id = $1 AND redeemed_user_id = user_id AND type = 'jackpot' AND offer >= (SELECT updated FROM site_setting WHERE id = 4)
+		`, userId),
+		query(`
+			SELECT count(*) AS jackpots
+			FROM treasure_offer
+			WHERE user_id = $1 AND redeemed_user_id = user_id AND type = 'jackpot' AND offer >= (SELECT updated FROM site_setting WHERE id = 6)
 		`, userId),
 		query(`
 			SELECT count(*) AS jackpots
 			FROM treasure_offer
 			WHERE user_id = $1 AND (redeemed_user_id != user_id OR redeemed_user_id IS NULL) AND type = 'jackpot' AND offer >= (SELECT updated FROM site_setting WHERE id = 4)
+		`, userId),
+		query(`
+			SELECT count(*) AS jackpots
+			FROM treasure_offer
+			WHERE user_id = $1 AND (redeemed_user_id != user_id OR redeemed_user_id IS NULL) AND type = 'jackpot' AND offer >= (SELECT updated FROM site_setting WHERE id = 6)
 		`, userId),
 		query(`
 			SELECT total_bells, missed_bells, total_jackpot_bells, jackpots_found, jackpots_missed
@@ -239,6 +304,27 @@ export async function regenerateTopBells({ userId }: { userId: number }): Promis
 
 	query(`
 		REFRESH MATERIALIZED VIEW CONCURRENTLY top_bell_search
+	`);
+
+	let totalBellsSeasonalTotal = Number(totalBellsSeasonal.bells);
+	let missedBellsSeasonalTotal = Number(missedBellsSeasonal.bells);
+	let totalJackpotBellsSeasonalTotal = Number(totalJackpotBellsSeasonal.bells);
+	let jackpotsFoundSeasonalTotal = Number(jackpotsFoundSeasonal.jackpots);
+	let jackpotsMissedSeasonalTotal = Number(jackpotsMissedSeasonal.jackpots);
+
+	await query(`
+		INSERT INTO seasonal_bell (user_id, total_bells, missed_bells, total_jackpot_bells, jackpots_found, jackpots_missed)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (user_id) DO UPDATE SET
+			total_bells = EXCLUDED.total_bells,
+			missed_bells = EXCLUDED.missed_bells,
+			total_jackpot_bells = EXCLUDED.total_jackpot_bells,
+			jackpots_found = EXCLUDED.jackpots_found,
+			jackpots_missed = EXCLUDED.jackpots_missed
+	`, userId, totalBellsSeasonalTotal, missedBellsSeasonalTotal, totalJackpotBellsSeasonalTotal, jackpotsFoundSeasonalTotal, jackpotsMissedSeasonalTotal);
+
+	query(`
+		REFRESH MATERIALIZED VIEW CONCURRENTLY seasonal_bell_search
 	`);
 }
 
@@ -321,258 +407,718 @@ export async function getUserGroups(userId: APIThisType['userId']): Promise<numb
 	return groupIds.map((gid: { id: string }) => Number(gid.id));
 }
 
-export async function getLatestPage(nodeId: number | string, userId: number): Promise<any[]>
+export async function getLatestPage(nodeId: number | string, userId: number): Promise<[{ latest_page: number }]>
 {
 	return query(`
 		SELECT
-			CEIL((
-				SELECT count(*)+(
-					SELECT count(*)
-					FROM (
-						SELECT node.id
-						FROM node
-						WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
-						LIMIT 1
-					) AS at_least_one_unread
-				) AS count
-				FROM node
-				WHERE node.parent_node_id = $1 AND node.creation_time < last_checked
-			) / $3::float) AS latest_page
+			CEIL(
+				(
+					before_count +
+					CASE WHEN exists_after THEN 1 ELSE 0 END
+				) / $3::float
+			) AS latest_page
 		FROM (
-			SELECT last_checked
-			FROM node_user
-			WHERE node_id = $1 AND user_id = $2
-		) AS last_checked
+			SELECT
+				-- count posts before last_checked
+				COUNT(*) FILTER (WHERE node.creation_time < node_user.last_checked) AS before_count,
+
+				-- does at least one post exist after last_checked?
+				BOOL_OR(node.creation_time > node_user.last_checked) AS exists_after
+			FROM node
+			CROSS JOIN (
+				SELECT last_checked
+				FROM node_user
+				WHERE node_id = $1 AND user_id = $2
+			) node_user
+			WHERE node.parent_node_id = $1
+		) x
 	`, nodeId, userId, constants.threadPageSize);
 }
 
-export async function getLatestPost(nodeId: number | string, userId: number): Promise<any[]>
+export async function getLatestPost(nodeId: number | string, userId: number): Promise<[{ latest_post: number }]>
 {
 	return query(`
-		SELECT
-			(
-				SELECT node.id
-				FROM node
-				WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
-				ORDER BY node.creation_time ASC
-				LIMIT 1
-			) AS latest_post
+		SELECT lp.id AS latest_post
 		FROM (
 			SELECT last_checked
 			FROM node_user
 			WHERE node_id = $1 AND user_id = $2
-		) AS last_checked
+		) node_user
+		LEFT JOIN LATERAL (
+			SELECT id
+			FROM node
+			WHERE parent_node_id = $1
+			AND creation_time > node_user.last_checked
+			ORDER BY creation_time ASC
+			LIMIT 1
+		) lp ON true
 	`, nodeId, userId);
 }
 
-export async function getChildren(resultsQuery: any, thisQuery: APIThisType['query'], userId: APIThisType['userId'], parentChildren = false): Promise<[number, NodeChildNodesType[]]>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getChildren(resultsQuery: Promise<any>, thisQuery: APIThisType['query'], userId: APIThisType['userId'], parentChildren = false): Promise<[number, NodeChildNodesType[]]>
 {
-	const [results, viewFollowersPerm, userSettings] = await Promise.all([
+	const [results, viewFollowersPerm, userSettings]: [NodeChildrenResultType[], boolean, { show_images: boolean, concise_mode: number, hide_post_emojis: boolean } | null] = await Promise.all([
 		resultsQuery,
 		thisQuery('v1/permission', { permission: 'view-followers' }),
 		userId ? query(`
-			SELECT show_images, concise_mode
+			SELECT show_images, concise_mode, hide_post_emojis
 			FROM users
 			WHERE id = $1::int
 		`, userId) : null,
 	]);
 
+	if (results.length === 0)
+	{
+		return [0, []];
+	}
+
+	const count = Number(results[0].count);
 	const conciseMode: number = userSettings && userSettings[0] ? Number(userSettings[0].concise_mode) : 2;
 
-	// A combination of what node/full does but faster
-	const nodes = await Promise.all(
-		results.map(async (node: NodeChildrenResultType) =>
+	// Collect IDs for batch queries
+	const allNodeIds: number[] = results.map(n => n.id);
+	const postNodes = results.filter(n => n.type === 'post');
+	const threadNodes = results.filter(n => n.type === 'thread');
+	const boardNodes = results.filter(n => n.type === 'board');
+	const boardAndThreadNodes = results.filter(n => ['board', 'thread'].includes(n.type));
+
+	const postNodeIds = postNodes.map(n => n.id);
+	const threadNodeIds = threadNodes.map(n => n.id);
+	const boardAndThreadNodeIds = boardAndThreadNodes.map(n => n.id);
+
+	const postRevisionIds = postNodes.map(n => n.revision_id).filter(Boolean);
+
+	// Unique user IDs for deduplication
+	const threadUserIds = [...new Set(threadNodes.map(n => n.user_id).filter(Boolean))];
+	const postUserIds = [...new Set(postNodes.map(n => n.user_id).filter(Boolean))];
+	const ptOrShopNodeIds = results
+		.filter(n => [constants.boardIds.privateThreads, constants.boardIds.shopThread].includes(Number(n.parent_node_id)))
+		.map(n => n.id);
+
+	// --- BATCH QUERIES ---
+	// Run all bulk queries in parallel
+
+	const [
+		// 0: parent titles for threads
+		parentTitles,
+		// 1: user_lite results for thread authors (deduplicated)
+		threadUserResults,
+		// 2: user results for post authors (deduplicated)
+		postUserResults,
+		// 3: PT/Shop Thread invited users
+		ptUsers,
+		// 4: followed_node for current user
+		followedNodes,
+		// 5: notified_node for current user
+		notifiedNodes,
+		// 6: follower counts for threads (not PTs)
+		followerCounts,
+		// 7: revision counts for posts
+		revisionCounts,
+		// 8: latest page for threads
+		latestPages,
+		// 9: latest post for threads
+		latestPosts,
+		// 10: last_checked for threads
+		lastCheckedResults,
+		// 11: lock permissions for threads
+		threadLockPerms,
+		// 12: unread counts for threads
+		unreadCounts,
+		// 13: files for posts
+		postFiles,
+		// 14: donations for thread authors (deduplicated)
+		donationResults,
+		// 15: read permissions for boards/threads (non-parentChildren)
+		readPerms,
+		// 16: forum categories for boards
+		forumCategories,
+		// 17: quotes for posts
+		postQuotes,
+		// 18: reaction counts for posts
+		reactionCounts,
+		// 19: user reactions for posts
+		userReactions,
+		// 20: react permissions per parent thread
+		postReactPerms,
+		// 21: polls for posts
+		pollOptions,
+		// 22: user poll answers
+		userPollAnswers,
+		// 23: poll total users
+		pollTotalUsers,
+		// 24: thread reply permission (for poll active state)
+		threadReplyPerms,
+	] = await Sentry.startSpan({ name: 'getChildren.batchQueries' }, () => Promise.all([
+		// 0: parent titles for threads
+		threadNodes.length > 0 ? query(`
+			SELECT node_id, title
+			FROM (
+				SELECT nr.node_id, nr.title, ROW_NUMBER() OVER (PARTITION BY nr.node_id ORDER BY nr.time DESC) AS rn
+				FROM node_revision nr
+				WHERE nr.node_id = ANY($1::int[])
+			) sub
+			WHERE rn = 1
+		`, [...new Set(threadNodes.map(n => n.parent_node_id))]) : [],
+
+		// 1: user_lite for thread authors (deduplicated; batched directly from user_account_cache)
+		threadUserIds.length > 0 ? query(`
+			SELECT id, username
+			FROM user_account_cache
+			WHERE id = ANY($1::int[])
+		`, threadUserIds) : [],
+
+		// 2: user for post authors (deduplicated)
+		Promise.all(postUserIds.map(uid => thisQuery('v1/user', { id: uid }).catch(() => null))),
+
+		// 3: PT/Shop Thread invited users
+		ptOrShopNodeIds.length > 0 ? query(`
+			SELECT
+				user_node_permission.node_id,
+				user_account_cache.id,
+				user_account_cache.username,
+				user_node_permission.granted
+			FROM user_account_cache
+			JOIN user_node_permission ON (user_node_permission.user_id = user_account_cache.id)
+			WHERE user_node_permission.node_id = ANY($1::int[]) AND user_node_permission.node_permission_id = $2
+			ORDER BY user_account_cache.username ASC
+		`, ptOrShopNodeIds, constants.nodePermissions.read) : [],
+
+		// 4: followed_node
+		userId ? query(`
+			SELECT node_id
+			FROM followed_node
+			WHERE node_id = ANY($1::int[]) AND user_id = $2::int
+		`, allNodeIds, userId) : [],
+
+		// 5: notified_node
+		userId && boardAndThreadNodeIds.length > 0 ? query(`
+			SELECT node_id
+			FROM notified_node
+			WHERE node_id = ANY($1::int[]) AND user_id = $2::int
+		`, boardAndThreadNodeIds, userId) : [],
+
+		// 6: follower counts for non-PT threads
+		viewFollowersPerm && threadNodeIds.length > 0 ? query(`
+			SELECT node_id, count(*) AS count
+			FROM followed_node
+			WHERE node_id = ANY($1::int[])
+			GROUP BY node_id
+		`, threadNodeIds.filter(id => id !== constants.boardIds.privateThreads)) : [],
+
+		// 7: revision counts for posts
+		postNodeIds.length > 0 ? query(`
+			SELECT node_id, count(*) AS count
+			FROM node_revision
+			WHERE node_id = ANY($1::int[])
+			GROUP BY node_id
+		`, postNodeIds) : [],
+
+		// 8: latest page for threads (batched)
+		userId && threadNodeIds.length > 0 ? query(`
+			SELECT sub.node_id, CEIL(
+				(sub.before_count + CASE WHEN sub.exists_after THEN 1 ELSE 0 END) / $3::float
+			) AS latest_page
+			FROM (
+				SELECT
+					node.parent_node_id AS node_id,
+					COUNT(*) FILTER (WHERE node.creation_time < node_user.last_checked) AS before_count,
+					BOOL_OR(node.creation_time > node_user.last_checked) AS exists_after
+				FROM node
+				JOIN node_user ON (node_user.node_id = node.parent_node_id AND node_user.user_id = $2::int)
+				WHERE node.parent_node_id = ANY($1::int[])
+				GROUP BY node.parent_node_id, node_user.last_checked
+			) sub
+		`, threadNodeIds, userId, constants.threadPageSize) : [],
+
+		// 9: latest post for threads (batched)
+		userId && threadNodeIds.length > 0 ? query(`
+			SELECT node_user.node_id, lp.id AS latest_post
+			FROM node_user
+			LEFT JOIN LATERAL (
+				SELECT id
+				FROM node
+				WHERE parent_node_id = node_user.node_id
+				AND creation_time > node_user.last_checked
+				ORDER BY creation_time ASC
+				LIMIT 1
+			) lp ON true
+			WHERE node_user.node_id = ANY($1::int[]) AND node_user.user_id = $2::int
+		`, threadNodeIds, userId) : [],
+
+		// 10: last_checked for threads
+		userId && threadNodeIds.length > 0 ? query(`
+			SELECT node_id, last_checked
+			FROM node_user
+			WHERE node_id = ANY($1::int[]) AND user_id = $2::int
+		`, threadNodeIds, userId) : [],
+
+		// 11: lock perms for threads
+		// returning nothing; we can use parent (board) permission for thread locking;
+		// if you have permissiont to lock 'board' then it's for the thread
+		// no case where you can lock thread not board; this is for admins mass locking threads
+		[],
+
+		// 12: unread counts for threads
+		userId && threadNodeIds.length > 0 ? query(`
+			SELECT node_user.node_id, (
+				SELECT count(*) AS count
+				FROM node
+				WHERE node.parent_node_id = node_user.node_id AND node.creation_time > node_user.last_checked
+			) AS count
+			FROM node_user
+			WHERE node_user.node_id = ANY($1::int[]) AND node_user.user_id = $2::int
+		`, threadNodeIds, userId) : [],
+
+		// 13: files for posts
+		postRevisionIds.length > 0 ? query(`
+			SELECT node_revision_file.node_revision_id, file.id, file.file_id, file.name, file.width, file.height, file.caption
+			FROM node_revision_file
+			JOIN file ON (node_revision_file.file_id = file.id)
+			WHERE node_revision_file.node_revision_id = ANY($1::int[])
+			ORDER BY file.sequence ASC
+		`, postRevisionIds) : [],
+
+		// 14: perks for thread authors (deduplicated & batched — only field used by frontend)
+		threadUserIds.length > 0 ? query(`
+			SELECT user_id, COALESCE(sum(donation), 0) AS perks
+			FROM user_donation
+			WHERE user_id = ANY($1::int[]) AND donated >= now() - interval '1' year
+			GROUP BY user_id
+		`, threadUserIds) : [],
+
+		// 15: read perms for boards/threads (only when not parentChildren)
+		!parentChildren && allNodeIds.length > 0
+			? Promise.all(allNodeIds.map(nid => thisQuery('v1/node/permission', { permission: 'read', nodeId: nid }).then(r => ({ nodeId: nid, granted: r })).catch(() => ({ nodeId: nid, granted: false }))))
+			: [],
+
+		// 16: forum categories for boards
+		boardNodes.length > 0 ? query(`
+			SELECT ncl.node_id, nc.id, nc.title, ncl.order
+			FROM node_category nc
+			INNER JOIN node_category_link ncl ON nc.id = ncl.category_id
+			WHERE ncl.node_id = ANY($1::int[])
+		`, boardNodes.map(n => n.id)) : [],
+
+		// 17: quotes for posts
+		postRevisionIds.length > 0 && postNodes.length > 0 ? query(`
+			WITH thread_posts AS (
+				SELECT
+					node.id AS node_id,
+					node.parent_node_id,
+					ROW_NUMBER() OVER (
+						PARTITION BY node.parent_node_id
+						ORDER BY node.creation_time ASC
+					) AS post_number
+				FROM node
+				WHERE node.parent_node_id = ANY($2::int[])
+			)
+			SELECT
+				node_revision_quote.node_revision_id,
+				node_revision_quote.node_id,
+				CEIL(thread_posts.post_number / $3::float) AS page,
+				node_revision_quote.sort_order
+			FROM node_revision_quote
+			JOIN thread_posts ON thread_posts.node_id = node_revision_quote.node_id
+			WHERE node_revision_quote.node_revision_id = ANY($1::int[])
+			ORDER BY node_revision_quote.sort_order ASC
+		`, postRevisionIds, [...new Set(postNodes.map(n => n.parent_node_id))], constants.threadPageSize) : [],
+
+		// 18: reaction counts for posts
+		postNodeIds.length > 0 ? query(`
+			SELECT node_reaction.node_id, node_reaction.emoji, count(*) AS count
+			FROM node_reaction
+			WHERE node_reaction.node_id = ANY($1::int[])
+			GROUP BY node_reaction.node_id, node_reaction.emoji
+			ORDER BY count(*) DESC
+		`, postNodeIds) : [],
+
+		// 19: user reactions for posts
+		userId && postNodeIds.length > 0 ? query(`
+			SELECT node_reaction.node_id, node_reaction.emoji
+			FROM node_reaction
+			WHERE node_reaction.node_id = ANY($1::int[]) AND node_reaction.user_id = $2::int
+			ORDER BY node_reaction.id ASC
+		`, postNodeIds, userId) : [],
+
+		// 20: react perms per unique parent thread (not per post)
+		// SYNC WITH v1/node/permission: react is a board/group-level perm, same for all posts in a thread
+		postNodes.length > 0 ? Promise.all(
+			[...new Set(postNodes.map(n => n.parent_node_id))].map(nid =>
+				thisQuery('v1/node/permission', { permission: 'react', nodeId: nid })
+					.then(r => ({ nodeId: nid, granted: r }))
+					.catch(() => ({ nodeId: nid, granted: false })),
+			),
+		) : [],
+
+		// 21: poll options for posts
+		postRevisionIds.length > 0 ? query(`
+			SELECT
+				node_revision_poll.node_revision_id,
+				node_revision_poll.id AS poll_id,
+				node_revision_poll.sort_order,
+				node_revision_poll_option.description,
+				node_revision_poll_option.sequence,
+				node_revision_poll_option.votes
+			FROM node_revision_poll_option
+			JOIN node_revision_poll ON (node_revision_poll_option.poll_id = node_revision_poll.id)
+			WHERE node_revision_poll.node_revision_id = ANY($1::int[])
+			ORDER BY node_revision_poll.sort_order ASC, node_revision_poll_option.sequence ASC
+		`, postRevisionIds) : [],
+
+		// 22: user poll answers
+		userId && postRevisionIds.length > 0 ? query(`
+			SELECT node_revision_poll.node_revision_id, node_revision_poll_answer.poll_id
+			FROM node_revision_poll_answer
+			JOIN node_revision_poll ON (node_revision_poll_answer.poll_id = node_revision_poll.id)
+			WHERE node_revision_poll.node_revision_id = ANY($1::int[]) AND node_revision_poll_answer.user_id = $2
+		`, postRevisionIds, userId) : [],
+
+		// 23: poll total users
+		postRevisionIds.length > 0 ? query(`
+			SELECT node_revision_poll.node_revision_id, node_revision_poll_answer.poll_id, count(*) AS count
+			FROM node_revision_poll_answer
+			JOIN node_revision_poll ON (node_revision_poll_answer.poll_id = node_revision_poll.id)
+			WHERE node_revision_poll.node_revision_id = ANY($1::int[])
+			GROUP BY node_revision_poll.node_revision_id, node_revision_poll_answer.poll_id
+		`, postRevisionIds) : [],
+
+		// 24: thread reply perms (for poll active state — need parent thread reply perm)
+		postNodes.length > 0 ? Promise.all(
+			[...new Set(postNodes.map(n => n.parent_node_id))].map(nid =>
+				thisQuery('v1/node/permission', { permission: 'reply', nodeId: nid })
+					.then(r => ({ nodeId: nid, granted: r }))
+					.catch(() => ({ nodeId: nid, granted: false })),
+			),
+		) : [],
+	]));
+
+	// --- BUILD LOOKUP MAPS ---
+
+	// User lookups (deduplicated)
+	const threadUserMap = new Map<number, UserLiteType>();
+	threadUserResults.forEach((r: { id: number, username: string }) =>
+	{
+		threadUserMap.set(r.id, { id: r.id, username: r.username });
+	});
+
+	const postUserMap = new Map<number, UserType>();
+	postUserIds.forEach((uid, i) =>
+	{
+		if (postUserResults[i])
 		{
-			return Promise.all([
-				node,
-				node.type === 'thread' ? query(`
-					SELECT title
-					FROM node_revision
-					WHERE node_id = $1::int
-					ORDER BY time DESC
-					LIMIT 1
-				`, node.parent_node_id) : null,
-				node.user_id ? node.type === 'thread' ?
-					thisQuery('v1/user_lite', { id: node.user_id }) :
-					thisQuery('v1/user', { id: node.user_id }) : null,
-				[constants.boardIds.privateThreads, constants.boardIds.shopThread].includes(Number(node.parent_node_id)) ? query(`
-					SELECT
-						user_account_cache.id,
-						user_account_cache.username,
-						user_node_permission.granted
-					FROM user_account_cache
-					JOIN user_node_permission ON (user_node_permission.user_id = user_account_cache.id)
-					WHERE user_node_permission.node_id = $1::int AND user_node_permission.node_permission_id = $2
-					ORDER BY username ASC
-				`, node.id, constants.nodePermissions.read) : null,
-				['board', 'thread'].includes(node.type) ? query(`
-					SELECT node_id
-					FROM followed_node
-					WHERE node_id = $1::int AND user_id = $2::int
-				`, node.id, userId) : null,
-				viewFollowersPerm && node.type === 'thread' && constants.boardIds.privateThreads !== Number(node.id) ? query(`
-					SELECT count(*) AS count
-					FROM followed_node
-					WHERE node_id = $1::int
-				`, node.id) : null,
-				node.type === 'post' ? query(`
-					SELECT count(*) AS count
-					FROM node_revision
-					WHERE node_id = $1::int
-				`, node.id) : null,
-				node.type === 'post' ? thisQuery('v1/node/permission', { permission: 'edit', nodeId: node.id }) : null,
-				node.type === 'thread' && userId ? getLatestPage(node.id, userId) : null,
-				node.type === 'thread' && userId ? getLatestPost(node.id, userId) : null,
-				node.type === 'thread' ? query(`
-					SELECT last_checked
-					FROM node_user
-					WHERE node_id = $1 AND user_id = $2
-				`, node.id, userId) : [],
-				node.type === 'thread' ? thisQuery('v1/node/permission', { permission: 'lock', nodeId: node.id }) : null,
-				node.type === 'thread' && userId ? query(`
-					SELECT
-						(
-							SELECT count(*) AS count
-							FROM node
-							WHERE node.parent_node_id = $1 AND node.creation_time > last_checked
-						) AS count
-					FROM (
-						SELECT last_checked
-						FROM node_user
-						WHERE node_id = $1 AND user_id = $2
-					) AS last_checked
-				`, node.id, userId) : null,
-				node.type === 'post' ? query(`
-					SELECT file.id, file.file_id, file.name, file.width, file.height, file.caption
-					FROM node_revision_file
-					JOIN file ON (node_revision_file.file_id = file.id)
-					WHERE node_revision_file.node_revision_id = $1::int
-					ORDER BY file.sequence ASC
-				`, node.revision_id) : null,
-				node.type === 'thread' ? thisQuery('v1/users/donations', { id: node.user_id }) : {},
-				!parentChildren && ['board', 'thread'].includes(node.type) ? thisQuery('v1/node/permission', { permission: 'read', nodeId: node.id }) : true,
-				node.type === 'board' ? query(`
-					SELECT nc.id, nc.title, ncl.order
-					FROM node_category nc
-					INNER JOIN node_category_link ncl ON nc.id = ncl.category_id
-					WHERE ncl.node_id = $1::int
-					LIMIT 1
-				`, node.id) : null,
-			]);
-		}),
-	);
+			postUserMap.set(uid, postUserResults[i]);
+		}
+	});
+
+	// Parent titles: parentNodeId -> title
+	const parentTitleMap = new Map<number, string>();
+	parentTitles.forEach((r: { node_id: number, title: string }) => parentTitleMap.set(r.node_id, r.title));
+
+	// PT/Shop users: nodeId -> users[]
+	const ptUsersMap = new Map<number, { id: string, username: string, granted: boolean }[]>();
+	ptUsers.forEach((r: { node_id: number, id: number, username: string, granted: boolean }) =>
+	{
+		if (!ptUsersMap.has(r.node_id)) ptUsersMap.set(r.node_id, []);
+		ptUsersMap.get(r.node_id)!.push({ id: String(r.id), username: r.username, granted: r.granted });
+	});
+
+	// Followed nodes: Set of nodeIds
+	const followedSet = new Set<number>(followedNodes.map((r: { node_id: number }) => r.node_id));
+
+	// Notified nodes: Set of nodeIds
+	const notifiedSet = new Set<number>(notifiedNodes.map((r: { node_id: number }) => r.node_id));
+
+	// Follower counts: nodeId -> count
+	const followerCountMap = new Map<number, number>();
+	followerCounts.forEach((r: { node_id: number, count: number }) => followerCountMap.set(r.node_id, Number(r.count)));
+
+	// Revision counts: nodeId -> count
+	const revisionCountMap = new Map<number, number>();
+	revisionCounts.forEach((r: { node_id: number, count: number }) => revisionCountMap.set(r.node_id, Number(r.count)));
+
+	// Edit perms: short-circuited inline — edit is granted iff userId === node.user_id
+	// SYNC WITH v1/node/permission
+
+	// Latest page: nodeId -> page number
+	const latestPageMap = new Map<number, number | null>();
+	latestPages.forEach((r: { node_id: number, latest_page: number }) => latestPageMap.set(r.node_id, r.latest_page));
+
+	// Latest post: nodeId -> post id
+	const latestPostMap = new Map<number, number | null>();
+	latestPosts.forEach((r: { node_id: number, latest_post: number | null }) => latestPostMap.set(r.node_id, r.latest_post));
+
+	// Last checked: nodeId -> last_checked
+	const lastCheckedMap = new Map<number, Date>();
+	lastCheckedResults.forEach((r: { node_id: number, last_checked: Date }) => lastCheckedMap.set(r.node_id, r.last_checked));
+
+	// Lock perms: nodeId -> boolean
+	const lockPermMap = new Map<number, boolean>();
+	threadLockPerms.forEach((r: { nodeId: number, granted: boolean }) => lockPermMap.set(r.nodeId, r.granted));
+
+	// Unread counts: nodeId -> count
+	const unreadCountMap = new Map<number, number>();
+	unreadCounts.forEach((r: { node_id: number, count: number }) => unreadCountMap.set(r.node_id, Number(r.count)));
+
+	// Files: revisionId -> files[]
+	const filesMap = new Map<number, { id: number, file_id: string, name: string, width: number, height: number, caption: string }[]>();
+	postFiles.forEach((r: { node_revision_id: number, id: number, file_id: string, name: string, width: number, height: number, caption: string }) =>
+	{
+		if (!filesMap.has(r.node_revision_id)) filesMap.set(r.node_revision_id, []);
+		filesMap.get(r.node_revision_id)!.push({ id: r.id, file_id: r.file_id, name: r.name, width: r.width, height: r.height, caption: r.caption });
+	});
+
+	// Donations: userId -> donations
+	const donationMap = new Map<number, UserDonationsType>();
+	donationResults.forEach((r: { user_id: number, perks: string }) =>
+	{
+		donationMap.set(r.user_id, {
+			id: r.user_id,
+			donations: 0,
+			perks: Number(r.perks),
+			monthlyPerks: 0,
+		});
+	});
+
+	// Read perms: nodeId -> boolean
+	const readPermMap = new Map<number, boolean>();
+	if (!parentChildren)
+	{
+		(readPerms as { nodeId: number, granted: boolean }[]).forEach(r => readPermMap.set(r.nodeId, r.granted));
+	}
+
+	// Forum categories: nodeId -> category (first match only, matches LIMIT 1 in original)
+	const forumCategoryMap = new Map<number, { id: number, title: string, order: number }>();
+	forumCategories.forEach((r: { node_id: number, id: number, title: string, order: number }) =>
+	{
+		if (!forumCategoryMap.has(r.node_id)) forumCategoryMap.set(r.node_id, { id: r.id, title: r.title, order: r.order });
+	});
+
+	// Quotes: revisionId -> quotes[]
+	const quotesMap = new Map<number, { node_id: number, sort_order: number, page: number }[]>();
+	postQuotes.forEach((r: { node_revision_id: number, node_id: number, sort_order: number, page: number }) =>
+	{
+		if (!quotesMap.has(r.node_revision_id)) quotesMap.set(r.node_revision_id, []);
+		quotesMap.get(r.node_revision_id)!.push({ node_id: r.node_id, sort_order: r.sort_order, page: r.page });
+	});
+
+	// Reactions: nodeId -> reactions[]
+	const reactionCountsMap = new Map<number, { emoji: string, count: number }[]>();
+	reactionCounts.forEach((r: { node_id: number, emoji: string, count: number }) =>
+	{
+		if (!reactionCountsMap.has(r.node_id)) reactionCountsMap.set(r.node_id, []);
+		reactionCountsMap.get(r.node_id)!.push({ emoji: r.emoji, count: Number(r.count) });
+	});
+
+	// User reactions: nodeId -> Set of emoji
+	const userReactionMap = new Map<number, Set<string>>();
+	if (userReactions)
+	{
+		userReactions.forEach((r: { node_id: number, emoji: string }) =>
+		{
+			if (!userReactionMap.has(r.node_id)) userReactionMap.set(r.node_id, new Set());
+			userReactionMap.get(r.node_id)!.add(r.emoji);
+		});
+	}
+
+	// React perms: parentNodeId -> boolean (board-level perm, same for all posts in thread)
+	// SYNC WITH v1/node/permission
+	const reactPermMap = new Map<number, boolean>();
+	postReactPerms.forEach((r: { nodeId: number, granted: boolean }) => reactPermMap.set(r.nodeId, r.granted));
+
+	// Polls: revisionId -> Map<pollId, poll>
+	const pollsPerRevision = new Map<number, Map<number, NodeChildNodesType['polls'][number]>>();
+
+	// Thread reply perms for poll active state: parentNodeId -> boolean
+	const threadReplyPermMap = new Map<number, boolean>();
+	threadReplyPerms.forEach((r: { nodeId: number, granted: boolean }) => threadReplyPermMap.set(r.nodeId, r.granted));
+
+	// User poll answer set: revisionId -> Set of pollIds
+	const userPollMap = new Map<number, Set<number>>();
+	if (userPollAnswers)
+	{
+		userPollAnswers.forEach((r: { node_revision_id: number, poll_id: number }) =>
+		{
+			if (!userPollMap.has(r.node_revision_id)) userPollMap.set(r.node_revision_id, new Set());
+			userPollMap.get(r.node_revision_id)!.add(r.poll_id);
+		});
+	}
+
+	// Poll total users: pollId -> count
+	const pollTotalMap = new Map<number, number>();
+	pollTotalUsers.forEach((r: { poll_id: number, count: number }) => pollTotalMap.set(r.poll_id, Number(r.count)));
+
+	// Build polls map
+	pollOptions.forEach((r: { node_revision_id: number, poll_id: number, sort_order: number, description: string, sequence: number, votes: number }) =>
+	{
+		if (!pollsPerRevision.has(r.node_revision_id))
+		{
+			pollsPerRevision.set(r.node_revision_id, new Map());
+		}
+
+		const revPolls = pollsPerRevision.get(r.node_revision_id)!;
+		const userPolls = userPollMap.get(r.node_revision_id);
+
+		if (!revPolls.has(r.poll_id))
+		{
+			// Find the parent node id for this revision to get reply perm
+			const postNode = postNodes.find(n => n.revision_id === r.node_revision_id);
+			const threadReplyPerm = postNode ? threadReplyPermMap.get(postNode.parent_node_id) ?? false : false;
+
+			revPolls.set(r.poll_id, {
+				id: r.poll_id,
+				sortOrder: r.sort_order,
+				options: [],
+				userVoted: userPolls ? userPolls.has(r.poll_id) : false,
+				totalUsers: pollTotalMap.get(r.poll_id) ?? 0,
+				active: threadReplyPerm,
+			});
+		}
+
+		revPolls.get(r.poll_id)!.options.push({
+			description: r.description,
+			sequence: r.sequence,
+			votes: r.votes,
+		});
+	});
+
+	// --- FILTER AND MAP RESULTS ---
 
 	if (!parentChildren)
 	{
-		// in case followed / threads has bad permission logic
-		nodes
-			.filter(result => !result[15])
-			.map(result =>
+		results
+			.filter(node => !readPermMap.get(node.id))
+			.forEach(node =>
 			{
-				console.error(`getChildren for ${userId}, permission read error for node ${result[0].id}`);
+				console.error(`getChildren for ${userId}, permission read error for node ${node.id}`);
 			});
 	}
 
-	const count = results.length > 0 ? Number(results[0].count) : 0;
-
-	// we should essentially be returning the same thing as node/full here
-	// exception is node permissions, which we don't need to get for each child (only posts)
-	return [count, nodes
-		.filter(result => result[15]) // can read node
-		.map(result =>
+	const childNodes: NodeChildNodesType[] = results
+		.filter(node => parentChildren || readPermMap.get(node.id))
+		.map(node =>
 		{
-			const node: NodeChildrenResultType = result[0];
-			const parent = result[1];
-			const user: UserLiteType | UserType | null = result[2];
-			const users = result[3];
+			const isPost = node.type === 'post';
+			const isThread = node.type === 'thread';
+			const isBoard = node.type === 'board';
 
-			let followedNode, numFollowed;
+			// User lookup
+			const user = node.user_id
+				? isThread
+					? threadUserMap.get(node.user_id) ?? null
+					: postUserMap.get(node.user_id) ?? null
+				: null;
 
-			if (['board', 'thread'].includes(node.type))
-			{
-				[followedNode] = result[4];
+			// Permissions
+			// SYNC WITH v1/node/permission if permission logic changes
+			const permissions: string[] = [];
+			if (isPost && userId && node.user_id === userId) permissions.push('edit');
+			if (isThread && lockPermMap.get(node.id)) permissions.push('lock');
+			if (isPost && reactPermMap.get(node.parent_node_id)) permissions.push('react');
 
-				if (viewFollowersPerm && node.type === 'thread' && constants.boardIds.privateThreads !== Number(node.id))
-				{
-					[numFollowed] = result[5];
-				}
-			}
-
-			const revisions = result[6];
-			const editPerm: boolean | null = result[7];
-			const latestPage = result[8] && result[8][0] ? result[8][0].latest_page : null;
-			const latestPost = result[9] && result[9][0] ? result[9][0].latest_post : null;
-			const lastChecked = result[10];
-			const lockPerm: boolean | null = result[11];
-
-			let permissions: string[] = [];
-
-			if (editPerm)
-			{
-				permissions.push('edit');
-			}
-
-			if (lockPerm)
-			{
-				permissions.push('lock');
-			}
-
-			const unreadTotal = result[12];
-			const nodeFiles = result[13];
-			const userDonations = result[14];
-			const forumCategory = result[15];
+			// Thread-specific
+			const latestPage = isThread ? latestPageMap.get(node.id) ?? null : null;
+			const latestPost = isThread ? latestPostMap.get(node.id) ?? null : null;
+			const hasLastChecked = isThread && lastCheckedMap.has(node.id);
 
 			const replies = node.reply_count ? Number(node.reply_count) - 1 : 0;
 
+			// Unread
+			const unreadTotal = isThread
+				? unreadCountMap.has(node.id) ? unreadCountMap.get(node.id)! : replies + 1
+				: null;
+
+			// Files
+			const nodeFiles = isPost ? filesMap.get(node.revision_id) ?? [] : [];
+
+			// Reactions
+			const nodeUserReactions = userReactionMap.get(node.id);
+			const nodeReactions = isPost
+				? (reactionCountsMap.get(node.id) ?? []).map(reaction => ({
+					...reaction,
+					src: reaction.emoji,
+					usedByUser: nodeUserReactions ? nodeUserReactions.has(reaction.emoji) : false,
+				}))
+				: [];
+
+			// Quotes
+			const nodeQuotes = isPost
+				? (quotesMap.get(node.revision_id) ?? []).map(nq => ({
+					nodeId: nq.node_id,
+					sortOrder: nq.sort_order,
+					page: nq.page,
+				}))
+				: [];
+
+			// Polls
+			const revPolls = isPost ? pollsPerRevision.get(node.revision_id) : null;
+
+			// Forum category
+			const forumCategory = isBoard ? forumCategoryMap.get(node.id) ?? null : null;
+
+			// Follower count
+			const numFollowed = viewFollowersPerm && isThread && node.id !== constants.boardIds.privateThreads
+				? followerCountMap.get(node.id) ?? 0
+				: 0;
+
 			return <NodeChildNodesType>{
-				id: Number(node.id),
+				id: node.id,
 				type: node.type,
-				parentId: Number(node.parent_node_id),
-				revisionId: Number(node.revision_id),
+				parentId: node.parent_node_id,
+				parentId2: node.parent_node_id2,
+				revisionId: node.revision_id,
+				postNumber: node.post_number,
+				page: node.page_number,
 				title: node.title,
 				created: node.creation_time,
 				formattedCreated: dateUtils.formatDateTime(node.creation_time),
 				locked: node.locked,
 				threadType: node.thread_type,
-				edits: revisions ? revisions[0].count - 1 : 0,
-				followed: followedNode ? true : false,
-				numFollowed: viewFollowersPerm && numFollowed ? Number(numFollowed.count) : 0,
-				board: parent ? parent[0].title : '',
+				edits: isPost ? (revisionCountMap.get(node.id) ?? 1) - 1 : 0,
+				followed: followedSet.has(node.id),
+				notified: notifiedSet.has(node.id),
+				numFollowed: numFollowed,
+				board: isThread ? parentTitleMap.get(node.parent_node_id) ?? '' : '',
 				user: user,
 				content: node.content ? {
 					text: node.content,
 					format: node.content_format,
 				} : null,
 				lastReply: node.latest_reply_time ? dateUtils.formatDateTime(node.latest_reply_time) : null,
-				users: users,
+				users: ptUsersMap.get(node.id) ?? [],
 				permissions: permissions,
 				latestPage: latestPage,
 				latestPost: latestPost,
 				replyCount: replies,
-				unread: userId && node.type === 'thread' ? lastChecked.length > 0 ? latestPost > 0 ? true : false : node.locked ? false : true : false,
-				unreadTotal: unreadTotal ? unreadTotal[0] ? Number(unreadTotal[0].count) : replies + 1 : null,
-				files: nodeFiles ? nodeFiles.map((file: any) =>
-				{
-					return {
-						id: file.id,
-						fileId: file.file_id,
-						name: file.name,
-						width: file.width,
-						height: file.height,
-						caption: file.caption,
-					};
-				}) : [],
+				unread: userId && isThread ? hasLastChecked ? latestPost && latestPost > 0 ? true : false : node.locked ? false : true : false,
+				unreadTotal: isThread ? unreadTotal : null,
+				files: nodeFiles.map(file => ({
+					id: file.id,
+					fileId: file.file_id,
+					name: file.name,
+					width: file.width,
+					height: file.height,
+					caption: file.caption,
+				})),
 				showImages: userSettings && userSettings[0] ? userSettings[0].show_images : false,
 				conciseMode: conciseMode,
-				userDonations: userDonations,
+				userDonations: isThread ? donationMap.get(node.user_id) ?? {} : {},
 				forumCategory: forumCategory,
+				nodeQuotes: nodeQuotes,
+				reactions: nodeReactions,
+				hidePostEmojis: userSettings && userSettings[0] ? userSettings[0].hide_post_emojis : false,
+				polls: revPolls ? [...revPolls.values()] : [],
 			};
-		})];
+		});
+
+	return [count, childNodes];
 }
 
 /*
  * Check whether given text contains a filtered word.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function profanityCheck(text: any): Promise<void>
 {
 	if (text === null || utils.realStringLength(text) === 0)
@@ -580,7 +1126,7 @@ export async function profanityCheck(text: any): Promise<void>
 		return;
 	}
 
-	const words = await query(`
+	const words: [{ word: string }] = await query(`
 		SELECT word
 		FROM filter_word
 		WHERE active = true
@@ -594,7 +1140,7 @@ export async function profanityCheck(text: any): Promise<void>
 	const startsWith = '(^|\\s)';
 	const endsWith = '(?=\\s|$)';
 
-	const filteredWords = words.filter((fw: any) =>
+	const filteredWords = words.filter(fw =>
 	{
 		const noWildCardWord = fw.word.replaceAll('*', '');
 
@@ -612,15 +1158,15 @@ export async function profanityCheck(text: any): Promise<void>
 
 	if (filteredWords.length > 0)
 	{
-		const uniqueWords = [...new Set(filteredWords.map((fw: any) => fw.word.replaceAll('*', '')))];
+		const uniqueWords = [...new Set(filteredWords.map(fw => fw.word.replaceAll('*', '')))];
 		throw new ProfanityError(uniqueWords.join(', '));
 	}
 }
 
-/* 
+/*
  * Logs out all sessions belonging to the provided user ID.
  */
-export async function logout(userId: string): Promise<void>
+export async function logout(userId: number): Promise<void>
 {
 	await query("DELETE FROM session WHERE (sess->'user')::text = $1::text", userId);
 }

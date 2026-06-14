@@ -6,18 +6,6 @@ import { APIThisType, SuccessType, ShopType } from '@types';
 
 async function save(this: APIThisType, { shopId, user, action, roles }: saveProps): Promise<SuccessType>
 {
-	const permissionGranted: boolean = await this.query('v1/permission', { permission: 'modify-shops' });
-
-	if (!permissionGranted)
-	{
-		throw new UserError('permission');
-	}
-
-	if (!this.userId)
-	{
-		throw new UserError('login-needed');
-	}
-
 	const shop: ShopType = await this.query('v1/shop', { id: shopId });
 
 	if (!shop)
@@ -41,13 +29,8 @@ async function save(this: APIThisType, { shopId, user, action, roles }: saveProp
 		throw new UserError('no-such-user');
 	}
 
-	roles = await Promise.all(roles.map(async(id) =>
+	roles = await Promise.all((roles as string[]).map(async id =>
 	{
-		if (isNaN(id))
-		{
-			throw new UserError('no-such-role');
-		}
-
 		const [role] = await db.query(`
 			SELECT id
 			FROM shop_role
@@ -82,7 +65,7 @@ async function save(this: APIThisType, { shopId, user, action, roles }: saveProp
 			SELECT shop_role.id
 			FROM shop_role
 			WHERE shop_id = $1 AND active = true AND parent_id IS NULL
-		`, shopId)).map((role: any) => role.id);
+		`, shopId)).map((role: { id: number }) => role.id);
 
 		if (!roles.some(roleId => ownerRoleIds.includes(roleId)))
 		{
@@ -90,7 +73,7 @@ async function save(this: APIThisType, { shopId, user, action, roles }: saveProp
 		}
 	}
 
-	const shopUserId = await db.transaction(async (query: any) =>
+	const shopUserId = await db.transaction(async (query: db.QueryType) =>
 	{
 		let [shopUser] = await db.query(`
 			SELECT id, active
@@ -162,6 +145,11 @@ async function save(this: APIThisType, { shopId, user, action, roles }: saveProp
 	};
 }
 
+save.permissions = [
+	'modify-shops',
+	'userId',
+];
+
 save.apiTypes = {
 	shopId: {
 		type: APITypes.number,
@@ -187,7 +175,7 @@ type saveProps = {
 	shopId: number
 	user: string
 	action: 'add' | 'remove'
-	roles: any[]
+	roles: string[] | number[]
 };
 
 export default save;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Params } from 'react-router';
 
 import { RequireUser, RequirePermission, RequireClientJS } from '@behavior';
 import { Form, Check, Select, Text, Switch } from '@form';
@@ -20,17 +20,19 @@ const TradingPostPage = ({ loaderData }: { loaderData: TradingPostPageProps }) =
 	const [selectedGameId, setSelectedGameId] = useState<TradingPostPageProps['gameId']>(gameId);
 	const [residents, setResidents] = useState<ResidentsType[number] | null>(initialResidents && gameId ? initialResidents[gameId] : null);
 
-	const link = `&creator=${encodeURIComponent(creator)}
-		&type=${encodeURIComponent(type)}
-		&gameId=${encodeURIComponent(String(selectedGameId || ''))}
-		&bells=${encodeURIComponent(String(bells || ''))}
-		&items=${encodeURIComponent(items.join(','))}
-		&villagers=${encodeURIComponent(villagers.join(','))}
-		&active=${encodeURIComponent(String(active || ''))}
-		&wishlist=${encodeURIComponent(wishlist)}
-		&bioLocation=${encodeURIComponent(bioLocation)}
-		&comment=${encodeURIComponent(comment)}
-	`;
+	const params = new URLSearchParams();
+	params.set('creator', creator);
+	params.set('type', type);
+	params.set('gameId', String(selectedGameId || ''));
+	params.set('bells', String(bells || ''));
+	params.set('active', String(active || ''));
+	params.set('wishlist', String(wishlist));
+	params.set('bioLocation', bioLocation);
+	params.set('comment', comment);
+	items.forEach(i => params.append('items', i));
+	villagers.forEach(v => params.append('villagers', v));
+
+	const link = '&' + params.toString();
 
 	const changeGame = (event: ElementSelectType): void =>
 	{
@@ -111,6 +113,7 @@ const TradingPostPage = ({ loaderData }: { loaderData: TradingPostPageProps }) =
 								([
 									{ id: '', name: 'All Games' },
 									{ id: '0', name: 'None' },
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
 								] as any)
 									.concat(acgames
 										.filter(g => g.hasTown === true))
@@ -140,7 +143,7 @@ const TradingPostPage = ({ loaderData }: { loaderData: TradingPostPageProps }) =
 									label='Villager(s)'
 									multiple
 									placeholder='Select villager(s)...'
-									options={residents.filter((r: any) => r.isTown === true)}
+									options={residents.filter(r => r.isTown === true)}
 									optionsMapping={{ value: 'id', label: 'name' }}
 									value={villagers}
 									size={15}
@@ -210,7 +213,7 @@ const TradingPostPage = ({ loaderData }: { loaderData: TradingPostPageProps }) =
 	);
 };
 
-async function loadData(this: APIThisType, _: any, { page, creator, type, gameId, bells, items, villagers, active, wishlist, bioLocation, comment }: { page?: string, creator?: string, type?: string, gameId?: string, bells?: string, items?: string, villagers?: string, active?: string, wishlist?: string, bioLocation?: string, comment?: string }): Promise<TradingPostPageProps>
+async function loadData(this: APIThisType, _: Params, { page, creator, type, gameId, bells, items, villagers, active, wishlist, bioLocation, comment }: { page?: string, creator?: string, type?: string, gameId?: string, bells?: string, items?: string, villagers?: string, active?: string, wishlist?: string, bioLocation?: string, comment?: string }): Promise<TradingPostPageProps>
 {
 	const [acgames, returnValue, acgameCatalog, residents, acItemsCatalog] = await Promise.all([
 		this.query('v1/acgames'),

@@ -1,6 +1,6 @@
 import * as db from '@db';
 import { dateUtils } from '@utils';
-import { APIThisType, StatusType } from '@types';
+import { APIThisType, StatusType, UserType } from '@types';
 
 /*
  * Provides information about the current status of the site, useful for display on almost every page.
@@ -23,21 +23,22 @@ export default async function status(this: APIThisType): Promise<StatusType>
 			user: null,
 			permissions: [],
 			southernHemisphere: false,
+			dockMenu: false,
 			banLength: userData[0].description,
 		};
 	}
 
-	const [user, groupIds, settings] = await Promise.all([
+	const [user, groupIds, settings]: [UserType | null, number[], { southern_hemisphere: boolean } | null] = await Promise.all([
 		this.userId ? this.query('v1/user', { id: this.userId }) : null,
 		db.getUserGroups(this.userId),
 		this.userId ? db.query(`
-			SELECT southern_hemisphere
+			SELECT southern_hemisphere, dock_menu
 			FROM users
 			WHERE users.id = $1::int
 		`, this.userId) : null,
 	]);
 
-	const permissions = await db.query(`
+	const permissions: { identifier: string }[] = await db.query(`
 		SELECT *
 		FROM (
 			-- grab first of each permission using the order by
@@ -71,12 +72,12 @@ export default async function status(this: APIThisType): Promise<StatusType>
 		WHERE granted = true
 	`, this.userId, groupIds);
 
-	const identifiers = await Promise.all(permissions.map(async (p: any) =>
+	const identifiers = await Promise.all(permissions.map(async p =>
 	{
 		switch (p.identifier)
 		{
 			case 'allow-post-images':
-				if (this.userId && !dateUtils.isNewMember(user.signupDate))
+				if (user && !dateUtils.isNewMember(user.signupDate))
 				{
 					return 'post-images';
 				}
@@ -91,5 +92,6 @@ export default async function status(this: APIThisType): Promise<StatusType>
 		user: user,
 		permissions: identifiers,
 		southernHemisphere: settings ? settings[0].southern_hemisphere : false,
+		dockMenu: settings ? settings[0].dock_menu : false,
 	};
 }

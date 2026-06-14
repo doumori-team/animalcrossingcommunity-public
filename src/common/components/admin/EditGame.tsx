@@ -97,19 +97,11 @@ const EditGame = ({
 						label='Sequence'
 						value={game && game.sequence ? game.sequence : 0}
 						options={gamesSequence.concat([
-							{ sequence: 0, label: '(Sort Alphabetically)' } as any,
+							{ sequence: 0, text: '(Sort Alphabetically)' },
 						])}
 						optionsMapping={{
 							value: 'sequence',
-							label: (item: any) =>
-							{
-								if (Object.prototype.hasOwnProperty.call(item, 'label'))
-								{
-									return item.label;
-								}
-
-								return `${item.sequence} - ${item.text}`;
-							},
+							label: (item: typeof gamesSequence[number]) => `${item.sequence} - ${item.text}`,
 						}}
 					/>
 				</Form.Group>
